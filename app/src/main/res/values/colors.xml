@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#55709E</color>
+    <color name="purple_500">#0c1b3a</color>
+    <color name="purple_700">#000016</color>
+    <color name="teal_200">#79B4B7</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#1A2565</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="darker">#1C1C1C</color>
+    <color name="background">#0C1D3A</color>
+    <color name="app_size_color">#FFDFA8</color>
+
+    <!--  Chip color -->
+    <color name="red">#D35151</color>
+    <color name="blue">#2F7EE6</color>
+    <color name="pink_text">#F5CAC9</color>
+    <color name="blue_text">#B9CDF4</color>
+    <color name="weak_yellow">#F9F7CF</color>
+
+    <!-- Card color -->
+    <color name="card">#162844</color>
+    <color name="ripple">#1E375E</color>
+
+    <!-- Bars -->
+    <color name="bottom_bar">#1D3558</color>
+    <color name="bottom_bar_secondary">#86B6FC</color>
+    <color name="status_bar">#122239</color>
+
+</resources>
