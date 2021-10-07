@@ -22,7 +22,6 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.adapter.AppAdapter
-import com.stefan.simplebackup.backup.BackupActivity
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityMainBinding
@@ -32,6 +31,7 @@ import java.io.File
 class MainActivity : AppCompatActivity() {
 
     private var PACKAGE_NAME: String? = null
+    private var searched: Boolean = false
 
     private lateinit var applicationList: MutableList<Application>
     private lateinit var bitmapList: MutableList<ApplicationBitmap>
@@ -49,7 +49,11 @@ class MainActivity : AppCompatActivity() {
     private val flags: Int = PackageManager.GET_META_DATA or
             PackageManager.GET_SHARED_LIBRARY_FILES
 
+    /**
+     * - Standardna onCreate metoda Activity Lifecycle-a
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.Theme_SimpleBackup)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -76,7 +80,6 @@ class MainActivity : AppCompatActivity() {
         swipeContainer.setOnRefreshListener {
             // Osveži listu
             refreshPackageList()
-
             // Stopiraj SwipeContainer animaciju osvežavanja kada obavestimo RecyclerView
             swipeContainer.isRefreshing = false
         }
@@ -98,13 +101,15 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    /**
+     * - Kreiraj menu i podesi listener za search polje
+     */
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-
         menuInflater.inflate(R.menu.top_app_bar, menu)
         val menuItem = menu?.findItem(R.id.search)
         val searchView = menuItem?.actionView as SearchView
         searchView.setImeOptions(EditorInfo.IME_ACTION_DONE)
-        searchView.queryHint = "Search!"
+        searchView.queryHint = "Search for apps"
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -116,6 +121,7 @@ class MainActivity : AppCompatActivity() {
                 var tempBitmapList = mutableListOf<ApplicationBitmap>()
                 if (newText.isNullOrEmpty()) {
                     appAdapter.updateList(applicationList, bitmapList)
+                    searched = false
                 } else {
                     applicationList.forEach() {
                         if (it.getName().lowercase().startsWith(newText.lowercase())) {
@@ -127,6 +133,7 @@ class MainActivity : AppCompatActivity() {
                             tempBitmapList.add(it)
                         }
                     }
+                    searched = true
                     Log.d("string:", newText)
                     appAdapter.updateList(tempAppList, tempBitmapList)
                 }
@@ -164,7 +171,8 @@ class MainActivity : AppCompatActivity() {
         bitmapList = getBitmapList(applicationInfoList, pm)
         appAdapter = AppAdapter(applicationList, bitmapList)
 
-        // Postavi LinearLayoutManager  layoutManager za recyclerView
+        // Postavi LinearLayoutManager layoutManager za recyclerView
+        recyclerView.setHasFixedSize(true)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = appAdapter
     }
@@ -215,10 +223,8 @@ class MainActivity : AppCompatActivity() {
         bitmapList = getBitmapList(applicationInfoList, pm)
         // Ubaci u logcat informaciju o listi (debugging broj liste)
         Log.d("updated_list:", applicationList.toString())
-
         // Prosledi adapteru update-ovanu listu i obacesti RecyclerView adapter
         appAdapter.updateList(applicationList, bitmapList)
-//        appAdapter.notifyDataSetChanged()
     }
 
     /**
@@ -227,7 +233,9 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onResume() {
         super.onResume()
-        refreshPackageList()
+        if (!searched) {
+            refreshPackageList()
+        }
     }
 
     /**
@@ -277,6 +285,9 @@ class MainActivity : AppCompatActivity() {
         return list
     }
 
+    /**
+     * - Puni MutableList sa izdvojenim objektima ApplicationBitmap klase
+     */
     private fun getBitmapList(
         applicationInfoList: MutableList<ApplicationInfo>,
         pm: PackageManager
@@ -309,6 +320,9 @@ class MainActivity : AppCompatActivity() {
         return pkgInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
     }
 
+    /**
+     * - Prebacuje drawable u bitmap da bi je kasnije skladištili na internu memoriju
+     */
     private fun drawableToBitmap(drawable: Drawable): Bitmap {
         val bitmap: Bitmap
 

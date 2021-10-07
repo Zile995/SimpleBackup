@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/card_item"
     android:layout_width="match_parent"
-    android:layout_height="120sp"
-    android:layout_margin="12sp"
+    android:layout_height="120dp"
+    android:layout_margin="12dp"
     android:clickable="true"
     android:focusable="true"
     app:cardBackgroundColor="@color/card"
@@ -16,7 +16,7 @@
 
         <ImageView
             android:id="@+id/application_image"
-            android:layout_width="50sp"
+            android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_marginStart="25dp"
             android:layout_marginBottom="30dp"
@@ -51,7 +51,7 @@
             android:text="@string/apk"
             android:textAppearance="?attr/textAppearanceBody1"
             android:textColor="@color/app_size_color"
-            android:textSize="6pt"
+            android:textSize="5.7pt"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="@+id/app_size_text"
             app:layout_constraintEnd_toStartOf="@id/app_size_text"
@@ -62,12 +62,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
+            android:layout_marginBottom="10dp"
             android:fontFamily="@font/meslo_family"
             android:textColor="@color/app_size_color"
-            app:layout_constraintBottom_toBottomOf="@+id/chip_version"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/chip_version">
-
+            android:textSize="5.7pt"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
         </com.google.android.material.textview.MaterialTextView>
 
         <com.google.android.material.chip.Chip

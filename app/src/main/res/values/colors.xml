@@ -4,12 +4,12 @@
     <color name="purple_500">#0c1b3a</color>
     <color name="purple_700">#000016</color>
     <color name="teal_200">#79B4B7</color>
-    <color name="teal_700">#FF018786</color>
+    <color name="teal_700">#97FFEF</color>
     <color name="black">#1A2565</color>
     <color name="white">#FFFFFFFF</color>
     <color name="darker">#1C1C1C</color>
     <color name="background">#0C1D3A</color>
-    <color name="app_size_color">#FFDFA8</color>
+    <color name="app_size_color">#FFEAD1</color>
 
     <!--  Chip color -->
     <color name="red">#D35151</color>
@@ -22,9 +22,11 @@
     <color name="card">#162844</color>
     <color name="ripple">#1E375E</color>
 
+    <!-- Dialog color -->
+    <color name="dialog">#FF3030</color>
     <!-- Bars -->
     <color name="bottom_bar">#1D3558</color>
     <color name="bottom_bar_secondary">#86B6FC</color>
-    <color name="status_bar">#122239</color>
+    <color name="status_bar">#162844</color>
 
 </resources>

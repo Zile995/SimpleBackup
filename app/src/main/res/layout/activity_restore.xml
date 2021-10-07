@@ -22,7 +22,7 @@
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/bottom_bar"
                 app:menu="@menu/top_app_bar"
-                app:title="@string/app_name"
+                app:title="@string/restore"
                 app:titleTextColor="@color/white" />
 
         </com.google.android.material.appbar.AppBarLayout>

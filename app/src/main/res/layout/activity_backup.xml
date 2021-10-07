@@ -7,9 +7,19 @@
     android:background="@color/background"
     tools:context=".backup.BackupActivity">
 
-<!--    <ProgressBar-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="250dp"
+        android:layout_height="30dp"
+        android:backgroundTint="@color/white"
+        android:indeterminate="false"
+        android:indeterminateTint="@color/purple_200"
+        android:max="100"
+        app:layout_constraintBottom_toTopOf="@+id/floating_delete_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/backup_button" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floating_delete_button"
