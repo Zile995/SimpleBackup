@@ -1,7 +1,6 @@
 package com.stefan.simplebackup.backup
 
 import android.app.Activity
-import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -31,11 +30,11 @@ import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.Application
+import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.*
 import java.util.*
-
 
 class BackupActivity : AppCompatActivity() {
 
@@ -43,6 +42,8 @@ class BackupActivity : AppCompatActivity() {
         private const val TAG: String = "BackupActivity"
         private const val REQUEST_CODE_SIGN_IN: Int = 400
     }
+
+    private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private lateinit var topBar: Toolbar
     private lateinit var textItem: MaterialTextView
@@ -84,8 +85,10 @@ class BackupActivity : AppCompatActivity() {
         progressBar.visibility = View.GONE
 
         backupButton.setOnClickListener {
-            progressBar.visibility = View.VISIBLE
-            createLocalBackup(bitmap, selectedApp)
+            scope.launch {
+                progressBar.visibility = View.VISIBLE
+                createLocalBackup(bitmap, selectedApp)
+            }
         }
 
         backupDriveButton.setOnClickListener {
@@ -122,47 +125,43 @@ class BackupActivity : AppCompatActivity() {
         }
         builder.setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.cancel() }
         val alert = builder.create()
-        alert.setOnShowListener(object : DialogInterface.OnShowListener {
-            override fun onShow(dialog: DialogInterface?) {
-                alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-                    .setTextColor(resources.getColor(R.color.white))
-                alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                    .setTextColor(resources.getColor(R.color.white))
-            }
-        })
+        alert.setOnShowListener {
+            alert.getButton(AlertDialog.BUTTON_NEGATIVE)
+                .setTextColor(resources.getColor(R.color.white))
+            alert.getButton(AlertDialog.BUTTON_POSITIVE)
+                .setTextColor(resources.getColor(R.color.white))
+        }
         alert.show()
     }
 
-    private fun createLocalBackup(bitmap: Bitmap, app: Application) {
-        val root = "/storage/emulated/0/SimpleBackup"
-        val backupFolder = "$root/${app.getName().filterNot { it.isWhitespace() }}_${
-            app.getVersionName().filterNot { it.isWhitespace() }
-        }"
-        sudo("mkdir -p $backupFolder")
-        progressBar.setProgress(25, true)
-        sudo("cp -r /data/data/${app.getPackageName()} $backupFolder/")
-        progressBar.setProgress(45, true)
-        sudo("cp -r ${getApkBundlePath(app.getPackageName())}*.apk $backupFolder/")
-        progressBar.setProgress(75, true)
-        saveBitmap(bitmap, "${backupFolder}/${app.getName()}.png")
-        progressBar.setProgress(100, true)
-        Handler(Looper.getMainLooper()).postDelayed({
-            progressBar.visibility = View.GONE
-            progressBar.progress = 0
-            Toast.makeText(this, "Done!", Toast.LENGTH_SHORT).show()
-        }, 1000)
-        saveJsonString(appToJsonString(app),backupFolder,app)
+    private suspend fun createLocalBackup(bitmap: Bitmap, app: Application) {
+        withContext(Dispatchers.IO) {
+            val root = "/storage/emulated/0/SimpleBackup"
+            val backupFolder = "$root/${app.getName().filterNot { it.isWhitespace() }}_${
+                app.getVersionName().filterNot { it.isWhitespace() }
+            }"
+            sudo("mkdir -p $backupFolder")
+            progressBar.setProgress(25, true)
+            sudo("cp -r /data/data/${app.getPackageName()} $backupFolder/")
+            progressBar.setProgress(45, true)
+            sudo("cp ${getApkBundlePath(app.getPackageName())}*.apk $backupFolder/")
+            progressBar.setProgress(75, true)
+            saveBitmap(bitmap, "${backupFolder}/${app.getName()}.png")
+            appToJson(app, backupFolder)
+            progressBar.setProgress(100, true)
+            Handler(Looper.getMainLooper()).postDelayed({
+                progressBar.visibility = View.GONE
+                progressBar.progress = 0
+                Toast.makeText(this@BackupActivity, "Done!", Toast.LENGTH_SHORT).show()
+            }, 500)
+        }
     }
 
-    private fun appToJsonString(app: Application): String {
-        return Json.encodeToString(app)
-    }
-
-    private fun saveJsonString(json: String, dir: String, app: Application) {
-        val file = File(dir, app.getName().plus(".txt"))
+    private fun appToJson(app: Application, dir: String) {
+        val file = File(dir, app.getName().plus(".json"))
         file.createNewFile()
         OutputStreamWriter(FileOutputStream(file)).use {
-            it.append(json)
+            it.append(Json.encodeToString(app))
         }
     }
 
@@ -210,12 +209,12 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private fun getApkBundlePath(packageName: String): String {
-            val process =
-                Runtime.getRuntime().exec("su -c pm path $packageName | cut -d':' -f2")
-            BufferedReader(InputStreamReader(process.inputStream)).use {
-                return it.readLine().removeSuffix("base.apk")
-            }
+        val process =
+            Runtime.getRuntime().exec("su -c pm path $packageName | cut -d':' -f2")
+        BufferedReader(InputStreamReader(process.inputStream)).use {
+            return it.readLine().removeSuffix("base.apk")
         }
+    }
 
     private fun deleteApp(packageName: String) {
         try {

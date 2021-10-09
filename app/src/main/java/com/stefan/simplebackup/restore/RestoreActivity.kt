@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.restore
 
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -13,18 +14,20 @@ import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityRestoreBinding
+import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.io.FileInputStream
 
 class RestoreActivity : AppCompatActivity() {
+    private var applicationList = mutableListOf<Application>()
+    private var bitmapList = mutableListOf<ApplicationBitmap>()
+    private var recyclerView: RecyclerView? = null
 
-    private lateinit var applicationList: MutableList<Application>
-    private lateinit var bitmapList: MutableList<ApplicationBitmap>
     private lateinit var topBar: Toolbar
     private lateinit var swipeContainer: SwipeRefreshLayout
     private lateinit var appAdapter: AppAdapter
-    private lateinit var recyclerView: RecyclerView
     private lateinit var floatingButton: FloatingActionButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,39 +39,74 @@ class RestoreActivity : AppCompatActivity() {
 
         createTopBar(binding)
         createFloatingButton(binding)
-
-        recyclerView = binding.recyclerView
-        recyclerView.setHasFixedSize(true)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-
         hideButton(recyclerView)
 
-        getStoredPackages()
+        createRecyclerView(binding)
     }
 
-    private fun getStoredPackages() {
-        val path = "/storage/emulated/0/SimpleBackup"
-        val dir = File(path)
-        val listFiles = dir.listFiles()
+    private fun createRecyclerView(binding: ActivityRestoreBinding) {
+        CoroutineScope(Dispatchers.Main).launch {
+            swipeContainer = binding.swipeRefresh
+            recyclerView = binding.recyclerView
 
-        if (listFiles != null && listFiles.isNotEmpty()) {
-            listFiles.forEach {
-                if (it.isDirectory) {
-                    it.listFiles()?.forEach { dir ->
-                        if (dir.toString().contains(".txt")) {
-                            File(dir.toString()).inputStream().bufferedReader().use { reader ->
-                                val string = reader.readLine()
-                                Log.d("asdf", string)
-                                applicationList.add(
-                                    Json.decodeFromString(string)
+            // Postavi LinearLayoutManager layoutManager za recyclerView
+            recyclerView?.setHasFixedSize(true)
+            recyclerView?.layoutManager = LinearLayoutManager(this@RestoreActivity)
+
+            // Dobavi novu listu i prosledi konstruktoru AppAdaptera
+            val result = async { getStoredPackages() }
+            if (result.await()) {
+                appAdapter = AppAdapter(applicationList, bitmapList)
+            }
+            recyclerView?.adapter = appAdapter
+        }
+    }
+
+    private fun getStoredPackages(): Boolean {
+            val path = "/storage/emulated/0/SimpleBackup"
+            val dir = File(path)
+            val listFiles = dir.listFiles()
+
+            if (listFiles != null && listFiles.isNotEmpty()) {
+                listFiles.forEach {
+                    Log.d("listfiles", it.toString())
+                    if (it.isDirectory) {
+                        it.listFiles()?.forEach { dir ->
+                            if (dir.toString().contains(".json")) {
+                                File(dir.toString()).inputStream().bufferedReader().use { reader ->
+                                    val string = reader.readLine()
+                                    Log.d("asdf", string)
+                                    applicationList.add(
+                                        Json.decodeFromString(string)
+                                    )
+                                }
+                            } else if (dir.toString().contains(".png")) {
+                                val stringBitmap = dir.name.substring(dir.name.lastIndexOf('/') + 1)
+                                    .removeSuffix(".png")
+                                val pathBitmap = dir.path.removeSuffix(dir.name)
+                                val bitmap = BitmapFactory.decodeStream(
+                                    FileInputStream(
+                                        File(
+                                            pathBitmap,
+                                            "$stringBitmap.png"
+                                        )
+                                    )
+                                )
+                                Log.d("bitmap", bitmap.toString())
+                                Log.d("stringBitmap", stringBitmap)
+                                bitmapList.add(
+                                    ApplicationBitmap(
+                                        stringBitmap,
+                                        bitmap
+                                    )
                                 )
                             }
                         }
                     }
                 }
-            }
+                return true
+            } else return false
         }
-    }
 
     private fun createTopBar(binding: ActivityRestoreBinding) {
         topBar = binding.topAppBar
@@ -80,8 +118,8 @@ class RestoreActivity : AppCompatActivity() {
         floatingButton = binding.floatingButton
     }
 
-    private fun hideButton(recyclerView: RecyclerView) {
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+    private fun hideButton(recyclerView: RecyclerView?) {
+        recyclerView?.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 

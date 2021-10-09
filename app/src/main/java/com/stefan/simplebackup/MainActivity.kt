@@ -10,6 +10,8 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.inputmethod.EditorInfo
@@ -26,12 +28,16 @@ import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.restore.RestoreActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
 
     private var PACKAGE_NAME: String? = null
-    private var searched: Boolean = false
+    private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private lateinit var applicationList: MutableList<Application>
     private lateinit var bitmapList: MutableList<ApplicationBitmap>
@@ -53,7 +59,7 @@ class MainActivity : AppCompatActivity() {
      * - Standardna onCreate metoda Activity Lifecycle-a
      */
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.Theme_SimpleBackup)
+//        setTheme(R.style.Theme_SimpleBackup)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -61,7 +67,7 @@ class MainActivity : AppCompatActivity() {
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Inicijalizuj standardne varijable
+        // Inicijalizuj package varijable
         PACKAGE_NAME = this.applicationContext.packageName
         pm = packageManager
         applicationInfoList = pm.getInstalledApplications(flags)
@@ -69,7 +75,7 @@ class MainActivity : AppCompatActivity() {
 
         // Inicijalizuj sve potrebne elemente redom
         createTopBar(binding)
-        createRecyclerView(binding, applicationInfoList, packageInfoList, pm, flags)
+        createRecyclerView(binding)
         createFloatingButton(binding)
         createBottomBar(binding)
 
@@ -78,10 +84,16 @@ class MainActivity : AppCompatActivity() {
 
         //Postavi sve potrebne Listener-e
         swipeContainer.setOnRefreshListener {
-            // Osveži listu
-            refreshPackageList()
-            // Stopiraj SwipeContainer animaciju osvežavanja kada obavestimo RecyclerView
-            swipeContainer.isRefreshing = false
+            CoroutineScope(Dispatchers.Default).launch {
+                refreshPackageList()
+            }
+            scope.run {
+                // Osveži listu
+                // Stopiraj SwipeContainer animaciju osvežavanja kada obavestimo RecyclerView
+//                Handler(Looper.getMainLooper()).postDelayed({
+                    swipeContainer.isRefreshing = false
+//                }, 500)
+            }
         }
 
         floatingButton.setOnClickListener {
@@ -121,7 +133,6 @@ class MainActivity : AppCompatActivity() {
                 var tempBitmapList = mutableListOf<ApplicationBitmap>()
                 if (newText.isNullOrEmpty()) {
                     appAdapter.updateList(applicationList, bitmapList)
-                    searched = false
                 } else {
                     applicationList.forEach() {
                         if (it.getName().lowercase().startsWith(newText.lowercase())) {
@@ -133,7 +144,6 @@ class MainActivity : AppCompatActivity() {
                             tempBitmapList.add(it)
                         }
                     }
-                    searched = true
                     Log.d("string:", newText)
                     appAdapter.updateList(tempAppList, tempBitmapList)
                 }
@@ -157,24 +167,31 @@ class MainActivity : AppCompatActivity() {
      */
     @SuppressLint("NotifyDataSetChanged")
     private fun createRecyclerView(
-        binding: ActivityMainBinding,
-        applicationInfoList: MutableList<ApplicationInfo>,
-        packageInfoList: MutableList<PackageInfo>,
-        pm: PackageManager,
-        flags: Int
+        binding: ActivityMainBinding
     ) {
+        applicationList = getPackageList(applicationInfoList, packageInfoList, pm, flags)
+        bitmapList = getBitmapList(applicationInfoList, pm)
         swipeContainer = binding.swipeRefresh
         recyclerView = binding.recyclerView
 
-        // Dobavi novu listu i prosledi konstruktoru AppAdaptera
-        applicationList = getPackageList(applicationInfoList, packageInfoList, pm, flags)
-        bitmapList = getBitmapList(applicationInfoList, pm)
-        appAdapter = AppAdapter(applicationList, bitmapList)
-
-        // Postavi LinearLayoutManager layoutManager za recyclerView
         recyclerView.setHasFixedSize(true)
         recyclerView.layoutManager = LinearLayoutManager(this)
+        appAdapter = AppAdapter(applicationList, bitmapList)
         recyclerView.adapter = appAdapter
+    }
+
+    /**
+     *  - Prosleđuje AppAdapter adapteru novu listu i obaveštava RecyclerView da je lista promenjena
+     */
+    private fun refreshPackageList() {
+        pm = packageManager
+        applicationInfoList = pm.getInstalledApplications(flags)
+        packageInfoList = pm.getInstalledPackages(0)
+        applicationList = getPackageList(applicationInfoList, packageInfoList, pm, flags)
+        bitmapList = getBitmapList(applicationInfoList, pm)
+        CoroutineScope(Dispatchers.Main).launch {
+            appAdapter.updateList(applicationList, bitmapList)
+        }
     }
 
     /**
@@ -212,30 +229,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     *  - Prosleđuje AppAdapter adapteru novu listu i obaveštava RecyclerView da je lista promenjena
-     */
-    private fun refreshPackageList() {
-        pm = packageManager
-        applicationInfoList = pm.getInstalledApplications(flags)
-        packageInfoList = pm.getInstalledPackages(0)
-
-        applicationList = getPackageList(applicationInfoList, packageInfoList, pm, flags)
-        bitmapList = getBitmapList(applicationInfoList, pm)
-        // Ubaci u logcat informaciju o listi (debugging broj liste)
-        Log.d("updated_list:", applicationList.toString())
-        // Prosledi adapteru update-ovanu listu i obacesti RecyclerView adapter
-        appAdapter.updateList(applicationList, bitmapList)
-    }
-
-    /**
      *  - Osvežava listu aplikacija kada je Activity u fokusu
      *
      */
     override fun onResume() {
         super.onResume()
-        if (!searched) {
-            refreshPackageList()
-        }
+        refreshPackageList()
+        topBar.collapseActionView()
+    }
+
+    override fun onBackPressed() {
+        topBar.collapseActionView()
+        super.onBackPressed()
     }
 
     /**
@@ -263,7 +268,7 @@ class MainActivity : AppCompatActivity() {
                     PACKAGE_NAME
                 )
             ) {
-                // Preskoči sistemske aplikacije, i moju aplikaciju
+                // Preskoči sistemske aplikacije i moju aplikaciju
             } else {
                 list.add(
                     Application(
@@ -299,7 +304,7 @@ class MainActivity : AppCompatActivity() {
                     PACKAGE_NAME
                 )
             ) {
-                // Preskoči sistemske aplikacije, i moju aplikaciju
+                // Preskoči sistemske aplikacije i moju aplikaciju
             } else {
                 list.add(
                     ApplicationBitmap(
