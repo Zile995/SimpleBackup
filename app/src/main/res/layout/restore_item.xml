@@ -46,16 +46,16 @@
             android:id="@+id/date_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:layout_marginTop="10dp"
-            android:fontFamily="@font/meslo_family"
-            android:text=""
+            android:layout_marginStart="10dp"
+            android:fontFamily="@font/inter_family"
+            android:text="@string/created_on"
             android:textAppearance="?attr/textAppearanceBody1"
             android:textColor="@color/app_size_color"
-            android:textSize="5.7pt"
+            android:textSize="5pt"
             android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintBottom_toBottomOf="@+id/text_item"
+            app:layout_constraintStart_toEndOf="@+id/text_item"
+            app:layout_constraintTop_toTopOf="@+id/text_item" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/apk_text"
@@ -63,7 +63,7 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="2dp"
             android:fontFamily="@font/meslo_family"
-            android:text="@string/apk"
+            android:text="@string/data"
             android:textAppearance="?attr/textAppearanceBody1"
             android:textColor="@color/app_size_color"
             android:textSize="5.7pt"
@@ -89,7 +89,6 @@
             android:id="@+id/chip_version"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
             android:clickable="false"
             android:fontFamily="@font/inter"
             android:textAlignment="center"
@@ -98,26 +97,8 @@
             android:textSize="5pt"
             android:textStyle="bold"
             app:chipBackgroundColor="@color/red"
-            app:layout_constraintBottom_toBottomOf="@+id/text_item"
-            app:layout_constraintStart_toEndOf="@+id/text_item"
-            app:layout_constraintTop_toTopOf="@+id/text_item" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_package"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="25dp"
-            android:layout_marginBottom="15dp"
-            android:clickable="false"
-            android:fontFamily="@font/inter"
-            android:textAlignment="center"
-            android:textAppearance="@style/chipText"
-            android:textColor="@color/blue_text"
-            android:textSize="5pt"
-            android:textStyle="bold"
-            app:chipBackgroundColor="@color/blue"
             app:layout_constraintBottom_toBottomOf="@+id/application_image"
-            app:layout_constraintStart_toEndOf="@+id/application_image"
+            app:layout_constraintStart_toStartOf="@+id/date_text"
             app:layout_constraintTop_toTopOf="@+id/application_image" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -23,28 +23,36 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
 
     private var appList = mutableListOf<Application>()
     private var bitmapList = mutableListOf<ApplicationBitmap>()
+    private var isMainActivity = true
 
     class AppViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
-        val cardView: MaterialCardView
-        val textItem: MaterialTextView
-        val appSize: MaterialTextView
-        val appImage: ImageView
-        val chipVersion: Chip
-        val chipPackage: Chip
+        lateinit var cardView: MaterialCardView
+        lateinit var textItem: MaterialTextView
+        lateinit var appSize: MaterialTextView
+        lateinit var dateText: MaterialTextView
+        lateinit var appImage: ImageView
+        lateinit var chipVersion: Chip
+        lateinit var chipPackage: Chip
 
-        init {
+        constructor(view: View, activity: Boolean) : this(view) {
             cardView = view.findViewById(R.id.card_item)
             textItem = view.findViewById(R.id.text_item)
+            appSize = view.findViewById(R.id.app_size_text)
             appImage = view.findViewById(R.id.application_image)
             chipVersion = view.findViewById(R.id.chip_version)
-            chipPackage = view.findViewById(R.id.chip_package)
-            appSize = view.findViewById(R.id.app_size_text)
+            if (activity) {
+                chipPackage = view.findViewById(R.id.chip_package)
+            } else {
+                dateText = view.findViewById(R.id.date_text)
+            }
         }
+
     }
 
-    constructor(appList: MutableList<Application>, bitmapList: MutableList<ApplicationBitmap>) : this() {
+    constructor(appList: MutableList<Application>, bitmapList: MutableList<ApplicationBitmap>, isMainActivity: Boolean) : this() {
         this.appList = appList
         this.bitmapList = bitmapList
+        this.isMainActivity = isMainActivity
     }
 
     /**
@@ -53,12 +61,17 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
         // Parent parametar, je view grupa za koju će da se zakači list item view kao child view. Parent je RecyclerView.
         // layout sadži referencu na child view (list_item) koji je zakačen na parent view (RecyclerView)
+        val activityLayout: Int = if (isMainActivity) {
+            R.layout.list_item
+        } else {
+            R.layout.restore_item
+        }
         val layout = LayoutInflater
             .from(parent.context)
-            .inflate(R.layout.list_item, parent, false)
+            .inflate(activityLayout, parent, false)
 
         // Vrati ViewHolder
-        return AppViewHolder(layout)
+        return AppViewHolder(layout, isMainActivity)
     }
 
     /**
@@ -74,15 +87,20 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
         holder.textItem.text = item.getName()
         holder.appImage.setImageBitmap(bitmap.getIcon())
         holder.chipVersion.text = charSequenceVersion.toString()
-        holder.chipPackage.text = charSequencePackage.toString()
         holder.appSize.text = transformBytes(item.getSize())
 
-        saveBitmap(bitmap.getIcon(), item.getName(), context)
+        if (isMainActivity) {
+            saveBitmap(bitmap.getIcon(), item.getName(), context)
+            holder.chipPackage.text = charSequencePackage.toString()
+            holder.cardView.setOnClickListener {
+                val intent = Intent(context, BackupActivity::class.java)
+                intent.putExtra("application", item)
+                context.startActivity(intent)
+            }
+        }
+        else {
+            holder.dateText.text = item.getDate()
 
-        holder.cardView.setOnClickListener {
-            val intent = Intent(context, BackupActivity::class.java)
-            intent.putExtra("application", item)
-            context.startActivity(intent)
         }
 
     }
@@ -107,9 +125,10 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
         return String.format("%3.2f %s", bytes / 1000.0.pow(2), "MB")
     }
 
-    fun updateList(newList: MutableList<Application>, newBitmapList: MutableList<ApplicationBitmap>) {
+    fun updateList(newList: MutableList<Application>, newBitmapList: MutableList<ApplicationBitmap>, activity: Boolean) {
         appList = newList
         bitmapList = newBitmapList
+        isMainActivity = activity
         notifyDataSetChanged()
     }
 }

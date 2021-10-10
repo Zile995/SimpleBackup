@@ -56,9 +56,12 @@ class RestoreActivity : AppCompatActivity() {
             // Dobavi novu listu i prosledi konstruktoru AppAdaptera
             val result = async { getStoredPackages() }
             if (result.await()) {
-                appAdapter = AppAdapter(applicationList, bitmapList)
+                applicationList = applicationList.sortedBy { it.getName() } as MutableList<Application>
+                bitmapList = bitmapList.sortedBy { it.getName() } as MutableList<ApplicationBitmap>
+                appAdapter = AppAdapter(applicationList, bitmapList, false)
+                recyclerView?.adapter = appAdapter
             }
-            recyclerView?.adapter = appAdapter
+
         }
     }
 

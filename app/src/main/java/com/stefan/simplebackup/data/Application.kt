@@ -14,12 +14,14 @@ data class Application(private val name: String,
                        private val packageName: String,
                        private val versionName: String,
                        private val dataDir: String,
-                       private val size: Long) : Parcelable {
+                       private var date: String,
+                       private var size: Long) : Parcelable {
 
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readString() ?: "",
+        parcel.readString() ?:"",
         parcel.readString() ?: "",
         parcel.readLong()
     )
@@ -45,6 +47,16 @@ data class Application(private val name: String,
     fun getDataDir() = this.dataDir
 
     fun getSize() = this.size
+
+    fun getDate() = this.date
+
+    fun setSize(newSize: Long) {
+        this.size = newSize
+    }
+
+    fun setDate(newDate: String) {
+        this.date = newDate
+    }
 
     companion object CREATOR : Parcelable.Creator<Application> {
         override fun createFromParcel(parcel: Parcel): Application {

@@ -17,4 +17,6 @@
     <string name="no">No</string>
     <string name="apk">APK:</string>
     <string name="search_for_application">Search for Application</string>
+    <string name="data">Data: </string>
+    <string name="created_on">Created on:</string>
 </resources>

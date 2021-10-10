@@ -33,8 +33,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.File
+import java.text.SimpleDateFormat
 
-class MainActivity : AppCompatActivity() {
+open class MainActivity : AppCompatActivity() {
 
     private var PACKAGE_NAME: String? = null
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
@@ -132,7 +133,7 @@ class MainActivity : AppCompatActivity() {
                 var tempAppList = mutableListOf<Application>()
                 var tempBitmapList = mutableListOf<ApplicationBitmap>()
                 if (newText.isNullOrEmpty()) {
-                    appAdapter.updateList(applicationList, bitmapList)
+                    appAdapter.updateList(applicationList, bitmapList, true)
                 } else {
                     applicationList.forEach() {
                         if (it.getName().lowercase().startsWith(newText.lowercase())) {
@@ -145,7 +146,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                     Log.d("string:", newText)
-                    appAdapter.updateList(tempAppList, tempBitmapList)
+                    appAdapter.updateList(tempAppList, tempBitmapList, true)
                 }
                 return true
             }
@@ -176,7 +177,7 @@ class MainActivity : AppCompatActivity() {
 
         recyclerView.setHasFixedSize(true)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        appAdapter = AppAdapter(applicationList, bitmapList)
+        appAdapter = AppAdapter(applicationList, bitmapList, true)
         recyclerView.adapter = appAdapter
     }
 
@@ -190,7 +191,7 @@ class MainActivity : AppCompatActivity() {
         applicationList = getPackageList(applicationInfoList, packageInfoList, pm, flags)
         bitmapList = getBitmapList(applicationInfoList, pm)
         CoroutineScope(Dispatchers.Main).launch {
-            appAdapter.updateList(applicationList, bitmapList)
+            appAdapter.updateList(applicationList, bitmapList, true)
         }
     }
 
@@ -233,9 +234,9 @@ class MainActivity : AppCompatActivity() {
      *
      */
     override fun onResume() {
-        super.onResume()
         refreshPackageList()
         topBar.collapseActionView()
+        super.onResume()
     }
 
     override fun onBackPressed() {
@@ -276,6 +277,7 @@ class MainActivity : AppCompatActivity() {
                         applicationInfoList[i].packageName,
                         packageInfoList[i].versionName,
                         applicationInfoList[i].dataDir,
+                        "",
                         File(
                             pm.getApplicationInfo(
                                 applicationInfoList[i].packageName,
@@ -287,7 +289,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
         Log.d("return:", list.toString())
-        return list
+
+        return list.sortedBy { it.getName() } as MutableList<Application>
     }
 
     /**
@@ -315,7 +318,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         Log.d("return:", list.toString())
-        return list
+        return list.sortedBy { it.getName() } as MutableList<ApplicationBitmap>
     }
 
     /**

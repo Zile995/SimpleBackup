@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -85,6 +86,12 @@ class BackupActivity : AppCompatActivity() {
         progressBar.visibility = View.GONE
 
         backupButton.setOnClickListener {
+            selectedApp.setDate(
+                SimpleDateFormat(
+                    "dd.MM.yy-HH:mm",
+                    Locale.getDefault()
+                ).format(Date())
+            )
             scope.launch {
                 progressBar.visibility = View.VISIBLE
                 createLocalBackup(bitmap, selectedApp)
@@ -139,10 +146,12 @@ class BackupActivity : AppCompatActivity() {
             val root = "/storage/emulated/0/SimpleBackup"
             val backupFolder = "$root/${app.getName().filterNot { it.isWhitespace() }}_${
                 app.getVersionName().filterNot { it.isWhitespace() }
-            }"
+            }_${app.getDate()}"
             sudo("mkdir -p $backupFolder")
             progressBar.setProgress(25, true)
             sudo("cp -r /data/data/${app.getPackageName()} $backupFolder/")
+            app.setSize(getDataSize(backupFolder))
+            Log.d("datasize", app.getSize().toString())
             progressBar.setProgress(45, true)
             sudo("cp ${getApkBundlePath(app.getPackageName())}*.apk $backupFolder/")
             progressBar.setProgress(75, true)
@@ -157,10 +166,19 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
+    private fun getDataSize(path: String): Long {
+        val dir = File(path)
+        return dir.walkTopDown().filter {
+            it.isFile
+        }.map {
+            it.length()
+        }.sum()
+    }
+
     private fun appToJson(app: Application, dir: String) {
         val file = File(dir, app.getName().plus(".json"))
-        file.createNewFile()
         OutputStreamWriter(FileOutputStream(file)).use {
+            file.createNewFile()
             it.append(Json.encodeToString(app))
         }
     }
@@ -256,26 +274,18 @@ class BackupActivity : AppCompatActivity() {
     }
 
 //    private fun getPermissions(packageName: String): String {
-//        return try {
-//            var string = ""
-//            val process = Runtime.getRuntime().exec(
-//                "su -c " +
-//                        "cat /data/system/packages.list | awk '{print \"u0_a\" \$2-10000 \":u0_a\" \$2-10000 \" /data/data/\"\$1\"\"}'"
-//            )
-//            val buffer = BufferedReader(InputStreamReader(process.inputStream))
+//        var line = ""
+//        val process = Runtime.getRuntime().exec(
+//            "su -c " +
+//                    "cat /data/system/packages.list | awk '{print \"u0_a\" \$2-10000 \":u0_a\" \$2-10000 \" /data/data/\"\$1\"\"}'"
+//        )
+//        BufferedReader(InputStreamReader(process.inputStream)).use { buffer ->
 //            buffer.forEachLine {
-//                if (it.contains(chipPackage.text)) {
-//                    string = it
+//                if (it.contains(packageName)) {
+//                    line = it
 //                }
 //            }
-//            string
-//        } catch (e: IOException) {
-//            e.printStackTrace()
-//            return ""
-//        } catch (e: InterruptedException) {
-//            e.printStackTrace()
-//            return ""
 //        }
+//        return line
 //    }
-
 }
