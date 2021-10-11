@@ -10,8 +10,6 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.Menu
 import android.view.inputmethod.EditorInfo
@@ -27,13 +25,10 @@ import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityMainBinding
+import com.stefan.simplebackup.helper.SearchHelper
 import com.stefan.simplebackup.restore.RestoreActivity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.File
-import java.text.SimpleDateFormat
 
 open class MainActivity : AppCompatActivity() {
 
@@ -85,15 +80,20 @@ open class MainActivity : AppCompatActivity() {
 
         //Postavi sve potrebne Listener-e
         swipeContainer.setOnRefreshListener {
-            CoroutineScope(Dispatchers.Default).launch {
-                refreshPackageList()
-            }
-            scope.run {
-                // Osveži listu
-                // Stopiraj SwipeContainer animaciju osvežavanja kada obavestimo RecyclerView
-//                Handler(Looper.getMainLooper()).postDelayed({
+            CoroutineScope(Dispatchers.Main).launch {
+                val refresh = launch {
+                    refreshPackageList()
+                    // Delay kako bi potrajala swipe refresh animacija
+                    delay(400)
+                }
+                refresh.join()
+                launch {
                     swipeContainer.isRefreshing = false
-//                }, 500)
+                }
+                launch {
+                    delay(200)
+                    appAdapter.updateList(applicationList, bitmapList, true)
+                }
             }
         }
 
@@ -121,7 +121,7 @@ open class MainActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.top_app_bar, menu)
         val menuItem = menu?.findItem(R.id.search)
         val searchView = menuItem?.actionView as SearchView
-        searchView.setImeOptions(EditorInfo.IME_ACTION_DONE)
+        searchView.imeOptions = EditorInfo.IME_ACTION_DONE
         searchView.queryHint = "Search for apps"
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -130,24 +130,7 @@ open class MainActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                var tempAppList = mutableListOf<Application>()
-                var tempBitmapList = mutableListOf<ApplicationBitmap>()
-                if (newText.isNullOrEmpty()) {
-                    appAdapter.updateList(applicationList, bitmapList, true)
-                } else {
-                    applicationList.forEach() {
-                        if (it.getName().lowercase().startsWith(newText.lowercase())) {
-                            tempAppList.add(it)
-                        }
-                    }
-                    bitmapList.forEach() {
-                        if (it.getName().lowercase().startsWith(newText.lowercase())) {
-                            tempBitmapList.add(it)
-                        }
-                    }
-                    Log.d("string:", newText)
-                    appAdapter.updateList(tempAppList, tempBitmapList, true)
-                }
+                SearchHelper.search(applicationList, bitmapList, appAdapter, newText, true)
                 return true
             }
         })
@@ -184,14 +167,12 @@ open class MainActivity : AppCompatActivity() {
     /**
      *  - Prosleđuje AppAdapter adapteru novu listu i obaveštava RecyclerView da je lista promenjena
      */
-    private fun refreshPackageList() {
-        pm = packageManager
-        applicationInfoList = pm.getInstalledApplications(flags)
-        packageInfoList = pm.getInstalledPackages(0)
-        applicationList = getPackageList(applicationInfoList, packageInfoList, pm, flags)
-        bitmapList = getBitmapList(applicationInfoList, pm)
-        CoroutineScope(Dispatchers.Main).launch {
-            appAdapter.updateList(applicationList, bitmapList, true)
+    private suspend fun refreshPackageList() {
+        withContext(Dispatchers.Default) {
+            applicationInfoList = pm.getInstalledApplications(flags)
+            packageInfoList = pm.getInstalledPackages(0)
+            applicationList = getPackageList(applicationInfoList, packageInfoList, pm, flags)
+            bitmapList = getBitmapList(applicationInfoList, pm)
         }
     }
 
@@ -234,8 +215,11 @@ open class MainActivity : AppCompatActivity() {
      *
      */
     override fun onResume() {
-        refreshPackageList()
-        topBar.collapseActionView()
+        CoroutineScope(Dispatchers.Main).launch {
+            refreshPackageList()
+            appAdapter.updateList(applicationList, bitmapList, true)
+            topBar.collapseActionView()
+        }
         super.onResume()
     }
 

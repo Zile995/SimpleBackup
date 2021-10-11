@@ -3,7 +3,10 @@ package com.stefan.simplebackup.restore
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.inputmethod.EditorInfo
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,6 +17,7 @@ import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityRestoreBinding
+import com.stefan.simplebackup.helper.SearchHelper
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -39,9 +43,33 @@ class RestoreActivity : AppCompatActivity() {
 
         createTopBar(binding)
         createFloatingButton(binding)
+        createRecyclerView(binding)
         hideButton(recyclerView)
 
-        createRecyclerView(binding)
+        floatingButton.setOnClickListener {
+            val layoutManager = recyclerView?.layoutManager as LinearLayoutManager
+            layoutManager.scrollToPositionWithOffset(0, 0)
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.top_restore_bar, menu)
+        val menuItem = menu?.findItem(R.id.search)
+        val searchView = menuItem?.actionView as SearchView
+        searchView.imeOptions = EditorInfo.IME_ACTION_DONE
+        searchView.queryHint = "Search for apps"
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                SearchHelper.search(applicationList, bitmapList, appAdapter, newText, false)
+                return true
+            }
+        })
+        return super.onCreateOptionsMenu(menu)
     }
 
     private fun createRecyclerView(binding: ActivityRestoreBinding) {
@@ -54,6 +82,12 @@ class RestoreActivity : AppCompatActivity() {
             recyclerView?.layoutManager = LinearLayoutManager(this@RestoreActivity)
 
             // Dobavi novu listu i prosledi konstruktoru AppAdaptera
+            refreshStoredPackages()
+        }
+    }
+
+    private suspend fun refreshStoredPackages() {
+        withContext(Dispatchers.Main) {
             val result = async { getStoredPackages() }
             if (result.await()) {
                 applicationList = applicationList.sortedBy { it.getName() } as MutableList<Application>
@@ -61,11 +95,11 @@ class RestoreActivity : AppCompatActivity() {
                 appAdapter = AppAdapter(applicationList, bitmapList, false)
                 recyclerView?.adapter = appAdapter
             }
-
         }
     }
 
-    private fun getStoredPackages(): Boolean {
+    private suspend fun getStoredPackages(): Boolean {
+        return withContext(Dispatchers.Default) {
             val path = "/storage/emulated/0/SimpleBackup"
             val dir = File(path)
             val listFiles = dir.listFiles()
@@ -107,9 +141,10 @@ class RestoreActivity : AppCompatActivity() {
                         }
                     }
                 }
-                return true
-            } else return false
+                true
+            } else false
         }
+    }
 
     private fun createTopBar(binding: ActivityRestoreBinding) {
         topBar = binding.topAppBar

@@ -26,13 +26,13 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
     private var isMainActivity = true
 
     class AppViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
-        lateinit var cardView: MaterialCardView
-        lateinit var textItem: MaterialTextView
-        lateinit var appSize: MaterialTextView
-        lateinit var dateText: MaterialTextView
-        lateinit var appImage: ImageView
-        lateinit var chipVersion: Chip
-        lateinit var chipPackage: Chip
+        var cardView: MaterialCardView? = null
+        var textItem: MaterialTextView? = null
+        var appSize: MaterialTextView? = null
+        var dateText: MaterialTextView? = null
+        var appImage: ImageView? = null
+        var chipVersion: Chip? = null
+        var chipPackage: Chip? = null
 
         constructor(view: View, activity: Boolean) : this(view) {
             cardView = view.findViewById(R.id.card_item)
@@ -84,23 +84,22 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
         val charSequencePackage: CharSequence = item.getPackageName()
         val charSequenceVersion: CharSequence = "v" + item.getVersionName()
 
-        holder.textItem.text = item.getName()
-        holder.appImage.setImageBitmap(bitmap.getIcon())
-        holder.chipVersion.text = charSequenceVersion.toString()
-        holder.appSize.text = transformBytes(item.getSize())
+        holder.textItem?.text = item.getName()
+        holder.appImage?.setImageBitmap(bitmap.getIcon())
+        holder.chipVersion?.text = charSequenceVersion.toString()
+        holder.appSize?.text = transformBytes(item.getSize())
 
         if (isMainActivity) {
             saveBitmap(bitmap.getIcon(), item.getName(), context)
-            holder.chipPackage.text = charSequencePackage.toString()
-            holder.cardView.setOnClickListener {
+            holder.chipPackage?.text = charSequencePackage.toString()
+            holder.cardView?.setOnClickListener {
                 val intent = Intent(context, BackupActivity::class.java)
                 intent.putExtra("application", item)
                 context.startActivity(intent)
             }
         }
         else {
-            holder.dateText.text = item.getDate()
-
+            holder.dateText?.text = item.getDate()
         }
 
     }
