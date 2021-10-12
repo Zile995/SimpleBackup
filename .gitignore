@@ -45,10 +45,9 @@ captures/
 .idea/dictionaries
 .idea/libraries
 .idea/jarRepositories.xml
-# Android Studio 3 in .gitignore file.
+.idea/deploymentTargetDropDown.xml
 .idea/caches
 .idea/modules.xml
-# Comment next line if keeping position of elements in Navigation Editor is relevant for you
 .idea/navEditor.xml
 
 # Keystore files
@@ -61,7 +60,7 @@ captures/
 .cxx/
 
 # Google Services (e.g. APIs or Firebase)
-# google-services.json
+google-services.json
 
 # Freeline
 freeline.py
