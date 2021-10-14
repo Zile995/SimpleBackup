@@ -75,9 +75,6 @@ open class MainActivity : AppCompatActivity() {
         createFloatingButton(binding)
         createBottomBar(binding)
 
-        // Sakrij dugme prilikom skrolovanja
-        hideButton(recyclerView)
-
         //Postavi sve potrebne Listener-e
         swipeContainer.setOnRefreshListener {
             CoroutineScope(Dispatchers.Main).launch {
@@ -92,7 +89,7 @@ open class MainActivity : AppCompatActivity() {
                 }
                 launch {
                     delay(200)
-                    appAdapter.updateList(applicationList, bitmapList, true)
+                    appAdapter.updateList(applicationList, bitmapList)
                 }
             }
         }
@@ -130,7 +127,7 @@ open class MainActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                SearchHelper.search(applicationList, bitmapList, appAdapter, newText, true)
+                SearchHelper.search(applicationList, bitmapList, this@MainActivity, newText)
                 return true
             }
         })
@@ -160,8 +157,10 @@ open class MainActivity : AppCompatActivity() {
 
         recyclerView.setHasFixedSize(true)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        appAdapter = AppAdapter(applicationList, bitmapList, true)
+        appAdapter = AppAdapter(applicationList, bitmapList)
         recyclerView.adapter = appAdapter
+        // Sakrij dugme prilikom skrolovanja
+        hideButton(recyclerView)
     }
 
     /**
@@ -191,6 +190,10 @@ open class MainActivity : AppCompatActivity() {
 
     }
 
+    fun getAdapter(): AppAdapter {
+        return appAdapter
+    }
+
     /**
      * - Sakriva FloatingButton kada se skroluje na gore
      * - Ako je dy > 0, odnosno kada skrolujemo prstom na gore i ako je prikazano dugme, sakrij ga
@@ -217,7 +220,7 @@ open class MainActivity : AppCompatActivity() {
     override fun onResume() {
         CoroutineScope(Dispatchers.Main).launch {
             refreshPackageList()
-            appAdapter.updateList(applicationList, bitmapList, true)
+            appAdapter.updateList(applicationList, bitmapList)
             topBar.collapseActionView()
         }
         super.onResume()

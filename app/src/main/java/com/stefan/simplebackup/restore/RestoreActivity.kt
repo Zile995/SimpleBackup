@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.adapter.AppAdapter
+import com.stefan.simplebackup.adapter.RestoreAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityRestoreBinding
@@ -25,13 +25,14 @@ import java.io.File
 import java.io.FileInputStream
 
 class RestoreActivity : AppCompatActivity() {
+
     private var applicationList = mutableListOf<Application>()
     private var bitmapList = mutableListOf<ApplicationBitmap>()
-    private var recyclerView: RecyclerView? = null
 
+    private lateinit var recyclerView: RecyclerView
     private lateinit var topBar: Toolbar
     private lateinit var swipeContainer: SwipeRefreshLayout
-    private lateinit var appAdapter: AppAdapter
+    private lateinit var restoreAdapter: RestoreAdapter
     private lateinit var floatingButton: FloatingActionButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,12 +44,40 @@ class RestoreActivity : AppCompatActivity() {
 
         createTopBar(binding)
         createFloatingButton(binding)
+        createSwipeContainer(binding)
         createRecyclerView(binding)
         hideButton(recyclerView)
 
+        CoroutineScope(Dispatchers.Main).launch {
+            launch {
+                getStoredPackages()
+            }.join()
+            launch {
+                updateAdapter()
+            }
+        }
+
         floatingButton.setOnClickListener {
-            val layoutManager = recyclerView?.layoutManager as LinearLayoutManager
+            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
             layoutManager.scrollToPositionWithOffset(0, 0)
+        }
+
+        swipeContainer.setOnRefreshListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                val refresh = launch {
+                    refreshStoredPackages()
+                    // Delay kako bi potrajala swipe refresh animacija
+                    delay(400)
+                }
+                refresh.join()
+                launch {
+                    swipeContainer.isRefreshing = false
+                }
+                launch {
+                    delay(200)
+                    restoreAdapter.updateList(applicationList, bitmapList)
+                }
+            }
         }
     }
 
@@ -65,85 +94,84 @@ class RestoreActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                SearchHelper.search(applicationList, bitmapList, appAdapter, newText, false)
+                SearchHelper.search(applicationList, bitmapList, this@RestoreActivity, newText)
                 return true
             }
         })
         return super.onCreateOptionsMenu(menu)
     }
 
+    private fun createSwipeContainer(binding: ActivityRestoreBinding) {
+        swipeContainer = binding.swipeRefresh
+    }
+
     private fun createRecyclerView(binding: ActivityRestoreBinding) {
-        CoroutineScope(Dispatchers.Main).launch {
-            swipeContainer = binding.swipeRefresh
-            recyclerView = binding.recyclerView
+        recyclerView = binding.restoreRecyclerView
+        restoreAdapter = RestoreAdapter()
+        recyclerView.adapter = restoreAdapter
+        recyclerView.setHasFixedSize(true)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+    }
 
-            // Postavi LinearLayoutManager layoutManager za recyclerView
-            recyclerView?.setHasFixedSize(true)
-            recyclerView?.layoutManager = LinearLayoutManager(this@RestoreActivity)
-
-            // Dobavi novu listu i prosledi konstruktoru AppAdaptera
-            refreshStoredPackages()
-        }
+    private fun updateAdapter() {
+        restoreAdapter.updateList(applicationList, bitmapList)
     }
 
     private suspend fun refreshStoredPackages() {
-        withContext(Dispatchers.Main) {
-            val result = async { getStoredPackages() }
-            if (result.await()) {
-                applicationList = applicationList.sortedBy { it.getName() } as MutableList<Application>
-                bitmapList = bitmapList.sortedBy { it.getName() } as MutableList<ApplicationBitmap>
-                appAdapter = AppAdapter(applicationList, bitmapList, false)
-                recyclerView?.adapter = appAdapter
-            }
+        withContext(Dispatchers.Default) {
+            getStoredPackages()
         }
     }
 
-    private suspend fun getStoredPackages(): Boolean {
-        return withContext(Dispatchers.Default) {
-            val path = "/storage/emulated/0/SimpleBackup"
-            val dir = File(path)
-            val listFiles = dir.listFiles()
+    private fun getStoredPackages() {
+        val tempAppList = mutableListOf<Application>()
+        val tempBitmapList = mutableListOf<ApplicationBitmap>()
+        val path = "/storage/emulated/0/SimpleBackup"
+        val dir = File(path)
+        val listFiles = dir.listFiles()
 
-            if (listFiles != null && listFiles.isNotEmpty()) {
-                listFiles.forEach {
-                    Log.d("listfiles", it.toString())
-                    if (it.isDirectory) {
-                        it.listFiles()?.forEach { dir ->
-                            if (dir.toString().contains(".json")) {
-                                File(dir.toString()).inputStream().bufferedReader().use { reader ->
+        if (!listFiles.isNullOrEmpty()) {
+            listFiles.forEach {
+                Log.d("listfiles", it.toString())
+                if (it.isDirectory) {
+                    it.listFiles()?.forEach { dir ->
+                        if (dir.absolutePath.contains(".json")) {
+                            File(dir.absolutePath).inputStream().bufferedReader()
+                                .use { reader ->
                                     val string = reader.readLine()
                                     Log.d("asdf", string)
-                                    applicationList.add(
+                                    tempAppList.add(
                                         Json.decodeFromString(string)
                                     )
                                 }
-                            } else if (dir.toString().contains(".png")) {
-                                val stringBitmap = dir.name.substring(dir.name.lastIndexOf('/') + 1)
-                                    .removeSuffix(".png")
-                                val pathBitmap = dir.path.removeSuffix(dir.name)
-                                val bitmap = BitmapFactory.decodeStream(
-                                    FileInputStream(
-                                        File(
-                                            pathBitmap,
-                                            "$stringBitmap.png"
-                                        )
-                                    )
+                        } else if (dir.absolutePath.contains(".png")) {
+                            val stringBitmap = dir.name.substring(dir.name.lastIndexOf('/') + 1)
+                                .removeSuffix(".png")
+//                                val pathBitmap = dir.path.removeSuffix(dir.name)
+                            val bitmap = BitmapFactory.decodeStream(
+                                FileInputStream(
+                                    File(dir.absolutePath)
                                 )
-                                Log.d("bitmap", bitmap.toString())
-                                Log.d("stringBitmap", stringBitmap)
-                                bitmapList.add(
-                                    ApplicationBitmap(
-                                        stringBitmap,
-                                        bitmap
-                                    )
+                            )
+                            Log.d("bitmap", bitmap.toString())
+                            Log.d("stringBitmap", stringBitmap)
+                            tempBitmapList.add(
+                                ApplicationBitmap(
+                                    stringBitmap,
+                                    bitmap
                                 )
-                            }
+                            )
                         }
                     }
                 }
-                true
-            } else false
+            }
         }
+        applicationList = tempAppList.sortedBy { it.getName() } as MutableList<Application>
+        bitmapList = tempBitmapList.sortedBy { it.getName() } as MutableList<ApplicationBitmap>
+    }
+
+    fun getAdapter(): RestoreAdapter {
+        return restoreAdapter
     }
 
     private fun createTopBar(binding: ActivityRestoreBinding) {
