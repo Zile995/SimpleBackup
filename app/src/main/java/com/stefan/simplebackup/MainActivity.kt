@@ -12,7 +12,9 @@ import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
+import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
@@ -25,7 +27,6 @@ import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityMainBinding
-import com.stefan.simplebackup.databinding.ActivityRestoreBinding
 import com.stefan.simplebackup.helper.SearchHelper
 import com.stefan.simplebackup.restore.RestoreActivity
 import kotlinx.coroutines.*
@@ -34,7 +35,7 @@ import java.io.File
 open class MainActivity : AppCompatActivity() {
 
     private var PACKAGE_NAME: String? = null
-    private var scope = CoroutineScope(Job() + Dispatchers.Main)
+    private var scope = CoroutineScope(Dispatchers.Main)
 
     private lateinit var applicationList: MutableList<Application>
     private lateinit var bitmapList: MutableList<ApplicationBitmap>
@@ -44,6 +45,7 @@ open class MainActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var floatingButton: FloatingActionButton
     private lateinit var bottomBar: BottomNavigationView
+    private lateinit var progressBar: ProgressBar
 
     private lateinit var pm: PackageManager
     private lateinit var applicationInfoList: MutableList<ApplicationInfo>
@@ -68,21 +70,23 @@ open class MainActivity : AppCompatActivity() {
         pm = packageManager
 
         // Inicijalizuj sve potrebne elemente redom
-
+        createProgressBar(binding)
         createTopBar(binding)
-        createRecyclerView(binding)
         createSwipeContainer(binding)
+        createRecyclerView(binding)
         createFloatingButton(binding)
         createBottomBar(binding)
-        // Sakrij dugme prilikom skrolovanja
-        hideButton(recyclerView)
 
         CoroutineScope(Dispatchers.Main).launch {
-            launch {
+            val load = launch {
                 refreshPackageList()
-            }.join()
+            }
+            load.join()
             launch {
+                progressBar.visibility = View.GONE
+                delay(500)
                 updateAdapter()
+                hideButton(recyclerView)
             }
         }
 
@@ -100,7 +104,7 @@ open class MainActivity : AppCompatActivity() {
                 }
                 launch {
                     delay(200)
-                    appAdapter.updateList(applicationList, bitmapList)
+                    updateAdapter()
                 }
             }
         }
@@ -152,6 +156,11 @@ open class MainActivity : AppCompatActivity() {
         topBar = binding.topAppBar
         topBar.setTitleTextAppearance(this, R.style.ActionBarTextAppearance)
         setSupportActionBar(topBar)
+    }
+
+    private fun createProgressBar(binding: ActivityMainBinding) {
+        progressBar = binding.progressBar
+        progressBar.visibility = View.VISIBLE
     }
 
     /**

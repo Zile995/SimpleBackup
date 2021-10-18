@@ -36,6 +36,15 @@
 
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="visible"
+            android:layout_centerInParent="true"
+            android:scaleX="0.10"
+            android:scaleY="0.10"/>
+
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/floating_button"
             android:layout_width="wrap_content"
