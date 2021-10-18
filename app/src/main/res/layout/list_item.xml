@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/card_item"
     android:layout_width="match_parent"
-    android:layout_height="120dp"
+    android:layout_height="132dp"
     android:layout_margin="12dp"
     android:clickable="true"
     android:focusable="true"
@@ -29,7 +29,7 @@
             android:id="@+id/text_item"
             android:layout_width="80dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="15dp"
             android:fontFamily="@font/inter"
             android:gravity="center_horizontal"
             android:maxLines="2"
@@ -41,21 +41,6 @@
             app:layout_constraintEnd_toEndOf="@+id/application_image"
             app:layout_constraintStart_toStartOf="@+id/application_image"
             app:layout_constraintTop_toBottomOf="@id/application_image" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/date_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:layout_marginTop="10dp"
-            android:fontFamily="@font/meslo_family"
-            android:text=""
-            android:textAppearance="?attr/textAppearanceBody1"
-            android:textColor="@color/app_size_color"
-            android:textSize="5.7pt"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/apk_text"
@@ -87,7 +72,7 @@
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_version"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="10dp"
             android:clickable="false"
@@ -107,7 +92,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="25dp"
-            android:layout_marginBottom="15dp"
+            android:layout_marginBottom="10dp"
             android:clickable="false"
             android:fontFamily="@font/inter"
             android:textAlignment="center"

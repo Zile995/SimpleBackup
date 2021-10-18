@@ -9,7 +9,7 @@
     <string name="home">Home</string>
     <string name="restore">Restore</string>
     <string name="local">local</string>
-    <string name="backup_to">backup to</string>
+    <string name="drive">drive</string>
     <string name="data_in">Data in:</string>
     <string name="confirm_delete">Confirm Delete</string>
     <string name="delete_confirmation_message">Are you sure you want to delete this application?</string>
