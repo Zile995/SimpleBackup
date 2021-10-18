@@ -43,11 +43,6 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
 
     }
 
-    constructor(appList: MutableList<Application>, bitmapList: MutableList<ApplicationBitmap>) : this() {
-        this.appList = appList
-        this.bitmapList = bitmapList
-    }
-
     /**
      * - Služi da kreiramo View preko kojeg možemo da pristupimo elementima iz liste
      */
@@ -80,11 +75,11 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
         saveBitmap(bitmap.getIcon(), item.getName(), context)
         holder.chipPackage.text = charSequencePackage.toString()
         holder.cardView.setOnClickListener {
-                val intent = Intent(context, BackupActivity::class.java)
-                intent.putExtra("application", item)
-                context.startActivity(intent)
-            }
+            val intent = Intent(context, BackupActivity::class.java)
+            intent.putExtra("application", item)
+            context.startActivity(intent)
         }
+    }
 
 
     override fun getItemCount() = this.appList.size
@@ -107,7 +102,10 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
         return String.format("%3.2f %s", bytes / 1000.0.pow(2), "MB")
     }
 
-    fun updateList(newList: MutableList<Application>, newBitmapList: MutableList<ApplicationBitmap>) {
+    fun updateList(
+        newList: MutableList<Application>,
+        newBitmapList: MutableList<ApplicationBitmap>
+    ) {
         appList = newList
         bitmapList = newBitmapList
         notifyDataSetChanged()

@@ -25,6 +25,7 @@ import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityMainBinding
+import com.stefan.simplebackup.databinding.ActivityRestoreBinding
 import com.stefan.simplebackup.helper.SearchHelper
 import com.stefan.simplebackup.restore.RestoreActivity
 import kotlinx.coroutines.*
@@ -55,7 +56,6 @@ open class MainActivity : AppCompatActivity() {
      * - Standardna onCreate metoda Activity Lifecycle-a
      */
     override fun onCreate(savedInstanceState: Bundle?) {
-//        setTheme(R.style.Theme_SimpleBackup)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -66,14 +66,25 @@ open class MainActivity : AppCompatActivity() {
         // Inicijalizuj package varijable
         PACKAGE_NAME = this.applicationContext.packageName
         pm = packageManager
-        applicationInfoList = pm.getInstalledApplications(flags)
-        packageInfoList = pm.getInstalledPackages(0)
 
         // Inicijalizuj sve potrebne elemente redom
+
         createTopBar(binding)
         createRecyclerView(binding)
+        createSwipeContainer(binding)
         createFloatingButton(binding)
         createBottomBar(binding)
+        // Sakrij dugme prilikom skrolovanja
+        hideButton(recyclerView)
+
+        CoroutineScope(Dispatchers.Main).launch {
+            launch {
+                refreshPackageList()
+            }.join()
+            launch {
+                updateAdapter()
+            }
+        }
 
         //Postavi sve potrebne Listener-e
         swipeContainer.setOnRefreshListener {
@@ -150,17 +161,15 @@ open class MainActivity : AppCompatActivity() {
     private fun createRecyclerView(
         binding: ActivityMainBinding
     ) {
-        applicationList = getPackageList(applicationInfoList, packageInfoList, pm, flags)
-        bitmapList = getBitmapList(applicationInfoList, pm)
-        swipeContainer = binding.swipeRefresh
         recyclerView = binding.recyclerView
-
+        appAdapter = AppAdapter()
+        recyclerView.adapter = appAdapter
         recyclerView.setHasFixedSize(true)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        appAdapter = AppAdapter(applicationList, bitmapList)
-        recyclerView.adapter = appAdapter
-        // Sakrij dugme prilikom skrolovanja
-        hideButton(recyclerView)
+    }
+
+    private fun createSwipeContainer(binding: ActivityMainBinding) {
+        swipeContainer = binding.swipeRefresh
     }
 
     /**
@@ -168,11 +177,19 @@ open class MainActivity : AppCompatActivity() {
      */
     private suspend fun refreshPackageList() {
         withContext(Dispatchers.Default) {
-            applicationInfoList = pm.getInstalledApplications(flags)
-            packageInfoList = pm.getInstalledPackages(0)
-            applicationList = getPackageList(applicationInfoList, packageInfoList, pm, flags)
-            bitmapList = getBitmapList(applicationInfoList, pm)
+            getPackageInfo()
         }
+    }
+
+    private fun getPackageInfo() {
+        applicationInfoList = pm.getInstalledApplications(flags)
+        packageInfoList = pm.getInstalledPackages(0)
+        applicationList = getPackageList(applicationInfoList, packageInfoList, pm, flags)
+        bitmapList = getBitmapList(applicationInfoList, pm)
+    }
+
+    private fun updateAdapter() {
+        appAdapter.updateList(applicationList, bitmapList)
     }
 
     /**
@@ -220,7 +237,7 @@ open class MainActivity : AppCompatActivity() {
     override fun onResume() {
         CoroutineScope(Dispatchers.Main).launch {
             refreshPackageList()
-            appAdapter.updateList(applicationList, bitmapList)
+            updateAdapter()
             topBar.collapseActionView()
         }
         super.onResume()

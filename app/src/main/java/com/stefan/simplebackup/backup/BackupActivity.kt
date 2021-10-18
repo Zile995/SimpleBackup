@@ -40,6 +40,7 @@ import java.util.*
 class BackupActivity : AppCompatActivity() {
 
     companion object {
+        private const val ROOT: String = "/storage/emulated/0/SimpleBackup"
         private const val TAG: String = "BackupActivity"
         private const val REQUEST_CODE_SIGN_IN: Int = 400
     }
@@ -66,9 +67,9 @@ class BackupActivity : AppCompatActivity() {
         appImage = findViewById(R.id.application_image_backup)
         backupButton = findViewById(R.id.backup_button)
         backupDriveButton = findViewById(R.id.backup_drive_button)
-        chipPackage = findViewById(R.id.chip_package_restore)
-        chipVersion = findViewById(R.id.chip_version_restore)
-        chipDir = findViewById(R.id.chip_dir_restore)
+        chipPackage = findViewById(R.id.chip_package_backup)
+        chipVersion = findViewById(R.id.chip_version_backup)
+        chipDir = findViewById(R.id.chip_dir_backup)
         deleteButton = findViewById(R.id.floating_delete_button)
         progressBar = findViewById(R.id.progress_bar)
 
@@ -84,6 +85,9 @@ class BackupActivity : AppCompatActivity() {
         chipDir.text = (selectedApp.getDataDir() as CharSequence).toString()
         appImage.setImageBitmap(bitmap)
         progressBar.visibility = View.GONE
+
+        createDirectory(ROOT)
+        createFile("$ROOT/.nomedia")
 
         backupButton.setOnClickListener {
             selectedApp.setDate(
@@ -143,11 +147,11 @@ class BackupActivity : AppCompatActivity() {
 
     private suspend fun createLocalBackup(bitmap: Bitmap, app: Application) {
         withContext(Dispatchers.IO) {
-            val root = "/storage/emulated/0/SimpleBackup"
-            val backupFolder = "$root/${app.getName().filterNot { it.isWhitespace() }}_${
+            val backupFolder = "$ROOT/${app.getName().filterNot { it.isWhitespace() }}_${
                 app.getVersionName().filterNot { it.isWhitespace() }
             }_${app.getDate()}"
-            sudo("mkdir -p $backupFolder")
+//            sudo("mkdir -p $backupFolder")
+            createDirectory(backupFolder)
             progressBar.setProgress(25, true)
             sudo("cp -r /data/data/${app.getPackageName()} $backupFolder/")
             app.setSize(getDataSize(backupFolder))
@@ -158,12 +162,25 @@ class BackupActivity : AppCompatActivity() {
             saveBitmap(bitmap, "${backupFolder}/${app.getName()}.png")
             appToJson(app, backupFolder)
             progressBar.setProgress(100, true)
-            Handler(Looper.getMainLooper()).postDelayed({
+            delay(500)
+            withContext(Dispatchers.Main) {
                 progressBar.visibility = View.GONE
                 progressBar.progress = 0
                 Toast.makeText(this@BackupActivity, "Done!", Toast.LENGTH_SHORT).show()
-            }, 500)
+            }
         }
+    }
+
+    private fun createDirectory(path: String) {
+        val dir = File(path)
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
+    }
+
+    private fun createFile(path: String) {
+        val file = File(path)
+        file.createNewFile()
     }
 
     private fun getDataSize(path: String): Long {

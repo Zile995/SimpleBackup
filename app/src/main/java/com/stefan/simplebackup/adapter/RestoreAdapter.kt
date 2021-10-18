@@ -37,46 +37,38 @@ class RestoreAdapter() : RecyclerView.Adapter<RestoreAdapter.RestoreViewHolder>(
         }
     }
 
-        constructor(
-            appList: MutableList<Application>,
-            bitmapList: MutableList<ApplicationBitmap>
-        ) : this() {
-            this.appList = appList
-            this.bitmapList = bitmapList
+    /**
+     * - Služi da kreiramo View preko kojeg možemo da pristupimo elementima iz liste
+     */
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RestoreViewHolder {
+        // Parent parametar, je view grupa za koju će da se zakači list item view kao child view. Parent je RecyclerView.
+        // layout sadži referencu na child view (list_item) koji je zakačen na parent view (RecyclerView)
+        val layout = LayoutInflater
+            .from(parent.context)
+            .inflate(R.layout.restore_item, parent, false)
+
+        // Vrati ViewHolder
+        return RestoreViewHolder(layout)
+    }
+
+    /**
+     * - Služi da postavimo parametre
+     */
+    override fun onBindViewHolder(holder: RestoreViewHolder, position: Int) {
+        val item = appList[position]
+        val bitmap = bitmapList[position]
+        val charSequenceVersion: CharSequence = "v" + item.getVersionName()
+
+        holder.textItem.text = item.getName()
+        holder.appImage.setImageBitmap(bitmap.getIcon())
+        holder.chipVersion.text = charSequenceVersion.toString()
+        holder.appSize.text = transformBytes(item.getSize())
+        holder.dateText.text = item.getDate()
+
+        holder.cardView.setOnClickListener {
+
         }
-
-        /**
-         * - Služi da kreiramo View preko kojeg možemo da pristupimo elementima iz liste
-         */
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RestoreViewHolder {
-            // Parent parametar, je view grupa za koju će da se zakači list item view kao child view. Parent je RecyclerView.
-            // layout sadži referencu na child view (list_item) koji je zakačen na parent view (RecyclerView)
-            val layout = LayoutInflater
-                .from(parent.context)
-                .inflate(R.layout.restore_item, parent, false)
-
-            // Vrati ViewHolder
-            return RestoreViewHolder(layout)
-        }
-
-        /**
-         * - Služi da postavimo parametre
-         */
-        override fun onBindViewHolder(holder: RestoreViewHolder, position: Int) {
-            val item = appList[position]
-            val bitmap = bitmapList[position]
-            val charSequenceVersion: CharSequence = "v" + item.getVersionName()
-
-            holder.textItem.text = item.getName()
-            holder.appImage.setImageBitmap(bitmap.getIcon())
-            holder.chipVersion.text = charSequenceVersion.toString()
-            holder.appSize.text = transformBytes(item.getSize())
-            holder.dateText.text = item.getDate()
-
-            holder.cardView.setOnClickListener {
-
-            }
-        }
+    }
 
     override fun getItemCount() = this.appList.size
 

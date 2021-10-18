@@ -75,7 +75,7 @@ class RestoreActivity : AppCompatActivity() {
                 }
                 launch {
                     delay(200)
-                    restoreAdapter.updateList(applicationList, bitmapList)
+                    updateAdapter()
                 }
             }
         }
@@ -128,46 +128,47 @@ class RestoreActivity : AppCompatActivity() {
         val tempBitmapList = mutableListOf<ApplicationBitmap>()
         val path = "/storage/emulated/0/SimpleBackup"
         val dir = File(path)
-        val listFiles = dir.listFiles()
+        if (dir.exists()) {
+            val listFiles = dir.listFiles()
 
-        if (!listFiles.isNullOrEmpty()) {
-            listFiles.forEach {
-                Log.d("listfiles", it.toString())
-                if (it.isDirectory) {
-                    it.listFiles()?.forEach { dir ->
-                        if (dir.absolutePath.contains(".json")) {
-                            File(dir.absolutePath).inputStream().bufferedReader()
-                                .use { reader ->
-                                    val string = reader.readLine()
-                                    Log.d("asdf", string)
-                                    tempAppList.add(
-                                        Json.decodeFromString(string)
+            if (!listFiles.isNullOrEmpty()) {
+                listFiles.forEach {
+                    Log.d("listfiles", it.toString())
+                    if (it.isDirectory) {
+                        it.listFiles()?.forEach { dir ->
+                            if (dir.absolutePath.contains(".json")) {
+                                File(dir.absolutePath).inputStream().bufferedReader()
+                                    .use { reader ->
+                                        val string = reader.readLine()
+                                        Log.d("asdf", string)
+                                        tempAppList.add(
+                                            Json.decodeFromString(string)
+                                        )
+                                    }
+                            } else if (dir.absolutePath.contains(".png")) {
+                                val stringBitmap = dir.name.substring(dir.name.lastIndexOf('/') + 1)
+                                    .removeSuffix(".png")
+                                val bitmap = BitmapFactory.decodeStream(
+                                    FileInputStream(
+                                        File(dir.absolutePath)
                                     )
-                                }
-                        } else if (dir.absolutePath.contains(".png")) {
-                            val stringBitmap = dir.name.substring(dir.name.lastIndexOf('/') + 1)
-                                .removeSuffix(".png")
-//                                val pathBitmap = dir.path.removeSuffix(dir.name)
-                            val bitmap = BitmapFactory.decodeStream(
-                                FileInputStream(
-                                    File(dir.absolutePath)
                                 )
-                            )
-                            Log.d("bitmap", bitmap.toString())
-                            Log.d("stringBitmap", stringBitmap)
-                            tempBitmapList.add(
-                                ApplicationBitmap(
-                                    stringBitmap,
-                                    bitmap
+                                Log.d("bitmap", bitmap.toString())
+                                Log.d("stringBitmap", stringBitmap)
+                                tempBitmapList.add(
+                                    ApplicationBitmap(
+                                        stringBitmap,
+                                        bitmap
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
                 }
             }
+            applicationList = tempAppList.sortedBy { it.getName() } as MutableList<Application>
+            bitmapList = tempBitmapList.sortedBy { it.getName() } as MutableList<ApplicationBitmap>
         }
-        applicationList = tempAppList.sortedBy { it.getName() } as MutableList<Application>
-        bitmapList = tempBitmapList.sortedBy { it.getName() } as MutableList<ApplicationBitmap>
     }
 
     fun getAdapter(): RestoreAdapter {
