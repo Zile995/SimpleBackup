@@ -35,7 +35,7 @@ import java.io.File
 open class MainActivity : AppCompatActivity() {
 
     private var PACKAGE_NAME: String? = null
-    private var scope = CoroutineScope(Dispatchers.Main)
+    private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private lateinit var applicationList: MutableList<Application>
     private lateinit var bitmapList: MutableList<ApplicationBitmap>
@@ -77,7 +77,7 @@ open class MainActivity : AppCompatActivity() {
         createFloatingButton(binding)
         createBottomBar(binding)
 
-        CoroutineScope(Dispatchers.Main).launch {
+        scope.launch {
             val load = launch {
                 refreshPackageList()
             }
@@ -92,7 +92,7 @@ open class MainActivity : AppCompatActivity() {
 
         //Postavi sve potrebne Listener-e
         swipeContainer.setOnRefreshListener {
-            CoroutineScope(Dispatchers.Main).launch {
+            scope.launch {
                 val refresh = launch {
                     refreshPackageList()
                     // Delay kako bi potrajala swipe refresh animacija
@@ -186,15 +186,17 @@ open class MainActivity : AppCompatActivity() {
      */
     private suspend fun refreshPackageList() {
         withContext(Dispatchers.Default) {
-            getPackageInfo()
+            launch {
+                applicationInfoList = pm.getInstalledApplications(flags)
+            }
+            launch {
+                packageInfoList = pm.getInstalledPackages(0)
+            }.join()
+            launch {
+                applicationList = getPackageList(applicationInfoList, packageInfoList, pm, flags)
+            }
+            launch { bitmapList = getBitmapList(applicationInfoList, pm) }
         }
-    }
-
-    private fun getPackageInfo() {
-        applicationInfoList = pm.getInstalledApplications(flags)
-        packageInfoList = pm.getInstalledPackages(0)
-        applicationList = getPackageList(applicationInfoList, packageInfoList, pm, flags)
-        bitmapList = getBitmapList(applicationInfoList, pm)
     }
 
     private fun updateAdapter() {
@@ -244,7 +246,7 @@ open class MainActivity : AppCompatActivity() {
      *
      */
     override fun onResume() {
-        CoroutineScope(Dispatchers.Main).launch {
+        scope.launch {
             refreshPackageList()
             updateAdapter()
             topBar.collapseActionView()
