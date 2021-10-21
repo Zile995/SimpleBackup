@@ -1,9 +1,12 @@
 package com.stefan.simplebackup.adapter
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
@@ -12,12 +15,20 @@ import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
+import java.io.DataOutputStream
+import java.io.File
+import java.io.IOException
 import kotlin.math.pow
 
-class RestoreAdapter() : RecyclerView.Adapter<RestoreAdapter.RestoreViewHolder>() {
+class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.RestoreViewHolder>() {
+
+    companion object {
+        private const val ROOT: String = "/storage/emulated/0/SimpleBackup"
+    }
 
     private var appList = mutableListOf<Application>()
     private var bitmapList = mutableListOf<ApplicationBitmap>()
+    private var context = rContext
 
     class RestoreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         var cardView: MaterialCardView
@@ -66,11 +77,69 @@ class RestoreAdapter() : RecyclerView.Adapter<RestoreAdapter.RestoreViewHolder>(
         holder.dateText.text = item.getDate()
 
         holder.cardView.setOnClickListener {
-
+            val builder = AlertDialog.Builder(context, R.style.DialogTheme)
+            builder.setTitle(context.getString(R.string.confirm_install))
+            builder.setMessage(context.getString(R.string.install_confirmation_message))
+            builder.setPositiveButton(context.getString(R.string.yes)) { dialog, _ ->
+                installApp(item)
+                dialog.cancel()
+                Toast.makeText(context, "Successfully installed!", Toast.LENGTH_SHORT).show()
+            }
+            builder.setNegativeButton(context.getString(R.string.no)) { dialog, _ -> dialog.cancel() }
+            val alert = builder.create()
+            alert.setOnShowListener {
+                alert.getButton(AlertDialog.BUTTON_NEGATIVE)
+                    .setTextColor(context.resources.getColor(R.color.white))
+                alert.getButton(AlertDialog.BUTTON_POSITIVE)
+                    .setTextColor(context.getColor(R.color.white))
+            }
+            alert.show()
         }
     }
 
     override fun getItemCount() = this.appList.size
+
+    fun installApp(application: Application) {
+        val local = "/data/local/tmp"
+        val dir = local.plus(application.getDataDir().removePrefix(ROOT))
+        try {
+            sudo("mkdir -p $dir")
+            sudo("cp -r ${application.getDataDir()}/*.apk $dir/")
+            sudo("pm install $dir/*.apk")
+            sudo("rm -rf $dir")
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun createDirectory(path: String) {
+        val dir = File(path)
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
+    }
+
+    private fun sudo(vararg strings: String) {
+        try {
+            val su = Runtime.getRuntime().exec("su -mm")
+            val outputStream = DataOutputStream(su.outputStream)
+            for (s in strings) {
+                outputStream.writeBytes(s + "\n")
+                outputStream.flush()
+            }
+
+            outputStream.writeBytes("exit\n")
+            outputStream.flush()
+            try {
+                su.waitFor()
+            } catch (e: InterruptedException) {
+                e.printStackTrace()
+            }
+            outputStream.close()
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
 
     private fun transformBytes(bytes: Long): String {
         return String.format("%3.2f %s", bytes / 1000.0.pow(2), "MB")
@@ -78,10 +147,12 @@ class RestoreAdapter() : RecyclerView.Adapter<RestoreAdapter.RestoreViewHolder>(
 
     fun updateList(
         newList: MutableList<Application>,
-        newBitmapList: MutableList<ApplicationBitmap>
+        newBitmapList: MutableList<ApplicationBitmap>,
+        mContext: Context
     ) {
         appList = newList
         bitmapList = newBitmapList
+        context = mContext
         notifyDataSetChanged()
     }
 

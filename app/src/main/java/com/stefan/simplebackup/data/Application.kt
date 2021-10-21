@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
 data class Application(private val name: String,
                        private val packageName: String,
                        private val versionName: String,
-                       private val dataDir: String,
+                       private var dataDir: String,
                        private var date: String,
                        private var size: Long) : Parcelable {
 
@@ -49,6 +49,10 @@ data class Application(private val name: String,
     fun getSize() = this.size
 
     fun getDate() = this.date
+
+    fun setDataDir(newDir: String) {
+        this.dataDir = newDir
+    }
 
     fun setSize(newSize: Long) {
         this.size = newSize

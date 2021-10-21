@@ -147,27 +147,50 @@ class BackupActivity : AppCompatActivity() {
 
     private suspend fun createLocalBackup(bitmap: Bitmap, app: Application) {
         withContext(Dispatchers.IO) {
-            val backupFolder = "$ROOT/${app.getName().filterNot { it.isWhitespace() }}_${
-                app.getVersionName().filterNot { it.isWhitespace() }
-            }_${app.getDate()}"
-//            sudo("mkdir -p $backupFolder")
-            createDirectory(backupFolder)
-            progressBar.setProgress(25, true)
-            sudo("cp -r /data/data/${app.getPackageName()} $backupFolder/")
-            app.setSize(getDataSize(backupFolder))
-            Log.d("datasize", app.getSize().toString())
-            progressBar.setProgress(45, true)
-            sudo("cp ${getApkBundlePath(app.getPackageName())}*.apk $backupFolder/")
-            progressBar.setProgress(75, true)
-            saveBitmap(bitmap, "${backupFolder}/${app.getName()}.png")
-            appToJson(app, backupFolder)
-            progressBar.setProgress(100, true)
+            val appDir = app.getName().filterNot { it.isWhitespace() }
+            val appVersion = app.getVersionName().replace("(", "_").replace(")", "")
+            var backupFolder = "$ROOT/${appDir}_${appVersion.filterNot { it.isWhitespace() }}"
+
+            with(progressBar) {
+                backupFolder = createBackupDir(backupFolder)
+                app.setDataDir(backupFolder)
+                setProgress(25, true)
+
+                sudo("cp -r /data/data/${app.getPackageName()} $backupFolder/")
+                app.setSize(getDataSize(backupFolder))
+                setProgress(45, true)
+
+                sudo("cp ${getApkBundlePath(app.getPackageName())}*.apk $backupFolder/")
+                setProgress(75, true)
+
+                saveBitmap(bitmap, "${backupFolder}/${app.getName()}.png")
+                appToJson(app, backupFolder)
+                setProgress(100, true)
+            }
+
             delay(500)
             withContext(Dispatchers.Main) {
                 progressBar.visibility = View.GONE
                 progressBar.progress = 0
                 Toast.makeText(this@BackupActivity, "Done!", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun createBackupDir(path: String): String {
+        val dir = File(path)
+        var number = 1
+        var newPath = ""
+        return if (dir.exists()) {
+            while (File(path.plus("_$number")).exists()) {
+                number++
+            }
+            newPath = path.plus("_$number")
+            File(newPath).mkdirs()
+            newPath
+        } else {
+            createDirectory(path)
+            path
         }
     }
 
@@ -227,6 +250,7 @@ class BackupActivity : AppCompatActivity() {
             val outputStream = DataOutputStream(su.outputStream)
             for (s in strings) {
                 outputStream.writeBytes(s + "\n")
+                Log.d("command", "$s\n")
                 outputStream.flush()
             }
 

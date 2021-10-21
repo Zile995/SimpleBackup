@@ -303,7 +303,7 @@ open class MainActivity : AppCompatActivity() {
                 )
             }
         }
-        Log.d("return:", list.toString())
+        Log.d("return", list.toString())
 
         return list.sortedBy { it.getName() } as MutableList<Application>
     }

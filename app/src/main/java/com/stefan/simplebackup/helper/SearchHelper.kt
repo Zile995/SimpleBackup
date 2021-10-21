@@ -44,7 +44,7 @@ internal class SearchHelper private constructor() {
             when (context) {
                 is MainActivity -> context.getAdapter().updateList(applicationList, bitmapList)
                 is RestoreActivity -> context.getAdapter()
-                    .updateList(applicationList, bitmapList)
+                    .updateList(applicationList, bitmapList, context)
             }
         }
     }

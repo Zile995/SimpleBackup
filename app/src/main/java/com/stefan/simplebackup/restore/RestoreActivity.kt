@@ -107,14 +107,14 @@ class RestoreActivity : AppCompatActivity() {
 
     private fun createRecyclerView(binding: ActivityRestoreBinding) {
         recyclerView = binding.restoreRecyclerView
-        restoreAdapter = RestoreAdapter()
+        restoreAdapter = RestoreAdapter(this)
         recyclerView.adapter = restoreAdapter
         recyclerView.setHasFixedSize(true)
         recyclerView.layoutManager = LinearLayoutManager(this)
     }
 
     private fun updateAdapter() {
-        restoreAdapter.updateList(applicationList, bitmapList)
+        restoreAdapter.updateList(applicationList, bitmapList, this)
     }
 
     private suspend fun refreshStoredPackages() {
