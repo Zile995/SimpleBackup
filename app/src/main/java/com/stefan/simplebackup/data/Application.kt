@@ -14,6 +14,7 @@ data class Application(private val name: String,
                        private val packageName: String,
                        private val versionName: String,
                        private var dataDir: String,
+                       private var apkDir: String,
                        private var date: String,
                        private var size: Long) : Parcelable {
 
@@ -21,7 +22,8 @@ data class Application(private val name: String,
         parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readString() ?: "",
-        parcel.readString() ?:"",
+        parcel.readString() ?: "",
+        parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readLong()
     )
@@ -35,6 +37,7 @@ data class Application(private val name: String,
         dest.writeString(packageName)
         dest.writeString(versionName)
         dest.writeString(dataDir)
+        dest.writeString(apkDir)
         dest.writeLong(size)
     }
 
@@ -49,6 +52,8 @@ data class Application(private val name: String,
     fun getSize() = this.size
 
     fun getDate() = this.date
+
+    fun getApkDir() = this.apkDir
 
     fun setDataDir(newDir: String) {
         this.dataDir = newDir

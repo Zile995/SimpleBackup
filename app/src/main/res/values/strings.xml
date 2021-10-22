@@ -13,8 +13,8 @@
     <string name="data_in">Data in:</string>
     <string name="confirm_delete">Confirm Delete</string>
     <string name="delete_confirmation_message">Are you sure you want to delete this application?</string>
-    <string name="confirm_install">Confirm Install</string>
-    <string name="install_confirmation_message">Are you sure you want to install this application?</string>
+    <string name="confirm_restore">Confirm Restore</string>
+    <string name="restore_confirmation_message">Are you sure you want to restore this application?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="apk">APK:</string>

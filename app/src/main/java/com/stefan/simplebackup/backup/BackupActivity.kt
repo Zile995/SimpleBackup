@@ -1,13 +1,13 @@
 package com.stefan.simplebackup.backup
 
 import android.app.Activity
+import android.app.ActivityManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -107,7 +107,9 @@ class BackupActivity : AppCompatActivity() {
         }
 
         deleteButton.setOnClickListener {
-            deleteDialog()
+            CoroutineScope(Dispatchers.Main).launch {
+                deleteDialog()
+            }
         }
     }
 
@@ -127,12 +129,17 @@ class BackupActivity : AppCompatActivity() {
         builder.setTitle(getString(R.string.confirm_delete))
         builder.setMessage(getString(R.string.delete_confirmation_message))
         builder.setPositiveButton(getString(R.string.yes)) { dialog, _ ->
-            deleteApp(chipPackage.text.toString())
-            dialog.cancel()
-            Handler(Looper.getMainLooper()).postDelayed({
-                Toast.makeText(this, "Successfully deleted!", Toast.LENGTH_SHORT).show()
-            }, 1500)
-            onBackPressed()
+            CoroutineScope(Dispatchers.Main).launch {
+                dialog.cancel()
+                launch {
+                    deleteApp(this@BackupActivity, chipPackage.text.toString())
+                }.join()
+                delay(250)
+                onBackPressed()
+                Toast.makeText(this@BackupActivity, "Successfully deleted!", Toast.LENGTH_SHORT)
+                    .show()
+
+            }
         }
         builder.setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.cancel() }
         val alert = builder.create()
@@ -153,14 +160,14 @@ class BackupActivity : AppCompatActivity() {
 
             with(progressBar) {
                 backupFolder = createBackupDir(backupFolder)
-                app.setDataDir(backupFolder)
                 setProgress(25, true)
 
-                sudo("cp -r /data/data/${app.getPackageName()} $backupFolder/")
+                sudo("cp -r ${app.getDataDir()} $backupFolder/")
+                app.setDataDir(backupFolder)
                 app.setSize(getDataSize(backupFolder))
                 setProgress(45, true)
 
-                sudo("cp ${getApkBundlePath(app.getPackageName())}*.apk $backupFolder/")
+                sudo("cp ${app.getApkDir()}/*.apk $backupFolder/")
                 setProgress(75, true)
 
                 saveBitmap(bitmap, "${backupFolder}/${app.getName()}.png")
@@ -267,19 +274,25 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private fun getApkBundlePath(packageName: String): String {
-        val process =
-            Runtime.getRuntime().exec("su -c pm path $packageName | cut -d':' -f2")
-        BufferedReader(InputStreamReader(process.inputStream)).use {
-            return it.readLine().removeSuffix("base.apk")
-        }
-    }
+//    private fun getApkBundlePath(packageName: String): String {
+//        val process =
+//            Runtime.getRuntime().exec("su -c pm path $packageName | cut -d':' -f2")
+//        BufferedReader(InputStreamReader(process.inputStream)).use {
+//            return it.readLine().removeSuffix("base.apk")
+//        }
+//    }
 
-    private fun deleteApp(packageName: String) {
-        try {
+    private suspend fun deleteApp(context: Context, packageName: String) {
+        withContext(Dispatchers.Default) {
+            val disable = launch {
+                val activityManager =
+                    applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                activityManager.killBackgroundProcesses(packageName)
+//                val packageManager = context.packageManager.package
+            }
+            disable.join()
+            delay(300)
             sudo("pm uninstall $packageName")
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -313,20 +326,4 @@ class BackupActivity : AppCompatActivity() {
                 Log.e(TAG, "Unable to sign in.", exception)
             }
     }
-
-//    private fun getPermissions(packageName: String): String {
-//        var line = ""
-//        val process = Runtime.getRuntime().exec(
-//            "su -c " +
-//                    "cat /data/system/packages.list | awk '{print \"u0_a\" \$2-10000 \":u0_a\" \$2-10000 \" /data/data/\"\$1\"\"}'"
-//        )
-//        BufferedReader(InputStreamReader(process.inputStream)).use { buffer ->
-//            buffer.forEachLine {
-//                if (it.contains(packageName)) {
-//                    line = it
-//                }
-//            }
-//        }
-//        return line
-//    }
 }

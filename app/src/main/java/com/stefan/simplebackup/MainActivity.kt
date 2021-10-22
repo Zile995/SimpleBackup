@@ -37,8 +37,12 @@ open class MainActivity : AppCompatActivity() {
     private var PACKAGE_NAME: String? = null
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
-    private lateinit var applicationList: MutableList<Application>
-    private lateinit var bitmapList: MutableList<ApplicationBitmap>
+    private var applicationList = mutableListOf<Application>()
+    private var bitmapList = mutableListOf<ApplicationBitmap>()
+
+    private var applicationInfoList = mutableListOf<ApplicationInfo>()
+    private var packageInfoList = mutableListOf<PackageInfo>()
+
     private lateinit var topBar: Toolbar
     private lateinit var swipeContainer: SwipeRefreshLayout
     private lateinit var appAdapter: AppAdapter
@@ -48,8 +52,6 @@ open class MainActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
 
     private lateinit var pm: PackageManager
-    private lateinit var applicationInfoList: MutableList<ApplicationInfo>
-    private lateinit var packageInfoList: MutableList<PackageInfo>
 
     private val flags: Int = PackageManager.GET_META_DATA or
             PackageManager.GET_SHARED_LIBRARY_FILES
@@ -292,6 +294,7 @@ open class MainActivity : AppCompatActivity() {
                         applicationInfoList[i].packageName,
                         packageInfoList[i].versionName,
                         applicationInfoList[i].dataDir,
+                        applicationInfoList[i].publicSourceDir.removeSuffix("/base.apk"),
                         "",
                         File(
                             pm.getApplicationInfo(
@@ -304,8 +307,8 @@ open class MainActivity : AppCompatActivity() {
             }
         }
         Log.d("return", list.toString())
-
-        return list.sortedBy { it.getName() } as MutableList<Application>
+        list.sortBy { it.getName() }
+        return list
     }
 
     /**
@@ -333,7 +336,8 @@ open class MainActivity : AppCompatActivity() {
             }
         }
         Log.d("return:", list.toString())
-        return list.sortedBy { it.getName() } as MutableList<ApplicationBitmap>
+        list.sortBy { it.getName() }
+        return list
     }
 
     /**

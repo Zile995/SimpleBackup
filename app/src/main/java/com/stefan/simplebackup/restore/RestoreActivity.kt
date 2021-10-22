@@ -166,9 +166,26 @@ class RestoreActivity : AppCompatActivity() {
                     }
                 }
             }
-            applicationList = tempAppList.sortedBy { it.getName() } as MutableList<Application>
-            bitmapList = tempBitmapList.sortedBy { it.getName() } as MutableList<ApplicationBitmap>
+            applicationList = tempAppList
+            bitmapList = tempBitmapList
+            applicationList.sortBy { it.getName() }
+            bitmapList.sortBy { it.getName() }
+        } else {
+            createDirectory(path)
+            createFile(path.plus("/.nomedia"))
         }
+    }
+
+    private fun createDirectory(path: String) {
+        val dir = File(path)
+        if (!dir.exists()) {
+            dir.mkdirs()
+        }
+    }
+
+    private fun createFile(path: String) {
+        val file = File(path)
+        file.createNewFile()
     }
 
     fun getAdapter(): RestoreAdapter {

@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.adapter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
@@ -7,7 +8,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
@@ -15,15 +15,19 @@ import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
-import java.io.DataOutputStream
-import java.io.File
-import java.io.IOException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.*
 import kotlin.math.pow
 
 class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.RestoreViewHolder>() {
 
     companion object {
         private const val ROOT: String = "/storage/emulated/0/SimpleBackup"
+        private const val LOCAL: String = "/data/local/tmp"
+        private const val DATA: String = "/data/data"
     }
 
     private var appList = mutableListOf<Application>()
@@ -66,6 +70,7 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
      * - Služi da postavimo parametre
      */
     override fun onBindViewHolder(holder: RestoreViewHolder, position: Int) {
+
         val item = appList[position]
         val bitmap = bitmapList[position]
         val charSequenceVersion: CharSequence = "v" + item.getVersionName()
@@ -78,12 +83,17 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
 
         holder.cardView.setOnClickListener {
             val builder = AlertDialog.Builder(context, R.style.DialogTheme)
-            builder.setTitle(context.getString(R.string.confirm_install))
-            builder.setMessage(context.getString(R.string.install_confirmation_message))
+            builder.setTitle(context.getString(R.string.confirm_restore))
+            builder.setMessage(context.getString(R.string.restore_confirmation_message))
             builder.setPositiveButton(context.getString(R.string.yes)) { dialog, _ ->
-                installApp(item)
                 dialog.cancel()
-                Toast.makeText(context, "Successfully installed!", Toast.LENGTH_SHORT).show()
+                CoroutineScope(Dispatchers.Main).launch {
+                    launch { installApp(context, item) }.join()
+                    launch {
+                        Toast.makeText(context, "Successfully restored!", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                }
             }
             builder.setNegativeButton(context.getString(R.string.no)) { dialog, _ -> dialog.cancel() }
             val alert = builder.create()
@@ -99,45 +109,90 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
 
     override fun getItemCount() = this.appList.size
 
-    fun installApp(application: Application) {
-        val local = "/data/local/tmp"
-        val dir = local.plus(application.getDataDir().removePrefix(ROOT))
-        try {
-            sudo("mkdir -p $dir")
-            sudo("cp -r ${application.getDataDir()}/*.apk $dir/")
-            sudo("pm install $dir/*.apk")
-            sudo("rm -rf $dir")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    private fun createDirectory(path: String) {
-        val dir = File(path)
-        if (!dir.exists()) {
-            dir.mkdirs()
-        }
-    }
-
-    private fun sudo(vararg strings: String) {
-        try {
-            val su = Runtime.getRuntime().exec("su -mm")
-            val outputStream = DataOutputStream(su.outputStream)
-            for (s in strings) {
-                outputStream.writeBytes(s + "\n")
-                outputStream.flush()
-            }
-
-            outputStream.writeBytes("exit\n")
-            outputStream.flush()
+    private suspend fun installApp(context: Context, application: Application) {
+        withContext(Dispatchers.IO) {
+            val backupDir = application.getDataDir()
+            val restoreDir = LOCAL.plus(backupDir.removePrefix(ROOT))
+            val packageName = application.getPackageName()
+            val dataDir = "$DATA/$packageName"
             try {
-                su.waitFor()
-            } catch (e: InterruptedException) {
+                with(Installer) {
+                    sudo("mkdir -p $restoreDir")
+                    sudo("cp -r $backupDir/*.apk $restoreDir/")
+                    sudo("rm -rf $dataDir")
+                    installApk(context, restoreDir)
+                    sudo("cp -r $backupDir/$packageName $DATA/")
+                    sudo(getPermissions(packageName))
+                    sudo("restorecon -R $dataDir")
+                    sudo("rm -rf $restoreDir")
+                }
+            } catch (e: Exception) {
                 e.printStackTrace()
             }
-            outputStream.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
+        }
+    }
+
+    object Installer {
+        @JvmStatic
+        fun installApk(context: Context, apkFolderPath: String) {
+            val packageInstaller = context.packageManager.packageInstaller
+            val apkSizeMap = HashMap<File, Long>()
+            var totalSize: Long = 0
+            val folder = File(apkFolderPath)
+            val listOfFiles =
+                folder.listFiles()?.filter { it.isFile && it.name.endsWith(".apk") }
+            listOfFiles?.forEach {
+                apkSizeMap[it] = it.length()
+                totalSize += it.length()
+            }
+            sudo("pm install-create -S $totalSize")
+            val sessions = packageInstaller.allSessions
+            val sessionId = sessions[0].sessionId
+            for ((apk, size) in apkSizeMap) {
+                sudo(
+                    "pm install-write -S $size $sessionId ${apk.name} ${apk.absolutePath}"
+                )
+            }
+            sudo("pm install-commit $sessionId")
+        }
+
+        fun getPermissions(packageName: String): String {
+            var line = ""
+            val process = Runtime.getRuntime().exec(
+                "su -c " +
+                        "cat /data/system/packages.list | awk '{print \"chown u0_a\" \$2-10000 \":u0_a\" \$2-10000 \" /data/data/\"\$1\" -R\"}'"
+            )
+            BufferedReader(InputStreamReader(process.inputStream)).use { buffer ->
+                buffer.forEachLine {
+                    if (it.contains(packageName)) {
+                        line = it
+                    }
+                }
+            }
+            println(line)
+            return line
+        }
+
+        fun sudo(vararg strings: String) {
+            try {
+                val su = Runtime.getRuntime().exec("su")
+                val outputStream = DataOutputStream(su.outputStream)
+                for (s in strings) {
+                    outputStream.writeBytes(s + "\n")
+                    outputStream.flush()
+                }
+
+                outputStream.writeBytes("exit\n")
+                outputStream.flush()
+                try {
+                    su.waitFor()
+                } catch (e: InterruptedException) {
+                    e.printStackTrace()
+                }
+                outputStream.close()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -145,14 +200,15 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
         return String.format("%3.2f %s", bytes / 1000.0.pow(2), "MB")
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     fun updateList(
         newList: MutableList<Application>,
         newBitmapList: MutableList<ApplicationBitmap>,
-        mContext: Context
+        rContext: Context
     ) {
         appList = newList
         bitmapList = newBitmapList
-        context = mContext
+        context = rContext
         notifyDataSetChanged()
     }
 
