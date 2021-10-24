@@ -17,7 +17,7 @@ import com.stefan.simplebackup.adapter.RestoreAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityRestoreBinding
-import com.stefan.simplebackup.helper.SearchHelper
+import com.stefan.simplebackup.utils.SearchHelper
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json

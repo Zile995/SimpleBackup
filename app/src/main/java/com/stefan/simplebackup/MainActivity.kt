@@ -27,10 +27,12 @@ import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityMainBinding
-import com.stefan.simplebackup.helper.SearchHelper
+import com.stefan.simplebackup.utils.RootChecker
+import com.stefan.simplebackup.utils.SearchHelper
 import com.stefan.simplebackup.restore.RestoreActivity
 import kotlinx.coroutines.*
 import java.io.File
+import java.util.*
 
 open class MainActivity : AppCompatActivity() {
 
@@ -56,6 +58,8 @@ open class MainActivity : AppCompatActivity() {
     private val flags: Int = PackageManager.GET_META_DATA or
             PackageManager.GET_SHARED_LIBRARY_FILES
 
+    private val rootChecker = RootChecker(this)
+
     /**
      * - Standardna onCreate metoda Activity Lifecycle-a
      */
@@ -66,6 +70,17 @@ open class MainActivity : AppCompatActivity() {
         // Postavi View Binding
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+//        if (rootChecker.isRooted(false)) {
+//            Log.d("root", "Phone is rooted")
+//            if (rootChecker.hasRootAccess()) {
+//                Log.d("access", "Phone has root access")
+//            } else {
+//                Log.d("access", "Phone doesn't have root access")
+//            }
+//        } else {
+//            Log.d("root", "Phone is not rooted")
+//        }
 
         // Inicijalizuj package varijable
         PACKAGE_NAME = this.applicationContext.packageName

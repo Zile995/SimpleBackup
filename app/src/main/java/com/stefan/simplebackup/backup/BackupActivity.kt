@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.backup
 
+import android.annotation.TargetApi
 import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
@@ -7,6 +8,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.icu.text.SimpleDateFormat
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -37,14 +39,17 @@ import kotlinx.serialization.json.Json
 import java.io.*
 import java.util.*
 
+
 class BackupActivity : AppCompatActivity() {
 
+
     companion object {
-        private const val ROOT: String = "/storage/emulated/0/SimpleBackup"
         private const val TAG: String = "BackupActivity"
         private const val REQUEST_CODE_SIGN_IN: Int = 400
+        private const val REQUEST_CODE_STORAGE: Int = 500
     }
 
+    var internalStoragePath: String = ""
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private lateinit var topBar: Toolbar
@@ -86,8 +91,8 @@ class BackupActivity : AppCompatActivity() {
         appImage.setImageBitmap(bitmap)
         progressBar.visibility = View.GONE
 
-        createDirectory(ROOT)
-        createFile("$ROOT/.nomedia")
+        createDirectory(internalStoragePath)
+        createFile("$internalStoragePath/.nomedia")
 
         backupButton.setOnClickListener {
             selectedApp.setDate(
@@ -156,7 +161,8 @@ class BackupActivity : AppCompatActivity() {
         withContext(Dispatchers.IO) {
             val appDir = app.getName().filterNot { it.isWhitespace() }
             val appVersion = app.getVersionName().replace("(", "_").replace(")", "")
-            var backupFolder = "$ROOT/${appDir}_${appVersion.filterNot { it.isWhitespace() }}"
+            var backupFolder =
+                "$internalStoragePath/${appDir}_${appVersion.filterNot { it.isWhitespace() }}"
 
             with(progressBar) {
                 backupFolder = createBackupDir(backupFolder)
@@ -288,13 +294,33 @@ class BackupActivity : AppCompatActivity() {
                 val activityManager =
                     applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
                 activityManager.killBackgroundProcesses(packageName)
-//                val packageManager = context.packageManager.package
+                //val packageManager = context.packageManager
+                //val packageInstaller = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
             }
             disable.join()
             delay(300)
             sudo("pm uninstall $packageName")
         }
     }
+
+    fun getInternalStorage(): String {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            getInternalPath()
+        else
+            getInternalPathLegacy()
+    }
+
+    @TargetApi(Build.VERSION_CODES.Q)
+    private fun getInternalPath(): String {
+        var rootPath = ""
+        return rootPath
+    }
+
+    private fun getInternalPathLegacy(): String {
+        var rootPath = ""
+        return rootPath
+    }
+
 
     private fun requestSignIn() {
         val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)

@@ -10,14 +10,20 @@ import kotlinx.serialization.Serializable
  */
 
 @Serializable
-data class Application(private val name: String,
-                       private val packageName: String,
-                       private val versionName: String,
-                       private var dataDir: String,
-                       private var apkDir: String,
-                       private var date: String,
-                       private var size: Long) : Parcelable {
+data class Application(
+    private val name: String,
+    private val packageName: String,
+    private val versionName: String,
+    private var dataDir: String,
+    private var apkDir: String,
+    private var date: String,
+    private var size: Long
+) : Parcelable {
 
+    /**
+     * Pošto readString vraća nullable String? a imamo definisane String varijable u data klasi,
+     * ukoliko je null, vrati prazan String ""
+     */
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
         parcel.readString() ?: "",
@@ -43,7 +49,7 @@ data class Application(private val name: String,
 
     fun getName() = this.name
 
-    fun getPackageName()= this.packageName
+    fun getPackageName() = this.packageName
 
     fun getVersionName() = this.versionName
 
