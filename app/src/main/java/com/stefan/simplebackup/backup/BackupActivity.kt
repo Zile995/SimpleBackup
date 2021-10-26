@@ -42,11 +42,9 @@ import java.util.*
 
 class BackupActivity : AppCompatActivity() {
 
-
     companion object {
         private const val TAG: String = "BackupActivity"
         private const val REQUEST_CODE_SIGN_IN: Int = 400
-        private const val REQUEST_CODE_STORAGE: Int = 500
     }
 
     var internalStoragePath: String = ""
@@ -80,6 +78,8 @@ class BackupActivity : AppCompatActivity() {
 
         topBar.setTitleTextAppearance(this, R.style.ActionBarTextAppearance)
         setSupportActionBar(topBar)
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        supportActionBar!!.setDisplayShowHomeEnabled(true)
 
         val selectedApp: Application? = intent?.extras?.getParcelable("application")
         val bitmap = BitmapFactory.decodeStream(this.openFileInput(selectedApp?.getName()))
@@ -116,6 +116,11 @@ class BackupActivity : AppCompatActivity() {
                 deleteDialog()
             }
         }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -168,6 +173,7 @@ class BackupActivity : AppCompatActivity() {
                 backupFolder = createBackupDir(backupFolder)
                 setProgress(25, true)
 
+                // sudo("cp -r `ls -d \$PWD${app.getDataDir()}/* | grep -vE \"cache|code_cache\"` $backupFolder/")
                 sudo("cp -r ${app.getDataDir()} $backupFolder/")
                 app.setDataDir(backupFolder)
                 app.setSize(getDataSize(backupFolder))
@@ -302,25 +308,6 @@ class BackupActivity : AppCompatActivity() {
             sudo("pm uninstall $packageName")
         }
     }
-
-    fun getInternalStorage(): String {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-            getInternalPath()
-        else
-            getInternalPathLegacy()
-    }
-
-    @TargetApi(Build.VERSION_CODES.Q)
-    private fun getInternalPath(): String {
-        var rootPath = ""
-        return rootPath
-    }
-
-    private fun getInternalPathLegacy(): String {
-        var rootPath = ""
-        return rootPath
-    }
-
 
     private fun requestSignIn() {
         val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)

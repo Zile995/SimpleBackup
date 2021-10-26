@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.restore
 
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -58,8 +59,7 @@ class RestoreActivity : AppCompatActivity() {
         }
 
         floatingButton.setOnClickListener {
-            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-            layoutManager.scrollToPositionWithOffset(0, 0)
+            recyclerView.smoothScrollToPosition(0)
         }
 
         swipeContainer.setOnRefreshListener {
@@ -72,13 +72,16 @@ class RestoreActivity : AppCompatActivity() {
                 refresh.join()
                 launch {
                     swipeContainer.isRefreshing = false
-                }
-                launch {
                     delay(200)
                     updateAdapter()
                 }
             }
         }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        onBackPressed()
+        return true
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -94,7 +97,9 @@ class RestoreActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                SearchHelper.search(applicationList, bitmapList, this@RestoreActivity, newText)
+                if (applicationList.size > 0) {
+                    SearchHelper.search(applicationList, bitmapList, this@RestoreActivity, newText)
+                }
                 return true
             }
         })
@@ -118,14 +123,14 @@ class RestoreActivity : AppCompatActivity() {
     }
 
     private suspend fun refreshStoredPackages() {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             getStoredPackages()
         }
     }
 
     private fun getStoredPackages() {
-        val tempAppList = mutableListOf<Application>()
-        val tempBitmapList = mutableListOf<ApplicationBitmap>()
+        val tempApps = mutableListOf<Application>()
+        val tempBitmaps = mutableListOf<ApplicationBitmap>()
         val path = "/storage/emulated/0/SimpleBackup"
         val dir = File(path)
         if (dir.exists()) {
@@ -141,7 +146,7 @@ class RestoreActivity : AppCompatActivity() {
                                     .use { reader ->
                                         val string = reader.readLine()
                                         Log.d("asdf", string)
-                                        tempAppList.add(
+                                        tempApps.add(
                                             Json.decodeFromString(string)
                                         )
                                     }
@@ -155,7 +160,7 @@ class RestoreActivity : AppCompatActivity() {
                                 )
                                 Log.d("bitmap", bitmap.toString())
                                 Log.d("stringBitmap", stringBitmap)
-                                tempBitmapList.add(
+                                tempBitmaps.add(
                                     ApplicationBitmap(
                                         stringBitmap,
                                         bitmap
@@ -166,8 +171,8 @@ class RestoreActivity : AppCompatActivity() {
                     }
                 }
             }
-            applicationList = tempAppList
-            bitmapList = tempBitmapList
+            applicationList = tempApps
+            bitmapList = tempBitmaps
             applicationList.sortBy { it.getName() }
             bitmapList.sortBy { it.getName() }
         } else {
@@ -196,14 +201,17 @@ class RestoreActivity : AppCompatActivity() {
         topBar = binding.topAppBar
         topBar.setTitleTextAppearance(this, R.style.ActionBarTextAppearance)
         setSupportActionBar(topBar)
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        supportActionBar!!.setDisplayShowHomeEnabled(true)
     }
 
     private fun createFloatingButton(binding: ActivityRestoreBinding) {
         floatingButton = binding.floatingButton
+        floatingButton.hide()
     }
 
-    private fun hideButton(recyclerView: RecyclerView?) {
-        recyclerView?.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+    private fun hideButton(recyclerView: RecyclerView) {
+        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
@@ -212,6 +220,14 @@ class RestoreActivity : AppCompatActivity() {
                 } else if (dy < 0 && !floatingButton.isShown) {
                     floatingButton.show()
                 }
+            }
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+
+                // Ako ne može da skroluje više na dole (1 je down direction) i ako može ma gore (-1 up direction)
+                if (!recyclerView.canScrollVertically(1) && recyclerView.canScrollVertically(-1))
+                    floatingButton.show()
             }
         })
     }

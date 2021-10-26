@@ -30,7 +30,8 @@
         android:testOnly="false">
         <activity
             android:name=".restore.RestoreActivity"
-            android:exported="true" />
+            android:exported="true"
+            android:parentActivityName=".MainActivity"/>
         <activity
             android:name=".backup.BackupActivity"
             android:exported="true"

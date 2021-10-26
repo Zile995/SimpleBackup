@@ -33,22 +33,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar_backup_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent ">
-
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/top_backup_bar"
-            style="@style/Widget.MaterialComponents.Toolbar.Primary"
+            style="@style/ToolbarTheme"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:backgroundTint="@color/bottom_bar"
             app:title="Backup"
-            app:titleTextColor="@color/white" />
-
-    </com.google.android.material.appbar.AppBarLayout>
+            app:titleTextColor="@color/white"
+            app:layout_constraintTop_toTopOf="parent"/>
 
     <ImageView
         android:id="@+id/application_image_backup"
@@ -58,7 +51,7 @@
         android:contentDescription="@string/application_image"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/app_bar_backup_layout" />
+        app:layout_constraintTop_toBottomOf="@id/top_backup_bar" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/text_item_backup"

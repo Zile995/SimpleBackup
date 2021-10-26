@@ -16,6 +16,9 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.backup.BackupActivity
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import kotlin.math.pow
 
@@ -71,10 +74,12 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
         holder.appImage.setImageBitmap(bitmap.getIcon())
         holder.chipVersion.text = charSequenceVersion.toString()
         holder.appSize.text = transformBytes(item.getSize())
-
-        saveBitmap(bitmap.getIcon(), item.getName(), context)
         holder.chipPackage.text = charSequencePackage.toString()
+
         holder.cardView.setOnClickListener {
+            CoroutineScope(Dispatchers.Default).launch {
+                saveBitmap(bitmap.getIcon(), item.getName(), context)
+            }
             val intent = Intent(context, BackupActivity::class.java)
             intent.putExtra("application", item)
             context.startActivity(intent)
@@ -92,7 +97,6 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
                 output.write(bytes.toByteArray())
                 output.close()
             }
-
         } catch (e: Exception) {
             e.printStackTrace()
         }

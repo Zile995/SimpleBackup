@@ -9,12 +9,14 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
@@ -27,21 +29,24 @@ import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityMainBinding
+import com.stefan.simplebackup.restore.RestoreActivity
 import com.stefan.simplebackup.utils.RootChecker
 import com.stefan.simplebackup.utils.SearchHelper
-import com.stefan.simplebackup.restore.RestoreActivity
 import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
 
 open class MainActivity : AppCompatActivity() {
 
-    private var PACKAGE_NAME: String? = null
+    companion object {
+        private const val REQUEST_CODE_STORAGE: Int = 500
+    }
+
+    private var PACKAGE_NAME: String = ""
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private var applicationList = mutableListOf<Application>()
     private var bitmapList = mutableListOf<ApplicationBitmap>()
-
     private var applicationInfoList = mutableListOf<ApplicationInfo>()
     private var packageInfoList = mutableListOf<PackageInfo>()
 
@@ -57,8 +62,6 @@ open class MainActivity : AppCompatActivity() {
 
     private val flags: Int = PackageManager.GET_META_DATA or
             PackageManager.GET_SHARED_LIBRARY_FILES
-
-    private val rootChecker = RootChecker(this)
 
     /**
      * - Standardna onCreate metoda Activity Lifecycle-a
@@ -82,7 +85,6 @@ open class MainActivity : AppCompatActivity() {
 //            Log.d("root", "Phone is not rooted")
 //        }
 
-        // Inicijalizuj package varijable
         PACKAGE_NAME = this.applicationContext.packageName
         pm = packageManager
 
@@ -97,11 +99,12 @@ open class MainActivity : AppCompatActivity() {
         scope.launch {
             val load = launch {
                 refreshPackageList()
+                delay(250)
             }
             load.join()
             launch {
                 progressBar.visibility = View.GONE
-                delay(500)
+                delay(200)
                 updateAdapter()
                 hideButton(recyclerView)
             }
@@ -118,8 +121,6 @@ open class MainActivity : AppCompatActivity() {
                 refresh.join()
                 launch {
                     swipeContainer.isRefreshing = false
-                }
-                launch {
                     delay(200)
                     updateAdapter()
                 }
@@ -127,8 +128,7 @@ open class MainActivity : AppCompatActivity() {
         }
 
         floatingButton.setOnClickListener {
-            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-            layoutManager.scrollToPositionWithOffset(0, 0)
+            recyclerView.smoothScrollToPosition(0)
         }
 
         bottomBar.setOnItemSelectedListener { item ->
@@ -141,6 +141,38 @@ open class MainActivity : AppCompatActivity() {
             true
         }
 
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when (requestCode) {
+            REQUEST_CODE_STORAGE -> {
+                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+
+                }
+            }
+            else -> { throw Exception("Wrong request code") }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        when (requestCode) {
+            REQUEST_CODE_STORAGE -> {
+                if (grantResults.size > 0) {
+                    val READ_EXTERNAL_STORAGE = grantResults[0] == PackageManager.PERMISSION_GRANTED
+                    val WRITE_EXTERNAL_STORAGE = grantResults[1] == PackageManager.PERMISSION_GRANTED
+
+                    if (!READ_EXTERNAL_STORAGE && !WRITE_EXTERNAL_STORAGE) {
+                        Toast.makeText(this, "Allow permission for storage access!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+            else -> { throw Exception("Wrong request code") }
+        }
     }
 
     /**
@@ -202,7 +234,7 @@ open class MainActivity : AppCompatActivity() {
      *  - Prosleđuje AppAdapter adapteru novu listu i obaveštava RecyclerView da je lista promenjena
      */
     private suspend fun refreshPackageList() {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             launch {
                 applicationInfoList = pm.getInstalledApplications(flags)
             }
@@ -210,9 +242,8 @@ open class MainActivity : AppCompatActivity() {
                 packageInfoList = pm.getInstalledPackages(0)
             }.join()
             launch {
-                applicationList = getPackageList(applicationInfoList, packageInfoList, pm, flags)
+                getPackageList()
             }
-            launch { bitmapList = getBitmapList(applicationInfoList, pm) }
         }
     }
 
@@ -225,6 +256,7 @@ open class MainActivity : AppCompatActivity() {
      */
     private fun createFloatingButton(binding: ActivityMainBinding) {
         floatingButton = binding.floatingButton
+        floatingButton.hide()
     }
 
     /**
@@ -232,7 +264,6 @@ open class MainActivity : AppCompatActivity() {
      */
     private fun createBottomBar(binding: ActivityMainBinding) {
         bottomBar = binding.bottomNavigation
-
     }
 
     fun getAdapter(): AppAdapter {
@@ -253,6 +284,19 @@ open class MainActivity : AppCompatActivity() {
                     floatingButton.hide()
                 } else if (dy < 0 && !floatingButton.isShown) {
                     floatingButton.show()
+                }
+            }
+
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                super.onScrollStateChanged(recyclerView, newState)
+                // Ako ne može da skroluje više na dole (1 je down direction) i ako može ma gore (-1 up direction)
+                if (!recyclerView.canScrollVertically(1) && recyclerView.canScrollVertically(-1) && newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    floatingButton.show()
+                } else if (recyclerView.canScrollVertically(1) && !recyclerView.canScrollVertically(
+                        -1
+                    )
+                ) {
+                    floatingButton.hide()
                 }
             }
         })
@@ -288,71 +332,47 @@ open class MainActivity : AppCompatActivity() {
      *   tools:ignore="QueryAllPackagesPermission" />**
      */
     @SuppressLint("QueryPermissionsNeeded")
-    private fun getPackageList(
-        applicationInfoList: MutableList<ApplicationInfo>,
-        packageInfoList: MutableList<PackageInfo>,
-        pm: PackageManager,
-        flags: Int
-    ): MutableList<Application> {
-        val list = mutableListOf<Application>()
+    private fun getPackageList() {
+        val tempApps = mutableListOf<Application>()
+        val tempBitmaps = mutableListOf<ApplicationBitmap>()
 
-        for (i in 0 until applicationInfoList.size) {
-            if (isUserApp(applicationInfoList[i]) || applicationInfoList[i].packageName.equals(
+        var index = 0
+        applicationInfoList.forEach {
+            if (isUserApp(it) || it.packageName.equals(
                     PACKAGE_NAME
                 )
             ) {
-                // Preskoči sistemske aplikacije i moju aplikaciju
+
             } else {
-                list.add(
+                tempApps.add(
                     Application(
-                        applicationInfoList[i].loadLabel(pm).toString(),
-                        applicationInfoList[i].packageName,
-                        packageInfoList[i].versionName,
-                        applicationInfoList[i].dataDir,
-                        applicationInfoList[i].publicSourceDir.removeSuffix("/base.apk"),
+                        it.loadLabel(pm).toString(),
+                        it.packageName,
+                        packageInfoList[index].versionName,
+                        it.dataDir,
+                        it.publicSourceDir.removeSuffix("/base.apk"),
                         "",
                         File(
                             pm.getApplicationInfo(
-                                applicationInfoList[i].packageName,
+                                it.packageName,
                                 flags
                             ).sourceDir
                         ).length()
                     )
                 )
-            }
-        }
-        Log.d("return", list.toString())
-        list.sortBy { it.getName() }
-        return list
-    }
-
-    /**
-     * - Puni MutableList sa izdvojenim objektima ApplicationBitmap klase
-     */
-    private fun getBitmapList(
-        applicationInfoList: MutableList<ApplicationInfo>,
-        pm: PackageManager
-    ): MutableList<ApplicationBitmap> {
-        val list = mutableListOf<ApplicationBitmap>()
-
-        for (i in 0 until applicationInfoList.size) {
-            if (isUserApp(applicationInfoList[i]) || applicationInfoList[i].packageName.equals(
-                    PACKAGE_NAME
-                )
-            ) {
-                // Preskoči sistemske aplikacije i moju aplikaciju
-            } else {
-                list.add(
+                tempBitmaps.add(
                     ApplicationBitmap(
-                        applicationInfoList[i].loadLabel(pm).toString(),
-                        drawableToBitmap(applicationInfoList[i].loadIcon(pm))
+                        it.loadLabel(pm).toString(),
+                        drawableToBitmap(it.loadIcon(pm))
                     )
                 )
             }
+            index++
         }
-        Log.d("return:", list.toString())
-        list.sortBy { it.getName() }
-        return list
+        tempApps.sortBy { it.getName() }
+        tempBitmaps.sortBy { it.getName() }
+        applicationList = tempApps
+        bitmapList = tempBitmaps
     }
 
     /**

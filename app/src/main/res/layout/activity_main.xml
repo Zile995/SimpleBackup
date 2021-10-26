@@ -17,9 +17,9 @@
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/top_app_bar"
+            style="@style/ToolbarTheme"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/bottom_bar"
+            android:layout_height="wrap_content"
             app:menu="@menu/top_app_bar"
             app:title="@string/app_name"
             app:titleTextColor="@color/white"
@@ -29,7 +29,8 @@
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/purple_200">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"
@@ -48,12 +49,14 @@
         android:id="@+id/progress_bar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerInParent="true"
-        android:scaleX="0.10"
-        android:scaleY="0.10"
+        android:scaleX="0.13"
+        android:scaleY="0.13"
         android:visibility="visible"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        android:indeterminateTint="@color/purple_200"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
