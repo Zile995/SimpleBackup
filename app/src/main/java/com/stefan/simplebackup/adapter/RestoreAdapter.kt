@@ -15,6 +15,7 @@ import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
+import com.stefan.simplebackup.utils.SuperUser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -112,19 +113,19 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
     private suspend fun installApp(context: Context, application: Application) {
         withContext(Dispatchers.IO) {
             val backupDir = application.getDataDir()
-            val restoreDir = LOCAL.plus(backupDir.removePrefix(ROOT))
+            val tempDir = LOCAL.plus(backupDir.removePrefix(ROOT))
             val packageName = application.getPackageName()
             val dataDir = "$DATA/$packageName"
             try {
                 with(Installer) {
-                    sudo("mkdir -p $restoreDir")
-                    sudo("cp -r $backupDir/*.apk $restoreDir/")
-                    sudo("rm -rf $dataDir")
-                    installApk(context, restoreDir)
-                    sudo("cp -r $backupDir/$packageName $DATA/")
-                    sudo(getPermissions(packageName))
-                    sudo("restorecon -R $dataDir")
-                    sudo("rm -rf $restoreDir")
+                    SuperUser.sudo("mkdir -p $tempDir")
+                    SuperUser.sudo("cp -r $backupDir/*.apk $tempDir/")
+                    SuperUser.sudo("rm -rf $dataDir")
+                    installApk(context, tempDir)
+                    SuperUser.sudo("cp -r $backupDir/$packageName $DATA/")
+                    SuperUser.sudo(getPermissions(packageName))
+                    SuperUser.sudo("restorecon -R $dataDir")
+                    SuperUser.sudo("rm -rf $tempDir")
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -145,15 +146,15 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
                 apkSizeMap[it] = it.length()
                 totalSize += it.length()
             }
-            sudo("pm install-create -S $totalSize")
+            SuperUser.sudo("pm install-create -S $totalSize")
             val sessions = packageInstaller.allSessions
             val sessionId = sessions[0].sessionId
             for ((apk, size) in apkSizeMap) {
-                sudo(
+                SuperUser.sudo(
                     "pm install-write -S $size $sessionId ${apk.name} ${apk.absolutePath}"
                 )
             }
-            sudo("pm install-commit $sessionId")
+            SuperUser.sudo("pm install-commit $sessionId")
         }
 
         fun getPermissions(packageName: String): String {
@@ -172,29 +173,8 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
             println(line)
             return line
         }
-
-        fun sudo(vararg strings: String) {
-            try {
-                val su = Runtime.getRuntime().exec("su")
-                val outputStream = DataOutputStream(su.outputStream)
-                for (s in strings) {
-                    outputStream.writeBytes(s + "\n")
-                    outputStream.flush()
-                }
-
-                outputStream.writeBytes("exit\n")
-                outputStream.flush()
-                try {
-                    su.waitFor()
-                } catch (e: InterruptedException) {
-                    e.printStackTrace()
-                }
-                outputStream.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
     }
+
 
     private fun transformBytes(bytes: Long): String {
         return String.format("%3.2f %s", bytes / 1000.0.pow(2), "MB")

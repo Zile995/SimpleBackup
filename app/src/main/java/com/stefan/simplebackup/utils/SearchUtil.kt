@@ -11,7 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-internal class SearchHelper private constructor() {
+internal class SearchUtil private constructor() {
 
     companion object Search {
         fun search(

@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.backup
 
-import android.annotation.TargetApi
 import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
@@ -8,7 +7,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.icu.text.SimpleDateFormat
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -33,6 +31,8 @@ import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.Application
+import com.stefan.simplebackup.utils.FileUtil
+import com.stefan.simplebackup.utils.SuperUser
 import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -91,8 +91,10 @@ class BackupActivity : AppCompatActivity() {
         appImage.setImageBitmap(bitmap)
         progressBar.visibility = View.GONE
 
-        createDirectory(internalStoragePath)
-        createFile("$internalStoragePath/.nomedia")
+        with (FileUtil) {
+            createDirectory(internalStoragePath)
+            createFile("$internalStoragePath/.nomedia")
+        }
 
         backupButton.setOnClickListener {
             selectedApp.setDate(
@@ -174,19 +176,18 @@ class BackupActivity : AppCompatActivity() {
                 setProgress(25, true)
 
                 // sudo("cp -r `ls -d \$PWD${app.getDataDir()}/* | grep -vE \"cache|code_cache\"` $backupFolder/")
-                sudo("cp -r ${app.getDataDir()} $backupFolder/")
+                SuperUser.sudo("cp -r ${app.getDataDir()} $backupFolder/")
                 app.setDataDir(backupFolder)
                 app.setSize(getDataSize(backupFolder))
                 setProgress(45, true)
 
-                sudo("cp ${app.getApkDir()}/*.apk $backupFolder/")
+                SuperUser.sudo("cp ${app.getApkDir()}/*.apk $backupFolder/")
                 setProgress(75, true)
 
                 saveBitmap(bitmap, "${backupFolder}/${app.getName()}.png")
                 appToJson(app, backupFolder)
                 setProgress(100, true)
             }
-
             delay(500)
             withContext(Dispatchers.Main) {
                 progressBar.visibility = View.GONE
@@ -208,21 +209,9 @@ class BackupActivity : AppCompatActivity() {
             File(newPath).mkdirs()
             newPath
         } else {
-            createDirectory(path)
+            FileUtil.createDirectory(path)
             path
         }
-    }
-
-    private fun createDirectory(path: String) {
-        val dir = File(path)
-        if (!dir.exists()) {
-            dir.mkdirs()
-        }
-    }
-
-    private fun createFile(path: String) {
-        val file = File(path)
-        file.createNewFile()
     }
 
     private fun getDataSize(path: String): Long {
@@ -263,29 +252,6 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private fun sudo(vararg strings: String) {
-        try {
-            val su = Runtime.getRuntime().exec("su")
-            val outputStream = DataOutputStream(su.outputStream)
-            for (s in strings) {
-                outputStream.writeBytes(s + "\n")
-                Log.d("command", "$s\n")
-                outputStream.flush()
-            }
-
-            outputStream.writeBytes("exit\n")
-            outputStream.flush()
-            try {
-                su.waitFor()
-            } catch (e: InterruptedException) {
-                e.printStackTrace()
-            }
-            outputStream.close()
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
-
 //    private fun getApkBundlePath(packageName: String): String {
 //        val process =
 //            Runtime.getRuntime().exec("su -c pm path $packageName | cut -d':' -f2")
@@ -305,7 +271,6 @@ class BackupActivity : AppCompatActivity() {
             }
             disable.join()
             delay(300)
-            sudo("pm uninstall $packageName")
         }
     }
 

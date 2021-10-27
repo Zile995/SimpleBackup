@@ -1,7 +1,6 @@
 package com.stefan.simplebackup.restore
 
 import android.graphics.BitmapFactory
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -18,7 +17,8 @@ import com.stefan.simplebackup.adapter.RestoreAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityRestoreBinding
-import com.stefan.simplebackup.utils.SearchHelper
+import com.stefan.simplebackup.utils.FileUtil
+import com.stefan.simplebackup.utils.SearchUtil
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -98,7 +98,7 @@ class RestoreActivity : AppCompatActivity() {
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (applicationList.size > 0) {
-                    SearchHelper.search(applicationList, bitmapList, this@RestoreActivity, newText)
+                    SearchUtil.search(applicationList, bitmapList, this@RestoreActivity, newText)
                 }
                 return true
             }
@@ -176,21 +176,11 @@ class RestoreActivity : AppCompatActivity() {
             applicationList.sortBy { it.getName() }
             bitmapList.sortBy { it.getName() }
         } else {
-            createDirectory(path)
-            createFile(path.plus("/.nomedia"))
+            with (FileUtil) {
+                createDirectory(path)
+                createFile(path.plus("/.nomedia"))
+            }
         }
-    }
-
-    private fun createDirectory(path: String) {
-        val dir = File(path)
-        if (!dir.exists()) {
-            dir.mkdirs()
-        }
-    }
-
-    private fun createFile(path: String) {
-        val file = File(path)
-        file.createNewFile()
     }
 
     fun getAdapter(): RestoreAdapter {

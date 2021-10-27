@@ -11,7 +11,6 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -30,8 +29,7 @@ import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.restore.RestoreActivity
-import com.stefan.simplebackup.utils.RootChecker
-import com.stefan.simplebackup.utils.SearchHelper
+import com.stefan.simplebackup.utils.SearchUtil
 import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
@@ -191,7 +189,7 @@ open class MainActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                SearchHelper.search(applicationList, bitmapList, this@MainActivity, newText)
+                SearchUtil.search(applicationList, bitmapList, this@MainActivity, newText)
                 return true
             }
         })
