@@ -216,8 +216,14 @@ class RestoreActivity : AppCompatActivity() {
                 super.onScrollStateChanged(recyclerView, newState)
 
                 // Ako ne može da skroluje više na dole (1 je down direction) i ako može ma gore (-1 up direction)
-                if (!recyclerView.canScrollVertically(1) && recyclerView.canScrollVertically(-1))
+                if (!recyclerView.canScrollVertically(1) && recyclerView.canScrollVertically(-1) && newState == RecyclerView.SCROLL_STATE_IDLE) {
                     floatingButton.show()
+                } else if (recyclerView.canScrollVertically(1) && !recyclerView.canScrollVertically(
+                        -1
+                    )
+                ) {
+                    floatingButton.hide()
+                }
             }
         })
     }

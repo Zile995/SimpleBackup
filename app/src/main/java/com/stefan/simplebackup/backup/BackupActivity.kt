@@ -43,11 +43,12 @@ import java.util.*
 class BackupActivity : AppCompatActivity() {
 
     companion object {
+        private const val ROOT: String = "SimpleBackup"
         private const val TAG: String = "BackupActivity"
         private const val REQUEST_CODE_SIGN_IN: Int = 400
     }
 
-    var internalStoragePath: String = ""
+    private var internalStoragePath: String = ""
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private lateinit var topBar: Toolbar
@@ -91,7 +92,11 @@ class BackupActivity : AppCompatActivity() {
         appImage.setImageBitmap(bitmap)
         progressBar.visibility = View.GONE
 
-        with (FileUtil) {
+        internalStoragePath = (this.getExternalFilesDir(null)!!.absolutePath).run { substring(0, indexOf("Android")).plus(
+            ROOT) }
+        Log.d("internal", internalStoragePath)
+
+        with(FileUtil) {
             createDirectory(internalStoragePath)
             createFile("$internalStoragePath/.nomedia")
         }
@@ -165,6 +170,9 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private suspend fun createLocalBackup(bitmap: Bitmap, app: Application) {
+        println(this.filesDir.absolutePath)
+        val bitmapPath = this.filesDir.absolutePath.plus("/${app.getName()}")
+
         withContext(Dispatchers.IO) {
             val appDir = app.getName().filterNot { it.isWhitespace() }
             val appVersion = app.getVersionName().replace("(", "_").replace(")", "")
@@ -173,18 +181,18 @@ class BackupActivity : AppCompatActivity() {
 
             with(progressBar) {
                 backupFolder = createBackupDir(backupFolder)
+                FileUtil.createDirectory(backupFolder.plus("/${app.getPackageName()}"))
                 setProgress(25, true)
 
-                // sudo("cp -r `ls -d \$PWD${app.getDataDir()}/* | grep -vE \"cache|code_cache\"` $backupFolder/")
-                SuperUser.sudo("cp -r ${app.getDataDir()} $backupFolder/")
+                SuperUser.sudo("cp -r `ls -d \$PWD${app.getDataDir()}/* | grep -vE \"cache|lib|code_cache\"` $backupFolder/${app.getPackageName()}")
                 app.setDataDir(backupFolder)
                 app.setSize(getDataSize(backupFolder))
                 setProgress(45, true)
 
-                SuperUser.sudo("cp ${app.getApkDir()}/*.apk $backupFolder/")
+                copyApk(app.getApkDir(), backupFolder)
                 setProgress(75, true)
 
-                saveBitmap(bitmap, "${backupFolder}/${app.getName()}.png")
+                copyBitmap(bitmapPath, "${backupFolder}/${app.getName()}.png")
                 appToJson(app, backupFolder)
                 setProgress(100, true)
             }
@@ -231,34 +239,18 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveBitmap(bitmap: Bitmap?, path: String) {
-        if (bitmap != null) {
-            try {
-                val outputStream = FileOutputStream(path)
-                try {
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
-                } catch (e: java.lang.Exception) {
-                    e.printStackTrace()
-                } finally {
-                    try {
-                        outputStream.close()
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
-                }
-            } catch (e: java.lang.Exception) {
-                e.printStackTrace()
-            }
-        }
+    private fun copyBitmap(source: String, target: String) {
+        File(source).copyTo(File(target))
     }
 
-//    private fun getApkBundlePath(packageName: String): String {
-//        val process =
-//            Runtime.getRuntime().exec("su -c pm path $packageName | cut -d':' -f2")
-//        BufferedReader(InputStreamReader(process.inputStream)).use {
-//            return it.readLine().removeSuffix("base.apk")
-//        }
-//    }
+    private fun copyApk(source: String, target: String) {
+        val dir = File(source)
+        dir.walkTopDown().filter {
+            it.absolutePath.contains(".apk")
+        }.forEach {
+            it.copyTo(File(target.plus(it.absolutePath.removePrefix(source))))
+        }
+    }
 
     private suspend fun deleteApp(context: Context, packageName: String) {
         withContext(Dispatchers.Default) {

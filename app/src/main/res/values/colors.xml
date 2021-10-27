@@ -8,7 +8,7 @@
     <color name="black">#1A2565</color>
     <color name="white">#FFFFFFFF</color>
     <color name="darker">#1C1C1C</color>
-    <color name="background">#16243C</color>
+    <color name="background">#192945</color>
     <color name="app_size_color">#FFEAD1</color>
 
     <!--  Chip color -->
@@ -19,7 +19,7 @@
     <color name="weak_yellow">#F9F7CF</color>
 
     <!-- Card color -->
-    <color name="card">#192D4A</color>
+    <color name="card">#1D3558</color>
     <color name="ripple">#1E375E</color>
 
     <!-- Bars -->
