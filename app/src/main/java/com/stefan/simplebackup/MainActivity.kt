@@ -1,24 +1,31 @@
 package com.stefan.simplebackup
 
+import android.Manifest
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.os.Build
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
+import android.util.Log
 import android.view.Menu
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -29,18 +36,22 @@ import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.restore.RestoreActivity
+import com.stefan.simplebackup.utils.PermissionUtils
+import com.stefan.simplebackup.utils.RootChecker
 import com.stefan.simplebackup.utils.SearchUtil
 import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
 
+
 open class MainActivity : AppCompatActivity() {
 
     companion object {
-        private const val REQUEST_CODE_STORAGE: Int = 500
+        private const val STORAGE_PERMISSION_CODE: Int = 500
     }
 
     private var PACKAGE_NAME: String = ""
+    private var rootChecker = RootChecker(this)
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private var applicationList = mutableListOf<Application>()
@@ -72,19 +83,12 @@ open class MainActivity : AppCompatActivity() {
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-//        if (rootChecker.isRooted(false)) {
-//            Log.d("root", "Phone is rooted")
-//            if (rootChecker.hasRootAccess()) {
-//                Log.d("access", "Phone has root access")
-//            } else {
-//                Log.d("access", "Phone doesn't have root access")
-//            }
-//        } else {
-//            Log.d("root", "Phone is not rooted")
-//        }
-
         PACKAGE_NAME = this.applicationContext.packageName
         pm = packageManager
+        val rootSharedPref =
+            this@MainActivity.getSharedPreferences("root_access", Context.MODE_PRIVATE)
+        val rootChecked =
+            this@MainActivity.getSharedPreferences("root_checked", Context.MODE_PRIVATE)
 
         // Inicijalizuj sve potrebne elemente redom
         createProgressBar(binding)
@@ -93,6 +97,7 @@ open class MainActivity : AppCompatActivity() {
         createRecyclerView(binding)
         createFloatingButton(binding)
         createBottomBar(binding)
+        hideButton(recyclerView)
 
         scope.launch {
             val load = launch {
@@ -104,7 +109,6 @@ open class MainActivity : AppCompatActivity() {
                 progressBar.visibility = View.GONE
                 delay(200)
                 updateAdapter()
-                hideButton(recyclerView)
             }
         }
 
@@ -131,7 +135,7 @@ open class MainActivity : AppCompatActivity() {
 
         bottomBar.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.more -> {
+                R.id.restore_local -> {
                     val intent = Intent(this, RestoreActivity::class.java)
                     startActivity(intent)
                 }
@@ -139,17 +143,72 @@ open class MainActivity : AppCompatActivity() {
             true
         }
 
+        CoroutineScope(Dispatchers.Default).launch {
+            if (rootChecker.hasRootAccess()) {
+                rootChecked.edit().putBoolean("checked", true).apply()
+                rootSharedPref.edit().putBoolean("root_granted", true).apply()
+            } else {
+                rootSharedPref.edit().putBoolean("root_granted", false).apply()
+            }
+        }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        when (requestCode) {
-            REQUEST_CODE_STORAGE -> {
-                if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
+    override fun onResume() {
+        scope.launch {
+            val permission = launch {
+                if (!checkPermission()) {
+                    requestPermission()
+                }
+            }
+            permission.join()
+            launch {
+                val rootSharedPref =
+                    this@MainActivity.getSharedPreferences("root_access", Context.MODE_PRIVATE)
+                val rootChecked =
+                    this@MainActivity.getSharedPreferences("root_checked", Context.MODE_PRIVATE)
+                if (rootChecker.isRooted(true)) {
+                    Log.d("root", "Phone is rooted")
+                    if (!rootSharedPref.getBoolean("root_granted", true)) {
+                        Log.d("access", "Phone doesn't have root access")
+                        rootDialog(
+                            rootChecked.getBoolean("checked", false),
+                            "Root detected!",
+                            "But you did not grant root access\nRoot access is needed, in order to backup application data"
+                        )
+                    }
+                } else {
+                    Log.d("root", "Phone is not rooted")
+                    rootDialog(
+                        rootChecked.getBoolean("checked", false),
+                        "Your phone is not rooted",
+                        "However, you will only be able to back up the apk without app data"
+                    )
 
                 }
             }
-            else -> { throw Exception("Wrong request code") }
+        }
+        super.onResume()
+    }
+
+    private fun checkPermission(): Boolean {
+        val result =
+            ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE)
+        return result == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestPermission() {
+        if (PermissionUtils.neverAskAgainSelected(
+                this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+        ) {
+            permissionDialog()
+        } else {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                STORAGE_PERMISSION_CODE
+            )
         }
     }
 
@@ -159,17 +218,28 @@ open class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         when (requestCode) {
-            REQUEST_CODE_STORAGE -> {
+            STORAGE_PERMISSION_CODE -> {
                 if (grantResults.size > 0) {
-                    val READ_EXTERNAL_STORAGE = grantResults[0] == PackageManager.PERMISSION_GRANTED
-                    val WRITE_EXTERNAL_STORAGE = grantResults[1] == PackageManager.PERMISSION_GRANTED
+                    val WRITE_EXTERNAL_STORAGE =
+                        grantResults[0] == PackageManager.PERMISSION_GRANTED
 
-                    if (!READ_EXTERNAL_STORAGE && !WRITE_EXTERNAL_STORAGE) {
-                        Toast.makeText(this, "Allow permission for storage access!", Toast.LENGTH_SHORT).show();
+                    if (WRITE_EXTERNAL_STORAGE) {
+                        Toast.makeText(
+                            this,
+                            "Permission granted successfully",
+                            Toast.LENGTH_LONG
+                        ).show();
+                    } else {
+                        PermissionUtils.setShowDialog(
+                            this,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE
+                        )
                     }
                 }
             }
-            else -> { throw Exception("Wrong request code") }
+            else -> {
+                throw Exception("Wrong request code")
+            }
         }
     }
 
@@ -195,6 +265,48 @@ open class MainActivity : AppCompatActivity() {
         })
         return super.onCreateOptionsMenu(menu)
     }
+
+    private fun permissionDialog() {
+        val builder = AlertDialog.Builder(this, R.style.DialogTheme)
+            .setTitle("Permission not granted!")
+            .setMessage("This permission is required to manage backup files and folders.\nPlease set the storage permission.")
+            .setPositiveButton("Set manually") { _, _ ->
+                val intent =
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                intent.addCategory(Intent.CATEGORY_DEFAULT)
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                val uri = Uri.parse("package:" + PACKAGE_NAME)
+                intent.setData(uri)
+                startActivity(intent)
+            }
+            .setCancelable(false)
+        val alert = builder.create()
+        alert.setOnShowListener{
+            alert.getButton(AlertDialog.BUTTON_POSITIVE)
+                .setTextColor(resources.getColor(R.color.red))
+        }
+        alert.show()
+    }
+
+    private fun rootDialog(checked: Boolean, title: String, message: String) {
+        if (!checked) {
+            val builder = AlertDialog.Builder(this, R.style.DialogTheme)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton(getString(R.string.OK)) { dialog, _ ->
+                    dialog.cancel()
+                }
+            this.getSharedPreferences("root_checked", Context.MODE_PRIVATE).edit()
+                .putBoolean("checked", true).apply()
+            val alert = builder.create()
+            alert.setOnShowListener{
+                alert.getButton(AlertDialog.BUTTON_POSITIVE)
+                    .setTextColor(resources.getColor(R.color.blue))
+            }
+            alert.show()
+        }
+    }
+
 
     /**
      * - Inicijalizuj gornju traku, ili ToolBar
@@ -300,19 +412,6 @@ open class MainActivity : AppCompatActivity() {
         })
     }
 
-    /**
-     *  - Osvežava listu aplikacija kada je Activity u fokusu
-     *
-     */
-    override fun onResume() {
-        scope.launch {
-            refreshPackageList()
-            updateAdapter()
-            topBar.collapseActionView()
-        }
-        super.onResume()
-    }
-
     override fun onBackPressed() {
         topBar.collapseActionView()
         super.onBackPressed()
@@ -342,20 +441,16 @@ open class MainActivity : AppCompatActivity() {
             ) {
 
             } else {
+                val apkDir = it.publicSourceDir.removeSuffix("/base.apk")
                 tempApps.add(
                     Application(
                         it.loadLabel(pm).toString(),
                         it.packageName,
                         packageInfoList[index].versionName,
                         it.dataDir,
-                        it.publicSourceDir.removeSuffix("/base.apk"),
+                        apkDir,
                         "",
-                        File(
-                            pm.getApplicationInfo(
-                                it.packageName,
-                                flags
-                            ).sourceDir
-                        ).length()
+                        getApkSize(apkDir)
                     )
                 )
                 tempBitmaps.add(
@@ -373,6 +468,15 @@ open class MainActivity : AppCompatActivity() {
         bitmapList = tempBitmaps
     }
 
+    private fun getApkSize(path: String): Long {
+        val dir = File(path)
+        return dir.walkTopDown().filter {
+            it.absolutePath.contains("apk")
+        }.map {
+            it.length()
+        }.sum()
+    }
+
     /**
      * - Proverava da li je prosleđena aplikacija system app
      */
@@ -386,12 +490,6 @@ open class MainActivity : AppCompatActivity() {
     private fun drawableToBitmap(drawable: Drawable): Bitmap {
         val bitmap: Bitmap
 
-        if (drawable is BitmapDrawable) {
-            val bitmapDrawable = drawable
-            if (bitmapDrawable.bitmap != null) {
-                return bitmapDrawable.bitmap
-            }
-        }
         if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
             bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
         } else {

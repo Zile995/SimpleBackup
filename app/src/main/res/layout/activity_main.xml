@@ -29,8 +29,7 @@
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:backgroundTint="@color/purple_200">
+        android:layout_height="wrap_content">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"
@@ -64,7 +63,7 @@
         android:layout_height="65dp"
         style="@style/Widget.Design.BottomNavigationView"
         android:layout_gravity="bottom|center"
-        android:background="@color/bottom_bar"
+        android:background="@drawable/curved_bottom_view"
         app:itemIconTint="@color/white"
         app:itemTextAppearanceActive="@style/BottomNavigationView"
         app:itemTextAppearanceInactive="@style/BottomNavigationView"

@@ -3,7 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/more"
+        android:id="@+id/home"
+        android:title="@string/home"
+        android:icon="@drawable/baseline_home_white_24dp"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/restore_local"
         android:title="@string/restore"
         android:icon="@drawable/baseline_settings_backup_restore_indigo_200_36dp"
         android:contentDescription="TODO"

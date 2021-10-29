@@ -155,16 +155,15 @@ class BackupActivity : AppCompatActivity() {
                 onBackPressed()
                 Toast.makeText(this@BackupActivity, "Successfully deleted!", Toast.LENGTH_SHORT)
                     .show()
-
             }
         }
         builder.setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.cancel() }
         val alert = builder.create()
         alert.setOnShowListener {
             alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-                .setTextColor(resources.getColor(R.color.white))
+                .setTextColor(resources.getColor(R.color.blue))
             alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setTextColor(resources.getColor(R.color.white))
+                .setTextColor(resources.getColor(R.color.red))
         }
         alert.show()
     }
