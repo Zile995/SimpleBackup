@@ -115,6 +115,7 @@ class RestoreActivity : AppCompatActivity() {
         restoreAdapter = RestoreAdapter(this)
         recyclerView.adapter = restoreAdapter
         recyclerView.setHasFixedSize(true)
+        recyclerView.setItemViewCacheSize(20)
         recyclerView.layoutManager = LinearLayoutManager(this)
     }
 

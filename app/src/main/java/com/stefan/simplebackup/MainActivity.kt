@@ -13,8 +13,8 @@ import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
+import android.os.Process
 import android.provider.Settings
-import android.util.Log
 import android.view.Menu
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -85,10 +85,9 @@ open class MainActivity : AppCompatActivity() {
 
         PACKAGE_NAME = this.applicationContext.packageName
         pm = packageManager
+
         val rootSharedPref =
-            this@MainActivity.getSharedPreferences("root_access", Context.MODE_PRIVATE)
-        val rootChecked =
-            this@MainActivity.getSharedPreferences("root_checked", Context.MODE_PRIVATE)
+            this@MainActivity.getSharedPreferences("root_access", MODE_PRIVATE)
 
         // Inicijalizuj sve potrebne elemente redom
         createProgressBar(binding)
@@ -102,13 +101,37 @@ open class MainActivity : AppCompatActivity() {
         scope.launch {
             val load = launch {
                 refreshPackageList()
-                delay(250)
             }
             load.join()
-            launch {
+            val set = launch {
+                delay(250)
                 progressBar.visibility = View.GONE
-                delay(200)
                 updateAdapter()
+            }
+            set.join()
+            launch {
+                if (rootChecker.hasRootAccess()) {
+                    rootSharedPref.edit().putBoolean("checked", true).apply()
+                    rootSharedPref.edit().putBoolean("root_granted", true).apply()
+                } else {
+                    rootSharedPref.edit().putBoolean("root_granted", false).apply()
+                }
+                if (rootChecker.isRooted(true)) {
+                    if (!rootSharedPref.getBoolean("root_granted", true)) {
+                        rootDialog(
+                            rootSharedPref.getBoolean("checked", false),
+                            getString(R.string.root_detected),
+                            getString(R.string.not_granted)
+                        )
+                        rootSharedPref.edit().putBoolean("checked", false).apply()
+                    }
+                } else {
+                    rootDialog(
+                        rootSharedPref.getBoolean("checked", false),
+                        getString(R.string.not_rooted),
+                        getString(R.string.not_rooted_info)
+                    )
+                }
             }
         }
 
@@ -143,14 +166,7 @@ open class MainActivity : AppCompatActivity() {
             true
         }
 
-        CoroutineScope(Dispatchers.Default).launch {
-            if (rootChecker.hasRootAccess()) {
-                rootChecked.edit().putBoolean("checked", true).apply()
-                rootSharedPref.edit().putBoolean("root_granted", true).apply()
-            } else {
-                rootSharedPref.edit().putBoolean("root_granted", false).apply()
-            }
-        }
+
     }
 
     override fun onResume() {
@@ -158,32 +174,6 @@ open class MainActivity : AppCompatActivity() {
             val permission = launch {
                 if (!checkPermission()) {
                     requestPermission()
-                }
-            }
-            permission.join()
-            launch {
-                val rootSharedPref =
-                    this@MainActivity.getSharedPreferences("root_access", Context.MODE_PRIVATE)
-                val rootChecked =
-                    this@MainActivity.getSharedPreferences("root_checked", Context.MODE_PRIVATE)
-                if (rootChecker.isRooted(true)) {
-                    Log.d("root", "Phone is rooted")
-                    if (!rootSharedPref.getBoolean("root_granted", true)) {
-                        Log.d("access", "Phone doesn't have root access")
-                        rootDialog(
-                            rootChecked.getBoolean("checked", false),
-                            "Root detected!",
-                            "But you did not grant root access\nRoot access is needed, in order to backup application data"
-                        )
-                    }
-                } else {
-                    Log.d("root", "Phone is not rooted")
-                    rootDialog(
-                        rootChecked.getBoolean("checked", false),
-                        "Your phone is not rooted",
-                        "However, you will only be able to back up the apk without app data"
-                    )
-
                 }
             }
         }
@@ -199,14 +189,14 @@ open class MainActivity : AppCompatActivity() {
     private fun requestPermission() {
         if (PermissionUtils.neverAskAgainSelected(
                 this,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
+                WRITE_EXTERNAL_STORAGE
             )
         ) {
             permissionDialog()
         } else {
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                arrayOf(WRITE_EXTERNAL_STORAGE),
                 STORAGE_PERMISSION_CODE
             )
         }
@@ -226,7 +216,7 @@ open class MainActivity : AppCompatActivity() {
                     if (WRITE_EXTERNAL_STORAGE) {
                         Toast.makeText(
                             this,
-                            "Permission granted successfully",
+                            getString(R.string.storage_perm_success),
                             Toast.LENGTH_LONG
                         ).show();
                     } else {
@@ -259,7 +249,9 @@ open class MainActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                SearchUtil.search(applicationList, bitmapList, this@MainActivity, newText)
+                if (applicationList.size > 0) {
+                    SearchUtil.search(applicationList, bitmapList, this@MainActivity, newText)
+                }
                 return true
             }
         })
@@ -268,9 +260,9 @@ open class MainActivity : AppCompatActivity() {
 
     private fun permissionDialog() {
         val builder = AlertDialog.Builder(this, R.style.DialogTheme)
-            .setTitle("Permission not granted!")
-            .setMessage("This permission is required to manage backup files and folders.\nPlease set the storage permission.")
-            .setPositiveButton("Set manually") { _, _ ->
+            .setTitle(getString(R.string.storage_permission))
+            .setMessage(getString(R.string.storage_perm_info))
+            .setPositiveButton(getString(R.string.set_manually)) { _, _ ->
                 val intent =
                     Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                 intent.addCategory(Intent.CATEGORY_DEFAULT)
@@ -279,11 +271,16 @@ open class MainActivity : AppCompatActivity() {
                 intent.setData(uri)
                 startActivity(intent)
             }
+            .setNegativeButton(getString(R.string.exit)) { _, _ ->
+                Process.killProcess(Process.myPid())
+            }
             .setCancelable(false)
         val alert = builder.create()
-        alert.setOnShowListener{
-            alert.getButton(AlertDialog.BUTTON_POSITIVE)
+        alert.setOnShowListener {
+            alert.getButton(AlertDialog.BUTTON_NEGATIVE)
                 .setTextColor(resources.getColor(R.color.red))
+            alert.getButton(AlertDialog.BUTTON_POSITIVE)
+                .setTextColor(resources.getColor(R.color.blue))
         }
         alert.show()
     }
@@ -296,17 +293,16 @@ open class MainActivity : AppCompatActivity() {
                 .setPositiveButton(getString(R.string.OK)) { dialog, _ ->
                     dialog.cancel()
                 }
-            this.getSharedPreferences("root_checked", Context.MODE_PRIVATE).edit()
+            this.getSharedPreferences("root_access", MODE_PRIVATE).edit()
                 .putBoolean("checked", true).apply()
             val alert = builder.create()
-            alert.setOnShowListener{
+            alert.setOnShowListener {
                 alert.getButton(AlertDialog.BUTTON_POSITIVE)
                     .setTextColor(resources.getColor(R.color.blue))
             }
             alert.show()
         }
     }
-
 
     /**
      * - Inicijalizuj gornju traku, ili ToolBar
@@ -333,6 +329,7 @@ open class MainActivity : AppCompatActivity() {
         appAdapter = AppAdapter()
         recyclerView.adapter = appAdapter
         recyclerView.setHasFixedSize(true)
+        recyclerView.setItemViewCacheSize(20)
         recyclerView.layoutManager = LinearLayoutManager(this)
     }
 
@@ -429,7 +426,7 @@ open class MainActivity : AppCompatActivity() {
      *   tools:ignore="QueryAllPackagesPermission" />**
      */
     @SuppressLint("QueryPermissionsNeeded")
-    private fun getPackageList() {
+    private suspend fun getPackageList() {
         val tempApps = mutableListOf<Application>()
         val tempBitmaps = mutableListOf<ApplicationBitmap>()
 
@@ -487,22 +484,24 @@ open class MainActivity : AppCompatActivity() {
     /**
      * - Prebacuje drawable u bitmap da bi je kasnije skladištili na internu memoriju
      */
-    private fun drawableToBitmap(drawable: Drawable): Bitmap {
-        val bitmap: Bitmap
+    private suspend fun drawableToBitmap(drawable: Drawable): Bitmap {
+        return withContext(Dispatchers.Default) {
+            val bitmap: Bitmap
 
-        if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
-            bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
-        } else {
-            bitmap = Bitmap.createBitmap(
-                drawable.intrinsicWidth,
-                drawable.intrinsicHeight,
-                Bitmap.Config.ARGB_8888
-            )
+            if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
+                bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+            } else {
+                bitmap = Bitmap.createBitmap(
+                    drawable.intrinsicWidth,
+                    drawable.intrinsicHeight,
+                    Bitmap.Config.ARGB_8888
+                )
+            }
+
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+            bitmap
         }
-
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-        return bitmap
     }
 }

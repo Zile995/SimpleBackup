@@ -86,7 +86,6 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
         }
     }
 
-
     override fun getItemCount() = this.appList.size
 
     private fun saveBitmap(bitmap: Bitmap?, fileName: String, context: Context) {

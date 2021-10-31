@@ -23,8 +23,9 @@
     <color name="ripple">#1E375E</color>
 
     <!-- Bars -->
-    <color name="bottom_bar">#1D3558</color>
+    <color name="bottom_bar">#213B61</color>
     <color name="bottom_bar_secondary">#86B6FC</color>
     <color name="status_bar">#162844</color>
+    <color name="scroll_bar">#314F7A</color>
 
 </resources>

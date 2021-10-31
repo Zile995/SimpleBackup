@@ -39,6 +39,7 @@
                 android:background="@color/background"
                 android:clipToPadding="false"
                 android:scrollbars="vertical"
+                android:scrollbarThumbVertical="@drawable/scrollbar_style"
                 app:layoutManager="LinearLayoutManager" />
 
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
