@@ -3,7 +3,6 @@ package com.stefan.simplebackup
 import android.Manifest
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
@@ -15,8 +14,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Process
 import android.provider.Settings
+import android.util.Log
 import android.view.Menu
-import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.ProgressBar
 import android.widget.Toast
@@ -104,8 +103,7 @@ open class MainActivity : AppCompatActivity() {
             }
             load.join()
             val set = launch {
-                delay(250)
-                progressBar.visibility = View.GONE
+                progressBar.visibility = ProgressBar.INVISIBLE
                 updateAdapter()
             }
             set.join()
@@ -138,12 +136,11 @@ open class MainActivity : AppCompatActivity() {
         //Postavi sve potrebne Listener-e
         swipeContainer.setOnRefreshListener {
             scope.launch {
-                val refresh = launch {
+                launch {
                     refreshPackageList()
                     // Delay kako bi potrajala swipe refresh animacija
                     delay(400)
-                }
-                refresh.join()
+                }.join()
                 launch {
                     swipeContainer.isRefreshing = false
                     delay(200)
@@ -169,13 +166,14 @@ open class MainActivity : AppCompatActivity() {
 
     }
 
+    override fun onDestroy() {
+        scope.cancel()
+        super.onDestroy()
+    }
+
     override fun onResume() {
-        scope.launch {
-            val permission = launch {
-                if (!checkPermission()) {
-                    requestPermission()
-                }
-            }
+        if (!checkPermission()) {
+            requestPermission()
         }
         super.onResume()
     }
@@ -315,7 +313,6 @@ open class MainActivity : AppCompatActivity() {
 
     private fun createProgressBar(binding: ActivityMainBinding) {
         progressBar = binding.progressBar
-        progressBar.visibility = View.VISIBLE
     }
 
     /**
@@ -344,7 +341,7 @@ open class MainActivity : AppCompatActivity() {
         withContext(Dispatchers.IO) {
             launch {
                 applicationInfoList = pm.getInstalledApplications(flags)
-            }
+            }.join()
             launch {
                 packageInfoList = pm.getInstalledPackages(0)
             }.join()
@@ -411,6 +408,11 @@ open class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         topBar.collapseActionView()
+        CoroutineScope(Dispatchers.IO).launch {
+            launch { refreshPackageList() }
+                .join()
+            updateAdapter()
+        }
         super.onBackPressed()
     }
 
@@ -463,6 +465,7 @@ open class MainActivity : AppCompatActivity() {
         tempBitmaps.sortBy { it.getName() }
         applicationList = tempApps
         bitmapList = tempBitmaps
+        Log.d("applist", applicationList.toString())
     }
 
     private fun getApkSize(path: String): Long {
@@ -485,11 +488,11 @@ open class MainActivity : AppCompatActivity() {
      * - Prebacuje drawable u bitmap da bi je kasnije skladištili na internu memoriju
      */
     private suspend fun drawableToBitmap(drawable: Drawable): Bitmap {
-        return withContext(Dispatchers.Default) {
+        return withContext(Dispatchers.IO) {
             val bitmap: Bitmap
 
             if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
-                bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
+                bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
             } else {
                 bitmap = Bitmap.createBitmap(
                     drawable.intrinsicWidth,

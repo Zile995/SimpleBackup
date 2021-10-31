@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.inputmethod.EditorInfo
+import android.widget.ProgressBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
@@ -31,6 +32,7 @@ class RestoreActivity : AppCompatActivity() {
     private var bitmapList = mutableListOf<ApplicationBitmap>()
 
     private lateinit var recyclerView: RecyclerView
+    private lateinit var progressBar: ProgressBar
     private lateinit var topBar: Toolbar
     private lateinit var swipeContainer: SwipeRefreshLayout
     private lateinit var restoreAdapter: RestoreAdapter
@@ -43,6 +45,7 @@ class RestoreActivity : AppCompatActivity() {
         val binding = ActivityRestoreBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        createProgressBar(binding)
         createTopBar(binding)
         createFloatingButton(binding)
         createSwipeContainer(binding)
@@ -54,6 +57,7 @@ class RestoreActivity : AppCompatActivity() {
                 getStoredPackages()
             }.join()
             launch {
+                progressBar.visibility = ProgressBar.INVISIBLE
                 updateAdapter()
             }
         }
@@ -177,7 +181,7 @@ class RestoreActivity : AppCompatActivity() {
             applicationList.sortBy { it.getName() }
             bitmapList.sortBy { it.getName() }
         } else {
-            with (FileUtil) {
+            with(FileUtil) {
                 createDirectory(path)
                 createFile(path.plus("/.nomedia"))
             }
@@ -186,6 +190,10 @@ class RestoreActivity : AppCompatActivity() {
 
     fun getAdapter(): RestoreAdapter {
         return restoreAdapter
+    }
+
+    private fun createProgressBar(binding: ActivityRestoreBinding) {
+        progressBar = binding.progressBar
     }
 
     private fun createTopBar(binding: ActivityRestoreBinding) {

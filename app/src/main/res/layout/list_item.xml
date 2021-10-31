@@ -48,7 +48,7 @@
             android:id="@+id/apk_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="2dp"
+            android:layout_marginEnd="5dp"
             android:fontFamily="@font/meslo_family"
             android:text="@string/apk"
             android:textAppearance="?attr/textAppearanceBody1"

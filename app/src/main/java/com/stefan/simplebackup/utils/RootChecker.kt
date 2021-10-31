@@ -6,7 +6,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.File
-import java.io.IOException
 import java.io.InputStreamReader
 
 class RootChecker(context: Context) {
@@ -20,7 +19,7 @@ class RootChecker(context: Context) {
     }
 
     suspend fun hasRootAccess(): Boolean {
-        return if(hasSuBinary()) {
+        return if (hasSuBinary()) {
             val process = Runtime.getRuntime().exec("su -c cd / && ls").inputStream
             BufferedReader(InputStreamReader(process)).use {
                 !it.readLine().isNullOrEmpty()
@@ -49,12 +48,7 @@ class RootChecker(context: Context) {
     }
 
     private suspend fun hasSuBinary(): Boolean {
-        return try {
-            findSuBinary()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
+        return findSuBinary()
     }
 
     private suspend fun findSuBinary(): Boolean {

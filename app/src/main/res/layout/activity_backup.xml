@@ -12,26 +12,27 @@
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="250dp"
         android:layout_height="50dp"
-
+        android:layout_marginBottom="140dp"
         android:backgroundTint="@color/white"
         android:indeterminate="false"
         android:indeterminateTint="@color/purple_200"
         android:max="100"
-        app:layout_constraintBottom_toTopOf="@+id/floating_delete_button"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/backup_button" />
+        app:layout_constraintHorizontal_bias="0.500"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floating_delete_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="55dp"
         android:src="@drawable/baseline_delete_black_24dp"
+        android:layout_marginTop="50dp"
         app:backgroundTint="@color/red"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/backup_button" />
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/top_backup_bar"
