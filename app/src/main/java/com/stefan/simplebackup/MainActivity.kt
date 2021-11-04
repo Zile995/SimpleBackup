@@ -38,6 +38,7 @@ import com.stefan.simplebackup.restore.RestoreActivity
 import com.stefan.simplebackup.utils.PermissionUtils
 import com.stefan.simplebackup.utils.RootChecker
 import com.stefan.simplebackup.utils.SearchUtil
+import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
@@ -71,6 +72,9 @@ open class MainActivity : AppCompatActivity() {
     private val flags: Int = PackageManager.GET_META_DATA or
             PackageManager.GET_SHARED_LIBRARY_FILES
 
+    private val rootSharedPref =
+        this@MainActivity.getSharedPreferences("root_access", MODE_PRIVATE)
+
     /**
      * - Standardna onCreate metoda Activity Lifecycle-a
      */
@@ -84,9 +88,6 @@ open class MainActivity : AppCompatActivity() {
 
         PACKAGE_NAME = this.applicationContext.packageName
         pm = packageManager
-
-        val rootSharedPref =
-            this@MainActivity.getSharedPreferences("root_access", MODE_PRIVATE)
 
         // Inicijalizuj sve potrebne elemente redom
         createProgressBar(binding)
@@ -108,28 +109,7 @@ open class MainActivity : AppCompatActivity() {
             }
             set.join()
             launch {
-                if (rootChecker.hasRootAccess()) {
-                    rootSharedPref.edit().putBoolean("checked", true).apply()
-                    rootSharedPref.edit().putBoolean("root_granted", true).apply()
-                } else {
-                    rootSharedPref.edit().putBoolean("root_granted", false).apply()
-                }
-                if (rootChecker.isRooted(true)) {
-                    if (!rootSharedPref.getBoolean("root_granted", true)) {
-                        rootDialog(
-                            rootSharedPref.getBoolean("checked", false),
-                            getString(R.string.root_detected),
-                            getString(R.string.not_granted)
-                        )
-                        rootSharedPref.edit().putBoolean("checked", false).apply()
-                    }
-                } else {
-                    rootDialog(
-                        rootSharedPref.getBoolean("checked", false),
-                        getString(R.string.not_rooted),
-                        getString(R.string.not_rooted_info)
-                    )
-                }
+                // TODO: 11/4/21 Set proper root checking method
             }
         }
 

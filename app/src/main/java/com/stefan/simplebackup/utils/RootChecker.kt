@@ -2,11 +2,10 @@ package com.stefan.simplebackup.utils
 
 import android.content.Context
 import android.util.Log
+import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.BufferedReader
 import java.io.File
-import java.io.InputStreamReader
 
 class RootChecker(context: Context) {
 
@@ -18,14 +17,8 @@ class RootChecker(context: Context) {
         ))
     }
 
-    suspend fun hasRootAccess(): Boolean {
-        return if (hasSuBinary()) {
-            val process = Runtime.getRuntime().exec("su -c cd / && ls").inputStream
-            BufferedReader(InputStreamReader(process)).use {
-                !it.readLine().isNullOrEmpty()
-            }
-        } else
-            false
+    fun hasRootAccess(): Boolean {
+        return Shell.rootAccess()
     }
 
     private fun hasRootManagerApp(context: Context): Boolean {
@@ -48,10 +41,6 @@ class RootChecker(context: Context) {
     }
 
     private suspend fun hasSuBinary(): Boolean {
-        return findSuBinary()
-    }
-
-    private suspend fun findSuBinary(): Boolean {
         return withContext(Dispatchers.IO) {
             val paths = System.getenv("PATH")
             if (!paths.isNullOrBlank()) {
