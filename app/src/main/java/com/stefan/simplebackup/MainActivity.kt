@@ -4,6 +4,7 @@ import android.Manifest
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -38,7 +39,6 @@ import com.stefan.simplebackup.restore.RestoreActivity
 import com.stefan.simplebackup.utils.PermissionUtils
 import com.stefan.simplebackup.utils.RootChecker
 import com.stefan.simplebackup.utils.SearchUtil
-import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
@@ -72,9 +72,6 @@ open class MainActivity : AppCompatActivity() {
     private val flags: Int = PackageManager.GET_META_DATA or
             PackageManager.GET_SHARED_LIBRARY_FILES
 
-    private val rootSharedPref =
-        this@MainActivity.getSharedPreferences("root_access", MODE_PRIVATE)
-
     /**
      * - Standardna onCreate metoda Activity Lifecycle-a
      */
@@ -85,6 +82,9 @@ open class MainActivity : AppCompatActivity() {
         // Postavi View Binding
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        val rootSharedPref =
+            this@MainActivity.getSharedPreferences("root_access", MODE_PRIVATE)
 
         PACKAGE_NAME = this.applicationContext.packageName
         pm = packageManager
@@ -109,7 +109,21 @@ open class MainActivity : AppCompatActivity() {
             }
             set.join()
             launch {
-                // TODO: 11/4/21 Set proper root checking method
+                delay(300)
+                checkForRoot(rootSharedPref)
+                if (rootChecker.isRooted() && !rootSharedPref.getBoolean("root_granted", false)) {
+                    rootDialog(
+                        rootSharedPref.getBoolean("checked", false),
+                        getString(R.string.root_detected),
+                        getString(R.string.not_granted)
+                    )
+                } else if (!rootChecker.isRooted()) {
+                        rootDialog(
+                            rootSharedPref.getBoolean("checked", false),
+                            getString(com.stefan.simplebackup.R.string.not_rooted),
+                            getString(com.stefan.simplebackup.R.string.not_rooted_info)
+                        )
+                }
             }
         }
 
@@ -156,6 +170,21 @@ open class MainActivity : AppCompatActivity() {
             requestPermission()
         }
         super.onResume()
+    }
+
+    private fun checkForRoot(rootSharedPref: SharedPreferences) {
+        when (rootSharedPref.getBoolean("root_granted", false)) {
+            false -> {
+                // Ostavićemo da Magisk prikazuje Toast kao obaveštenje da nemamo root access
+                // Prikazuj kada se svaki put pozove onCreate metoda
+                if (rootChecker.hasRootAccess()) {
+                    rootSharedPref.edit().putBoolean("checked", true).apply()
+                    rootSharedPref.edit().putBoolean("root_granted", true).apply()
+                } else {
+                    rootSharedPref.edit().putBoolean("root_granted", false).apply()
+                }
+            }
+        }
     }
 
     private fun checkPermission(): Boolean {

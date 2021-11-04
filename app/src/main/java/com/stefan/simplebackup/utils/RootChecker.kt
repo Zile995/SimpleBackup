@@ -11,10 +11,8 @@ class RootChecker(context: Context) {
 
     private val rootContext = context
 
-    suspend fun isRooted(checkForRootManager: Boolean): Boolean {
-        return hasSuBinary() || (checkForRootManager && hasRootManagerApp(
-            rootContext
-        ))
+    suspend fun isRooted(): Boolean {
+        return hasSuBinary() && hasRootManagerApp(rootContext)
     }
 
     fun hasRootAccess(): Boolean {
@@ -22,21 +20,13 @@ class RootChecker(context: Context) {
     }
 
     private fun hasRootManagerApp(context: Context): Boolean {
-        val rootPackageNames = arrayOf(
-            "com.topjohnwu.magisk",
-            "eu.chainfire.supersu",
-            "me.phh.superuser",
-            "com.koushikdutta.superuser"
-        )
-        rootPackageNames.forEach {
+        val rootPackageName = "com.topjohnwu.magisk"
             try {
-                println(context.packageManager.getApplicationInfo(it, 0))
-                context.packageManager.getApplicationInfo(it, 0)
+                context.packageManager.getApplicationInfo(rootPackageName, 0)
                 return true
             } catch (e: Exception) {
                 e.printStackTrace()
             }
-        }
         return false
     }
 
