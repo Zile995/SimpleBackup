@@ -92,8 +92,11 @@ class BackupActivity : AppCompatActivity() {
         appImage.setImageBitmap(bitmap)
         progressBar.visibility = View.GONE
 
-        internalStoragePath = (this.getExternalFilesDir(null)!!.absolutePath).run { substring(0, indexOf("Android")).plus(
-            ROOT) }
+        internalStoragePath = (this.getExternalFilesDir(null)!!.absolutePath).run {
+            substring(0, indexOf("Android")).plus(
+                ROOT
+            )
+        }
         Log.d("internal", internalStoragePath)
 
         with(FileUtil) {

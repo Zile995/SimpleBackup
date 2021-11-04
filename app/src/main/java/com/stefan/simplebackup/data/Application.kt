@@ -3,12 +3,14 @@ package com.stefan.simplebackup.data
 
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.annotation.Keep
 import kotlinx.serialization.Serializable
 
 /**
  * Data klasa koja će sadržati sve podatke o aplikaciji
  */
 
+@Keep
 @Serializable
 data class Application(
     private val name: String,

@@ -19,3 +19,15 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Kotlin serialization looks up the generated serializer classes through a function on companion
+# objects. The companions are looked up reflectively so we need to explicitly keep these functions.
+-keepattributes *Annotation*, InnerClasses
+-dontnote kotlinx.serialization.SerializationKt
+-keep,includedescriptorclasses class com.stefan.simplebackup.data.**$$serializer { *; }
+-keepclassmembers class com.stefan.simplebackup.data.* {
+    *** Companion;
+}
+-keepclasseswithmembers class com.stefan.simplebackup.data.* {
+     kotlinx.serialization.KSerializer serializer(...);
+}
