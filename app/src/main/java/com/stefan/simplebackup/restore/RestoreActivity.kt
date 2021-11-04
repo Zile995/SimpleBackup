@@ -28,6 +28,10 @@ import java.io.FileInputStream
 
 class RestoreActivity : AppCompatActivity() {
 
+    companion object {
+        private const val ROOT: String = "SimpleBackup/local"
+    }
+
     private var applicationList = mutableListOf<Application>()
     private var bitmapList = mutableListOf<ApplicationBitmap>()
 
@@ -136,7 +140,9 @@ class RestoreActivity : AppCompatActivity() {
     private fun getStoredPackages() {
         val tempApps = mutableListOf<Application>()
         val tempBitmaps = mutableListOf<ApplicationBitmap>()
-        val path = "/storage/emulated/0/SimpleBackup"
+        val path = (this.getExternalFilesDir(null)!!.absolutePath).run {
+            substring(0, indexOf("Android")).plus(ROOT)
+        }
         val dir = File(path)
         if (dir.exists()) {
             val listFiles = dir.listFiles()

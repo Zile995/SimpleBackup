@@ -43,7 +43,7 @@ import java.util.*
 class BackupActivity : AppCompatActivity() {
 
     companion object {
-        private const val ROOT: String = "SimpleBackup"
+        private const val ROOT: String = "SimpleBackup/local"
         private const val TAG: String = "BackupActivity"
         private const val REQUEST_CODE_SIGN_IN: Int = 400
     }

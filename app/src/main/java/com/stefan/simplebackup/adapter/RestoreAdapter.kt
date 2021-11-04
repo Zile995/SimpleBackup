@@ -13,6 +13,7 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.backup.BackupActivity
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.utils.SuperUser
@@ -26,7 +27,7 @@ import kotlin.math.pow
 class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.RestoreViewHolder>() {
 
     companion object {
-        private const val ROOT: String = "/storage/emulated/0/SimpleBackup"
+        private const val ROOT: String = "SimpleBackup/local"
         private const val LOCAL: String = "/data/local/tmp"
         private const val DATA: String = "/data/data"
     }
@@ -100,9 +101,9 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
             val alert = builder.create()
             alert.setOnShowListener {
                 alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-                    .setTextColor(context.resources.getColor(R.color.white))
+                    .setTextColor(context.resources.getColor(R.color.red))
                 alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                    .setTextColor(context.getColor(R.color.white))
+                    .setTextColor(context.getColor(R.color.blue))
             }
             alert.show()
         }
@@ -112,8 +113,13 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
 
     private suspend fun installApp(context: Context, application: Application) {
         withContext(Dispatchers.IO) {
+            val internalStoragePath = (context.getExternalFilesDir(null)!!.absolutePath).run {
+                substring(0, indexOf("Android")).plus(
+                    ROOT
+                )
+            }
             val backupDir = application.getDataDir()
-            val tempDir = LOCAL.plus(backupDir.removePrefix(ROOT))
+            val tempDir = LOCAL.plus(backupDir.removePrefix(internalStoragePath))
             val packageName = application.getPackageName()
             val dataDir = "$DATA/$packageName"
             try {
