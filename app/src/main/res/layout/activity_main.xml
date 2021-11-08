@@ -16,7 +16,7 @@
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation">
 
         <androidx.appcompat.widget.Toolbar
-            android:id="@+id/top_app_bar"
+            android:id="@+id/tool_bar"
             style="@style/ToolbarTheme"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

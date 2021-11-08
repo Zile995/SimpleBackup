@@ -26,50 +26,104 @@
         android:id="@+id/floating_delete_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/baseline_delete_black_24dp"
         android:layout_marginTop="50dp"
+        android:src="@drawable/baseline_delete_black_24dp"
         app:backgroundTint="@color/red"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/backup_button" />
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/top_backup_bar"
-            style="@style/ToolbarTheme"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/bottom_bar"
-            app:title="Backup"
-            app:titleTextColor="@color/white"
-            app:layout_constraintTop_toTopOf="parent"/>
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_backup"
+        style="@style/ToolbarTheme"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/bottom_bar"
+        app:layout_constraintTop_toTopOf="parent"
+        app:title="Backup"
+        app:titleTextColor="@color/white" />
 
-    <ImageView
-        android:id="@+id/application_image_backup"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="45dp"
-        android:contentDescription="@string/application_image"
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_view"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:layout_margin="15dp"
+        android:clickable="true"
+        android:focusable="true"
+        app:cardBackgroundColor="@color/card"
+        app:cardCornerRadius="7dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/top_backup_bar" />
+        app:layout_constraintTop_toBottomOf="@id/toolbar_backup"
+        app:rippleColor="@color/ripple">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/text_item_backup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:fontFamily="@font/inter"
-        android:gravity="center_horizontal"
-        android:maxLines="2"
-        android:textAppearance="?attr/textAppearanceBody1"
-        android:textColor="@color/white"
-        android:textSize="10pt"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/chip_version_backup"
-        app:layout_constraintEnd_toEndOf="@+id/application_image_backup"
-        app:layout_constraintStart_toStartOf="@+id/application_image_backup"
-        app:layout_constraintTop_toBottomOf="@id/application_image_backup" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/application_image_backup"
+                android:layout_width="75dp"
+                android:layout_height="75dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="30dp"
+                android:contentDescription="@string/application_image"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/text_item_backup"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:fontFamily="@font/inter"
+                android:gravity="start|center_horizontal"
+                android:maxLines="2"
+                android:textAppearance="?attr/textAppearanceBody1"
+                android:textColor="@color/white"
+                android:textSize="7.2pt"
+                android:textStyle="bold"
+                app:layout_constraintStart_toEndOf="@id/application_image_backup"
+                app:layout_constraintTop_toTopOf="@+id/application_image_backup" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/apk_size"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:clickable="false"
+                android:fontFamily="@font/inter"
+                android:textAlignment="center"
+                android:textAppearance="@style/chipText"
+                android:textColor="@color/black"
+                android:textSize="5pt"
+                android:textStyle="bold"
+                app:chipBackgroundColor="@color/teal_200"
+                app:layout_constraintStart_toStartOf="@id/text_item_backup"
+                app:layout_constraintTop_toBottomOf="@+id/text_item_backup" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/data_size"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginBottom="20dp"
+                android:clickable="false"
+                android:fontFamily="@font/inter"
+                android:textAlignment="center"
+                android:textAppearance="@style/chipText"
+                android:textColor="@color/black"
+                android:textSize="5pt"
+                android:textStyle="bold"
+                app:chipBackgroundColor="@color/teal_200"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="@id/text_item_backup"
+                app:layout_constraintTop_toBottomOf="@id/apk_size" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/text_view_version"
@@ -91,7 +145,7 @@
         android:id="@+id/text_view_package"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="25dp"
         android:fontFamily="@font/inter"
         android:gravity="center_horizontal"
         android:maxLines="1"
@@ -106,7 +160,7 @@
         android:id="@+id/text_view_data"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="25dp"
         android:fontFamily="@font/inter"
         android:gravity="center_horizontal"
         android:maxLines="1"
@@ -120,9 +174,9 @@
     <com.google.android.material.chip.Chip
         android:id="@+id/chip_version_backup"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="45dp"
         android:layout_marginStart="12dp"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="15dp"
         android:clickable="false"
         android:fontFamily="@font/inter"
         android:textAlignment="center"
@@ -132,18 +186,18 @@
         android:textStyle="bold"
         app:chipBackgroundColor="@color/weak_yellow"
         app:layout_constraintStart_toEndOf="@id/text_view_version"
-        app:layout_constraintTop_toBottomOf="@+id/text_item_backup" />
+        app:layout_constraintTop_toBottomOf="@+id/card_view" />
 
     <com.google.android.material.chip.Chip
         android:id="@+id/chip_package_backup"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="45dp"
         android:clickable="false"
         android:fontFamily="@font/inter"
         android:textAlignment="center"
         android:textAppearance="@style/chipText"
         android:textColor="@color/blue_text"
-        android:textSize="5.3pt"
+        android:textSize="5pt"
         android:textStyle="bold"
         app:chipBackgroundColor="@color/blue"
         app:layout_constraintBottom_toBottomOf="@+id/text_view_package"
@@ -153,13 +207,13 @@
     <com.google.android.material.chip.Chip
         android:id="@+id/chip_dir_backup"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="45dp"
         android:clickable="false"
         android:fontFamily="@font/inter"
         android:textAlignment="center"
         android:textAppearance="@style/chipText"
         android:textColor="@color/pink_text"
-        android:textSize="5.3pt"
+        android:textSize="5pt"
         android:textStyle="bold"
         app:chipBackgroundColor="@color/red"
         app:layout_constraintBottom_toBottomOf="@id/text_view_data"

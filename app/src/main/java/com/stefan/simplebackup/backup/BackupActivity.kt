@@ -31,13 +31,16 @@ import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.Application
+import com.stefan.simplebackup.databinding.ActivityBackupBinding
 import com.stefan.simplebackup.utils.FileUtil
 import com.stefan.simplebackup.utils.SuperUser
+import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.*
 import java.util.*
+import kotlin.math.pow
 
 
 class BackupActivity : AppCompatActivity() {
@@ -51,9 +54,11 @@ class BackupActivity : AppCompatActivity() {
     private var internalStoragePath: String = ""
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
-    private lateinit var topBar: Toolbar
+    private lateinit var toolBar: Toolbar
     private lateinit var textItem: MaterialTextView
     private lateinit var appImage: ImageView
+    private lateinit var apkSize: Chip
+    private lateinit var dataSize: Chip
     private lateinit var backupButton: MaterialButton
     private lateinit var backupDriveButton: MaterialButton
     private lateinit var chipVersion: Chip
@@ -66,21 +71,12 @@ class BackupActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_backup)
 
-        topBar = findViewById(R.id.top_backup_bar)
-        textItem = findViewById(R.id.text_item_backup)
-        appImage = findViewById(R.id.application_image_backup)
-        backupButton = findViewById(R.id.backup_button)
-        backupDriveButton = findViewById(R.id.backup_drive_button)
-        chipPackage = findViewById(R.id.chip_package_backup)
-        chipVersion = findViewById(R.id.chip_version_backup)
-        chipDir = findViewById(R.id.chip_dir_backup)
-        deleteButton = findViewById(R.id.floating_delete_button)
-        progressBar = findViewById(R.id.progress_bar)
+        val binding = ActivityBackupBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        topBar.setTitleTextAppearance(this, R.style.ActionBarTextAppearance)
-        setSupportActionBar(topBar)
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        supportActionBar!!.setDisplayShowHomeEnabled(true)
+        // Bind Views
+        bindViews(binding)
+        setToolBar()
 
         val selectedApp: Application? = intent?.extras?.getParcelable("application")
         val bitmap = BitmapFactory.decodeStream(this.openFileInput(selectedApp?.getName()))
@@ -89,6 +85,8 @@ class BackupActivity : AppCompatActivity() {
         chipPackage.text = (selectedApp?.getPackageName() as CharSequence).toString()
         chipVersion.text = (selectedApp.getVersionName() as CharSequence).toString()
         chipDir.text = (selectedApp.getDataDir() as CharSequence).toString()
+        apkSize.text = this.getString(R.string.apk_size, selectedApp.getApkSize())
+        dataSize.text = this.getString(R.string.data_size,selectedApp.getDataSize())
         appImage.setImageBitmap(bitmap)
         progressBar.visibility = View.GONE
 
@@ -144,6 +142,28 @@ class BackupActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
+    private fun bindViews(binding: ActivityBackupBinding) {
+        toolBar = binding.toolbarBackup
+        textItem = binding.textItemBackup
+        appImage = binding.applicationImageBackup
+        apkSize = binding.apkSize
+        dataSize = binding.dataSize
+        backupButton = binding.backupButton
+        backupDriveButton = binding.backupDriveButton
+        chipPackage = binding.chipPackageBackup
+        chipVersion = binding.chipVersionBackup
+        chipDir = binding.chipDirBackup
+        deleteButton = binding.floatingDeleteButton
+        progressBar = binding.progressBar
+    }
+
+    private fun setToolBar() {
+        toolBar.setTitleTextAppearance(this, R.style.ActionBarTextAppearance)
+        setSupportActionBar(toolBar)
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        supportActionBar!!.setDisplayShowHomeEnabled(true)
+    }
+
     private fun deleteDialog() {
         val builder = AlertDialog.Builder(this, R.style.DialogTheme)
         builder.setTitle(getString(R.string.confirm_delete))
@@ -188,7 +208,7 @@ class BackupActivity : AppCompatActivity() {
 
                 SuperUser.sudo("cp -r `ls -d \$PWD${app.getDataDir()}/* | grep -vE \"cache|lib|code_cache\"` $backupFolder/${app.getPackageName()}")
                 app.setDataDir(backupFolder)
-                app.setSize(getDataSize(backupFolder))
+                app.setDataSize(getLocalDataSize(backupFolder))
                 setProgress(45, true)
 
                 copyApk(app.getApkDir(), backupFolder)
@@ -224,7 +244,7 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private fun getDataSize(path: String): Long {
+    private fun getLocalDataSize(path: String): Long {
         val dir = File(path)
         return dir.walkTopDown().filter {
             it.isFile

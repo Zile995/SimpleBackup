@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.adapter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -21,32 +22,22 @@ import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
 import kotlin.math.pow
 
-class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
+class AppAdapter : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
 
     private var appList = mutableListOf<Application>()
     private var bitmapList = mutableListOf<ApplicationBitmap>()
 
     class AppViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
-        var cardView: MaterialCardView
-        var textItem: MaterialTextView
-        var appSize: MaterialTextView
-        var appImage: ImageView
-        var chipVersion: Chip
-        var chipPackage: Chip
-
-        init {
-            cardView = view.findViewById(R.id.card_item)
-            textItem = view.findViewById(R.id.text_item)
-            appSize = view.findViewById(R.id.app_size_text)
-            appImage = view.findViewById(R.id.application_image)
-            chipVersion = view.findViewById(R.id.chip_version)
-            chipPackage = view.findViewById(R.id.chip_package)
-        }
-
+        val cardView: MaterialCardView = view.findViewById(R.id.card_item)
+        val textItem: MaterialTextView = view.findViewById(R.id.text_item)
+        val appSize: MaterialTextView = view.findViewById(R.id.app_size_text)
+        val appImage: ImageView = view.findViewById(R.id.application_image)
+        val chipVersion: Chip = view.findViewById(R.id.chip_version)
+        val chipPackage: Chip = view.findViewById(R.id.chip_package)
     }
 
     /**
-     * - Služi da kreiramo View preko kojeg možemo da pristupimo elementima iz liste
+     * - Služi da kreiramo View preko kojeg možemo da pristupimo elementima iz list item-a
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
         // Parent parametar, je view grupa za koju će da se zakači list item view kao child view. Parent je RecyclerView.
@@ -72,25 +63,26 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
         holder.textItem.text = item.getName()
         holder.appImage.setImageBitmap(bitmap.getIcon())
         holder.chipVersion.text = charSequenceVersion.toString()
-        holder.appSize.text = transformBytes(item.getSize())
+        holder.appSize.text = item.getApkSize()
         holder.chipPackage.text = charSequencePackage.toString()
 
         holder.cardView.setOnClickListener {
             CoroutineScope(Dispatchers.Default).launch {
-                saveBitmap(bitmap.getIcon(), item.getName(), context)
+                launch { saveBitmap(bitmap.getIcon(), item.getName(), context) }
+                    .join()
+                val intent = Intent(context, BackupActivity::class.java)
+                intent.putExtra("application", item)
+                context.startActivity(intent)
             }
-            val intent = Intent(context, BackupActivity::class.java)
-            intent.putExtra("application", item)
-            context.startActivity(intent)
         }
     }
 
     override fun getItemCount() = this.appList.size
 
-    private fun saveBitmap(bitmap: Bitmap?, fileName: String, context: Context) {
+    private fun saveBitmap(bitmap: Bitmap, fileName: String, context: Context) {
         try {
             val bytes = ByteArrayOutputStream()
-            bitmap?.compress(Bitmap.CompressFormat.PNG, 100, bytes)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
             context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
                 output.write(bytes.toByteArray())
                 output.close()
@@ -100,10 +92,7 @@ class AppAdapter() : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
         }
     }
 
-    private fun transformBytes(bytes: Long): String {
-        return String.format("%3.2f %s", bytes / 1000.0.pow(2), "MB")
-    }
-
+    @SuppressLint("NotifyDataSetChanged")
     fun updateList(
         newList: MutableList<Application>,
         newBitmapList: MutableList<ApplicationBitmap>

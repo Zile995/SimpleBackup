@@ -19,7 +19,8 @@ data class Application(
     private var dataDir: String,
     private var apkDir: String,
     private var date: String,
-    private var size: Long
+    private var dataSize: String,
+    private var apkSize: String
 ) : Parcelable {
 
     /**
@@ -33,7 +34,8 @@ data class Application(
         parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readString() ?: "",
-        parcel.readLong()
+        parcel.readString() ?: "",
+        parcel.readString() ?: ""
     )
 
     override fun describeContents(): Int {
@@ -46,7 +48,9 @@ data class Application(
         dest.writeString(versionName)
         dest.writeString(dataDir)
         dest.writeString(apkDir)
-        dest.writeLong(size)
+        dest.writeString(date)
+        dest.writeString(dataSize)
+        dest.writeString(apkSize)
     }
 
     fun getName() = this.name
@@ -57,7 +61,9 @@ data class Application(
 
     fun getDataDir() = this.dataDir
 
-    fun getSize() = this.size
+    fun getDataSize() = this.dataSize
+
+    fun getApkSize() = this.apkSize
 
     fun getDate() = this.date
 
@@ -67,8 +73,8 @@ data class Application(
         this.dataDir = newDir
     }
 
-    fun setSize(newSize: Long) {
-        this.size = newSize
+    fun setDataSize(newSize: Long) {
+        this.dataSize = newSize.toString()
     }
 
     fun setDate(newDate: String) {

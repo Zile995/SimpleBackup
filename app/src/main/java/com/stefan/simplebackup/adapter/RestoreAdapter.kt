@@ -17,6 +17,7 @@ import com.stefan.simplebackup.backup.BackupActivity
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.utils.SuperUser
+import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,21 +38,12 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
     private var context = rContext
 
     class RestoreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        var cardView: MaterialCardView
-        var textItem: MaterialTextView
-        var appSize: MaterialTextView
-        var dateText: MaterialTextView
-        var appImage: ImageView
-        var chipVersion: Chip
-
-        init {
-            cardView = view.findViewById(R.id.card_item)
-            textItem = view.findViewById(R.id.text_item)
-            appSize = view.findViewById(R.id.app_size_text)
-            appImage = view.findViewById(R.id.application_image)
-            chipVersion = view.findViewById(R.id.chip_version)
-            dateText = view.findViewById(R.id.date_text)
-        }
+        var cardView: MaterialCardView = view.findViewById(R.id.card_item)
+        var textItem: MaterialTextView = view.findViewById(R.id.text_item)
+        var appSize: MaterialTextView = view.findViewById(R.id.app_size_text)
+        var dateText: MaterialTextView = view.findViewById(R.id.date_text)
+        var appImage: ImageView = view.findViewById(R.id.application_image)
+        var chipVersion: Chip = view.findViewById(R.id.chip_version)
     }
 
     /**
@@ -80,7 +72,7 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
         holder.textItem.text = item.getName()
         holder.appImage.setImageBitmap(bitmap.getIcon())
         holder.chipVersion.text = charSequenceVersion.toString()
-        holder.appSize.text = transformBytes(item.getSize())
+        holder.appSize.text = item.getDataSize().plus("MB")
         holder.dateText.text = item.getDate()
 
         holder.cardView.setOnClickListener {
@@ -118,20 +110,22 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
                     ROOT
                 )
             }
+            println(internalStoragePath)
             val backupDir = application.getDataDir()
             val tempDir = LOCAL.plus(backupDir.removePrefix(internalStoragePath))
+            println(tempDir)
             val packageName = application.getPackageName()
             val dataDir = "$DATA/$packageName"
             try {
                 with(Installer) {
-                    SuperUser.sudo("mkdir -p $tempDir")
-                    SuperUser.sudo("cp -r $backupDir/*.apk $tempDir/")
-                    SuperUser.sudo("rm -rf $dataDir")
+                    Shell.su("mkdir -p $tempDir").exec()
+                    Shell.su("cp -r $backupDir/*.apk $tempDir/").exec()
+                    Shell.su("rm -rf $dataDir").exec()
                     installApk(context, tempDir)
-                    SuperUser.sudo("cp -r $backupDir/$packageName $DATA/")
-                    SuperUser.sudo(getPermissions(packageName))
-                    SuperUser.sudo("restorecon -R $dataDir")
-                    SuperUser.sudo("rm -rf $tempDir")
+                    Shell.su("cp -r $backupDir/$packageName $DATA/").exec()
+                    Shell.su(getPermissions(packageName)).exec()
+                    Shell.su("restorecon -R $dataDir").exec()
+                    Shell.su("rm -rf $tempDir").exec()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -152,15 +146,15 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
                 apkSizeMap[it] = it.length()
                 totalSize += it.length()
             }
-            SuperUser.sudo("pm install-create -S $totalSize")
+            Shell.su("pm install-create -S $totalSize").exec()
             val sessions = packageInstaller.allSessions
             val sessionId = sessions[0].sessionId
             for ((apk, size) in apkSizeMap) {
-                SuperUser.sudo(
+                Shell.su(
                     "pm install-write -S $size $sessionId ${apk.name} ${apk.absolutePath}"
-                )
+                ).exec()
             }
-            SuperUser.sudo("pm install-commit $sessionId")
+            Shell.su("pm install-commit $sessionId").exec()
         }
 
         fun getPermissions(packageName: String): String {
@@ -179,11 +173,6 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
             println(line)
             return line
         }
-    }
-
-
-    private fun transformBytes(bytes: Long): String {
-        return String.format("%3.2f %s", bytes / 1000.0.pow(2), "MB")
     }
 
     @SuppressLint("NotifyDataSetChanged")
