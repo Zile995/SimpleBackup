@@ -16,11 +16,11 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.backup.BackupActivity
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
+import com.stefan.simplebackup.utils.FileUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
-import kotlin.math.pow
 
 class AppAdapter : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
 
@@ -63,7 +63,7 @@ class AppAdapter : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
         holder.textItem.text = item.getName()
         holder.appImage.setImageBitmap(bitmap.getIcon())
         holder.chipVersion.text = charSequenceVersion.toString()
-        holder.appSize.text = item.getApkSize()
+        holder.appSize.text = FileUtil.transformBytes(item.getApkSize())
         holder.chipPackage.text = charSequencePackage.toString()
 
         holder.cardView.setOnClickListener {
@@ -75,6 +75,12 @@ class AppAdapter : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
                 context.startActivity(intent)
             }
         }
+    }
+
+    fun deleteItem (position: Int) {
+        appList.removeAt(position)
+        bitmapList.removeAt(position)
+        notifyItemRemoved(position)
     }
 
     override fun getItemCount() = this.appList.size

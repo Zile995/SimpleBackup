@@ -3,6 +3,7 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="../../../../layout/custom_preview.xml" value="0.18177083333333333" />
         <entry key="app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.20208333333333334" />
         <entry key="app/src/main/res/drawable/baseline_add_to_drive_yellow_300_24dp.xml" value="0.2015625" />
         <entry key="app/src/main/res/drawable/baseline_android_teal_a400_24dp.xml" value="0.3536458333333333" />
@@ -13,15 +14,21 @@
         <entry key="app/src/main/res/drawable/baseline_settings_backup_restore_indigo_200_36dp.xml" value="0.2015625" />
         <entry key="app/src/main/res/drawable/baseline_storage_orange_300_24dp.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/curved_bottom_view.xml" value="0.20677083333333332" />
+        <entry key="app/src/main/res/drawable/dialog_style.xml" value="0.3482051282051282" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.20677083333333332" />
         <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/scrollbar_style.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/starting_screen.xml" value="0.3536458333333333" />
+        <entry key="app/src/main/res/drawable/twotone_info_black_24dp.xml" value="0.31296296296296294" />
+        <entry key="app/src/main/res/drawable/twotone_remove_circle_black_24dp.xml" value="0.3536458333333333" />
+        <entry key="app/src/main/res/drawable/twotone_remove_circle_black_30dp.xml" value="0.3536458333333333" />
+        <entry key="app/src/main/res/drawable/twotone_remove_circle_black_36dp.xml" value="0.3472222222222222" />
+        <entry key="app/src/main/res/drawable/twotone_sd_storage_black_24dp.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/font-v26/sailec_font.xml" value="0.215625" />
         <entry key="app/src/main/res/font/inter_family.xml" value="0.215625" />
         <entry key="app/src/main/res/font/meslo_family.xml" value="0.215625" />
         <entry key="app/src/main/res/font/sailec_font.xml" value="0.215625" />
-        <entry key="app/src/main/res/layout/activity_backup.xml" value="0.36794582392776526" />
+        <entry key="app/src/main/res/layout/activity_backup.xml" value="0.33" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.22" />
         <entry key="app/src/main/res/layout/activity_restore.xml" value="0.14" />
         <entry key="app/src/main/res/layout/activity_search.xml" value="0.3375" />
@@ -33,6 +40,7 @@
         <entry key="app/src/main/res/menu/menu.xml" value="0.3375" />
         <entry key="app/src/main/res/menu/search_menu.xml" value="0.18541666666666667" />
         <entry key="app/src/main/res/menu/top_app_bar.xml" value="0.3375" />
+        <entry key="app/src/main/res/menu/top_backup_bar.xml" value="0.2682291666666667" />
         <entry key="app/src/main/res/menu/top_restore_bar.xml" value="0.3375" />
         <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.3536458333333333" />

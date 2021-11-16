@@ -169,8 +169,6 @@ class RestoreActivity : AppCompatActivity() {
                                         File(dir.absolutePath)
                                     )
                                 )
-                                Log.d("bitmap", bitmap.toString())
-                                Log.d("stringBitmap", stringBitmap)
                                 tempBitmaps.add(
                                     ApplicationBitmap(
                                         stringBitmap,

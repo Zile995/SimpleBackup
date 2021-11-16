@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Simple Backup</string>
     <string name="application_image">Application image</string>
-    <string name="app_version">Version:</string>
-    <string name="package_version">Package:</string>
+    <string name="app_version">Version</string>
+    <string name="package_version">Package</string>
     <string name="search_button">Search button</string>
     <string name="search_app">Search the app</string>
     <string name="delete">Delete</string>
@@ -10,7 +10,7 @@
     <string name="restore">Restore</string>
     <string name="local">LOCAL</string>
     <string name="drive">DRIVE</string>
-    <string name="data_in">Data in:</string>
+    <string name="data_in">Data in</string>
     <string name="confirm_delete">Confirm Delete</string>
     <string name="delete_confirmation_message">Are you sure you want to delete this application?</string>
     <string name="confirm_restore">Confirm Restore</string>
@@ -18,9 +18,8 @@
     <string name="yes">YES</string>
     <string name="no">NO</string>
     <string name="apk">APK </string>
-    <string name="apk_size">Apk size %1$s</string>
-    <string name="data_size">Data size %1$s</string>
     <string name="search_for_application">Search for Application</string>
+    <string name="force_stop">Force Stop</string>
     <string name="data">Data</string>
     <string name="created_on">Created on:</string>
     <string name="OK">OK</string>

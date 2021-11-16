@@ -1,14 +1,14 @@
 package com.stefan.simplebackup.backup
 
-import android.app.Activity
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.ImageView
 import android.widget.ProgressBar
@@ -16,11 +16,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textview.MaterialTextView
@@ -40,7 +42,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.*
 import java.util.*
-import kotlin.math.pow
 
 
 class BackupActivity : AppCompatActivity() {
@@ -54,11 +55,14 @@ class BackupActivity : AppCompatActivity() {
     private var internalStoragePath: String = ""
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
+    private lateinit var constraintLayout: ConstraintLayout
     private lateinit var toolBar: Toolbar
     private lateinit var textItem: MaterialTextView
     private lateinit var appImage: ImageView
-    private lateinit var apkSize: Chip
-    private lateinit var dataSize: Chip
+    private lateinit var chipApkSize: Chip
+    private lateinit var chipDataSize: Chip
+    private lateinit var chipTargetSdk: Chip
+    private lateinit var chipMinSdk: Chip
     private lateinit var backupButton: MaterialButton
     private lateinit var backupDriveButton: MaterialButton
     private lateinit var chipVersion: Chip
@@ -66,6 +70,11 @@ class BackupActivity : AppCompatActivity() {
     private lateinit var chipDir: Chip
     private lateinit var deleteButton: FloatingActionButton
     private lateinit var progressBar: ProgressBar
+    private lateinit var cardView: MaterialCardView
+    private lateinit var cardViewPackage: MaterialCardView
+    private lateinit var cardViewButtons: MaterialCardView
+
+    private var selectedApp: Application? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,18 +87,28 @@ class BackupActivity : AppCompatActivity() {
         bindViews(binding)
         setToolBar()
 
-        val selectedApp: Application? = intent?.extras?.getParcelable("application")
+        CoroutineScope(Dispatchers.Default).launch {
+            val height =
+                constraintLayout.height - toolBar.height - cardView.height - cardViewPackage.height
+            cardViewButtons.layoutParams.height = height
+        }
+
+        selectedApp = intent?.extras?.getParcelable("application")
         val bitmap = BitmapFactory.decodeStream(this.openFileInput(selectedApp?.getName()))
 
-        textItem.text = selectedApp?.getName()
-        chipPackage.text = (selectedApp?.getPackageName() as CharSequence).toString()
-        chipVersion.text = (selectedApp.getVersionName() as CharSequence).toString()
-        chipDir.text = (selectedApp.getDataDir() as CharSequence).toString()
-        apkSize.text = this.getString(R.string.apk_size, selectedApp.getApkSize())
-        dataSize.text = this.getString(R.string.data_size,selectedApp.getDataSize())
-        appImage.setImageBitmap(bitmap)
-        progressBar.visibility = View.GONE
-
+        if (selectedApp != null) {
+            with(selectedApp!!) {
+                textItem.text = getName()
+                chipPackage.text = (getPackageName() as CharSequence).toString()
+                chipVersion.text = (getVersionName() as CharSequence).toString()
+                chipDir.text = (getDataDir() as CharSequence).toString()
+                chipApkSize.text = FileUtil.transformBytes(getApkSize())
+                chipTargetSdk.text = getTargetSdk().toString()
+                chipMinSdk.text = getMinSdk().toString()
+                chipDataSize.text = getDataSize()
+            }
+            appImage.setImageBitmap(bitmap)
+        }
         internalStoragePath = (this.getExternalFilesDir(null)!!.absolutePath).run {
             substring(0, indexOf("Android")).plus(
                 ROOT
@@ -103,7 +122,7 @@ class BackupActivity : AppCompatActivity() {
         }
 
         backupButton.setOnClickListener {
-            selectedApp.setDate(
+            selectedApp!!.setDate(
                 SimpleDateFormat(
                     "dd.MM.yy-HH:mm",
                     Locale.getDefault()
@@ -111,7 +130,7 @@ class BackupActivity : AppCompatActivity() {
             )
             scope.launch {
                 progressBar.visibility = View.VISIBLE
-                createLocalBackup(bitmap, selectedApp)
+                createLocalBackup(selectedApp!!)
             }
         }
 
@@ -126,6 +145,23 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.top_backup_bar, menu)
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.force_stop -> {
+                forceStop(selectedApp!!.getPackageName())
+                true
+            }
+            else -> {
+                super.onOptionsItemSelected(item)
+            }
+        }
+    }
+
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
@@ -134,7 +170,7 @@ class BackupActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             REQUEST_CODE_SIGN_IN ->
-                if (resultCode == Activity.RESULT_OK && data != null) {
+                if (resultCode == RESULT_OK && data != null) {
                     handleSignInIntent(data)
                 }
         }
@@ -143,11 +179,14 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private fun bindViews(binding: ActivityBackupBinding) {
+        constraintLayout = binding.parentView
         toolBar = binding.toolbarBackup
         textItem = binding.textItemBackup
         appImage = binding.applicationImageBackup
-        apkSize = binding.apkSize
-        dataSize = binding.dataSize
+        chipApkSize = binding.apkSize
+        chipDataSize = binding.dataSize
+        chipTargetSdk = binding.targetSdk
+        chipMinSdk = binding.minSdk
         backupButton = binding.backupButton
         backupDriveButton = binding.backupDriveButton
         chipPackage = binding.chipPackageBackup
@@ -155,6 +194,9 @@ class BackupActivity : AppCompatActivity() {
         chipDir = binding.chipDirBackup
         deleteButton = binding.floatingDeleteButton
         progressBar = binding.progressBar
+        cardView = binding.cardView
+        cardViewPackage = binding.cardViewPackage
+        cardViewButtons = binding.cardViewButtons
     }
 
     private fun setToolBar() {
@@ -191,7 +233,7 @@ class BackupActivity : AppCompatActivity() {
         alert.show()
     }
 
-    private suspend fun createLocalBackup(bitmap: Bitmap, app: Application) {
+    private suspend fun createLocalBackup(app: Application) {
         println(this.filesDir.absolutePath)
         val bitmapPath = this.filesDir.absolutePath.plus("/${app.getName()}")
 
@@ -200,13 +242,17 @@ class BackupActivity : AppCompatActivity() {
             val appVersion = app.getVersionName().replace("(", "_").replace(")", "")
             var backupFolder =
                 "$internalStoragePath/${appDir}_${appVersion.filterNot { it.isWhitespace() }}"
+            val packageBackupFolder = backupFolder.plus("/${app.getPackageName()}")
 
             with(progressBar) {
                 backupFolder = createBackupDir(backupFolder)
-                FileUtil.createDirectory(backupFolder.plus("/${app.getPackageName()}"))
                 setProgress(25, true)
 
-                SuperUser.sudo("cp -r `ls -d \$PWD${app.getDataDir()}/* | grep -vE \"cache|lib|code_cache\"` $backupFolder/${app.getPackageName()}")
+                if (Shell.rootAccess()) {
+                    FileUtil.createDirectory(packageBackupFolder)
+                    SuperUser.sudo("cp -r `ls -d \$PWD${app.getDataDir()}/* | grep -vE \"cache|lib|code_cache\"` $packageBackupFolder/")
+                }
+
                 app.setDataDir(backupFolder)
                 app.setDataSize(getLocalDataSize(backupFolder))
                 setProgress(45, true)
@@ -220,17 +266,29 @@ class BackupActivity : AppCompatActivity() {
             }
             delay(500)
             withContext(Dispatchers.Main) {
-                progressBar.visibility = View.GONE
+                progressBar.visibility = View.INVISIBLE
                 progressBar.progress = 0
                 Toast.makeText(this@BackupActivity, "Done!", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
+    private fun checkBackup(path: String, app: Application) {
+        val dir = File(path)
+        var count = 0
+        dir.walkTopDown().filter {
+            it.isDirectory
+        }.run {
+            this.forEach {
+                it.name.contains(app.getName())
+            }.apply { count++ }
+        }
+    }
+
     private fun createBackupDir(path: String): String {
         val dir = File(path)
         var number = 1
-        var newPath = ""
+        val newPath: String
         return if (dir.exists()) {
             while (File(path.plus("_$number")).exists()) {
                 number++
@@ -244,13 +302,14 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private fun getLocalDataSize(path: String): Long {
+    private fun getLocalDataSize(path: String): String {
         val dir = File(path)
-        return dir.walkTopDown().filter {
+        val size = dir.walkTopDown().filter {
             it.isFile
         }.map {
             it.length()
         }.sum()
+        return FileUtil.transformBytes(size.toFloat())
     }
 
     private fun appToJson(app: Application, dir: String) {
@@ -278,7 +337,7 @@ class BackupActivity : AppCompatActivity() {
         withContext(Dispatchers.Default) {
             val disable = launch {
                 val activityManager =
-                    applicationContext.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                    applicationContext.getSystemService(ACTIVITY_SERVICE) as ActivityManager
                 activityManager.killBackgroundProcesses(packageName)
                 //val packageManager = context.packageManager
                 //val packageInstaller = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
@@ -286,6 +345,13 @@ class BackupActivity : AppCompatActivity() {
             disable.join()
             delay(300)
         }
+    }
+
+    private fun forceStop(packageName: String) {
+        val activityManager =
+            applicationContext.getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        activityManager.killBackgroundProcesses(packageName)
+        Toast.makeText(this@BackupActivity, "Application stopped!", Toast.LENGTH_SHORT).show()
     }
 
     private fun requestSignIn() {
@@ -314,7 +380,7 @@ class BackupActivity : AppCompatActivity() {
                 ).setApplicationName("Simple Backup/1.0")
                     .build()
             }
-            .addOnFailureListener { exception: java.lang.Exception? ->
+            .addOnFailureListener { exception: Exception? ->
                 Log.e(TAG, "Unable to sign in.", exception)
             }
     }

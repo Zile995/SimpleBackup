@@ -8,9 +8,6 @@ import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.Process
@@ -36,6 +33,7 @@ import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.restore.RestoreActivity
+import com.stefan.simplebackup.utils.FileUtil
 import com.stefan.simplebackup.utils.PermissionUtils
 import com.stefan.simplebackup.utils.RootChecker
 import com.stefan.simplebackup.utils.SearchUtil
@@ -43,7 +41,6 @@ import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
-import kotlin.math.pow
 
 
 open class MainActivity : AppCompatActivity() {
@@ -154,7 +151,7 @@ open class MainActivity : AppCompatActivity() {
                 launch {
                     refreshPackageList()
                     // Delay kako bi potrajala swipe refresh animacija
-                    delay(400)
+                    delay(200)
                 }.join()
                 launch {
                     swipeContainer.isRefreshing = false
@@ -434,16 +431,6 @@ open class MainActivity : AppCompatActivity() {
         })
     }
 
-    override fun onBackPressed() {
-        toolBar.collapseActionView()
-        CoroutineScope(Dispatchers.IO).launch {
-            launch { refreshPackageList() }
-                .join()
-            updateAdapter()
-        }
-        super.onBackPressed()
-    }
-
     /**
      * - Puni MutableList sa izdvojenim objektima Application klase
      *
@@ -474,17 +461,19 @@ open class MainActivity : AppCompatActivity() {
                         it.loadLabel(pm).toString(),
                         it.packageName,
                         packageInfoList[index].versionName,
+                        it.targetSdkVersion,
+                        it.minSdkVersion,
                         it.dataDir,
                         apkDir,
                         "",
                         getDataSize(it.dataDir),
-                        transformBytes(getApkSize(apkDir))
+                        getApkSize(apkDir)
                     )
                 )
                 tempBitmaps.add(
                     ApplicationBitmap(
                         it.loadLabel(pm).toString(),
-                        drawableToBitmap(it.loadIcon(pm))
+                        FileUtil.drawableToBitmap(it.loadIcon(pm))
                     )
                 )
             }
@@ -497,61 +486,41 @@ open class MainActivity : AppCompatActivity() {
         Log.d("applist", applicationList.toString())
     }
 
-    private fun getApkSize(path: String): Long {
+    private fun getApkSize(path: String): Float {
         val dir = File(path)
         return dir.walkTopDown().filter {
             it.absolutePath.contains("apk")
         }.map {
             it.length()
-        }.sum()
+        }.sum().toFloat()
     }
 
     private fun getDataSize(path: String): String {
-        val resultList = arrayListOf<String>()
-        var result: String = ""
-        Shell.su("du -sch $path/").to(resultList).exec()
-        resultList.forEach {
-            if (it.contains("total")) {
-                result = it.removeSuffix("\ttotal").plus("B")
+        val rootSharedPref = getSharedPreferences("root_access", MODE_PRIVATE).getBoolean("root_granted", false)
+        if (rootSharedPref) {
+            val resultList = arrayListOf<String>()
+            var result: String = ""
+            Shell.su("du -sch $path/").to(resultList).exec()
+            resultList.forEach {
+                if (it.contains("total")) {
+                    result = it.removeSuffix("\ttotal")
+                }
             }
-        }
-        println(result)
-        return result
+            if (result.equals("16K"))
+                result = "0K"
+            result = StringBuilder(result)
+                .insert(result.length - 1, " ")
+                .append("B")
+                .toString()
+            return result
+        } else
+            return "Can't read"
     }
-
-    private fun transformBytes(bytes: Long): String {
-        return String.format("%3.2f %s", bytes / 1000.0.pow(2), "MB")
-    }
-
 
     /**
      * - Proverava da li je prosleđena aplikacija system app
      */
     private fun isUserApp(pkgInfo: ApplicationInfo): Boolean {
         return pkgInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
-    }
-
-    /**
-     * - Prebacuje drawable u bitmap da bi je kasnije skladištili na internu memoriju
-     */
-    private suspend fun drawableToBitmap(drawable: Drawable): Bitmap {
-        return withContext(Dispatchers.IO) {
-            val bitmap: Bitmap
-
-            if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
-                bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
-            } else {
-                bitmap = Bitmap.createBitmap(
-                    drawable.intrinsicWidth,
-                    drawable.intrinsicHeight,
-                    Bitmap.Config.ARGB_8888
-                )
-            }
-
-            val canvas = Canvas(bitmap)
-            drawable.setBounds(0, 0, canvas.width, canvas.height)
-            drawable.draw(canvas)
-            bitmap
-        }
     }
 }

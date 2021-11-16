@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.data
 
 
+import android.annotation.TargetApi
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.annotation.Keep
@@ -16,11 +17,13 @@ data class Application(
     private val name: String,
     private val packageName: String,
     private val versionName: String,
+    private val targetSdk: Int,
+    private val minSdk: Int,
     private var dataDir: String,
     private var apkDir: String,
     private var date: String,
     private var dataSize: String,
-    private var apkSize: String
+    private var apkSize: Float
 ) : Parcelable {
 
     /**
@@ -31,11 +34,13 @@ data class Application(
         parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readString() ?: "",
+        parcel.readInt(),
+        parcel.readInt(),
         parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readString() ?: "",
-        parcel.readString() ?: ""
+        parcel.readFloat()
     )
 
     override fun describeContents(): Int {
@@ -46,11 +51,13 @@ data class Application(
         dest.writeString(name)
         dest.writeString(packageName)
         dest.writeString(versionName)
+        dest.writeInt(targetSdk)
+        dest.writeInt(minSdk)
         dest.writeString(dataDir)
         dest.writeString(apkDir)
         dest.writeString(date)
         dest.writeString(dataSize)
-        dest.writeString(apkSize)
+        dest.writeFloat(apkSize)
     }
 
     fun getName() = this.name
@@ -58,6 +65,10 @@ data class Application(
     fun getPackageName() = this.packageName
 
     fun getVersionName() = this.versionName
+
+    fun getTargetSdk() = this.targetSdk
+
+    fun getMinSdk() = this.minSdk
 
     fun getDataDir() = this.dataDir
 
@@ -73,8 +84,8 @@ data class Application(
         this.dataDir = newDir
     }
 
-    fun setDataSize(newSize: Long) {
-        this.dataSize = newSize.toString()
+    fun setDataSize(newSize: String) {
+        this.dataSize = newSize
     }
 
     fun setDate(newDate: String) {

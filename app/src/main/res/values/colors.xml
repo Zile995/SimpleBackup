@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="purple_200">#55709E</color>
-    <color name="purple_500">#0c1b3a</color>
+    <color name="purple_500">#222D42</color>
     <color name="purple_700">#000016</color>
     <color name="teal_200">#79B4B7</color>
     <color name="teal_700">#97FFEF</color>
@@ -13,10 +13,19 @@
 
     <!--  Chip color -->
     <color name="red">#D35151</color>
+    <color name="red_200">#FF7878</color>
+    <color name="red_500">#531F1F</color>
     <color name="blue">#2F7EE6</color>
     <color name="pink_text">#F5CAC9</color>
     <color name="blue_text">#B9CDF4</color>
-    <color name="weak_yellow">#F9F7CF</color>
+    <color name="weak_yellow">#E6E4B6</color>
+
+    <color name="button">#5B77A8</color>
+    <color name="local">#67B8BC</color>
+    <color name="drive">#D1CF8F</color>
+
+
+    <color name="data">#FF07433A</color>
 
     <!-- Card color -->
     <color name="card">#1D3558</color>

@@ -72,7 +72,7 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
         holder.textItem.text = item.getName()
         holder.appImage.setImageBitmap(bitmap.getIcon())
         holder.chipVersion.text = charSequenceVersion.toString()
-        holder.appSize.text = item.getDataSize().plus("MB")
+        holder.appSize.text = item.getDataSize()
         holder.dateText.text = item.getDate()
 
         holder.cardView.setOnClickListener {
