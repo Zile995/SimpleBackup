@@ -69,8 +69,7 @@ open class MainActivity : AppCompatActivity() {
     private var isSubmitted: Boolean = false
 
     private lateinit var pm: PackageManager
-    private val flags: Int = PackageManager.GET_META_DATA or
-            PackageManager.GET_SHARED_LIBRARY_FILES
+    private val flags: Int = 0
 
     /**
      * - Standardna onCreate metoda Activity Lifecycle-a
@@ -496,8 +495,7 @@ open class MainActivity : AppCompatActivity() {
     }
 
     private fun getDataSize(path: String): String {
-        val rootSharedPref = getSharedPreferences("root_access", MODE_PRIVATE).getBoolean("root_granted", false)
-        if (rootSharedPref) {
+        if (Shell.rootAccess()) {
             val resultList = arrayListOf<String>()
             var result: String = ""
             Shell.su("du -sch $path/").to(resultList).exec()
