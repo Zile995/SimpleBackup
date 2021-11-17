@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.restore
 
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -98,6 +99,7 @@ class RestoreActivity : AppCompatActivity() {
         val searchView = menuItem?.actionView as SearchView
         searchView.imeOptions = EditorInfo.IME_ACTION_DONE
         searchView.queryHint = "Search for apps"
+        searchView.setBackgroundColor(Color.TRANSPARENT)
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -148,33 +150,32 @@ class RestoreActivity : AppCompatActivity() {
             val listFiles = dir.listFiles()
 
             if (!listFiles.isNullOrEmpty()) {
-                listFiles.forEach {
-                    Log.d("listfiles", it.toString())
-                    if (it.isDirectory) {
-                        it.listFiles()?.forEach { dir ->
-                            if (dir.absolutePath.contains(".json")) {
-                                File(dir.absolutePath).inputStream().bufferedReader()
+                listFiles.forEach { file ->
+                    if (file.isDirectory) {
+                        Log.d("listdirs", file.toString())
+                        file.listFiles()?.filter {
+                            it.isFile
+                        }?.forEach {
+                            var application: Application
+                            if (it.absolutePath.contains(".json")) {
+                                Log.d("listfiles", it.toString())
+                                File(it.absolutePath).inputStream().bufferedReader()
                                     .use { reader ->
                                         val string = reader.readLine()
                                         Log.d("asdf", string)
-                                        tempApps.add(
-                                            Json.decodeFromString(string)
-                                        )
+                                        application = Json.decodeFromString<Application>(string)
+                                        tempApps.add(application)
                                     }
-                            } else if (dir.absolutePath.contains(".png")) {
-                                val stringBitmap = dir.name.substring(dir.name.lastIndexOf('/') + 1)
+                            }
+                            if (it.absolutePath.contains(".png")) {
+                                val stringBitmap = it.name.substring(it.name.lastIndexOf('/') + 1)
                                     .removeSuffix(".png")
                                 val bitmap = BitmapFactory.decodeStream(
                                     FileInputStream(
-                                        File(dir.absolutePath)
+                                        File(it.absolutePath)
                                     )
                                 )
-                                tempBitmaps.add(
-                                    ApplicationBitmap(
-                                        stringBitmap,
-                                        bitmap
-                                    )
-                                )
+                                tempBitmaps.add(ApplicationBitmap(stringBitmap, bitmap))
                             }
                         }
                     }

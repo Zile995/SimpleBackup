@@ -30,7 +30,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.Application
-import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.restore.RestoreActivity
 import com.stefan.simplebackup.utils.FileUtil
@@ -54,7 +53,6 @@ open class MainActivity : AppCompatActivity() {
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private var applicationList = mutableListOf<Application>()
-    private var bitmapList = mutableListOf<ApplicationBitmap>()
     private var applicationInfoList = mutableListOf<ApplicationInfo>()
     private var packageInfoList = mutableListOf<PackageInfo>()
 
@@ -272,7 +270,7 @@ open class MainActivity : AppCompatActivity() {
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (applicationList.size > 0) {
-                    SearchUtil.search(applicationList, bitmapList, this@MainActivity, newText)
+                    SearchUtil.search(applicationList, null, this@MainActivity, newText)
                 }
                 return true
             }
@@ -376,7 +374,7 @@ open class MainActivity : AppCompatActivity() {
     }
 
     private fun updateAdapter() {
-        appAdapter.updateList(applicationList, bitmapList)
+        appAdapter.updateList(applicationList)
     }
 
     /**
@@ -444,7 +442,6 @@ open class MainActivity : AppCompatActivity() {
     @SuppressLint("QueryPermissionsNeeded")
     private suspend fun getPackageList() {
         val tempApps = mutableListOf<Application>()
-        val tempBitmaps = mutableListOf<ApplicationBitmap>()
 
         var index = 0
         applicationInfoList.forEach {
@@ -458,6 +455,7 @@ open class MainActivity : AppCompatActivity() {
                 tempApps.add(
                     Application(
                         it.loadLabel(pm).toString(),
+                        FileUtil.drawableToBitmap(it.loadIcon(pm)),
                         it.packageName,
                         packageInfoList[index].versionName,
                         it.targetSdkVersion,
@@ -469,19 +467,11 @@ open class MainActivity : AppCompatActivity() {
                         getApkSize(apkDir)
                     )
                 )
-                tempBitmaps.add(
-                    ApplicationBitmap(
-                        it.loadLabel(pm).toString(),
-                        FileUtil.drawableToBitmap(it.loadIcon(pm))
-                    )
-                )
             }
             index++
         }
         tempApps.sortBy { it.getName() }
-        tempBitmaps.sortBy { it.getName() }
         applicationList = tempApps
-        bitmapList = tempBitmaps
         Log.d("applist", applicationList.toString())
     }
 
@@ -506,10 +496,12 @@ open class MainActivity : AppCompatActivity() {
             }
             if (result.equals("16K"))
                 result = "0K"
+
             result = StringBuilder(result)
                 .insert(result.length - 1, " ")
                 .append("B")
                 .toString()
+
             return result
         } else
             return "Can't read"

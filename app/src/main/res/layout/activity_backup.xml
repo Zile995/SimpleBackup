@@ -351,10 +351,10 @@
         android:focusable="false"
         app:cardBackgroundColor="@color/card"
         app:cardCornerRadius="7dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/card_view_package"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:rippleColor="@color/ripple">
 
         <androidx.constraintlayout.widget.ConstraintLayout

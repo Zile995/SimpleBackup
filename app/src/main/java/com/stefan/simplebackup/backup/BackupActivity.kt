@@ -3,7 +3,7 @@ package com.stefan.simplebackup.backup
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
+import android.graphics.Bitmap
 import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.util.Log
@@ -42,7 +42,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.*
 import java.util.*
-
 
 class BackupActivity : AppCompatActivity() {
 
@@ -94,7 +93,7 @@ class BackupActivity : AppCompatActivity() {
         }
 
         selectedApp = intent?.extras?.getParcelable("application")
-        val bitmap = BitmapFactory.decodeStream(this.openFileInput(selectedApp?.getName()))
+//        val bitmap = BitmapFactory.decodeStream(this.openFileInput(selectedApp?.getName()))
 
         if (selectedApp != null) {
             with(selectedApp!!) {
@@ -106,8 +105,9 @@ class BackupActivity : AppCompatActivity() {
                 chipTargetSdk.text = getTargetSdk().toString()
                 chipMinSdk.text = getMinSdk().toString()
                 chipDataSize.text = getDataSize()
+                val bitmap = getBitmap()
+                appImage.setImageBitmap(bitmap)
             }
-            appImage.setImageBitmap(bitmap)
         }
         internalStoragePath = (this.getExternalFilesDir(null)!!.absolutePath).run {
             substring(0, indexOf("Android")).plus(
@@ -130,7 +130,7 @@ class BackupActivity : AppCompatActivity() {
             )
             scope.launch {
                 progressBar.visibility = View.VISIBLE
-                createLocalBackup(selectedApp!!)
+                createLocalBackup(selectedApp!!, selectedApp!!.getBitmap())
             }
         }
 
@@ -233,22 +233,20 @@ class BackupActivity : AppCompatActivity() {
         alert.show()
     }
 
-    private suspend fun createLocalBackup(app: Application) {
-        println(this.filesDir.absolutePath)
-        val bitmapPath = this.filesDir.absolutePath.plus("/${app.getName()}")
-
+    private suspend fun createLocalBackup(app: Application, bitmap: Bitmap?) {
         withContext(Dispatchers.IO) {
             val appDir = app.getName().filterNot { it.isWhitespace() }
             val appVersion = app.getVersionName().replace("(", "_").replace(")", "")
             var backupFolder =
                 "$internalStoragePath/${appDir}_${appVersion.filterNot { it.isWhitespace() }}"
-            val packageBackupFolder = backupFolder.plus("/${app.getPackageName()}")
+            val bitmapName = app.getName().plus(".png")
 
             with(progressBar) {
                 backupFolder = createBackupDir(backupFolder)
                 setProgress(25, true)
 
                 if (Shell.rootAccess()) {
+                    val packageBackupFolder = backupFolder.plus("/${app.getPackageName()}")
                     FileUtil.createDirectory(packageBackupFolder)
                     SuperUser.sudo("cp -r `ls -d \$PWD${app.getDataDir()}/* | grep -vE \"cache|lib|code_cache\"` $packageBackupFolder/")
                 }
@@ -260,7 +258,7 @@ class BackupActivity : AppCompatActivity() {
                 copyApk(app.getApkDir(), backupFolder)
                 setProgress(75, true)
 
-                copyBitmap(bitmapPath, "${backupFolder}/${app.getName()}.png")
+                File(backupFolder, bitmapName).saveBitmap(bitmap)
                 appToJson(app, backupFolder)
                 setProgress(100, true)
             }
@@ -320,8 +318,25 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private fun copyBitmap(source: String, target: String) {
-        File(source).copyTo(File(target))
+//    private fun saveBitmap(bitmap: Bitmap, target: String) {
+//        try {
+//            val file = File(target)
+//            file.createNewFile()
+//            val bytes = ByteArrayOutputStream()
+//            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
+//            val fos = FileOutputStream(file)
+//            fos.write()
+//
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//        }
+//    }
+
+    private fun File.saveBitmap(bitmap: Bitmap?) {
+        outputStream().use {
+            bitmap?.compress(Bitmap.CompressFormat.PNG, 100, it)
+            it.flush()
+        }
     }
 
     private fun copyApk(source: String, target: String) {

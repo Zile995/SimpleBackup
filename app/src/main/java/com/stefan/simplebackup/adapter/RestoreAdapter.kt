@@ -13,17 +13,16 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.backup.BackupActivity
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.data.ApplicationBitmap
-import com.stefan.simplebackup.utils.SuperUser
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.*
-import kotlin.math.pow
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
 
 class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.RestoreViewHolder>() {
 
@@ -178,11 +177,13 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
     @SuppressLint("NotifyDataSetChanged")
     fun updateList(
         newList: MutableList<Application>,
-        newBitmapList: MutableList<ApplicationBitmap>,
+        newBitmapList: MutableList<ApplicationBitmap>?,
         rContext: Context
     ) {
         appList = newList
-        bitmapList = newBitmapList
+        if (newBitmapList != null) {
+            bitmapList = newBitmapList
+        }
         context = rContext
         notifyDataSetChanged()
     }

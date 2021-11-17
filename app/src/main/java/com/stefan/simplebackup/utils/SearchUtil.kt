@@ -16,7 +16,7 @@ internal class SearchUtil private constructor() {
     companion object Search {
         fun search(
             applicationList: MutableList<Application>,
-            bitmapList: MutableList<ApplicationBitmap>,
+            bitmapList: MutableList<ApplicationBitmap>?,
             context: Context,
             newText: String?
         ) {
@@ -31,7 +31,7 @@ internal class SearchUtil private constructor() {
                             tempAppList.add(it)
                         }
                     }
-                    bitmapList.forEach() {
+                    bitmapList?.forEach() {
                         if (it.getName().lowercase().contains(newText.lowercase())) {
                             tempBitmapList.add(it)
                         }
@@ -45,12 +45,12 @@ internal class SearchUtil private constructor() {
         private suspend fun updateList(
             context: Context,
             applicationList: MutableList<Application>,
-            bitmapList: MutableList<ApplicationBitmap>
+            bitmapList: MutableList<ApplicationBitmap>?
         ) {
             withContext(Dispatchers.Main) {
                 with(context) {
                     when (this) {
-                        is MainActivity -> getAdapter().updateList(applicationList, bitmapList)
+                        is MainActivity -> getAdapter().updateList(applicationList)
                         is RestoreActivity -> getAdapter()
                             .updateList(applicationList, bitmapList, context)
                     }

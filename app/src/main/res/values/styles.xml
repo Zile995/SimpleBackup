@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <style name="chipText" parent="TextAppearance.MaterialComponents.Chip">
         <item name="android:textSize">5pt</item>
         <item name="android:fontFamily">@font/inter</item>
@@ -13,7 +13,7 @@
     <style name="ToolbarTheme" parent="Widget.MaterialComponents.Toolbar">
         <item name="android:background">@color/bottom_bar</item>
     </style>
-    <style name="DialogTheme" parent="Theme.AppCompat.Light.Dialog.Alert">
+    <style name="DialogTheme" parent="Theme.MaterialComponents.Dialog.Alert">
         <item name="android:windowBackground">@drawable/dialog_style</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:textColorPrimary">@color/white</item>

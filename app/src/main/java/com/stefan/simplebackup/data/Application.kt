@@ -1,11 +1,13 @@
 package com.stefan.simplebackup.data
 
 
-import android.annotation.TargetApi
+import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.annotation.Keep
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * Data klasa koja će sadržati sve podatke o aplikaciji
@@ -15,6 +17,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Application(
     private val name: String,
+    @Transient private var bitmap: Bitmap? = null,
     private val packageName: String,
     private val versionName: String,
     private val targetSdk: Int,
@@ -30,8 +33,10 @@ data class Application(
      * Pošto readString vraća nullable String? a imamo definisane String varijable u data klasi,
      * ukoliko je null, vrati prazan String ""
      */
+    @SuppressLint("ParcelClassLoader")
     constructor(parcel: Parcel) : this(
         parcel.readString() ?: "",
+        parcel.readParcelable<Bitmap>(null),
         parcel.readString() ?: "",
         parcel.readString() ?: "",
         parcel.readInt(),
@@ -49,6 +54,7 @@ data class Application(
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
         dest.writeString(name)
+        dest.writeParcelable(bitmap, flags)
         dest.writeString(packageName)
         dest.writeString(versionName)
         dest.writeInt(targetSdk)
@@ -61,6 +67,8 @@ data class Application(
     }
 
     fun getName() = this.name
+
+    fun getBitmap() = this.bitmap
 
     fun getPackageName() = this.packageName
 
