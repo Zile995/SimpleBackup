@@ -8,6 +8,7 @@
     <string name="delete">Delete</string>
     <string name="home">Home</string>
     <string name="restore">Restore</string>
+    <string name="batch_restore">Batch Restore</string>
     <string name="local">LOCAL</string>
     <string name="drive">DRIVE</string>
     <string name="data_in">Data in</string>
@@ -35,4 +36,5 @@
     <string name="storage_perm_success">Storage permission granted successfully</string>
     <string name="set_manually">SET MANUALLY</string>
     <string name="exit">EXIT</string>
+    <string name="filter">Filter</string>
 </resources>

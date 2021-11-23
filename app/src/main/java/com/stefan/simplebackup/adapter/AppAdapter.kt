@@ -1,7 +1,9 @@
 package com.stefan.simplebackup.adapter
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,13 +16,12 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.backup.BackupActivity
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.utils.FileUtil
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 
-class AppAdapter : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
+class AppAdapter(context: Context) : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
 
     private var appList = mutableListOf<Application>()
+    private var mainContext = context
 
     class AppViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
         val cardView: MaterialCardView = view.findViewById(R.id.card_item)
@@ -51,45 +52,47 @@ class AppAdapter : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val context = holder.view.context
         val item = appList[position]
+        val bitmap = item.getBitmap()
         val charSequencePackage: CharSequence = item.getPackageName()
         val charSequenceVersion: CharSequence = "v" + item.getVersionName()
 
         holder.textItem.text = item.getName()
-        holder.appImage.setImageBitmap(item.getBitmap())
+        holder.appImage.setImageBitmap(bitmap)
         holder.chipVersion.text = charSequenceVersion.toString()
         holder.appSize.text = FileUtil.transformBytes(item.getApkSize())
         holder.chipPackage.text = charSequencePackage.toString()
 
         holder.cardView.setOnClickListener {
-            CoroutineScope(Dispatchers.Default).launch {
-//                launch { saveBitmap(bitmap.getIcon(), item.getName(), context) }
-//                    .join()
-                val intent = Intent(context, BackupActivity::class.java)
-                intent.putExtra("application", item)
-                context.startActivity(intent)
+            if (bitmap != null && bitmap.allocationByteCount > 500000) {
+                saveBitmap(bitmap, item.getName(), mainContext)
+                item.setBitmap(byteArrayOf())
+                println("Bitmap = ${item.getBitmap()}")
             }
+            val intent = Intent(context, BackupActivity::class.java)
+            intent.putExtra("application", item)
+            context.startActivity(intent)
         }
     }
 
-    fun deleteItem (position: Int) {
+    fun deleteItem(position: Int) {
         appList.removeAt(position)
         notifyItemRemoved(position)
     }
 
     override fun getItemCount() = this.appList.size
 
-//    private fun saveBitmap(bitmap: Bitmap, fileName: String, context: Context) {
-//        try {
-//            val bytes = ByteArrayOutputStream()
-//            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
-//            context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
-//                output.write(bytes.toByteArray())
-//                output.close()
-//            }
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//        }
-//    }
+    private fun saveBitmap(bitmap: Bitmap, fileName: String, context: Context) {
+        try {
+            val bytes = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
+            context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
+                output.write(bytes.toByteArray())
+                output.close()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
 
     @SuppressLint("NotifyDataSetChanged")
     fun updateList(

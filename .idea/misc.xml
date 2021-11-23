@@ -14,11 +14,13 @@
         <entry key="app/src/main/res/drawable/baseline_settings_backup_restore_indigo_200_36dp.xml" value="0.2015625" />
         <entry key="app/src/main/res/drawable/baseline_storage_orange_300_24dp.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/curved_bottom_view.xml" value="0.20677083333333332" />
+        <entry key="app/src/main/res/drawable/curved_tab_layout.xml" value="0.1828125" />
         <entry key="app/src/main/res/drawable/dialog_style.xml" value="0.3482051282051282" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.20677083333333332" />
         <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/scrollbar_style.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/starting_screen.xml" value="0.3536458333333333" />
+        <entry key="app/src/main/res/drawable/twotone_android_black_24dp.xml" value="0.3" />
         <entry key="app/src/main/res/drawable/twotone_info_black_24dp.xml" value="0.31296296296296294" />
         <entry key="app/src/main/res/drawable/twotone_remove_circle_black_24dp.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/twotone_remove_circle_black_30dp.xml" value="0.3536458333333333" />

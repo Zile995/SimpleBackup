@@ -14,7 +14,6 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.Application
-import com.stefan.simplebackup.data.ApplicationBitmap
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,7 +32,6 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
     }
 
     private var appList = mutableListOf<Application>()
-    private var bitmapList = mutableListOf<ApplicationBitmap>()
     private var context = rContext
 
     class RestoreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -65,11 +63,11 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
     override fun onBindViewHolder(holder: RestoreViewHolder, position: Int) {
 
         val item = appList[position]
-        val bitmap = bitmapList[position]
+        val bitmap = item.getBitmap()
         val charSequenceVersion: CharSequence = "v" + item.getVersionName()
 
         holder.textItem.text = item.getName()
-        holder.appImage.setImageBitmap(bitmap.getIcon())
+        holder.appImage.setImageBitmap(bitmap)
         holder.chipVersion.text = charSequenceVersion.toString()
         holder.appSize.text = item.getDataSize()
         holder.dateText.text = item.getDate()
@@ -176,15 +174,9 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
 
     @SuppressLint("NotifyDataSetChanged")
     fun updateList(
-        newList: MutableList<Application>,
-        newBitmapList: MutableList<ApplicationBitmap>?,
-        rContext: Context
+        newList: MutableList<Application>
     ) {
         appList = newList
-        if (newBitmapList != null) {
-            bitmapList = newBitmapList
-        }
-        context = rContext
         notifyDataSetChanged()
     }
 

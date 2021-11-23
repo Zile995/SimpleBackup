@@ -12,7 +12,12 @@
         android:id="@+id/restore_local"
         android:title="@string/restore"
         android:icon="@drawable/baseline_settings_backup_restore_indigo_200_36dp"
-        android:contentDescription="TODO"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/batch_restore"
+        android:title="@string/batch_restore"
+        android:icon="@drawable/round_playlist_add_check_white_24dp"
         app:showAsAction="ifRoom" />
 
 </menu>

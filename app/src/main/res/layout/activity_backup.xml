@@ -47,7 +47,7 @@
                 android:textAppearance="?attr/textAppearanceBody1"
                 android:textColor="@color/red_200"
                 android:textSize="5pt"
-                app:layout_constraintStart_toStartOf="@+id/text_targe_sdk"
+                app:layout_constraintStart_toStartOf="@+id/text_target_sdk"
                 app:layout_constraintTop_toBottomOf="@+id/target_sdk" />
 
             <ImageView
@@ -99,10 +99,9 @@
                 app:layout_constraintTop_toBottomOf="@+id/text_apk_size" />
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/text_targe_sdk"
+                android:id="@+id/text_target_sdk"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="55dp"
                 android:fontFamily="@font/inter"
                 android:gravity="center_horizontal"
                 android:maxLines="1"
@@ -111,7 +110,7 @@
                 android:textColor="@color/red_200"
                 android:textSize="5pt"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/text_apk_size"
+                app:layout_constraintStart_toEndOf="@+id/apk_size"
                 app:layout_constraintTop_toTopOf="@+id/text_apk_size" />
 
             <com.google.android.material.chip.Chip
@@ -153,8 +152,8 @@
                 app:chipIcon="@drawable/twotone_api_black_24dp"
                 app:chipIconSize="20dp"
                 app:iconStartPadding="5dp"
-                app:layout_constraintStart_toStartOf="@+id/text_targe_sdk"
-                app:layout_constraintTop_toBottomOf="@+id/text_targe_sdk" />
+                app:layout_constraintStart_toStartOf="@+id/text_target_sdk"
+                app:layout_constraintTop_toBottomOf="@+id/text_target_sdk" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/min_sdk"
@@ -181,7 +180,7 @@
                 android:id="@+id/text_apk_size"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="30dp"
+                android:layout_marginStart="35dp"
                 android:layout_marginTop="-5dp"
                 android:fontFamily="@font/inter"
                 android:gravity="center_horizontal"

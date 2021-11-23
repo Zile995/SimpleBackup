@@ -7,11 +7,12 @@
     tools:context=".MainActivity">
 
     <LinearLayout
-        android:id="@+id/linear_layout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:layout_marginBottom="65dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/bottom_navigation">
 
@@ -19,29 +20,50 @@
             android:id="@+id/tool_bar"
             style="@style/ToolbarTheme"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="?attr/actionBarSize"
             app:menu="@menu/top_app_bar"
             app:title="@string/app_name"
-            app:titleTextColor="@color/white"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toTopOf="@id/linear_layout"/>
+            app:titleTextColor="@color/white" />
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_refresh"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view"
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tab_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/background"
-            android:clipToPadding="false"
-            android:scrollbars="vertical"
-            android:scrollbarThumbVertical="@drawable/scrollbar_style"
-            app:layoutManager="LinearLayoutManager" />
+            android:background="@drawable/curved_tab_layout"
+            app:tabIndicatorFullWidth="false"
+            app:tabMode="fixed"
+            app:tabRippleColor="@color/ripple"
+            app:tabSelectedTextColor="@color/selected"
+            app:tabIndicatorColor="@color/selected">
 
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Applications" />
+
+            <com.google.android.material.tabs.TabItem
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Favourites" />
+
+        </com.google.android.material.tabs.TabLayout>
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_refresh"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/background"
+                android:clipToPadding="false"
+                android:scrollbarThumbVertical="@drawable/scrollbar_style"
+                android:scrollbars="vertical"
+                app:layoutManager="LinearLayoutManager" />
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     </LinearLayout>
 
@@ -49,20 +71,43 @@
         android:id="@+id/progress_bar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:indeterminateTint="@color/purple_200"
         android:scaleX="0.12"
         android:scaleY="0.12"
         android:visibility="visible"
-        android:indeterminateTint="@color/purple_200"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.google.android.material.chip.Chip
+        android:id="@+id/chip_filter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:fontFamily="@font/inter"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:text="@string/filter"
+        android:textAlignment="textStart"
+        android:textAppearance="@style/chipText"
+        android:textColor="@color/data"
+        android:textSize="5.7pt"
+        android:textStyle="bold"
+        app:chipBackgroundColor="@color/teal_200"
+        app:chipIcon="@drawable/twotone_filter_alt_green_24dp"
+        app:iconStartPadding="5dp"
+        app:layout_constraintBottom_toTopOf="@id/bottom_navigation"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
+        style="@style/Widget.Design.BottomNavigationView"
         android:layout_width="match_parent"
         android:layout_height="65dp"
-        style="@style/Widget.Design.BottomNavigationView"
         android:layout_gravity="bottom|center"
         android:background="@drawable/curved_bottom_view"
         app:itemIconTint="@color/white"
@@ -70,6 +115,8 @@
         app:itemTextAppearanceInactive="@style/BottomNavigationView"
         app:itemTextColor="@color/white"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/bottom_app_bar" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

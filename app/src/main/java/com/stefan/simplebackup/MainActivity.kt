@@ -14,6 +14,7 @@ import android.os.Process
 import android.provider.Settings
 import android.util.Log
 import android.view.Menu
+import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.ProgressBar
 import android.widget.Toast
@@ -27,6 +28,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.Application
@@ -63,6 +65,7 @@ open class MainActivity : AppCompatActivity() {
     private lateinit var floatingButton: FloatingActionButton
     private lateinit var bottomBar: BottomNavigationView
     private lateinit var progressBar: ProgressBar
+    private lateinit var chipFilter: Chip
 
     private var isSubmitted: Boolean = false
 
@@ -90,15 +93,21 @@ open class MainActivity : AppCompatActivity() {
 
         PACKAGE_NAME = this.applicationContext.packageName
         pm = packageManager
+        with(this) {
+            window.setBackgroundDrawableResource(R.color.background)
+            window.statusBarColor = getColor(R.color.bottom_bar)
+        }
 
         // Inicijalizuj sve potrebne elemente redom
-        createProgressBar(binding)
-        createToolBar(binding)
-        createSwipeContainer(binding)
-        createRecyclerView(binding)
-        createFloatingButton(binding)
-        createBottomBar(binding)
-        hideButton(recyclerView)
+        with(binding) {
+            createProgressBar(this)
+            createToolBar(this)
+            createSwipeContainer(this)
+            createRecyclerView(this)
+            createFloatingButton(this)
+            createChipFilter(this)
+            createBottomBar(this)
+        }
 
         scope.launch {
             val load = launch {
@@ -106,7 +115,7 @@ open class MainActivity : AppCompatActivity() {
             }
             load.join()
             val set = launch {
-                progressBar.visibility = ProgressBar.INVISIBLE
+                progressBar.visibility = View.GONE
                 updateAdapter()
             }
             set.join()
@@ -147,8 +156,6 @@ open class MainActivity : AppCompatActivity() {
             scope.launch {
                 launch {
                     refreshPackageList()
-                    // Delay kako bi potrajala swipe refresh animacija
-                    delay(200)
                 }.join()
                 launch {
                     swipeContainer.isRefreshing = false
@@ -270,7 +277,7 @@ open class MainActivity : AppCompatActivity() {
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (applicationList.size > 0) {
-                    SearchUtil.search(applicationList, null, this@MainActivity, newText)
+                    SearchUtil.search(applicationList, this@MainActivity, newText)
                 }
                 return true
             }
@@ -345,11 +352,12 @@ open class MainActivity : AppCompatActivity() {
         binding: ActivityMainBinding
     ) {
         recyclerView = binding.recyclerView
-        appAdapter = AppAdapter()
+        appAdapter = AppAdapter(this)
         recyclerView.adapter = appAdapter
         recyclerView.setHasFixedSize(true)
         recyclerView.setItemViewCacheSize(20)
         recyclerView.layoutManager = LinearLayoutManager(this)
+        hideButton(recyclerView)
     }
 
     private fun createSwipeContainer(binding: ActivityMainBinding) {
@@ -385,6 +393,12 @@ open class MainActivity : AppCompatActivity() {
         floatingButton.hide()
     }
 
+    private fun createChipFilter(binding: ActivityMainBinding) {
+        chipFilter = binding.chipFilter
+        chipFilter.isFocusable = true
+        chipFilter.isCheckable = false
+    }
+
     /**
      * - Inicijalizuj donju navigacionu traku
      */
@@ -408,8 +422,11 @@ open class MainActivity : AppCompatActivity() {
 
                 if (dy > 0 && floatingButton.isShown) {
                     floatingButton.hide()
+                    chipFilter.visibility = View.INVISIBLE
+
                 } else if (dy < 0 && !floatingButton.isShown) {
                     floatingButton.show()
+                    chipFilter.visibility = View.VISIBLE
                 }
             }
 
@@ -452,10 +469,12 @@ open class MainActivity : AppCompatActivity() {
 
             } else {
                 val apkDir = it.publicSourceDir.removeSuffix("/base.apk")
+                val name = it.loadLabel(pm).toString()
+                val drawable = it.loadIcon(pm)
                 tempApps.add(
                     Application(
-                        it.loadLabel(pm).toString(),
-                        FileUtil.drawableToBitmap(it.loadIcon(pm)),
+                        name,
+                        FileUtil.drawableToByteArray(drawable),
                         it.packageName,
                         packageInfoList[index].versionName,
                         it.targetSdkVersion,

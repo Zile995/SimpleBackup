@@ -3,6 +3,7 @@ package com.stefan.simplebackup.utils
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
+import java.io.ByteArrayOutputStream
 import java.io.File
 import kotlin.math.pow
 
@@ -28,23 +29,30 @@ class FileUtil private constructor() {
         /**
          * - Prebacuje drawable u bitmap da bi je kasnije skladištili na internu memoriju
          */
-        fun drawableToBitmap(drawable: Drawable): Bitmap {
-            val bitmap: Bitmap
+        fun drawableToByteArray(drawable: Drawable): ByteArray {
 
-            if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
-                bitmap = Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
-            } else {
-                bitmap = Bitmap.createBitmap(
-                    drawable.intrinsicWidth,
-                    drawable.intrinsicHeight,
-                    Bitmap.Config.ARGB_8888
-                )
-            }
+            val bitmap: Bitmap =
+                if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
+                    Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
+                } else {
+                    Bitmap.createBitmap(
+                        drawable.intrinsicWidth,
+                        drawable.intrinsicHeight,
+                        Bitmap.Config.ARGB_8888
+                    )
+                }
 
+            println("Bytes bitmap: ${bitmap.allocationByteCount}")
             val canvas = Canvas(bitmap)
             drawable.setBounds(0, 0, canvas.width, canvas.height)
             drawable.draw(canvas)
-            return bitmap
+            return bitmapToByteArray(bitmap)
+        }
+
+        fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
+            val bytes = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
+            return bytes.toByteArray()
         }
     }
 }

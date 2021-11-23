@@ -4,7 +4,9 @@ import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.icu.text.SimpleDateFormat
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -13,7 +15,6 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -93,7 +94,6 @@ class BackupActivity : AppCompatActivity() {
         }
 
         selectedApp = intent?.extras?.getParcelable("application")
-//        val bitmap = BitmapFactory.decodeStream(this.openFileInput(selectedApp?.getName()))
 
         if (selectedApp != null) {
             with(selectedApp!!) {
@@ -105,7 +105,13 @@ class BackupActivity : AppCompatActivity() {
                 chipTargetSdk.text = getTargetSdk().toString()
                 chipMinSdk.text = getMinSdk().toString()
                 chipDataSize.text = getDataSize()
-                val bitmap = getBitmap()
+                var bitmap = getBitmap()
+                if (bitmap == null) {
+                    bitmap =
+                        BitmapFactory.decodeStream(this@BackupActivity.openFileInput(getName()))
+                    this@BackupActivity.deleteFile(getName())
+                }
+                setBitmap(FileUtil.bitmapToByteArray(bitmap!!))
                 appImage.setImageBitmap(bitmap)
             }
         }
@@ -140,7 +146,11 @@ class BackupActivity : AppCompatActivity() {
 
         deleteButton.setOnClickListener {
             CoroutineScope(Dispatchers.Main).launch {
-                deleteDialog()
+                onBackPressed()
+                delay(150)
+                launch {
+                    deleteApp(this@BackupActivity, selectedApp!!.getPackageName())
+                }.join()
             }
         }
     }
@@ -206,40 +216,12 @@ class BackupActivity : AppCompatActivity() {
         supportActionBar!!.setDisplayShowHomeEnabled(true)
     }
 
-    private fun deleteDialog() {
-        val builder = AlertDialog.Builder(this, R.style.DialogTheme)
-        builder.setTitle(getString(R.string.confirm_delete))
-        builder.setMessage(getString(R.string.delete_confirmation_message))
-        builder.setPositiveButton(getString(R.string.yes)) { dialog, _ ->
-            CoroutineScope(Dispatchers.Main).launch {
-                dialog.cancel()
-                launch {
-                    deleteApp(this@BackupActivity, chipPackage.text.toString())
-                }.join()
-                delay(250)
-                onBackPressed()
-                Toast.makeText(this@BackupActivity, "Successfully deleted!", Toast.LENGTH_SHORT)
-                    .show()
-            }
-        }
-        builder.setNegativeButton(getString(R.string.no)) { dialog, _ -> dialog.cancel() }
-        val alert = builder.create()
-        alert.setOnShowListener {
-            alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-                .setTextColor(resources.getColor(R.color.blue))
-            alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setTextColor(resources.getColor(R.color.red))
-        }
-        alert.show()
-    }
-
     private suspend fun createLocalBackup(app: Application, bitmap: Bitmap?) {
         withContext(Dispatchers.IO) {
             val appDir = app.getName().filterNot { it.isWhitespace() }
             val appVersion = app.getVersionName().replace("(", "_").replace(")", "")
             var backupFolder =
                 "$internalStoragePath/${appDir}_${appVersion.filterNot { it.isWhitespace() }}"
-            val bitmapName = app.getName().plus(".png")
 
             with(progressBar) {
                 backupFolder = createBackupDir(backupFolder)
@@ -248,7 +230,7 @@ class BackupActivity : AppCompatActivity() {
                 if (Shell.rootAccess()) {
                     val packageBackupFolder = backupFolder.plus("/${app.getPackageName()}")
                     FileUtil.createDirectory(packageBackupFolder)
-                    SuperUser.sudo("cp -r `ls -d \$PWD${app.getDataDir()}/* | grep -vE \"cache|lib|code_cache\"` $packageBackupFolder/")
+                    SuperUser.sudo("cp -dR `ls -d \$PWD${app.getDataDir()}/* | grep -vE \"Android|cache|lib|code_cache\"` $packageBackupFolder/")
                 }
 
                 app.setDataDir(backupFolder)
@@ -258,7 +240,6 @@ class BackupActivity : AppCompatActivity() {
                 copyApk(app.getApkDir(), backupFolder)
                 setProgress(75, true)
 
-                File(backupFolder, bitmapName).saveBitmap(bitmap)
                 appToJson(app, backupFolder)
                 setProgress(100, true)
             }
@@ -271,17 +252,17 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkBackup(path: String, app: Application) {
-        val dir = File(path)
-        var count = 0
-        dir.walkTopDown().filter {
-            it.isDirectory
-        }.run {
-            this.forEach {
-                it.name.contains(app.getName())
-            }.apply { count++ }
-        }
-    }
+//    private fun checkBackup(path: String, app: Application) {
+//        val dir = File(path)
+//        var count = 0
+//        dir.listFiles()?.forEach {
+//            it.isDirectory
+//        }. {
+//            this.forEach {
+//                it.name.contains(app.getName())
+//            }.apply { count++ }
+//        }
+//    }
 
     private fun createBackupDir(path: String): String {
         val dir = File(path)
@@ -318,27 +299,6 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-//    private fun saveBitmap(bitmap: Bitmap, target: String) {
-//        try {
-//            val file = File(target)
-//            file.createNewFile()
-//            val bytes = ByteArrayOutputStream()
-//            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
-//            val fos = FileOutputStream(file)
-//            fos.write()
-//
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//        }
-//    }
-
-    private fun File.saveBitmap(bitmap: Bitmap?) {
-        outputStream().use {
-            bitmap?.compress(Bitmap.CompressFormat.PNG, 100, it)
-            it.flush()
-        }
-    }
-
     private fun copyApk(source: String, target: String) {
         val dir = File(source)
         dir.walkTopDown().filter {
@@ -348,18 +308,10 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun deleteApp(context: Context, packageName: String) {
-        withContext(Dispatchers.Default) {
-            val disable = launch {
-                val activityManager =
-                    applicationContext.getSystemService(ACTIVITY_SERVICE) as ActivityManager
-                activityManager.killBackgroundProcesses(packageName)
-                //val packageManager = context.packageManager
-                //val packageInstaller = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
-            }
-            disable.join()
-            delay(300)
-        }
+    private fun deleteApp(context: Context, packageName: String) {
+        val intent = Intent(Intent.ACTION_DELETE)
+        intent.data = Uri.parse("package:${packageName}")
+        startActivity(intent)
     }
 
     private fun forceStop(packageName: String) {

@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.restore
 
-import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -17,7 +16,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.adapter.RestoreAdapter
 import com.stefan.simplebackup.data.Application
-import com.stefan.simplebackup.data.ApplicationBitmap
 import com.stefan.simplebackup.databinding.ActivityRestoreBinding
 import com.stefan.simplebackup.utils.FileUtil
 import com.stefan.simplebackup.utils.SearchUtil
@@ -25,7 +23,6 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
-import java.io.FileInputStream
 
 class RestoreActivity : AppCompatActivity() {
 
@@ -34,7 +31,6 @@ class RestoreActivity : AppCompatActivity() {
     }
 
     private var applicationList = mutableListOf<Application>()
-    private var bitmapList = mutableListOf<ApplicationBitmap>()
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
@@ -108,7 +104,7 @@ class RestoreActivity : AppCompatActivity() {
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (applicationList.size > 0) {
-                    SearchUtil.search(applicationList, bitmapList, this@RestoreActivity, newText)
+                    SearchUtil.search(applicationList, this@RestoreActivity, newText)
                 }
                 return true
             }
@@ -130,7 +126,7 @@ class RestoreActivity : AppCompatActivity() {
     }
 
     private fun updateAdapter() {
-        restoreAdapter.updateList(applicationList, bitmapList, this)
+        restoreAdapter.updateList(applicationList)
     }
 
     private suspend fun refreshStoredPackages() {
@@ -141,7 +137,6 @@ class RestoreActivity : AppCompatActivity() {
 
     private fun getStoredPackages() {
         val tempApps = mutableListOf<Application>()
-        val tempBitmaps = mutableListOf<ApplicationBitmap>()
         val path = (this.getExternalFilesDir(null)!!.absolutePath).run {
             substring(0, indexOf("Android")).plus(ROOT)
         }
@@ -163,28 +158,17 @@ class RestoreActivity : AppCompatActivity() {
                                     .use { reader ->
                                         val string = reader.readLine()
                                         Log.d("asdf", string)
-                                        application = Json.decodeFromString<Application>(string)
+                                        application = Json.decodeFromString(string)
                                         tempApps.add(application)
                                     }
-                            }
-                            if (it.absolutePath.contains(".png")) {
-                                val stringBitmap = it.name.substring(it.name.lastIndexOf('/') + 1)
-                                    .removeSuffix(".png")
-                                val bitmap = BitmapFactory.decodeStream(
-                                    FileInputStream(
-                                        File(it.absolutePath)
-                                    )
-                                )
-                                tempBitmaps.add(ApplicationBitmap(stringBitmap, bitmap))
                             }
                         }
                     }
                 }
             }
             applicationList = tempApps
-            bitmapList = tempBitmaps
             applicationList.sortBy { it.getName() }
-            bitmapList.sortBy { it.getName() }
+            tempApps.clear()
         } else {
             with(FileUtil) {
                 createDirectory(path)
