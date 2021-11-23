@@ -168,7 +168,6 @@ class RestoreActivity : AppCompatActivity() {
             }
             applicationList = tempApps
             applicationList.sortBy { it.getName() }
-            tempApps.clear()
         } else {
             with(FileUtil) {
                 createDirectory(path)
