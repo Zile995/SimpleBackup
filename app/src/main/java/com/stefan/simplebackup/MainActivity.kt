@@ -6,7 +6,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ApplicationInfo
-import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -31,6 +30,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.adapter.AppAdapter
+import com.stefan.simplebackup.data.AppInfo
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.restore.RestoreActivity
@@ -43,7 +43,6 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.util.*
 
-
 open class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -55,8 +54,6 @@ open class MainActivity : AppCompatActivity() {
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private var applicationList = mutableListOf<Application>()
-    private var applicationInfoList = mutableListOf<ApplicationInfo>()
-    private var packageInfoList = mutableListOf<PackageInfo>()
 
     private lateinit var toolBar: Toolbar
     private lateinit var swipeContainer: SwipeRefreshLayout
@@ -70,7 +67,7 @@ open class MainActivity : AppCompatActivity() {
     private var isSubmitted: Boolean = false
 
     private lateinit var pm: PackageManager
-    private val flags: Int = 0
+    private val flags: Int = PackageManager.GET_META_DATA
 
     /**
      * - Standardna onCreate metoda Activity Lifecycle-a
@@ -92,26 +89,27 @@ open class MainActivity : AppCompatActivity() {
             this@MainActivity.getSharedPreferences("root_access", MODE_PRIVATE)
 
         PACKAGE_NAME = this.applicationContext.packageName
-        pm = packageManager
+        pm = AppInfo.getPackageManager()
         with(this) {
             window.setBackgroundDrawableResource(R.color.background)
             window.statusBarColor = getColor(R.color.bottom_bar)
         }
 
-        // Inicijalizuj sve potrebne elemente redom
-        with(binding) {
-            createProgressBar(this)
-            createToolBar(this)
-            createSwipeContainer(this)
-            createRecyclerView(this)
-            createFloatingButton(this)
-            createChipFilter(this)
-            createBottomBar(this)
-        }
-
         scope.launch {
+            launch {
+                // Inicijalizuj sve potrebne elemente redom
+                with(binding) {
+                    createProgressBar(this)
+                    createToolBar(this)
+                    createSwipeContainer(this)
+                    createRecyclerView(this)
+                    createFloatingButton(this)
+                    createChipFilter(this)
+                    createBottomBar(this)
+                }
+            }
             val load = launch {
-                refreshPackageList()
+                getPackageList()
             }
             load.join()
             val set = launch {
@@ -150,36 +148,6 @@ open class MainActivity : AppCompatActivity() {
                 }
             }
         }
-
-        //Postavi sve potrebne Listener-e
-        swipeContainer.setOnRefreshListener {
-            scope.launch {
-                launch {
-                    refreshPackageList()
-                }.join()
-                launch {
-                    swipeContainer.isRefreshing = false
-                    delay(200)
-                    updateAdapter()
-                }
-            }
-        }
-
-        floatingButton.setOnClickListener {
-            recyclerView.smoothScrollToPosition(0)
-        }
-
-        bottomBar.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.restore_local -> {
-                    val intent = Intent(this, RestoreActivity::class.java)
-                    startActivity(intent)
-                }
-            }
-            true
-        }
-
-
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -357,32 +325,23 @@ open class MainActivity : AppCompatActivity() {
         recyclerView.setHasFixedSize(true)
         recyclerView.setItemViewCacheSize(20)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        hideButton(recyclerView)
     }
 
     private fun createSwipeContainer(binding: ActivityMainBinding) {
         swipeContainer = binding.swipeRefresh
-    }
 
-    /**
-     *  - Prosleđuje AppAdapter adapteru novu listu i obaveštava RecyclerView da je lista promenjena
-     */
-    private suspend fun refreshPackageList() {
-        withContext(Dispatchers.IO) {
-            launch {
-                applicationInfoList = pm.getInstalledApplications(flags)
-            }.join()
-            launch {
-                packageInfoList = pm.getInstalledPackages(0)
-            }.join()
-            launch {
-                getPackageList()
+        swipeContainer.setOnRefreshListener {
+            scope.launch {
+                launch {
+                    refreshPackageList()
+                }.join()
+                launch {
+                    swipeContainer.isRefreshing = false
+                    delay(200)
+                    updateAdapter()
+                }
             }
         }
-    }
-
-    private fun updateAdapter() {
-        appAdapter.updateList(applicationList)
     }
 
     /**
@@ -391,12 +350,18 @@ open class MainActivity : AppCompatActivity() {
     private fun createFloatingButton(binding: ActivityMainBinding) {
         floatingButton = binding.floatingButton
         floatingButton.hide()
+        hideButton(recyclerView)
+
+        floatingButton.setOnClickListener {
+            recyclerView.smoothScrollToPosition(0)
+        }
     }
 
     private fun createChipFilter(binding: ActivityMainBinding) {
         chipFilter = binding.chipFilter
         chipFilter.isFocusable = true
         chipFilter.isCheckable = false
+        chipFilter.visibility = View.INVISIBLE
     }
 
     /**
@@ -404,10 +369,16 @@ open class MainActivity : AppCompatActivity() {
      */
     private fun createBottomBar(binding: ActivityMainBinding) {
         bottomBar = binding.bottomNavigation
-    }
 
-    fun getAdapter(): AppAdapter {
-        return appAdapter
+        bottomBar.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                R.id.restore_local -> {
+                    val intent = Intent(this, RestoreActivity::class.java)
+                    startActivity(intent)
+                }
+            }
+            true
+        }
     }
 
     /**
@@ -422,11 +393,10 @@ open class MainActivity : AppCompatActivity() {
 
                 if (dy > 0 && floatingButton.isShown) {
                     floatingButton.hide()
-                    chipFilter.visibility = View.INVISIBLE
+
 
                 } else if (dy < 0 && !floatingButton.isShown) {
                     floatingButton.show()
-                    chipFilter.visibility = View.VISIBLE
                 }
             }
 
@@ -446,6 +416,18 @@ open class MainActivity : AppCompatActivity() {
     }
 
     /**
+     *  - Prosleđuje AppAdapter adapteru novu listu i obaveštava RecyclerView da je lista promenjena
+     */
+    private suspend fun refreshPackageList() {
+        withContext(Dispatchers.IO) {
+            launch {
+                AppInfo.loadAppInfo(flags)
+                getPackageList()
+            }
+        }
+    }
+
+    /**
      * - Puni MutableList sa izdvojenim objektima Application klase
      *
      * - pm je isntanca PackageManager klase pomoću koje dobavljamo sve informacije o aplikacijama
@@ -458,40 +440,48 @@ open class MainActivity : AppCompatActivity() {
      */
     @SuppressLint("QueryPermissionsNeeded")
     private suspend fun getPackageList() {
-        val tempApps = mutableListOf<Application>()
+        withContext(Dispatchers.IO) {
+            val tempApps = mutableListOf<Application>()
 
-        var index = 0
-        applicationInfoList.forEach {
-            if (isUserApp(it) || it.packageName.equals(
-                    PACKAGE_NAME
-                )
-            ) {
-
-            } else {
-                val apkDir = it.publicSourceDir.removeSuffix("/base.apk")
-                val name = it.loadLabel(pm).toString()
-                val drawable = it.loadIcon(pm)
-                tempApps.add(
-                    Application(
-                        name,
-                        FileUtil.drawableToByteArray(drawable),
-                        it.packageName,
-                        packageInfoList[index].versionName,
-                        it.targetSdkVersion,
-                        it.minSdkVersion,
-                        it.dataDir,
-                        apkDir,
-                        "",
-                        getDataSize(it.dataDir),
-                        getApkSize(apkDir)
+            AppInfo.getAppInfo().forEach {
+                if (isUserApp(it) || it.packageName.equals(
+                        PACKAGE_NAME
                     )
-                )
+                ) {
+
+                } else {
+                    val apkDir = it.publicSourceDir.removeSuffix("/base.apk")
+                    val name = it.loadLabel(pm).toString()
+                    val drawable = it.loadIcon(pm)
+                    val versionName = pm.getPackageInfo(it.packageName, flags).versionName
+                    tempApps.add(
+                        Application(
+                            name,
+                            FileUtil.drawableToByteArray(drawable),
+                            it.packageName,
+                            versionName,
+                            it.targetSdkVersion,
+                            it.minSdkVersion,
+                            it.dataDir,
+                            apkDir,
+                            "",
+                            getDataSize(it.dataDir),
+                            getApkSize(apkDir)
+                        )
+                    )
+                }
             }
-            index++
+            tempApps.sortBy { it.getName() }
+            applicationList = tempApps
+            Log.d("applist", applicationList.toString())
         }
-        tempApps.sortBy { it.getName() }
-        applicationList = tempApps
-        Log.d("applist", applicationList.toString())
+    }
+
+    /**
+     * - Proverava da li je prosleđena aplikacija system app
+     */
+    private fun isUserApp(pkgInfo: ApplicationInfo): Boolean {
+        return pkgInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
     }
 
     private fun getApkSize(path: String): Float {
@@ -526,10 +516,11 @@ open class MainActivity : AppCompatActivity() {
             return "Can't read"
     }
 
-    /**
-     * - Proverava da li je prosleđena aplikacija system app
-     */
-    private fun isUserApp(pkgInfo: ApplicationInfo): Boolean {
-        return pkgInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
+    private fun updateAdapter() {
+        appAdapter.updateList(applicationList)
+    }
+
+    fun getAdapter(): AppAdapter {
+        return appAdapter
     }
 }
