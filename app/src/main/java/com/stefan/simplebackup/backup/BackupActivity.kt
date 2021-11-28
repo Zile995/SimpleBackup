@@ -1,9 +1,7 @@
 package com.stefan.simplebackup.backup
 
 import android.app.ActivityManager
-import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.icu.text.SimpleDateFormat
 import android.net.Uri
@@ -36,7 +34,6 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.databinding.ActivityBackupBinding
 import com.stefan.simplebackup.utils.FileUtil
-import com.stefan.simplebackup.utils.SuperUser
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
@@ -50,6 +47,8 @@ class BackupActivity : AppCompatActivity() {
         private const val ROOT: String = "SimpleBackup/local"
         private const val TAG: String = "BackupActivity"
         private const val REQUEST_CODE_SIGN_IN: Int = 400
+
+        private lateinit var dataPath: String
     }
 
     private var internalStoragePath: String = ""
@@ -113,8 +112,10 @@ class BackupActivity : AppCompatActivity() {
                 }
                 setBitmap(FileUtil.bitmapToByteArray(bitmap!!))
                 appImage.setImageBitmap(bitmap)
+                dataPath = getDataDir()
             }
         }
+
         internalStoragePath = (this.getExternalFilesDir(null)!!.absolutePath).run {
             substring(0, indexOf("Android")).plus(
                 ROOT
@@ -136,7 +137,7 @@ class BackupActivity : AppCompatActivity() {
             )
             scope.launch {
                 progressBar.visibility = View.VISIBLE
-                createLocalBackup(selectedApp!!, selectedApp!!.getBitmap())
+                createLocalBackup(selectedApp!!)
             }
         }
 
@@ -149,7 +150,7 @@ class BackupActivity : AppCompatActivity() {
                 onBackPressed()
                 delay(150)
                 launch {
-                    deleteApp(this@BackupActivity, selectedApp!!.getPackageName())
+                    deleteApp(selectedApp!!.getPackageName())
                 }.join()
             }
         }
@@ -216,7 +217,7 @@ class BackupActivity : AppCompatActivity() {
         supportActionBar!!.setDisplayShowHomeEnabled(true)
     }
 
-    private suspend fun createLocalBackup(app: Application, bitmap: Bitmap?) {
+    private suspend fun createLocalBackup(app: Application) {
         withContext(Dispatchers.IO) {
             val appDir = app.getName().filterNot { it.isWhitespace() }
             val appVersion = app.getVersionName().replace("(", "_").replace(")", "")
@@ -225,22 +226,26 @@ class BackupActivity : AppCompatActivity() {
 
             with(progressBar) {
                 backupFolder = createBackupDir(backupFolder)
-                setProgress(25, true)
-
-                if (Shell.rootAccess()) {
-                    val packageBackupFolder = backupFolder.plus("/${app.getPackageName()}")
-                    FileUtil.createDirectory(packageBackupFolder)
-                    SuperUser.sudo("cp -dR `ls -d \$PWD${app.getDataDir()}/* | grep -vE \"Android|cache|lib|code_cache\"` $packageBackupFolder/")
-                }
-
                 app.setDataDir(backupFolder)
-                app.setDataSize(getLocalDataSize(backupFolder))
-                setProgress(45, true)
+                setProgress(5, true)
 
-                copyApk(app.getApkDir(), backupFolder)
-                setProgress(75, true)
-
-                appToJson(app, backupFolder)
+                launch {
+                    val apkBackupTar = backupFolder.plus("/${app.getName()}.tar.gz")
+                    val packageBackupTar = backupFolder.plus("/${app.getPackageName()}.tar.gz")
+                    if (Shell.rootAccess()) {
+                        Shell.su("tar -zcf $apkBackupTar --exclude=lib --exclude=oat -C ${app.getApkDir()} . ")
+                            .exec()
+                        setProgress(25, true)
+                        Shell.su("tar -zcf $packageBackupTar --exclude={\"cache\",\"lib\",\"code_cache\"} -C $dataPath . ")
+                            .exec()
+                        setProgress(50, true)
+                    } else {
+                        copyApk(app.getApkDir(), backupFolder)
+                    }
+                    app.setDataSize(FileUtil.transformBytes(getLocalDataSize(packageBackupTar)))
+                    appToJson(app, backupFolder)
+                    setProgress(75, true)
+                }.join()
                 setProgress(100, true)
             }
             delay(500)
@@ -264,6 +269,15 @@ class BackupActivity : AppCompatActivity() {
 //        }
 //    }
 
+//    private fun deleteApk(apkPath: String) {
+//        val dir = File(apkPath)
+//        dir.walkTopDown().filter {
+//            it.absolutePath.contains(".apk")
+//        }.forEach {
+//            it.delete()
+//        }
+//    }
+
     private fun createBackupDir(path: String): String {
         val dir = File(path)
         var number = 1
@@ -281,14 +295,13 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private fun getLocalDataSize(path: String): String {
-        val dir = File(path)
-        val size = dir.walkTopDown().filter {
-            it.isFile
-        }.map {
-            it.length()
-        }.sum()
-        return FileUtil.transformBytes(size.toFloat())
+    private fun getLocalDataSize(path: String): Float {
+        val result = arrayListOf<String>()
+        Shell.su("gzip -d $path -c|wc -c").to(result).exec()
+        return if (result.isNotEmpty()) {
+            result.first().toFloat()
+        } else
+            0f
     }
 
     private fun appToJson(app: Application, dir: String) {
@@ -308,7 +321,7 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private fun deleteApp(context: Context, packageName: String) {
+    private fun deleteApp(packageName: String) {
         val intent = Intent(Intent.ACTION_DELETE)
         intent.data = Uri.parse("package:${packageName}")
         startActivity(intent)

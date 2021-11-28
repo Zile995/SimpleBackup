@@ -21,7 +21,7 @@ object AppInfo {
 
     suspend fun loadAppInfo(flags: Int) {
         withContext(Dispatchers.IO) {
-                applicationInfoList = pm.getInstalledApplications(flags)
+            applicationInfoList = pm.getInstalledApplications(flags)
         }
     }
 }

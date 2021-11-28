@@ -7,6 +7,7 @@ import android.os.Bundle
 import com.stefan.simplebackup.BuildConfig
 import com.stefan.simplebackup.MainActivity
 import com.stefan.simplebackup.data.AppInfo
+import com.topjohnwu.superuser.BusyBoxInstaller
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,9 +18,10 @@ class SplashActivity : Activity() {
         init {
             // Set settings before the main shell can be created
             Shell.enableVerboseLogging = BuildConfig.DEBUG
-            Shell.setDefaultBuilder(
-                Shell.Builder.create()
+            val builder: Shell.Builder = Shell.Builder.create()
+            Shell.setDefaultBuilder(builder
                     .setFlags(Shell.FLAG_MOUNT_MASTER)
+//                    .setInitializers(BusyBoxInstaller::class.java)
                     .setTimeout(10)
             )
         }

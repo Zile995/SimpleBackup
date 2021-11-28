@@ -444,12 +444,7 @@ open class MainActivity : AppCompatActivity() {
             val tempApps = mutableListOf<Application>()
 
             AppInfo.getAppInfo().forEach {
-                if (isUserApp(it) || it.packageName.equals(
-                        PACKAGE_NAME
-                    )
-                ) {
-
-                } else {
+                if (!(isSystemApp(it) || it.packageName.equals(PACKAGE_NAME))) {
                     val apkDir = it.publicSourceDir.removeSuffix("/base.apk")
                     val name = it.loadLabel(pm).toString()
                     val drawable = it.loadIcon(pm)
@@ -480,7 +475,7 @@ open class MainActivity : AppCompatActivity() {
     /**
      * - Proverava da li je prosleđena aplikacija system app
      */
-    private fun isUserApp(pkgInfo: ApplicationInfo): Boolean {
+    private fun isSystemApp(pkgInfo: ApplicationInfo): Boolean {
         return pkgInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
     }
 

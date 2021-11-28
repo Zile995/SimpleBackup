@@ -100,7 +100,7 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
 
     override fun getItemCount() = this.appList.size
 
-    private suspend fun installApp(context: Context, application: Application) {
+    private suspend fun installApp(context: Context, app: Application) {
         withContext(Dispatchers.IO) {
             val internalStoragePath = (context.getExternalFilesDir(null)!!.absolutePath).run {
                 substring(0, indexOf("Android")).plus(
@@ -108,20 +108,20 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
                 )
             }
             println(internalStoragePath)
-            val backupDir = application.getDataDir()
+            val backupDir = app.getDataDir()
             val tempDir = LOCAL.plus(backupDir.removePrefix(internalStoragePath))
             println(tempDir)
-            val packageName = application.getPackageName()
-            val dataDir = "$DATA/$packageName"
+            val packageName = app.getPackageName()
+            val packageDataDir = "$DATA/$packageName"
             try {
                 with(Installer) {
                     Shell.su("mkdir -p $tempDir").exec()
-                    Shell.su("cp -r $backupDir/*.apk $tempDir/").exec()
-                    Shell.su("rm -rf $dataDir").exec()
+                    Shell.su("tar -zxf $backupDir/${app.getName()}.tar.gz -C $tempDir/").exec()
+                    Shell.su("rm -rf $packageDataDir/*").exec()
                     installApk(context, tempDir)
-                    Shell.su("cp -r $backupDir/$packageName $DATA/").exec()
+                    Shell.su("tar -zxf $backupDir/${app.getPackageName()}.tar.gz -C $packageDataDir").exec()
                     Shell.su(getPermissions(packageName)).exec()
-                    Shell.su("restorecon -R $dataDir").exec()
+                    Shell.su("restorecon -R $packageDataDir").exec()
                     Shell.su("rm -rf $tempDir").exec()
                 }
             } catch (e: Exception) {
