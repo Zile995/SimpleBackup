@@ -69,7 +69,7 @@ object AppInfo {
         applicationList.sortBy { it.getName() }
     }
 
-     /**
+    /**
      * - Puni MutableList sa izdvojenim objektima Application klase
      *
      * - pm je isntanca PackageManager klase pomoću koje dobavljamo sve informacije o aplikacijama

@@ -3,6 +3,7 @@ package com.stefan.simplebackup
 import android.Manifest
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -29,6 +30,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.AppInfo
+import com.stefan.simplebackup.database.AppDatabase
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.restore.RestoreActivity
 import com.stefan.simplebackup.utils.PermissionUtils
@@ -49,6 +51,7 @@ open class MainActivity : AppCompatActivity() {
 
     private var applicationList = AppInfo.getAppList
 
+    // UI
     private lateinit var toolBar: Toolbar
     private lateinit var swipeContainer: SwipeRefreshLayout
     private lateinit var appAdapter: AppAdapter
@@ -58,10 +61,11 @@ open class MainActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var chipFilter: Chip
 
-    private var isSubmitted: Boolean = false
-
+    // Lateinit vars
     private lateinit var pm: PackageManager
+
     private val flags: Int = PackageManager.GET_META_DATA
+    private var isSubmitted: Boolean = false
 
     /**
      * - Standardna onCreate metoda Activity Lifecycle-a
@@ -84,6 +88,8 @@ open class MainActivity : AppCompatActivity() {
 
         PACKAGE_NAME = this.applicationContext.packageName
         pm = AppInfo.getPackageManager
+        val appDatabase = AppDatabase.getDbInstance(this.applicationContext)
+
         with(this) {
             window.setBackgroundDrawableResource(R.color.background)
             window.statusBarColor = getColor(R.color.bottom_bar)
@@ -106,6 +112,16 @@ open class MainActivity : AppCompatActivity() {
                 AppInfo.getPackageList(this@MainActivity)
             }
             load.join()
+            launch {
+                if (!doesDatabaseExists(this@MainActivity, "app_database")) {
+                    makeDatabase(appDatabase)
+                } else {
+                    val list = appDatabase.appDao().getAppList()
+                    list.forEach {
+                        println("App: ${it.getName()}")
+                    }
+                }
+            }
             val set = launch {
                 progressBar.visibility = View.GONE
                 updateAdapter()
@@ -142,6 +158,20 @@ open class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun doesDatabaseExists(context: Context, name: String) = context.getDatabasePath(name).exists()
+
+    private suspend fun makeDatabase(appDatabase: AppDatabase) {
+        withContext(Dispatchers.IO) {
+            applicationList.forEach {
+                appDatabase.appDao().insert(it)
+            }
+        }
+    }
+
+    private fun loadDatabaseList(appDatabase: AppDatabase) {
+        applicationList = appDatabase.appDao().getAppList()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
