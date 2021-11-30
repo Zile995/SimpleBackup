@@ -48,10 +48,9 @@ class RestoreActivity : AppCompatActivity() {
 
         createProgressBar(binding)
         createTopBar(binding)
-        createFloatingButton(binding)
-        createSwipeContainer(binding)
         createRecyclerView(binding)
-        hideButton(recyclerView)
+        createSwipeContainer(binding)
+        createFloatingButton(binding)
 
         CoroutineScope(Dispatchers.Main).launch {
             launch {
@@ -63,25 +62,6 @@ class RestoreActivity : AppCompatActivity() {
             }
         }
 
-        floatingButton.setOnClickListener {
-            recyclerView.smoothScrollToPosition(0)
-        }
-
-        swipeContainer.setOnRefreshListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                val refresh = launch {
-                    refreshStoredPackages()
-                    // Delay kako bi potrajala swipe refresh animacija
-                    delay(400)
-                }
-                refresh.join()
-                launch {
-                    swipeContainer.isRefreshing = false
-                    delay(200)
-                    updateAdapter()
-                }
-            }
-        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -114,6 +94,20 @@ class RestoreActivity : AppCompatActivity() {
 
     private fun createSwipeContainer(binding: ActivityRestoreBinding) {
         swipeContainer = binding.swipeRefresh
+
+        swipeContainer.setOnRefreshListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                val refresh = launch {
+                    refreshStoredPackages()
+                }
+                refresh.join()
+                launch {
+                    swipeContainer.isRefreshing = false
+                    delay(200)
+                    updateAdapter()
+                }
+            }
+        }
     }
 
     private fun createRecyclerView(binding: ActivityRestoreBinding) {
@@ -195,6 +189,12 @@ class RestoreActivity : AppCompatActivity() {
     private fun createFloatingButton(binding: ActivityRestoreBinding) {
         floatingButton = binding.floatingButton
         floatingButton.hide()
+
+        hideButton(recyclerView)
+
+        floatingButton.setOnClickListener {
+            recyclerView.smoothScrollToPosition(0)
+        }
     }
 
     private fun hideButton(recyclerView: RecyclerView) {

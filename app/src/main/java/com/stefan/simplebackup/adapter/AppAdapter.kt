@@ -52,7 +52,7 @@ class AppAdapter(context: Context) : RecyclerView.Adapter<AppAdapter.AppViewHold
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val context = holder.view.context
         val item = appList[position]
-        val bitmap = item.getBitmap()
+        val bitmap = item.getBitmapFromArray()
         val charSequencePackage: CharSequence = item.getPackageName()
         val charSequenceVersion: CharSequence = "v" + item.getVersionName()
 
@@ -63,10 +63,13 @@ class AppAdapter(context: Context) : RecyclerView.Adapter<AppAdapter.AppViewHold
         holder.chipPackage.text = charSequencePackage.toString()
 
         holder.cardView.setOnClickListener {
+            /** Zato što parcelable ima Binder IPC ograničenje, postavi prazan byte niz za prenos
+             *  i sačuvaj bitmap array u MODE_PRIVATE, odnosno u data/files folder naše aplikacije
+             */
             if (bitmap != null && bitmap.allocationByteCount > 500000) {
                 saveBitmap(bitmap, item.getName(), mainContext)
                 item.setBitmap(byteArrayOf())
-                println("Bitmap = ${item.getBitmap()}")
+                println("Bitmap = ${item.getBitmapFromArray()}")
             }
             val intent = Intent(context, BackupActivity::class.java)
             intent.putExtra("application", item)

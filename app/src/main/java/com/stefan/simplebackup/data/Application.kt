@@ -6,25 +6,54 @@ import android.graphics.BitmapFactory
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.annotation.Keep
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 /**
  * Klasa koja će sadržati sve podatke o aplikaciji
  */
-
+@Entity (tableName = "app_table")
 @Keep
 @Serializable
-class Application(
+data class Application(
+    @Transient
+    @PrimaryKey(autoGenerate = true)
+    private var uid: Int = 0,
+
+    @ColumnInfo(name = "name")
     private var name: String = "",
+
+    @ColumnInfo(name = "bitmap")
     private var bitmap: ByteArray = byteArrayOf(),
+
+    @ColumnInfo(name = "package_name")
     private var packageName: String = "",
+
+    @ColumnInfo(name = "version_name")
     private var versionName: String = "",
+
+    @ColumnInfo(name = "target_sdk")
     private var targetSdk: Int = 0,
+
+    @ColumnInfo(name = "min_sdk")
     private var minSdk: Int = 0,
+
+    @ColumnInfo(name = "data_dir")
     private var dataDir: String = "",
+
+    @ColumnInfo(name = "apk_dir")
     private var apkDir: String = "",
+
+    @ColumnInfo(name = "date")
     private var date: String = "",
+
+    @ColumnInfo(name = "data_size")
     private var dataSize: String = "",
+
+    @ColumnInfo(name = "apk_size")
     private var apkSize: Float = 0f
 ) : Parcelable {
 
@@ -42,6 +71,7 @@ class Application(
      * * Ukoliko je pročitan String null, upiši prazan String "" u konstruktor Application klase
      */
     private fun readFromParcel(parcel: Parcel) {
+        uid = parcel.readInt()
         name = parcel.readString() ?: ""
         bitmap = ByteArray(parcel.readInt())
         parcel.readByteArray(bitmap)
@@ -57,6 +87,7 @@ class Application(
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
+        dest.writeInt(uid)
         dest.writeString(name)
         dest.writeInt(bitmap.size)
         dest.writeByteArray(bitmap)
@@ -71,9 +102,16 @@ class Application(
         dest.writeFloat(apkSize)
     }
 
+    fun getUid() = this.uid
+
     fun getName() = this.name
 
-    fun getBitmap(): Bitmap? {
+    /**
+     * Specifični getter nazivi potrebnih funkcija kako bi room prepoznao polja
+     */
+    fun getBitmap() = this.bitmap
+
+    fun getBitmapFromArray(): Bitmap? {
         return if (this.bitmap.isNotEmpty()) {
             BitmapFactory.decodeByteArray(this.bitmap, 0, this.bitmap.size)
         } else {
@@ -99,8 +137,40 @@ class Application(
 
     fun getApkDir() = this.apkDir
 
+    fun setUid(uid: Int) {
+        this.uid = uid
+    }
+
+    fun setName(name: String) {
+        this.name = name
+    }
+
     fun setBitmap(bitmap: ByteArray) {
         this.bitmap = bitmap
+    }
+
+    fun setPackageName(packageName: String) {
+        this.packageName = packageName
+    }
+
+    fun setVersionName(versionName: String) {
+        this.versionName = versionName
+    }
+
+    fun setTargetSdk(targetSdk: Int) {
+        this.targetSdk = targetSdk
+    }
+
+    fun setMinSdk(minSdk: Int) {
+        this.minSdk = minSdk
+    }
+
+    fun setApkDir(apkDir: String) {
+        this.apkDir = apkDir
+    }
+
+    fun setApkSize(apkSize: Float) {
+        this.apkSize = apkSize
     }
 
     fun setDataDir(newDir: String) {
@@ -113,6 +183,21 @@ class Application(
 
     fun setDate(newDate: String) {
         this.date = newDate
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Application
+
+        if (!bitmap.contentEquals(other.bitmap)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return bitmap.contentHashCode()
     }
 
     companion object CREATOR : Parcelable.Creator<Application> {

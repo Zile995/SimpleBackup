@@ -96,6 +96,8 @@ class BackupActivity : AppCompatActivity() {
 
         if (selectedApp != null) {
             with(selectedApp!!) {
+                val dataSize = calculateDataSize(this.getDataDir())
+                setDataSize(dataSize)
                 textItem.text = getName()
                 chipPackage.text = (getPackageName() as CharSequence).toString()
                 chipVersion.text = (getVersionName() as CharSequence).toString()
@@ -104,7 +106,7 @@ class BackupActivity : AppCompatActivity() {
                 chipTargetSdk.text = getTargetSdk().toString()
                 chipMinSdk.text = getMinSdk().toString()
                 chipDataSize.text = getDataSize()
-                var bitmap = getBitmap()
+                var bitmap = getBitmapFromArray()
                 if (bitmap == null) {
                     bitmap =
                         BitmapFactory.decodeStream(this@BackupActivity.openFileInput(getName()))
@@ -217,12 +219,35 @@ class BackupActivity : AppCompatActivity() {
         supportActionBar!!.setDisplayShowHomeEnabled(true)
     }
 
+    private fun calculateDataSize(path: String): String {
+        if (Shell.rootAccess()) {
+            val resultList = arrayListOf<String>()
+            var result: String = ""
+            Shell.su("du -sch $path/").to(resultList).exec()
+            resultList.forEach {
+                if (it.contains("total")) {
+                    result = it.removeSuffix("\ttotal")
+                }
+            }
+            if (result.equals("16K"))
+                result = "0K"
+
+            result = StringBuilder(result)
+                .insert(result.length - 1, " ")
+                .append("B")
+                .toString()
+
+            return result
+        } else
+            return "Can't read"
+    }
+
     private suspend fun createLocalBackup(app: Application) {
         withContext(Dispatchers.IO) {
-            val appDir = app.getName().filterNot { it.isWhitespace() }
-            val appVersion = app.getVersionName().replace("(", "_").replace(")", "")
+            val appName = app.getName()
+            val appVersion = app.getVersionName()
             var backupFolder =
-                "$internalStoragePath/${appDir}_${appVersion.filterNot { it.isWhitespace() }}"
+                "$internalStoragePath/${appName}_${appVersion}"
 
             with(progressBar) {
                 backupFolder = createBackupDir(backupFolder)
@@ -230,13 +255,13 @@ class BackupActivity : AppCompatActivity() {
                 setProgress(5, true)
 
                 launch {
-                    val apkBackupTar = backupFolder.plus("/${app.getName()}.tar.gz")
+                    val apkBackupTar = backupFolder.plus("/$appName.tar.gz")
                     val packageBackupTar = backupFolder.plus("/${app.getPackageName()}.tar.gz")
                     if (Shell.rootAccess()) {
-                        Shell.su("tar -zcf $apkBackupTar --exclude=lib --exclude=oat -C ${app.getApkDir()} . ")
+                        Shell.su("x=$(echo -e \"$apkBackupTar\") && tar -zcf \"\$x\" --exclude=lib --exclude=oat -C ${app.getApkDir()} . ")
                             .exec()
                         setProgress(25, true)
-                        Shell.su("tar -zcf $packageBackupTar --exclude={\"cache\",\"lib\",\"code_cache\"} -C $dataPath . ")
+                        Shell.su("x=\$(echo -e \"$packageBackupTar\") && tar -zcf \"\$x\" --exclude={\"cache\",\"lib\",\"code_cache\"} -C $dataPath . ")
                             .exec()
                         setProgress(50, true)
                     } else {
@@ -297,7 +322,7 @@ class BackupActivity : AppCompatActivity() {
 
     private fun getLocalDataSize(path: String): Float {
         val result = arrayListOf<String>()
-        Shell.su("gzip -d $path -c|wc -c").to(result).exec()
+        Shell.su("x=$(echo -e \"$path\") && gzip -d \"\$x\" -c|wc -c").to(result).exec()
         return if (result.isNotEmpty()) {
             result.first().toFloat()
         } else

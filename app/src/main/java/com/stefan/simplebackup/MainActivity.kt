@@ -5,13 +5,11 @@ import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Process
 import android.provider.Settings
-import android.util.Log
 import android.view.Menu
 import android.view.View
 import android.view.inputmethod.EditorInfo
@@ -31,16 +29,12 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.AppInfo
-import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.restore.RestoreActivity
-import com.stefan.simplebackup.utils.FileUtil
 import com.stefan.simplebackup.utils.PermissionUtils
 import com.stefan.simplebackup.utils.RootChecker
 import com.stefan.simplebackup.utils.SearchUtil
-import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
-import java.io.File
 import java.util.*
 
 open class MainActivity : AppCompatActivity() {
@@ -53,7 +47,7 @@ open class MainActivity : AppCompatActivity() {
     private var rootChecker = RootChecker(this)
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
-    private var applicationList = mutableListOf<Application>()
+    private var applicationList = AppInfo.getAppList
 
     private lateinit var toolBar: Toolbar
     private lateinit var swipeContainer: SwipeRefreshLayout
@@ -89,7 +83,7 @@ open class MainActivity : AppCompatActivity() {
             this@MainActivity.getSharedPreferences("root_access", MODE_PRIVATE)
 
         PACKAGE_NAME = this.applicationContext.packageName
-        pm = AppInfo.getPackageManager()
+        pm = AppInfo.getPackageManager
         with(this) {
             window.setBackgroundDrawableResource(R.color.background)
             window.statusBarColor = getColor(R.color.bottom_bar)
@@ -109,7 +103,7 @@ open class MainActivity : AppCompatActivity() {
                 }
             }
             val load = launch {
-                getPackageList()
+                AppInfo.getPackageList(this@MainActivity)
             }
             load.join()
             val set = launch {
@@ -422,93 +416,9 @@ open class MainActivity : AppCompatActivity() {
         withContext(Dispatchers.IO) {
             launch {
                 AppInfo.loadAppInfo(flags)
-                getPackageList()
+                AppInfo.getPackageList(this@MainActivity)
             }
         }
-    }
-
-    /**
-     * - Puni MutableList sa izdvojenim objektima Application klase
-     *
-     * - pm je isntanca PackageManager klase pomoću koje dobavljamo sve informacije o aplikacijama
-     *
-     * - SuppressLint ignoriše upozorenja vezana za getInstalledApplications,
-     *   jer Android 11 po defaultu ne prikazuje sve informacije instaliranih aplikacija.
-     *   To se može zaobići u AndroidManifest.xml fajlu dodavanjem
-     *   **<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
-     *   tools:ignore="QueryAllPackagesPermission" />**
-     */
-    @SuppressLint("QueryPermissionsNeeded")
-    private suspend fun getPackageList() {
-        withContext(Dispatchers.IO) {
-            val tempApps = mutableListOf<Application>()
-
-            AppInfo.getAppInfo().forEach {
-                if (!(isSystemApp(it) || it.packageName.equals(PACKAGE_NAME))) {
-                    val apkDir = it.publicSourceDir.removeSuffix("/base.apk")
-                    val name = it.loadLabel(pm).toString()
-                    val drawable = it.loadIcon(pm)
-                    val versionName = pm.getPackageInfo(it.packageName, flags).versionName
-                    tempApps.add(
-                        Application(
-                            name,
-                            FileUtil.drawableToByteArray(drawable),
-                            it.packageName,
-                            versionName,
-                            it.targetSdkVersion,
-                            it.minSdkVersion,
-                            it.dataDir,
-                            apkDir,
-                            "",
-                            getDataSize(it.dataDir),
-                            getApkSize(apkDir)
-                        )
-                    )
-                }
-            }
-            tempApps.sortBy { it.getName() }
-            applicationList = tempApps
-            Log.d("applist", applicationList.toString())
-        }
-    }
-
-    /**
-     * - Proverava da li je prosleđena aplikacija system app
-     */
-    private fun isSystemApp(pkgInfo: ApplicationInfo): Boolean {
-        return pkgInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
-    }
-
-    private fun getApkSize(path: String): Float {
-        val dir = File(path)
-        return dir.walkTopDown().filter {
-            it.absolutePath.contains("apk")
-        }.map {
-            it.length()
-        }.sum().toFloat()
-    }
-
-    private fun getDataSize(path: String): String {
-        if (Shell.rootAccess()) {
-            val resultList = arrayListOf<String>()
-            var result: String = ""
-            Shell.su("du -sch $path/").to(resultList).exec()
-            resultList.forEach {
-                if (it.contains("total")) {
-                    result = it.removeSuffix("\ttotal")
-                }
-            }
-            if (result.equals("16K"))
-                result = "0K"
-
-            result = StringBuilder(result)
-                .insert(result.length - 1, " ")
-                .append("B")
-                .toString()
-
-            return result
-        } else
-            return "Can't read"
     }
 
     private fun updateAdapter() {

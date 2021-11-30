@@ -63,7 +63,7 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
     override fun onBindViewHolder(holder: RestoreViewHolder, position: Int) {
 
         val item = appList[position]
-        val bitmap = item.getBitmap()
+        val bitmap = item.getBitmapFromArray()
         val charSequenceVersion: CharSequence = "v" + item.getVersionName()
 
         holder.textItem.text = item.getName()
@@ -115,14 +115,16 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
             val packageDataDir = "$DATA/$packageName"
             try {
                 with(Installer) {
-                    Shell.su("mkdir -p $tempDir").exec()
-                    Shell.su("tar -zxf $backupDir/${app.getName()}.tar.gz -C $tempDir/").exec()
+                    Shell.su("x=$(echo -e \"$tempDir\") && mkdir -p \"\$x\"").exec()
+                    Shell.su("x=$(echo -e \"$backupDir/${app.getName()}.tar.gz\")" +
+                            " && y=$(echo -e \"$tempDir/\")" +
+                            " && tar -zxf \"\$x\" -C \"\$y\"").exec()
                     Shell.su("rm -rf $packageDataDir/*").exec()
                     installApk(context, tempDir)
-                    Shell.su("tar -zxf $backupDir/${app.getPackageName()}.tar.gz -C $packageDataDir").exec()
+                    Shell.su("x=$(echo -e \"$backupDir/${app.getPackageName()}.tar.gz\") && tar -zxf \"\$x\" -C $packageDataDir/").exec()
                     Shell.su(getPermissions(packageName)).exec()
                     Shell.su("restorecon -R $packageDataDir").exec()
-                    Shell.su("rm -rf $tempDir").exec()
+                    Shell.su("x=$(echo -e \"$tempDir\") && rm -rf \"\$x\"").exec()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -147,8 +149,9 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
             val sessions = packageInstaller.allSessions
             val sessionId = sessions[0].sessionId
             for ((apk, size) in apkSizeMap) {
+                val apkFilePath = "x=$(echo -e \"${apk.absolutePath}\")"
                 Shell.su(
-                    "pm install-write -S $size $sessionId ${apk.name} ${apk.absolutePath}"
+                    "$apkFilePath && pm install-write -S $size $sessionId ${apk.name} \"\$x\""
                 ).exec()
             }
             Shell.su("pm install-commit $sessionId").exec()
