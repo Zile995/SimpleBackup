@@ -1,9 +1,6 @@
 package com.stefan.simplebackup.database
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import com.stefan.simplebackup.data.Application
 import kotlinx.coroutines.flow.Flow
 
@@ -13,8 +10,8 @@ interface AppDao {
     fun getAppList(): Flow<MutableList<Application>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(app: Application)
+    fun insert(app: Application)
 
     @Query("DELETE FROM app_table")
-    suspend fun deleteAll()
+    fun clear()
 }
