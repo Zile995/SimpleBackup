@@ -32,7 +32,6 @@ class SplashActivity : Activity() {
             launch {
                 AppInfo.loadPackageManager(this@SplashActivity)
                     .getInstalledApplications(PackageManager.GET_META_DATA)
-                    .setPackageList(this@SplashActivity, true)
             }
             // Preheat the main root shell in the splash screen
             // so the app can use it afterwards without interrupting

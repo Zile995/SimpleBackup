@@ -101,9 +101,7 @@ open class MainActivity : AppCompatActivity() {
                 bindViews(binding)
             }
             val load = launch {
-                while (true) {
-                    if (AppInfo.getUserAppList.isNotEmpty()) break
-                }
+                AppInfo.setPackageList(this@MainActivity, true)
             }
             load.join()
             launch {
