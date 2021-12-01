@@ -3,7 +3,6 @@ package com.stefan.simplebackup
 import android.Manifest
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
@@ -30,7 +29,6 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.AppInfo
-import com.stefan.simplebackup.database.AppDatabase
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.restore.RestoreActivity
 import com.stefan.simplebackup.utils.PermissionUtils
@@ -41,6 +39,7 @@ import java.util.*
 
 open class MainActivity : AppCompatActivity() {
 
+    // Const values
     companion object {
         private const val STORAGE_PERMISSION_CODE: Int = 500
     }
@@ -49,7 +48,8 @@ open class MainActivity : AppCompatActivity() {
     private var rootChecker = RootChecker(this)
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
-    private var applicationList = AppInfo.getAppList
+
+    private var applicationList = AppInfo.getUserAppList
 
     // UI
     private lateinit var toolBar: Toolbar
@@ -61,9 +61,10 @@ open class MainActivity : AppCompatActivity() {
     private lateinit var progressBar: ProgressBar
     private lateinit var chipFilter: Chip
 
-    // Lateinit vars
+    // PackageManager
     private lateinit var pm: PackageManager
 
+    // Flags
     private val flags: Int = PackageManager.GET_META_DATA
     private var isSubmitted: Boolean = false
 
@@ -88,7 +89,6 @@ open class MainActivity : AppCompatActivity() {
 
         PACKAGE_NAME = this.applicationContext.packageName
         pm = AppInfo.getPackageManager
-        val appDatabase = AppDatabase.getDbInstance(this.applicationContext)
 
         with(this) {
             window.setBackgroundDrawableResource(R.color.background)
@@ -97,29 +97,18 @@ open class MainActivity : AppCompatActivity() {
 
         scope.launch {
             launch {
-                // Inicijalizuj sve potrebne elemente redom
-                with(binding) {
-                    createProgressBar(this)
-                    createToolBar(this)
-                    createSwipeContainer(this)
-                    createRecyclerView(this)
-                    createFloatingButton(this)
-                    createChipFilter(this)
-                    createBottomBar(this)
-                }
+                // Inicijalizuj sve potrebne UI elemente redom
+                bindViews(binding)
             }
             val load = launch {
-                AppInfo.getPackageList(this@MainActivity)
+                while (true) {
+                    if (AppInfo.getUserAppList.isNotEmpty()) break
+                }
             }
             load.join()
             launch {
-                if (!doesDatabaseExists(this@MainActivity, "app_database")) {
-                    makeDatabase(appDatabase)
-                } else {
-                    val list = appDatabase.appDao().getAppList()
-                    list.forEach {
-                        println("App: ${it.getName()}")
-                    }
+                if (!AppInfo.databaseExists(this@MainActivity)) {
+                    AppInfo.makeDatabase()
                 }
             }
             val set = launch {
@@ -160,18 +149,16 @@ open class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun doesDatabaseExists(context: Context, name: String) = context.getDatabasePath(name).exists()
-
-    private suspend fun makeDatabase(appDatabase: AppDatabase) {
-        withContext(Dispatchers.IO) {
-            applicationList.forEach {
-                appDatabase.appDao().insert(it)
-            }
+    private fun bindViews(binding: ActivityMainBinding) {
+        with(binding) {
+            createProgressBar(this)
+            createToolBar(this)
+            createSwipeContainer(this)
+            createRecyclerView(this)
+            createFloatingButton(this)
+            createChipFilter(this)
+            createBottomBar(this)
         }
-    }
-
-    private fun loadDatabaseList(appDatabase: AppDatabase) {
-        applicationList = appDatabase.appDao().getAppList()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -445,8 +432,7 @@ open class MainActivity : AppCompatActivity() {
     private suspend fun refreshPackageList() {
         withContext(Dispatchers.IO) {
             launch {
-                AppInfo.loadAppInfo(flags)
-                AppInfo.getPackageList(this@MainActivity)
+                AppInfo.getInstalledApplications(flags).setPackageList(this@MainActivity, true)
             }
         }
     }

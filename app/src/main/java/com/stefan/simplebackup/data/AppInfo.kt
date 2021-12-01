@@ -3,6 +3,7 @@ package com.stefan.simplebackup.data
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import com.stefan.simplebackup.database.AppDatabase
 import com.stefan.simplebackup.utils.FileUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -11,29 +12,68 @@ import java.io.File
 import kotlin.system.measureTimeMillis
 
 object AppInfo {
+    // Zapamti naziv baze podataka
+    private const val DATABASE_NAME: String = "app_database"
+
+    // Prazne liste u koje kasnije dodajemo odgovarajuće elemente
     private var userAppsList = mutableListOf<ApplicationInfo>()
     private var applicationList = mutableListOf<Application>()
-    private lateinit var pm: PackageManager
+    private var systemAppsList = mutableListOf<Application>()
 
+    // Late init varijable, inicijalizujemo ih u loadPackageManager funkciji
+    private lateinit var pm: PackageManager
+    private lateinit var appDatabase: AppDatabase
+
+    /**
+     * - Učitava [PackageManager] i [AppDatabase]
+     */
     fun loadPackageManager(context: Context): AppInfo {
         pm = context.packageManager
+        appDatabase = AppDatabase.getDbInstance(context.applicationContext)
         return this
     }
 
-    val getAppList get() = applicationList
+    /**
+     * - Vraća [applicationList]
+     */
+    val getUserAppList get() = applicationList
 
+    val getSystemAppsList get() = systemAppsList
+
+    /**
+     * - Vraća [pm]
+     */
     val getPackageManager get() = pm
 
     fun getAppInfo() = userAppsList
 
-    suspend fun loadAppInfo(flags: Int): AppInfo {
+    val getDatabase get() = appDatabase
+
+    /**
+     * - Puni [userAppsList]
+     * - Vraća referencu [AppInfo] objekta
+     */
+    suspend fun getInstalledApplications(flags: Int): AppInfo {
         withContext(Dispatchers.IO) {
             userAppsList = pm.getInstalledApplications(flags)
         }
         return this
     }
 
-    suspend fun getPackageList(context: Context) {
+    fun databaseExists(context: Context) =
+        context.getDatabasePath(DATABASE_NAME).exists()
+
+    suspend fun getDatabaseList(): MutableList<Application> {
+        return withContext(Dispatchers.IO) {
+            applicationList = appDatabase.appDao().getAppList()
+            applicationList
+        }
+    }
+
+    /**
+     * Postavi listu
+     */
+    suspend fun setPackageList(context: Context, userApp: Boolean) {
         withContext(Dispatchers.IO) {
             applicationList.clear()
             val size = userAppsList.size
@@ -45,22 +85,22 @@ object AppInfo {
             val time = measureTimeMillis {
                 launch {
                     for (i in 0 until quarter) {
-                        insertApp(userAppsList[i], context)
+                        insertApp(userAppsList[i], context, userApp)
                     }
                 }
                 launch {
                     for (i in quarter until secondQuarter) {
-                        insertApp(userAppsList[i], context)
+                        insertApp(userAppsList[i], context, userApp)
                     }
                 }
                 launch {
                     for (i in secondQuarter until thirdQuarter) {
-                        insertApp(userAppsList[i], context)
+                        insertApp(userAppsList[i], context, userApp)
                     }
                 }
                 launch {
                     for (i in thirdQuarter until size) {
-                        insertApp(userAppsList[i], context)
+                        insertApp(userAppsList[i], context, userApp)
                     }
                 }.join()
             }
@@ -69,43 +109,52 @@ object AppInfo {
         applicationList.sortBy { it.getName() }
     }
 
+    suspend fun makeDatabase() {
+        withContext(Dispatchers.IO) {
+            appDatabase.appDao().clear()
+            applicationList.forEach {
+                appDatabase.appDao().insert(it)
+            }
+        }
+    }
+
     /**
-     * - Puni MutableList sa izdvojenim objektima Application klase
+     * - Puni MutableList sa izdvojenim objektima [Application] klase
      *
-     * - pm je isntanca PackageManager klase pomoću koje dobavljamo sve informacije o aplikacijama
-     *
-     * - SuppressLint ignoriše upozorenja vezana za getInstalledApplications,
-     *   jer Android 11 po defaultu ne prikazuje sve informacije instaliranih aplikacija.
+     * - Android 11 po defaultu ne prikazuje sve informacije instaliranih aplikacija.
      *   To se može zaobići u AndroidManifest.xml fajlu dodavanjem
      *   **<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
      *   tools:ignore="QueryAllPackagesPermission" />**
      */
-    private suspend fun insertApp(appInfo: ApplicationInfo, context: Context) {
+    private suspend fun insertApp(appInfo: ApplicationInfo, context: Context, userApp: Boolean) {
         val packageName = context.applicationContext.packageName
-        if (!(isSystemApp(appInfo) || appInfo.packageName.equals(packageName))) {
-            val apkDir = appInfo.publicSourceDir.removeSuffix("/base.apk")
-            val name = appInfo.loadLabel(pm).toString()
-            val drawable = appInfo.loadIcon(pm)
-            val versionName = pm.getPackageInfo(
-                appInfo.packageName,
-                PackageManager.GET_META_DATA
-            ).versionName
-            applicationList.add(
-                Application(
-                    0,
-                    name,
-                    FileUtil.drawableToByteArray(drawable),
-                    appInfo.packageName,
-                    versionName,
-                    appInfo.targetSdkVersion,
-                    appInfo.minSdkVersion,
-                    appInfo.dataDir,
-                    apkDir,
-                    "",
-                    "",
-                    getApkSize(apkDir)
-                )
-            )
+        val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/")}
+        val name = appInfo.loadLabel(pm).toString()
+        val drawable = appInfo.loadIcon(pm)
+        val versionName = pm.getPackageInfo(
+            appInfo.packageName,
+            PackageManager.GET_META_DATA
+        ).versionName
+
+        val application = Application(
+            0,
+            name,
+            FileUtil.drawableToByteArray(drawable),
+            appInfo.packageName,
+            versionName,
+            appInfo.targetSdkVersion,
+            appInfo.minSdkVersion,
+            appInfo.dataDir,
+            apkDir,
+            "",
+            "",
+            getApkSize(apkDir),
+            0
+        )
+        if (!(isSystemApp(appInfo) || appInfo.packageName.equals(packageName)) && userApp) {
+            applicationList.add(application)
+        } else if (isSystemApp(appInfo) && !userApp) {
+            systemAppsList.add(application)
         }
     }
 

@@ -54,7 +54,10 @@ data class Application(
     private var dataSize: String = "",
 
     @ColumnInfo(name = "apk_size")
-    private var apkSize: Float = 0f
+    private var apkSize: Float = 0f,
+
+    @ColumnInfo(name = "favorite")
+    private var favorite: Int = 0
 ) : Parcelable {
 
     constructor(parcel: Parcel) : this() {
@@ -84,6 +87,7 @@ data class Application(
         date = parcel.readString() ?: ""
         dataSize = parcel.readString() ?: ""
         apkSize = parcel.readFloat()
+        favorite = parcel.readInt()
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
@@ -100,6 +104,7 @@ data class Application(
         dest.writeString(date)
         dest.writeString(dataSize)
         dest.writeFloat(apkSize)
+        dest.writeInt(favorite)
     }
 
     fun getUid() = this.uid
@@ -137,6 +142,8 @@ data class Application(
 
     fun getApkDir() = this.apkDir
 
+    fun getFavorite() = this.favorite
+
     fun setUid(uid: Int) {
         this.uid = uid
     }
@@ -165,24 +172,28 @@ data class Application(
         this.minSdk = minSdk
     }
 
+    fun setDataDir(newDir: String) {
+        this.dataDir = newDir
+    }
+
     fun setApkDir(apkDir: String) {
         this.apkDir = apkDir
     }
 
-    fun setApkSize(apkSize: Float) {
-        this.apkSize = apkSize
-    }
-
-    fun setDataDir(newDir: String) {
-        this.dataDir = newDir
+    fun setDate(newDate: String) {
+        this.date = newDate
     }
 
     fun setDataSize(newSize: String) {
         this.dataSize = newSize
     }
 
-    fun setDate(newDate: String) {
-        this.date = newDate
+    fun setApkSize(apkSize: Float) {
+        this.apkSize = apkSize
+    }
+
+    fun setFavorite(favorite: Int) {
+        this.favorite = favorite
     }
 
     override fun equals(other: Any?): Boolean {

@@ -21,7 +21,6 @@ class SplashActivity : Activity() {
             Shell.setDefaultBuilder(
                 builder
                     .setFlags(Shell.FLAG_MOUNT_MASTER)
-//                    .setInitializers(BusyBoxInstaller::class.java)
                     .setTimeout(10)
             )
         }
@@ -29,10 +28,11 @@ class SplashActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        CoroutineScope(Dispatchers.Main).launch {
+        CoroutineScope(Dispatchers.IO).launch {
             launch {
                 AppInfo.loadPackageManager(this@SplashActivity)
-                    .loadAppInfo(PackageManager.GET_META_DATA)
+                    .getInstalledApplications(PackageManager.GET_META_DATA)
+                    .setPackageList(this@SplashActivity, true)
             }
             // Preheat the main root shell in the splash screen
             // so the app can use it afterwards without interrupting

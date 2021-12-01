@@ -2,6 +2,7 @@ package com.stefan.simplebackup.backup
 
 import android.app.ActivityManager
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.icu.text.SimpleDateFormat
 import android.net.Uri
@@ -73,6 +74,8 @@ class BackupActivity : AppCompatActivity() {
     private lateinit var cardViewPackage: MaterialCardView
     private lateinit var cardViewButtons: MaterialCardView
 
+    private lateinit var bitmap: Bitmap
+
     private var selectedApp: Application? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,80 +85,69 @@ class BackupActivity : AppCompatActivity() {
         val binding = ActivityBackupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Bind Views
         bindViews(binding)
-        setToolBar()
+        setCardViewSize()
 
-        CoroutineScope(Dispatchers.Default).launch {
-            val height =
-                constraintLayout.height - toolBar.height - cardView.height - cardViewPackage.height
-            cardViewButtons.layoutParams.height = height
+        scope.launch {
+            selectedApp = intent?.extras?.getParcelable("application")
+
+            if (selectedApp != null) {
+                with(selectedApp!!) {
+                    val dataSize = calculateDataSize(getDataDir())
+                    setDataSize(dataSize)
+                    bitmap = this@BackupActivity.getAppBitmap(this)
+                    // Set UI data
+                    setUI(this)
+                }
+            }
+            launch {
+                internalStoragePath =
+                    (this@BackupActivity.getExternalFilesDir(null)!!.absolutePath).run {
+                        substring(0, indexOf("Android")).plus(
+                            ROOT
+                        )
+                    }
+                Log.d("internal", internalStoragePath)
+            }
+            launch {
+                withContext(Dispatchers.Default) {
+                    with(FileUtil) {
+                        createDirectory(internalStoragePath)
+                        createFile("$internalStoragePath/.nomedia")
+                    }
+                }
+            }
         }
+    }
 
-        selectedApp = intent?.extras?.getParcelable("application")
+    private fun setUI(app: Application) {
+        with(app) {
+            textItem.text = getName()
+            chipPackage.text = (getPackageName() as CharSequence).toString()
+            chipVersion.text = (getVersionName() as CharSequence).toString()
+            chipDir.text = (getDataDir() as CharSequence).toString()
+            chipApkSize.text = FileUtil.transformBytes(getApkSize())
+            chipTargetSdk.text = getTargetSdk().toString()
+            chipMinSdk.text = getMinSdk().toString()
+            dataPath = getDataDir()
+            chipDataSize.text = selectedApp?.getDataSize()
+            appImage.setImageBitmap(bitmap)
+        }
+    }
 
-        if (selectedApp != null) {
-            with(selectedApp!!) {
-                val dataSize = calculateDataSize(this.getDataDir())
-                setDataSize(dataSize)
-                textItem.text = getName()
-                chipPackage.text = (getPackageName() as CharSequence).toString()
-                chipVersion.text = (getVersionName() as CharSequence).toString()
-                chipDir.text = (getDataDir() as CharSequence).toString()
-                chipApkSize.text = FileUtil.transformBytes(getApkSize())
-                chipTargetSdk.text = getTargetSdk().toString()
-                chipMinSdk.text = getMinSdk().toString()
-                chipDataSize.text = getDataSize()
-                var bitmap = getBitmapFromArray()
+    private suspend fun getAppBitmap(app: Application): Bitmap {
+        var bitmap = app.getBitmapFromArray()
+        withContext(Dispatchers.IO) {
+            runCatching {
                 if (bitmap == null) {
                     bitmap =
-                        BitmapFactory.decodeStream(this@BackupActivity.openFileInput(getName()))
-                    this@BackupActivity.deleteFile(getName())
+                        BitmapFactory.decodeStream(this@BackupActivity.openFileInput(app.getName()))
+                    this@BackupActivity.deleteFile(app.getName())
+                    app.setBitmap(FileUtil.bitmapToByteArray(bitmap!!))
                 }
-                setBitmap(FileUtil.bitmapToByteArray(bitmap!!))
-                appImage.setImageBitmap(bitmap)
-                dataPath = getDataDir()
             }
         }
-
-        internalStoragePath = (this.getExternalFilesDir(null)!!.absolutePath).run {
-            substring(0, indexOf("Android")).plus(
-                ROOT
-            )
-        }
-        Log.d("internal", internalStoragePath)
-
-        with(FileUtil) {
-            createDirectory(internalStoragePath)
-            createFile("$internalStoragePath/.nomedia")
-        }
-
-        backupButton.setOnClickListener {
-            selectedApp!!.setDate(
-                SimpleDateFormat(
-                    "dd.MM.yy-HH:mm",
-                    Locale.getDefault()
-                ).format(Date())
-            )
-            scope.launch {
-                progressBar.visibility = View.VISIBLE
-                createLocalBackup(selectedApp!!)
-            }
-        }
-
-        backupDriveButton.setOnClickListener {
-            requestSignIn()
-        }
-
-        deleteButton.setOnClickListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                onBackPressed()
-                delay(150)
-                launch {
-                    deleteApp(selectedApp!!.getPackageName())
-                }.join()
-            }
-        }
+        return bitmap!!
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -200,16 +192,65 @@ class BackupActivity : AppCompatActivity() {
         chipDataSize = binding.dataSize
         chipTargetSdk = binding.targetSdk
         chipMinSdk = binding.minSdk
-        backupButton = binding.backupButton
-        backupDriveButton = binding.backupDriveButton
         chipPackage = binding.chipPackageBackup
         chipVersion = binding.chipVersionBackup
         chipDir = binding.chipDirBackup
-        deleteButton = binding.floatingDeleteButton
         progressBar = binding.progressBar
         cardView = binding.cardView
         cardViewPackage = binding.cardViewPackage
         cardViewButtons = binding.cardViewButtons
+        createBackupButton(binding)
+        createBackupDriveButton(binding)
+        createDeleteButton(binding)
+        setToolBar()
+    }
+
+    private fun createBackupButton(binding: ActivityBackupBinding) {
+        backupButton = binding.backupButton
+
+        backupButton.setOnClickListener {
+            selectedApp!!.setDate(
+                SimpleDateFormat(
+                    "dd.MM.yy-HH:mm",
+                    Locale.getDefault()
+                ).format(Date())
+            )
+            scope.launch {
+                progressBar.visibility = View.VISIBLE
+                createLocalBackup(selectedApp!!)
+            }
+        }
+    }
+
+    private fun createBackupDriveButton(binding: ActivityBackupBinding) {
+        backupDriveButton = binding.backupDriveButton
+
+        backupDriveButton.setOnClickListener {
+            requestSignIn()
+        }
+
+    }
+
+    private fun createDeleteButton(binding: ActivityBackupBinding) {
+        deleteButton = binding.floatingDeleteButton
+
+        deleteButton.setOnClickListener {
+            CoroutineScope(Dispatchers.Main).launch {
+                onBackPressed()
+                delay(150)
+                launch {
+                    deleteApp(selectedApp!!.getPackageName())
+                }.join()
+            }
+        }
+    }
+
+    private fun setCardViewSize() {
+        CoroutineScope(Dispatchers.Default).launch {
+            val height =
+                constraintLayout.height - toolBar.height - cardView.height - cardViewPackage.height
+            cardViewButtons.layoutParams.height = height
+        }
     }
 
     private fun setToolBar() {
@@ -219,27 +260,29 @@ class BackupActivity : AppCompatActivity() {
         supportActionBar!!.setDisplayShowHomeEnabled(true)
     }
 
-    private fun calculateDataSize(path: String): String {
-        if (Shell.rootAccess()) {
-            val resultList = arrayListOf<String>()
-            var result: String = ""
-            Shell.su("du -sch $path/").to(resultList).exec()
-            resultList.forEach {
-                if (it.contains("total")) {
-                    result = it.removeSuffix("\ttotal")
+    private suspend fun calculateDataSize(path: String): String {
+        return withContext(Dispatchers.IO) {
+            if (Shell.rootAccess()) {
+                val resultList = arrayListOf<String>()
+                var result = ""
+                Shell.su("du -sch $path/").to(resultList).exec()
+                resultList.forEach {
+                    if (it.contains("total")) {
+                        result = it.removeSuffix("\ttotal")
+                    }
                 }
-            }
-            if (result.equals("16K"))
-                result = "0K"
+                if (result.equals("16K"))
+                    result = "0K"
 
-            result = StringBuilder(result)
-                .insert(result.length - 1, " ")
-                .append("B")
-                .toString()
+                result = StringBuilder(result)
+                    .insert(result.length - 1, " ")
+                    .append("B")
+                    .toString()
 
-            return result
-        } else
-            return "Can't read"
+                result
+            } else
+                "Can't read"
+        }
     }
 
     private suspend fun createLocalBackup(app: Application) {
