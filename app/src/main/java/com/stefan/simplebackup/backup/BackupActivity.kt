@@ -39,8 +39,16 @@ import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import net.lingala.zip4j.ZipFile
+import net.lingala.zip4j.model.ExcludeFileFilter
+import net.lingala.zip4j.model.ZipParameters
+import net.lingala.zip4j.model.enums.AesKeyStrength
+import net.lingala.zip4j.model.enums.CompressionLevel
+import net.lingala.zip4j.model.enums.CompressionMethod
+import net.lingala.zip4j.model.enums.EncryptionMethod
 import java.io.*
 import java.util.*
+
 
 class BackupActivity : AppCompatActivity() {
 
@@ -75,6 +83,8 @@ class BackupActivity : AppCompatActivity() {
     private lateinit var cardViewButtons: MaterialCardView
 
     private lateinit var bitmap: Bitmap
+    private lateinit var libDir: String
+    private lateinit var privateAppDir: String
 
     private var selectedApp: Application? = null
 
@@ -84,6 +94,9 @@ class BackupActivity : AppCompatActivity() {
 
         val binding = ActivityBackupBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        libDir = this.applicationInfo.nativeLibraryDir
+        privateAppDir = this.filesDir.absolutePath
 
         bindViews(binding)
         setCardViewSize()
@@ -285,32 +298,45 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun createLocalBackup(app: Application) {
-        withContext(Dispatchers.IO) {
-            val appName = app.getName()
-            val appVersion = app.getVersionName()
-            var backupFolder =
-                "$internalStoragePath/${appName}_${appVersion}"
 
+
+    private suspend fun createLocalBackup(app: Application) {
+
+        val appName = app.getName()
+        val appVersion = app.getVersionName()
+        var backupFolder =
+            "$internalStoragePath/${appName}_${appVersion}"
+
+        val packageBackupPath = backupFolder.plus("/${app.getPackageName()}")
+
+        withContext(Dispatchers.IO) {
             with(progressBar) {
                 backupFolder = createBackupDir(backupFolder)
                 app.setDataDir(backupFolder)
                 setProgress(5, true)
-
                 launch {
-                    val apkBackupTar = backupFolder.plus("/$appName.tar.gz")
-                    val packageBackupTar = backupFolder.plus("/${app.getPackageName()}.tar.gz")
-                    if (Shell.rootAccess()) {
-                        Shell.su("x=$(echo -e \"$apkBackupTar\") && tar -zcf \"\$x\" --exclude=lib --exclude=oat -C ${app.getApkDir()} . ")
-                            .exec()
-                        setProgress(25, true)
-                        Shell.su("x=\$(echo -e \"$packageBackupTar\") && tar -zcf \"\$x\" --exclude={\"cache\",\"lib\",\"code_cache\"} -C $dataPath . ")
-                            .exec()
-                        setProgress(50, true)
-                    } else {
-                        copyApk(app.getApkDir(), backupFolder)
+                    kotlin.runCatching {
+                        if (Shell.rootAccess()) {
+                            val mountPath = privateAppDir.plus("/${app.getPackageName()}")
+                            FileUtil.createDirectory(mountPath)
+                            Shell.su("am force-stop ${app.getPackageName()}").exec()
+                            Shell.su("setenforce 0").exec()
+                            Shell.su("mount -o bind \"$dataPath\" \"$mountPath\"").exec()
+                            delay(100)
+                            setOwners(mountPath)
+                            zipDataToContainer(mountPath, backupFolder)
+                            setProgress(25, true)
+                            Shell.su("umount -l $mountPath").exec()
+                            Shell.su("setenforce 1").submit()
+                            zipContainer(backupFolder)
+                            setProgress(35, true)
+                            restoreOwners(dataPath, app.getPackageName())
+                            File(mountPath).delete()
+                            setProgress(50, true)
+                        }
+                        zipApk(app.getApkDir(), backupFolder)
                     }
-                    app.setDataSize(FileUtil.transformBytes(getLocalDataSize(packageBackupTar)))
+                    //app.setDataSize(FileUtil.transformBytes(getLocalDataSize(packageBackupPath)))
                     appToJson(app, backupFolder)
                     setProgress(75, true)
                 }.join()
@@ -321,6 +347,110 @@ class BackupActivity : AppCompatActivity() {
                 progressBar.visibility = View.INVISIBLE
                 progressBar.progress = 0
                 Toast.makeText(this@BackupActivity, "Done!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun setOwners(dataPath: String) {
+        var line = ""
+        val packageName = this.applicationContext.packageName
+        val process = Runtime.getRuntime().exec(
+            "su -c " +
+                    "cat /data/system/packages.list | awk '{print \"chown u0_a\" \$2-10000 \":u0_a\" \$2-10000 \"\"\$1\"\"}'"
+        )
+        BufferedReader(InputStreamReader(process.inputStream)).use { buffer ->
+            buffer.forEachLine {
+                if (it.contains(packageName)) {
+                    line = it.removeSuffix(packageName)
+                }
+            }
+        }
+        Shell.su("$line $dataPath -R").exec()
+    }
+
+    private fun restoreOwners(dataPath: String, packageName: String) {
+        var line = ""
+        val process = Runtime.getRuntime().exec(
+            "su -c " +
+                    "cat /data/system/packages.list | awk '{print \"chown u0_a\" \$2-10000 \":u0_a\" \$2-10000 \"\"\$1\"\"}'"
+        )
+        BufferedReader(InputStreamReader(process.inputStream)).use { buffer ->
+            buffer.forEachLine {
+                if (it.contains(packageName)) {
+                    line = it.removeSuffix(packageName)
+                }
+            }
+        }
+        Shell.su("$line $dataPath -R").exec()
+    }
+
+    private suspend fun zipDataToContainer(source: String, target: String) {
+        withContext(Dispatchers.IO) {
+            kotlin.runCatching {
+                val dataFolder = File(source)
+                val zipParameters = ZipParameters()
+                val filesToExclude: List<File> = listOf(
+                    File("${dataFolder.absolutePath}/lib"),
+                    File("${dataFolder.absolutePath}/code_cache"),
+                    File("${dataFolder.absolutePath}/cache")
+                )
+
+                val excludeFilter = ExcludeFileFilter {
+                    filesToExclude.contains(it)
+                }
+
+                with(zipParameters) {
+                    isEncryptFiles = false
+                    compressionMethod = CompressionMethod.STORE
+                    symbolicLinkAction = ZipParameters.SymbolicLinkAction.INCLUDE_LINK_ONLY
+                    excludeFileFilter = excludeFilter
+                }
+
+                val zipContainerPath = "$target/${dataFolder.nameWithoutExtension}.tar"
+                val zipContainer = ZipFile(zipContainerPath)
+                zipContainer.addFolder(dataFolder, zipParameters)
+
+            }
+        }
+    }
+
+    private suspend fun zipContainer(source: String) {
+        withContext(Dispatchers.IO) {
+            kotlin.runCatching {
+
+                val backupDir = File(source)
+                var containerFilePath = ""
+                backupDir.listFiles()?.filter {
+                    it.isFile && it.extension == "tar"
+                }?.forEach {
+                    containerFilePath = it.absolutePath
+                }
+
+                val zipParameters = ZipParameters()
+                with(zipParameters) {
+                    isEncryptFiles = true
+                    compressionMethod = CompressionMethod.DEFLATE
+                    compressionLevel = CompressionLevel.FASTEST
+                    encryptionMethod = EncryptionMethod.AES
+                    aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256
+                }
+
+                val zipContainer = File(containerFilePath)
+                val zipFile = ZipFile(source.plus("/data.zip"), "pass123".toCharArray())
+                zipFile.addFile(zipContainer, zipParameters)
+                zipContainer.delete()
+            }
+        }
+    }
+
+    private suspend fun zipApk(source: String, target: String) {
+        withContext(Dispatchers.IO) {
+            kotlin.runCatching {
+                val apkList = getApkList(source)
+                val zipParameters = ZipParameters()
+                zipParameters.compressionMethod = CompressionMethod.STORE
+                val zipFile = ZipFile("$target/apk.zip")
+                zipFile.addFiles(apkList, zipParameters)
             }
         }
     }
@@ -337,14 +467,16 @@ class BackupActivity : AppCompatActivity() {
 //        }
 //    }
 
-//    private fun deleteApk(apkPath: String) {
-//        val dir = File(apkPath)
-//        dir.walkTopDown().filter {
-//            it.absolutePath.contains(".apk")
-//        }.forEach {
-//            it.delete()
-//        }
-//    }
+    private fun getApkList(apkPath: String): MutableList<File> {
+        val dir = File(apkPath)
+        val apkList = mutableListOf<File>()
+        dir.walkTopDown().filter {
+            it.extension == "apk"
+        }.forEach {
+            apkList.add(it)
+        }
+        return apkList
+    }
 
     private fun createBackupDir(path: String): String {
         val dir = File(path)
@@ -363,14 +495,14 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private fun getLocalDataSize(path: String): Float {
-        val result = arrayListOf<String>()
-        Shell.su("x=$(echo -e \"$path\") && gzip -d \"\$x\" -c|wc -c").to(result).exec()
-        return if (result.isNotEmpty()) {
-            result.first().toFloat()
-        } else
-            0f
-    }
+//    private fun getLocalDataSize(path: String): Float {
+//        val result = arrayListOf<String>()
+//        Shell.su("x=$(echo -e \"$path\") && gzip -d \"\$x\" -c|wc -c").to(result).exec()
+//        return if (result.isNotEmpty()) {
+//            result.first().toFloat()
+//        } else
+//            0f
+//    }
 
     private fun appToJson(app: Application, dir: String) {
         val file = File(dir, app.getName().plus(".json"))

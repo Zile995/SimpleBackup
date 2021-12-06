@@ -61,7 +61,6 @@ class RestoreActivity : AppCompatActivity() {
                 updateAdapter()
             }
         }
-
     }
 
     override fun onSupportNavigateUp(): Boolean {

@@ -12,7 +12,7 @@ class RootChecker(context: Context) {
     private val rootContext = context
 
     suspend fun isRooted(): Boolean {
-        return hasSuBinary() && hasRootManagerApp(rootContext)
+        return hasSuBinary() || hasRootManagerApp(rootContext)
     }
 
     fun hasRootAccess(): Boolean {
