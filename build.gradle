@@ -14,6 +14,7 @@ buildscript {
     ext {
         roomVersion = '2.3.0'
         libsu = '3.1.2'
+        zip4j = '2.9.1'
     }
 }
 
