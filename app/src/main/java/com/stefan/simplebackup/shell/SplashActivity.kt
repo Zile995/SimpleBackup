@@ -7,13 +7,14 @@ import android.os.Bundle
 import com.stefan.simplebackup.BuildConfig
 import com.stefan.simplebackup.MainActivity
 import com.stefan.simplebackup.data.AppInfo
+import com.stefan.simplebackup.data.Application
 import com.topjohnwu.superuser.Shell
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class SplashActivity : Activity() {
     companion object {
+        lateinit var result: Deferred<MutableList<Application>>
+
         init {
             // Set settings before the main shell can be created
             Shell.enableVerboseLogging = BuildConfig.DEBUG
@@ -28,10 +29,13 @@ class SplashActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        CoroutineScope(Dispatchers.IO).launch {
+        CoroutineScope(Dispatchers.Default).launch {
             launch {
-                AppInfo.loadPackageManager(this@SplashActivity)
-                    .getInstalledApplications(PackageManager.GET_META_DATA)
+                result = async {
+                    AppInfo.loadPackageManager(this@SplashActivity)
+                        .getInstalledApplications(PackageManager.GET_META_DATA)
+                        .setPackageList(this@SplashActivity)
+                }
             }
             // Preheat the main root shell in the splash screen
             // so the app can use it afterwards without interrupting

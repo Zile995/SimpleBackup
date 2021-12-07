@@ -325,7 +325,6 @@ class BackupActivity : AppCompatActivity() {
                             delay(100)
                             setOwners(mountPath)
                             zipDataToContainer(mountPath, backupFolder)
-                            setProgress(25, true)
                             Shell.su("umount -l $mountPath").exec()
                             Shell.su("setenforce 1").submit()
                             zipContainer(backupFolder)

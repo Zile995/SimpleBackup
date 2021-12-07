@@ -56,8 +56,8 @@ data class Application(
     @ColumnInfo(name = "apk_size")
     private var apkSize: Float = 0f,
 
-    @ColumnInfo(name = "favorite")
-    private var favorite: Int = 0
+    @ColumnInfo(name = "favorites")
+    private var favorites: Int = 0
 ) : Parcelable {
 
     constructor(parcel: Parcel) : this() {
@@ -87,7 +87,7 @@ data class Application(
         date = parcel.readString() ?: ""
         dataSize = parcel.readString() ?: ""
         apkSize = parcel.readFloat()
-        favorite = parcel.readInt()
+        favorites = parcel.readInt()
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
@@ -104,7 +104,7 @@ data class Application(
         dest.writeString(date)
         dest.writeString(dataSize)
         dest.writeFloat(apkSize)
-        dest.writeInt(favorite)
+        dest.writeInt(favorites)
     }
 
     fun getUid() = this.uid
@@ -142,7 +142,7 @@ data class Application(
 
     fun getApkDir() = this.apkDir
 
-    fun getFavorite() = this.favorite
+    fun getFavorites() = this.favorites
 
     fun setUid(uid: Int) {
         this.uid = uid
@@ -192,8 +192,8 @@ data class Application(
         this.apkSize = apkSize
     }
 
-    fun setFavorite(favorite: Int) {
-        this.favorite = favorite
+    fun setFavorites(favorites: Int) {
+        this.favorites = favorites
     }
 
     override fun equals(other: Any?): Boolean {

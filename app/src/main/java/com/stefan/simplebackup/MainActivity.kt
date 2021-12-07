@@ -31,6 +31,7 @@ import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.AppInfo
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.restore.RestoreActivity
+import com.stefan.simplebackup.shell.SplashActivity
 import com.stefan.simplebackup.utils.PermissionUtils
 import com.stefan.simplebackup.utils.RootChecker
 import com.stefan.simplebackup.utils.SearchUtil
@@ -101,14 +102,14 @@ open class MainActivity : AppCompatActivity() {
                 bindViews(binding)
             }
             val load = launch {
-                AppInfo.setPackageList(this@MainActivity, true)
+                applicationList = SplashActivity.result.await()
             }
-            load.join()
             launch {
                 if (!AppInfo.databaseExists(this@MainActivity)) {
                     AppInfo.makeDatabase()
                 }
             }
+            load.join()
             val set = launch {
                 progressBar.visibility = View.GONE
                 updateAdapter()
@@ -430,7 +431,7 @@ open class MainActivity : AppCompatActivity() {
     private suspend fun refreshPackageList() {
         withContext(Dispatchers.IO) {
             launch {
-                AppInfo.getInstalledApplications(flags).setPackageList(this@MainActivity, true)
+                AppInfo.getInstalledApplications(flags).setPackageList(this@MainActivity)
             }
         }
     }

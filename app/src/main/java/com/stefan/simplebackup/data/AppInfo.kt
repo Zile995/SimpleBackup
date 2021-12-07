@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.system.measureTimeMillis
 
 object AppInfo {
@@ -17,8 +18,8 @@ object AppInfo {
 
     // Prazne liste u koje kasnije dodajemo odgovarajuće elemente
     private var userAppsList = mutableListOf<ApplicationInfo>()
+    private var applicationHashMap = ConcurrentHashMap<Int, Application>()
     private var applicationList = mutableListOf<Application>()
-    private var systemAppsList = mutableListOf<Application>()
 
     // Late init varijable, inicijalizujemo ih u loadPackageManager funkciji
     private lateinit var pm: PackageManager
@@ -38,8 +39,6 @@ object AppInfo {
      */
     val getUserAppList get() = applicationList
 
-    val getSystemAppsList get() = systemAppsList
-
     /**
      * - Vraća [pm]
      */
@@ -54,7 +53,7 @@ object AppInfo {
      * - Vraća referencu [AppInfo] objekta
      */
     suspend fun getInstalledApplications(flags: Int): AppInfo {
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.Default) {
             userAppsList = pm.getInstalledApplications(flags)
         }
         return this
@@ -64,7 +63,7 @@ object AppInfo {
         context.getDatabasePath(DATABASE_NAME).exists()
 
     suspend fun getDatabaseList(): MutableList<Application> {
-        return withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.Default) {
             applicationList = appDatabase.appDao().getAppList()
             applicationList
         }
@@ -73,40 +72,44 @@ object AppInfo {
     /**
      * Postavi listu
      */
-    suspend fun setPackageList(context: Context, userApp: Boolean) {
+    suspend fun setPackageList(context: Context): MutableList<Application> {
+        var time: Long
         withContext(Dispatchers.IO) {
-            applicationList.clear()
-            val size = userAppsList.size
+            applicationHashMap.clear()
 
+            val size = userAppsList.size
             val quarter = (size / 4)
             val secondQuarter = size / 2
             val thirdQuarter = size - quarter
 
-            val time = measureTimeMillis {
+            time = measureTimeMillis {
                 launch {
                     for (i in 0 until quarter) {
-                        insertApp(userAppsList[i], context, userApp)
+                        insertApp(context, userAppsList[i], i)
                     }
                 }
                 launch {
                     for (i in quarter until secondQuarter) {
-                        insertApp(userAppsList[i], context, userApp)
+                        insertApp(context, userAppsList[i], i)
                     }
                 }
                 launch {
                     for (i in secondQuarter until thirdQuarter) {
-                        insertApp(userAppsList[i], context, userApp)
+                        insertApp(context, userAppsList[i], i)
                     }
                 }
                 launch {
                     for (i in thirdQuarter until size) {
-                        insertApp(userAppsList[i], context, userApp)
+                        insertApp(context, userAppsList[i], i)
                     }
                 }.join()
             }
-            println("Thread time: $time")
         }
+        println("Thread time: $time")
+        applicationList = applicationHashMap.values.toMutableList()
         applicationList.sortBy { it.getName() }
+        applicationHashMap.clear()
+        return applicationList
     }
 
     suspend fun makeDatabase() {
@@ -126,35 +129,36 @@ object AppInfo {
      *   **<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
      *   tools:ignore="QueryAllPackagesPermission" />**
      */
-    private suspend fun insertApp(appInfo: ApplicationInfo, context: Context, userApp: Boolean) {
-        val packageName = context.applicationContext.packageName
-        val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/")}
-        val name = appInfo.loadLabel(pm).toString()
-        val drawable = appInfo.loadIcon(pm)
-        val versionName = pm.getPackageInfo(
-            appInfo.packageName,
-            PackageManager.GET_META_DATA
-        ).versionName
+    private suspend fun insertApp(context: Context, appInfo: ApplicationInfo, key: Int) {
+        withContext(Dispatchers.IO) {
+            val packageName = context.applicationContext.packageName
+            if (!(isSystemApp(appInfo) || appInfo.packageName.equals(packageName))) {
+                val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }
+                val name = appInfo.loadLabel(pm).toString()
+                val drawable = appInfo.loadIcon(pm)
+                val versionName = pm.getPackageInfo(
+                    appInfo.packageName,
+                    PackageManager.GET_META_DATA
+                ).versionName
 
-        val application = Application(
-            0,
-            name,
-            FileUtil.drawableToByteArray(drawable),
-            appInfo.packageName,
-            versionName,
-            appInfo.targetSdkVersion,
-            appInfo.minSdkVersion,
-            appInfo.dataDir,
-            apkDir,
-            "",
-            "",
-            getApkSize(apkDir),
-            0
-        )
-        if (!(isSystemApp(appInfo) || appInfo.packageName.equals(packageName)) && userApp) {
-            applicationList.add(application)
-        } else if (isSystemApp(appInfo) && !userApp) {
-            systemAppsList.add(application)
+                val application = Application(
+                    0,
+                    name,
+                    FileUtil.drawableToByteArray(drawable),
+                    appInfo.packageName,
+                    versionName,
+                    appInfo.targetSdkVersion,
+                    appInfo.minSdkVersion,
+                    appInfo.dataDir,
+                    apkDir,
+                    "",
+                    "",
+                    getApkSize(apkDir),
+                    1
+                )
+
+                applicationHashMap[key] = application
+            }
         }
     }
 
