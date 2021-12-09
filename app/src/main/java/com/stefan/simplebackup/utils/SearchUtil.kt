@@ -2,9 +2,9 @@ package com.stefan.simplebackup.utils
 
 import android.content.Context
 import android.util.Log
-import com.stefan.simplebackup.MainActivity
+import com.stefan.simplebackup.activities.MainActivity
 import com.stefan.simplebackup.data.Application
-import com.stefan.simplebackup.restore.RestoreActivity
+import com.stefan.simplebackup.activities.restore.RestoreActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

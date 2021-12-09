@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.backup
+package com.stefan.simplebackup.activities.backup
 
 import android.app.ActivityManager
 import android.content.Intent

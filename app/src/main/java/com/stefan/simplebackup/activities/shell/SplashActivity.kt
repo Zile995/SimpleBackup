@@ -1,11 +1,11 @@
-package com.stefan.simplebackup.shell
+package com.stefan.simplebackup.activities.shell
 
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import com.stefan.simplebackup.BuildConfig
-import com.stefan.simplebackup.MainActivity
+import com.stefan.simplebackup.activities.MainActivity
 import com.stefan.simplebackup.data.AppInfo
 import com.stefan.simplebackup.data.Application
 import com.topjohnwu.superuser.Shell
@@ -31,10 +31,12 @@ class SplashActivity : Activity() {
         super.onCreate(savedInstanceState)
         CoroutineScope(Dispatchers.Default).launch {
             launch {
-                result = async {
-                    AppInfo.loadPackageManager(this@SplashActivity)
-                        .getInstalledApplications(PackageManager.GET_META_DATA)
-                        .setPackageList(this@SplashActivity)
+                AppInfo.loadPackageManager(this@SplashActivity)
+                if (!AppInfo.databaseExists(this@SplashActivity)) {
+                    result = async {
+                        AppInfo.getInstalledApplications(PackageManager.GET_META_DATA)
+                            .setPackageList(this@SplashActivity)
+                    }
                 }
             }
             // Preheat the main root shell in the splash screen

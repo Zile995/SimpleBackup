@@ -19,7 +19,6 @@ object AppInfo {
     // Prazne liste u koje kasnije dodajemo odgovarajuće elemente
     private var userAppsList = mutableListOf<ApplicationInfo>()
     private var applicationHashMap = ConcurrentHashMap<Int, Application>()
-    private var applicationList = mutableListOf<Application>()
 
     // Late init varijable, inicijalizujemo ih u loadPackageManager funkciji
     private lateinit var pm: PackageManager
@@ -35,18 +34,9 @@ object AppInfo {
     }
 
     /**
-     * - Vraća [applicationList]
-     */
-    val getUserAppList get() = applicationList
-
-    /**
      * - Vraća [pm]
      */
     val getPackageManager get() = pm
-
-    fun getAppInfo() = userAppsList
-
-    val getDatabase get() = appDatabase
 
     /**
      * - Puni [userAppsList]
@@ -62,10 +52,10 @@ object AppInfo {
     fun databaseExists(context: Context) =
         context.getDatabasePath(DATABASE_NAME).exists()
 
-    suspend fun getDatabaseList(): MutableList<Application> {
-        return withContext(Dispatchers.Default) {
-            applicationList = appDatabase.appDao().getAppList()
-            applicationList
+    suspend fun getListFormDatabase(): MutableList<Application> {
+        println("Function called")
+        return withContext(Dispatchers.IO) {
+            appDatabase.appDao().getAppList()
         }
     }
 
@@ -106,15 +96,14 @@ object AppInfo {
             }
         }
         println("Thread time: $time")
-        applicationList = applicationHashMap.values.toMutableList()
+        val applicationList = applicationHashMap.values.toMutableList()
         applicationList.sortBy { it.getName() }
         applicationHashMap.clear()
         return applicationList
     }
 
-    suspend fun makeDatabase() {
+    suspend fun makeDatabase(applicationList: MutableList<Application>) {
         withContext(Dispatchers.IO) {
-            appDatabase.appDao().clear()
             applicationList.forEach {
                 appDatabase.appDao().insert(it)
             }

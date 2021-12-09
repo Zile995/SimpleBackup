@@ -1,4 +1,4 @@
-package com.stefan.simplebackup
+package com.stefan.simplebackup.activities
 
 import android.Manifest
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -21,17 +21,21 @@ import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.stefan.simplebackup.R
+import com.stefan.simplebackup.activities.restore.RestoreActivity
+import com.stefan.simplebackup.activities.shell.SplashActivity
 import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.AppInfo
+import com.stefan.simplebackup.data.AppViewModel
+import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.databinding.ActivityMainBinding
-import com.stefan.simplebackup.restore.RestoreActivity
-import com.stefan.simplebackup.shell.SplashActivity
 import com.stefan.simplebackup.utils.PermissionUtils
 import com.stefan.simplebackup.utils.RootChecker
 import com.stefan.simplebackup.utils.SearchUtil
@@ -45,12 +49,13 @@ open class MainActivity : AppCompatActivity() {
         private const val STORAGE_PERMISSION_CODE: Int = 500
     }
 
+    private var appInfo = AppInfo
     private var PACKAGE_NAME: String = ""
     private var rootChecker = RootChecker(this)
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
-
-    private var applicationList = AppInfo.getUserAppList
+    private var applicationList = mutableListOf<Application>()
+    private lateinit var appViewModel: AppViewModel
 
     // UI
     private lateinit var toolBar: Toolbar
@@ -101,15 +106,11 @@ open class MainActivity : AppCompatActivity() {
                 // Inicijalizuj sve potrebne UI elemente redom
                 bindViews(binding)
             }
-            val load = launch {
-                applicationList = SplashActivity.result.await()
+            val get = launch {
+                makeDatabase()
+                setAppViewModel()
             }
-            launch {
-                if (!AppInfo.databaseExists(this@MainActivity)) {
-                    AppInfo.makeDatabase()
-                }
-            }
-            load.join()
+            get.join()
             val set = launch {
                 progressBar.visibility = View.GONE
                 updateAdapter()
@@ -175,6 +176,37 @@ open class MainActivity : AppCompatActivity() {
             requestPermission()
         }
         super.onResume()
+    }
+
+    private suspend fun makeDatabase() {
+        if (!appInfo.databaseExists(this@MainActivity)) {
+            appInfo.makeDatabase(SplashActivity.result.await())
+        }
+    }
+
+    private suspend fun setAppViewModel() {
+        appViewModel =
+            ViewModelProvider(this@MainActivity).get(AppViewModel::class.java)
+        applicationList = appViewModel.getAppList()
+    }
+
+    /**
+     *  - Prosleđuje AppAdapter adapteru novu listu i obaveštava RecyclerView da je lista promenjena
+     */
+    private suspend fun refreshPackageList() {
+        withContext(Dispatchers.IO) {
+            launch {
+                AppInfo.getInstalledApplications(flags).setPackageList(this@MainActivity)
+            }
+        }
+    }
+
+    private fun updateAdapter() {
+        appAdapter.updateList(applicationList)
+    }
+
+    fun getAdapter(): AppAdapter {
+        return appAdapter
     }
 
     private fun checkForRoot(rootSharedPref: SharedPreferences) {
@@ -423,24 +455,5 @@ open class MainActivity : AppCompatActivity() {
                 }
             }
         })
-    }
-
-    /**
-     *  - Prosleđuje AppAdapter adapteru novu listu i obaveštava RecyclerView da je lista promenjena
-     */
-    private suspend fun refreshPackageList() {
-        withContext(Dispatchers.IO) {
-            launch {
-                AppInfo.getInstalledApplications(flags).setPackageList(this@MainActivity)
-            }
-        }
-    }
-
-    private fun updateAdapter() {
-        appAdapter.updateList(applicationList)
-    }
-
-    fun getAdapter(): AppAdapter {
-        return appAdapter
     }
 }

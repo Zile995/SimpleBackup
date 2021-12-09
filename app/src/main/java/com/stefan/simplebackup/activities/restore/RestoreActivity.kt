@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.restore
+package com.stefan.simplebackup.activities.restore
 
 import android.graphics.Color
 import android.os.Bundle

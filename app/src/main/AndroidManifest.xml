@@ -29,7 +29,7 @@
         android:testOnly="false"
         android:theme="@style/Theme.SimpleBackup">
         <activity
-            android:name=".shell.SplashActivity"
+            android:name="com.stefan.simplebackup.activities.shell.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -38,16 +38,16 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".restore.RestoreActivity"
+            android:name="com.stefan.simplebackup.activities.restore.RestoreActivity"
             android:exported="true"
-            android:parentActivityName=".MainActivity" />
+            android:parentActivityName=".activities.MainActivity" />
         <activity
-            android:name=".backup.BackupActivity"
+            android:name="com.stefan.simplebackup.activities.backup.BackupActivity"
             android:exported="true"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
         <activity
-            android:name=".MainActivity"
+            android:name=".activities.MainActivity"
             android:exported="true"
             android:configChanges="orientation|keyboardHidden"
             android:windowSoftInputMode="adjustPan">
