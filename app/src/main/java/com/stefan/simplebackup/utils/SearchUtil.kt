@@ -2,9 +2,7 @@ package com.stefan.simplebackup.utils
 
 import android.content.Context
 import android.util.Log
-import com.stefan.simplebackup.activities.MainActivity
 import com.stefan.simplebackup.data.Application
-import com.stefan.simplebackup.activities.restore.RestoreActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -41,9 +39,9 @@ internal class SearchUtil private constructor() {
             withContext(Dispatchers.Main) {
                 with(context) {
                     when (this) {
-                        is MainActivity -> getAdapter().updateList(applicationList)
-                        is RestoreActivity -> getAdapter()
-                            .updateList(applicationList)
+                        //is MainActivity -> getAdapter().updateList(applicationList)
+                        //is RestoreActivity -> getAdapter()
+                        //   .updateList(applicationList)
                     }
                 }
             }

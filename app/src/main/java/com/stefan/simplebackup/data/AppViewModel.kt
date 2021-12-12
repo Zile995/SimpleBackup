@@ -7,7 +7,7 @@ import kotlinx.coroutines.*
 
 class AppViewModel : ViewModel() {
 
-    lateinit var applicationList: MutableList<Application>
+    private lateinit var applicationList: MutableList<Application>
     private lateinit var result: Deferred<MutableList<Application>>
 
     init {

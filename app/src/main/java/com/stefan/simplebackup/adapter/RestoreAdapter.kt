@@ -101,6 +101,8 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
     override fun getItemCount() = this.appList.size
 
     private suspend fun installApp(context: Context, app: Application) {
+        val libDir = context.applicationInfo.nativeLibraryDir
+
         withContext(Dispatchers.IO) {
             val internalStoragePath = (context.getExternalFilesDir(null)!!.absolutePath).run {
                 substring(0, indexOf("Android")).plus(
@@ -115,16 +117,16 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
             val packageDataDir = "$DATA/$packageName"
             try {
                 with(Installer) {
-                    Shell.su("x=$(echo -e \"$tempDir\") && mkdir -p \"\$x\"").exec()
-                    Shell.su("x=$(echo -e \"$backupDir/${app.getName()}.tar.gz\")" +
-                            " && y=$(echo -e \"$tempDir/\")" +
-                            " && tar -zxf \"\$x\" -C \"\$y\"").exec()
+//                    Shell.su("x=$(echo -e \"$tempDir\") && mkdir -p \"\$x\"").exec()
+//                    Shell.su("x=$(echo -e \"$backupDir/${app.getName()}.tar.gz\")" +
+//                            " && y=$(echo -e \"$tempDir/\")" +
+//                            " && $libDir/libtar.so -zxf \"\$x\" -C \"\$y\"").exec()
                     Shell.su("rm -rf $packageDataDir/*").exec()
-                    installApk(context, tempDir)
-                    Shell.su("x=$(echo -e \"$backupDir/${app.getPackageName()}.tar.gz\") && tar -zxf \"\$x\" -C $packageDataDir/").exec()
-                    Shell.su(getPermissions(packageName)).exec()
-                    Shell.su("restorecon -R $packageDataDir").exec()
-                    Shell.su("x=$(echo -e \"$tempDir\") && rm -rf \"\$x\"").exec()
+                    //installApk(context, tempDir)
+                    Shell.su("x=$(echo -e \"$backupDir/${app.getPackageName()}.tar.gz\") && $libDir/libtar.so -zxf \"\$x\" -C $packageDataDir/ --recursive-unlink --preserve-permissions\n --preserve-permissions").exec()
+                    //Shell.su(getPermissions(packageName)).exec()
+                    //Shell.su("restorecon -R $packageDataDir").exec()
+                    //Shell.su("x=$(echo -e \"$tempDir\") && rm -rf \"\$x\"").exec()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

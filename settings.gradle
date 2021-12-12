@@ -8,3 +8,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Simple Backup"
 include ':app'
+include ':nativelib'

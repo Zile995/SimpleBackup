@@ -116,7 +116,7 @@ class BackupActivity : AppCompatActivity() {
             launch {
                 internalStoragePath =
                     (this@BackupActivity.getExternalFilesDir(null)!!.absolutePath).run {
-                        substring(0, indexOf("Android")).plus(
+                        substring(0, indexOf("Android")).intern().plus(
                             ROOT
                         )
                     }
@@ -320,9 +320,12 @@ class BackupActivity : AppCompatActivity() {
                             val mountPath = privateAppDir.plus("/${app.getPackageName()}")
                             FileUtil.createDirectory(mountPath)
                             Shell.su("am force-stop ${app.getPackageName()}").exec()
+                            setProgress(10, true)
                             Shell.su("setenforce 0").exec()
+                            setProgress(15, true)
                             Shell.su("mount -o bind \"$dataPath\" \"$mountPath\"").exec()
-                            delay(100)
+                            setProgress(20, true)
+                            delay(200)
                             setOwners(mountPath)
                             zipDataToContainer(mountPath, backupFolder)
                             Shell.su("umount -l $mountPath").exec()
