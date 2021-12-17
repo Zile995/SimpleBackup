@@ -12,16 +12,17 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.commit
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.activities.restore.RestoreActivity
 import com.stefan.simplebackup.data.AppInfo
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.fragments.AppListFragment
+import com.stefan.simplebackup.fragments.RestoreListFragment
 import com.stefan.simplebackup.utils.PermissionUtils
 import com.stefan.simplebackup.utils.RootChecker
 import kotlinx.coroutines.*
@@ -35,6 +36,9 @@ open class MainActivity : AppCompatActivity() {
         lateinit var result: Deferred<MutableList<Application>>
     }
 
+    // NavController
+//    private lateinit var navController: NavController
+
     // Package name reference
     private var PACKAGE_NAME: String = ""
 
@@ -45,7 +49,6 @@ open class MainActivity : AppCompatActivity() {
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     // UI
-    private lateinit var toolBar: Toolbar
     private lateinit var bottomBar: BottomNavigationView
 
     // Flags
@@ -64,11 +67,9 @@ open class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             setFragment()
         }
+
         scope.launch {
             val rootSharedPref = getRootPreferences()
-            launch {
-                loadPackages()
-            }
             launch {
                 prepareActivity(savedInstanceState)
             }.join()
@@ -105,14 +106,11 @@ open class MainActivity : AppCompatActivity() {
         }
     }
 
-    protected open fun setFragment() {
-        // Begin the transaction
-        val ft = supportFragmentManager.beginTransaction()
-        // Replace the contents of the container with the new fragment
-        ft.replace(R.id.nav_host_fragment, AppListFragment())
-        // or ft.add(R.id.your_placeholder, new ABCFragment());
-        // Complete the changes added above
-        ft.commit()
+    private fun setFragment() {
+        supportFragmentManager.commit {
+            setReorderingAllowed(true)
+            add(R.id.nav_host_fragment, AppListFragment())
+        }
     }
 
     private fun bindViews() {
@@ -120,29 +118,27 @@ open class MainActivity : AppCompatActivity() {
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        createToolBar(binding)
         createBottomBar(binding)
         println("Created bottomBar")
-    }
-
-    /**
-     * - Inicijalizuj gornju traku, ili ToolBar
-     */
-    private fun createToolBar(binding: ActivityMainBinding) {
-        toolBar = binding.toolBar
-        toolBar.setTitleTextAppearance(this, R.style.ActionBarTextAppearance)
-        setSupportActionBar(toolBar)
     }
 
     private fun createBottomBar(binding: ActivityMainBinding) {
         bottomBar = binding.bottomNavigation
 
-        bottomBar.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.restore_local -> {
-                    val intent = Intent(this, RestoreActivity::class.java)
-                    startActivity(intent)
+        bottomBar.setOnItemSelectedListener() {
+            var selectedFragment: Fragment? = null
+
+            when (it.itemId) {
+                R.id.appListFragment -> {
+                    selectedFragment = AppListFragment()
                 }
+                R.id.restoreListFragment -> {
+                    selectedFragment = RestoreListFragment()
+                }
+            }
+            if (selectedFragment != null) {
+                supportFragmentManager.beginTransaction()
+                    .replace(R.id.nav_host_fragment, selectedFragment).commit()
             }
             true
         }
@@ -176,21 +172,6 @@ open class MainActivity : AppCompatActivity() {
             // Pokupi sačuvano informaciju o tome da li je postavljen root upit.
             isSubmitted = savedInstanceState.getBoolean("isSubmitted");
         }
-    }
-
-    private suspend fun loadPackages() {
-        AppInfo.loadPackageManager(this@MainActivity)
-        println("Loaded packageManager")
-        withContext(Dispatchers.Default) {
-            if (!AppInfo.databaseExists(this@MainActivity)) {
-                println("Waiting for dataBase")
-                result = async {
-                    AppInfo.getInstalledApplications(PackageManager.GET_META_DATA)
-                        .setPackageList(this@MainActivity)
-                }
-            }
-        }
-        println("Loaded packages")
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

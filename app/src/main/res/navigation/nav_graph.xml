@@ -8,6 +8,15 @@
     <fragment
         android:id="@+id/appListFragment"
         android:name="com.stefan.simplebackup.fragments.AppListFragment"
-        android:label="fragment_app_list"
+        android:label="Simple Backup"
         tools:layout="@layout/fragment_app_list" />
+    <fragment
+        android:id="@+id/restoreListFragment"
+        android:name="com.stefan.simplebackup.fragments.RestoreListFragment"
+        android:label="Restore"
+        tools:layout="@layout/fragment_restore_list" >
+        <action
+            android:id="@+id/action_restoreListFragment_to_appListFragment"
+            app:destination="@id/appListFragment" />
+    </fragment>
 </navigation>

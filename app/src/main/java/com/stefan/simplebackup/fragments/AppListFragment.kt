@@ -1,14 +1,19 @@
 package com.stefan.simplebackup.fragments
 
 import android.annotation.SuppressLint
-import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Bundle
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.ProgressBar
 import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -16,46 +21,51 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.activities.MainActivity
 import com.stefan.simplebackup.adapter.AppAdapter
-import com.stefan.simplebackup.data.AppInfo
-import com.stefan.simplebackup.data.AppViewModel
 import com.stefan.simplebackup.data.Application
+import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
 import com.stefan.simplebackup.utils.SearchUtil
+import com.stefan.simplebackup.viewmodel.AppViewModel
+import com.stefan.simplebackup.viewmodel.AppViewModelFactory
 import kotlinx.coroutines.*
 
 /**
  * A simple [AppListFragment] class.
  */
-class AppListFragment : Fragment() {
+class AppListFragment : Fragment(), DefaultLifecycleObserver {
+    // Binding
     private var _binding: FragmentAppListBinding? = null
     private val binding get() = _binding!!
 
-    private var appInfo = AppInfo
+    private lateinit var activity: MainActivity
 
+    // Coroutine scope
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
+    // Application data list and ViewModel
     private var applicationList = mutableListOf<Application>()
-    private lateinit var appViewModel: AppViewModel
+
+    // ViewModel
+    private val appViewModel: AppViewModel by viewModels {
+        AppViewModelFactory((activity.application as DatabaseApplication).getRepository)
+    }
 
     // UI
+    private lateinit var toolBar: Toolbar
     private lateinit var swipeContainer: SwipeRefreshLayout
-    private lateinit var appAdapter: AppAdapter
-    private lateinit var recyclerView: RecyclerView
     private lateinit var floatingButton: FloatingActionButton
     private lateinit var progressBar: ProgressBar
 
-    // Flags
-    private val flags: Int = PackageManager.GET_META_DATA
+    // RecyclerView
+    private lateinit var appAdapter: AppAdapter
+    private lateinit var recyclerView: RecyclerView
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        super.onCreateView(inflater, container, savedInstanceState)
         // Inflate the layout for this fragment
         _binding = FragmentAppListBinding.inflate(inflater, container, false)
         return binding.root
@@ -63,53 +73,33 @@ class AppListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        bindViews(binding)
+        activity = this@AppListFragment.requireActivity() as MainActivity
         scope.launch {
-            val get = launch {
-                if (this@AppListFragment.isAdded) {
-                    makeDatabase()
+            if (isAdded) {
+                bindViews(binding)
+                if (savedInstanceState != null) {
+                    progressBar.visibility = View.GONE
+                }
+                val get = launch {
                     setAppViewModel()
                 }
-            }
-            get.join()
-            launch {
-                progressBar.visibility = View.GONE
-                updateAdapter()
+                get.join()
+                launch {
+                    progressBar.visibility = View.GONE
+                    updateAdapter()
+                }
             }
         }
     }
 
-    /**
-     * - Kreiraj menu i podesi listener za search polje
-     */
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.top_app_bar, menu)
-        val menuItem = menu.findItem(R.id.search)
-        val searchView = menuItem?.actionView as SearchView
-        searchView.imeOptions = EditorInfo.IME_ACTION_DONE
-        searchView.queryHint = "Search for apps"
-
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (applicationList.size > 0) {
-                    SearchUtil.search(
-                        applicationList,
-                        this@AppListFragment.requireContext(),
-                        newText
-                    )
-                }
-                return true
-            }
-        })
-        super.onCreateOptionsMenu(menu, inflater)
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("rotated", true)
+        super.onSaveInstanceState(outState)
     }
 
     private fun bindViews(binding: FragmentAppListBinding) {
         with(binding) {
+            createToolBar(this)
             createProgressBar(this)
             createRecyclerView(this)
             createSwipeContainer(this)
@@ -117,6 +107,38 @@ class AppListFragment : Fragment() {
         }
     }
 
+    /**
+     * - Inicijalizuj gornju traku, ili ToolBar
+     */
+    private fun createToolBar(binding: FragmentAppListBinding) {
+        toolBar = binding.toolBar
+        toolBar.setTitleTextAppearance(requireContext(), R.style.ActionBarTextAppearance)
+
+        toolBar.setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.search -> {
+                    val searchView = it?.actionView as SearchView
+                    searchView.imeOptions = EditorInfo.IME_ACTION_DONE
+                    searchView.queryHint = "Search for apps"
+                    searchView.setBackgroundColor(Color.TRANSPARENT)
+
+                    searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            return false
+                        }
+
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            if (applicationList.size > 0) {
+                                SearchUtil.search(applicationList, requireContext(), newText)
+                            }
+                            return true
+                        }
+                    })
+                }
+            }
+            true
+        }
+    }
 
     private fun createProgressBar(binding: FragmentAppListBinding) {
         progressBar = binding.progressBar
@@ -130,11 +152,11 @@ class AppListFragment : Fragment() {
         binding: FragmentAppListBinding
     ) {
         recyclerView = binding.recyclerView
-        appAdapter = AppAdapter(this.requireActivity())
+        appAdapter = AppAdapter(requireContext())
         recyclerView.adapter = appAdapter
         recyclerView.setHasFixedSize(true)
         recyclerView.setItemViewCacheSize(20)
-        recyclerView.layoutManager = LinearLayoutManager(context)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
     }
 
     private fun createSwipeContainer(binding: FragmentAppListBinding) {
@@ -201,15 +223,14 @@ class AppListFragment : Fragment() {
         })
     }
 
-    private suspend fun makeDatabase() {
-        if (!appInfo.databaseExists(requireContext()))
-            appInfo.makeDatabase(MainActivity.result.await())
-    }
-
-    private suspend fun setAppViewModel() {
-        appViewModel =
-            ViewModelProvider(this).get(AppViewModel::class.java)
-        applicationList = appViewModel.getAppList()
+    private fun setAppViewModel() {
+        appViewModel.getAllApps.observe(viewLifecycleOwner, {
+            it?.let {
+                applicationList = it
+                println("application list: $it")
+                updateAdapter()
+            }
+        })
     }
 
     /**
@@ -218,8 +239,6 @@ class AppListFragment : Fragment() {
     private suspend fun refreshPackageList() {
         withContext(Dispatchers.IO) {
             launch {
-                AppInfo.getInstalledApplications(flags)
-                    .setPackageList(this@AppListFragment.requireContext())
             }
         }
     }
@@ -230,6 +249,7 @@ class AppListFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        scope.cancel()
         _binding = null
     }
 

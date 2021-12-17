@@ -7,6 +7,18 @@
     android:background="@color/background"
     tools:context=".fragments.AppListFragment">
 
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/tool_bar"
+        style="@style/ToolbarTheme"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:menu="@menu/top_app_bar"
+        app:title="@string/app_name"
+        app:titleTextColor="@color/white" />
+
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout"
         android:layout_width="match_parent"
@@ -14,7 +26,7 @@
         android:background="@drawable/curved_tab_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tool_bar"
         app:tabIndicatorColor="@color/selected"
         app:tabIndicatorFullWidth="false"
         app:tabMode="fixed"
@@ -70,6 +82,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:indeterminateTint="@color/purple_200"
+        android:layout_marginTop="50dp"
         android:scaleX="0.12"
         android:scaleY="0.12"
         android:visibility="visible"

@@ -3,7 +3,6 @@ package com.stefan.simplebackup.data
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import com.stefan.simplebackup.database.AppDatabase
 import com.stefan.simplebackup.utils.FileUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -12,58 +11,23 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.system.measureTimeMillis
 
-object AppInfo {
-    // Zapamti naziv baze podataka
-    private const val DATABASE_NAME: String = "app_database"
+class AppInfo(private val context: Context) {
+
+     /**
+     * - Sadrži [PackageManager]
+     */
+    private var packageManager: PackageManager = context.packageManager
 
     // Prazne liste u koje kasnije dodajemo odgovarajuće elemente
-    private var userAppsList = mutableListOf<ApplicationInfo>()
     private var applicationHashMap = ConcurrentHashMap<Int, Application>()
-
-    // Late init varijable, inicijalizujemo ih u loadPackageManager funkciji
-    private lateinit var pm: PackageManager
-    private lateinit var appDatabase: AppDatabase
-
-    /**
-     * - Učitava [PackageManager] i [AppDatabase]
-     */
-    fun loadPackageManager(context: Context): AppInfo {
-        pm = context.packageManager
-        appDatabase = AppDatabase.getDbInstance(context.applicationContext)
-        return this
-    }
-
-    /**
-     * - Vraća [pm]
-     */
-    val getPackageManager get() = pm
-
-    /**
-     * - Puni [userAppsList]
-     * - Vraća referencu [AppInfo] objekta
-     */
-    suspend fun getInstalledApplications(flags: Int): AppInfo {
-        withContext(Dispatchers.Default) {
-            userAppsList = pm.getInstalledApplications(flags)
-        }
-        return this
-    }
-
-    fun databaseExists(context: Context) =
-        context.getDatabasePath(DATABASE_NAME).exists()
-
-    suspend fun getListFormDatabase(): MutableList<Application> {
-        println("Function called")
-        return withContext(Dispatchers.IO) {
-            appDatabase.appDao().getAppList()
-        }
-    }
 
     /**
      * Postavi listu
      */
-    suspend fun setPackageList(context: Context): MutableList<Application> {
+    suspend fun setPackageList(): MutableList<Application> {
         var time: Long
+        val userAppsList = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+
         withContext(Dispatchers.IO) {
             applicationHashMap.clear()
 
@@ -75,40 +39,30 @@ object AppInfo {
             time = measureTimeMillis {
                 launch {
                     for (i in 0 until quarter) {
-                        insertApp(context, userAppsList[i], i)
+                        insertApp(userAppsList[i], i)
                     }
                 }
                 launch {
                     for (i in quarter until secondQuarter) {
-                        insertApp(context, userAppsList[i], i)
+                        insertApp(userAppsList[i], i)
                     }
                 }
                 launch {
                     for (i in secondQuarter until thirdQuarter) {
-                        insertApp(context, userAppsList[i], i)
+                        insertApp(userAppsList[i], i)
                     }
                 }
                 launch {
                     for (i in thirdQuarter until size) {
-                        insertApp(context, userAppsList[i], i)
+                        insertApp(userAppsList[i], i)
                     }
                 }.join()
             }
         }
         println("Thread time: $time")
-        val applicationList = applicationHashMap.values.toMutableList()
-        applicationList.sortBy { it.getName() }
-        applicationHashMap.clear()
-        return applicationList
+        return applicationHashMap.values.toMutableList()
     }
 
-    suspend fun makeDatabase(applicationList: MutableList<Application>) {
-        withContext(Dispatchers.IO) {
-            applicationList.forEach {
-                appDatabase.appDao().insert(it)
-            }
-        }
-    }
 
     /**
      * - Puni MutableList sa izdvojenim objektima [Application] klase
@@ -118,17 +72,17 @@ object AppInfo {
      *   **<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
      *   tools:ignore="QueryAllPackagesPermission" />**
      */
-    private suspend fun insertApp(context: Context, appInfo: ApplicationInfo, key: Int) {
+    private suspend fun insertApp(appInfo: ApplicationInfo, key: Int) {
         withContext(Dispatchers.IO) {
             val packageName = context.applicationContext.packageName
             if (!(isSystemApp(appInfo) || appInfo.packageName.equals(packageName))) {
                 val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }
-                val name = appInfo.loadLabel(pm).toString()
-                val drawable = appInfo.loadIcon(pm)
-                val versionName = pm.getPackageInfo(
+                val name = appInfo.loadLabel(packageManager).toString()
+                val drawable = appInfo.loadIcon(packageManager)
+                val versionName = packageManager.getPackageInfo(
                     appInfo.packageName,
                     PackageManager.GET_META_DATA
-                ).versionName
+                ).versionName ?: ""
 
                 val application = Application(
                     0,

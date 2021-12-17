@@ -1,14 +1,16 @@
-package com.stefan.simplebackup.activities.restore
+package com.stefan.simplebackup.fragments
 
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import android.view.Menu
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.ProgressBar
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -16,7 +18,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.adapter.RestoreAdapter
 import com.stefan.simplebackup.data.Application
-import com.stefan.simplebackup.databinding.ActivityRestoreBinding
+import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
 import com.stefan.simplebackup.utils.FileUtil
 import com.stefan.simplebackup.utils.SearchUtil
 import kotlinx.coroutines.*
@@ -24,78 +26,85 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import java.io.File
 
-class RestoreActivity : AppCompatActivity() {
+/**
+ * A simple [Fragment] subclass.
+ */
+class RestoreListFragment : Fragment() {
 
     companion object {
         private const val ROOT: String = "SimpleBackup/local"
     }
 
+    // Binding
+    private var _binding: FragmentRestoreListBinding? = null
+    private val binding get() = _binding!!
+
+    // Coroutine scope
+    private var scope = CoroutineScope(Job() + Dispatchers.Main)
+
     private var applicationList = mutableListOf<Application>()
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var progressBar: ProgressBar
-    private lateinit var topBar: Toolbar
+    private lateinit var toolBar: Toolbar
     private lateinit var swipeContainer: SwipeRefreshLayout
     private lateinit var restoreAdapter: RestoreAdapter
     private lateinit var floatingButton: FloatingActionButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_restore)
+        setHasOptionsMenu(true)
+    }
 
-        val binding = ActivityRestoreBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        super.onCreateView(inflater, container, savedInstanceState)
+        // Inflate the layout for this fragment
+        _binding = FragmentRestoreListBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        createProgressBar(binding)
-        createTopBar(binding)
-        createRecyclerView(binding)
-        createSwipeContainer(binding)
-        createFloatingButton(binding)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        CoroutineScope(Dispatchers.Main).launch {
-            launch {
-                getStoredPackages()
-            }.join()
-            launch {
-                progressBar.visibility = ProgressBar.INVISIBLE
-                updateAdapter()
+        scope.launch {
+            if (isAdded) {
+                bindViews(binding)
+                launch {
+                    getStoredPackages()
+                }.join()
+                launch {
+                    progressBar.visibility = ProgressBar.INVISIBLE
+                    updateAdapter()
+                }
             }
         }
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
-        return true
+    override fun onDestroyView() {
+        super.onDestroyView()
+        scope.cancel()
+        _binding = null
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.top_restore_bar, menu)
-        val menuItem = menu?.findItem(R.id.search)
-        val searchView = menuItem?.actionView as SearchView
-        searchView.imeOptions = EditorInfo.IME_ACTION_DONE
-        searchView.queryHint = "Search for apps"
-        searchView.setBackgroundColor(Color.TRANSPARENT)
+    private fun bindViews(binding: FragmentRestoreListBinding) {
+        with(binding) {
+            createProgressBar(this)
+            createTopBar(this)
+            createRecyclerView(this)
+            createSwipeContainer(this)
+            createFloatingButton(this)
+        }
 
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (applicationList.size > 0) {
-                    SearchUtil.search(applicationList, this@RestoreActivity, newText)
-                }
-                return true
-            }
-        })
-        return super.onCreateOptionsMenu(menu)
     }
 
-    private fun createSwipeContainer(binding: ActivityRestoreBinding) {
+    private fun createSwipeContainer(binding: FragmentRestoreListBinding) {
         swipeContainer = binding.swipeRefresh
 
         swipeContainer.setOnRefreshListener {
-            CoroutineScope(Dispatchers.Main).launch {
+            scope.launch {
                 val refresh = launch {
                     refreshStoredPackages()
                 }
@@ -109,13 +118,13 @@ class RestoreActivity : AppCompatActivity() {
         }
     }
 
-    private fun createRecyclerView(binding: ActivityRestoreBinding) {
+    private fun createRecyclerView(binding: FragmentRestoreListBinding) {
         recyclerView = binding.restoreRecyclerView
-        restoreAdapter = RestoreAdapter(this)
+        restoreAdapter = RestoreAdapter(requireContext())
         recyclerView.adapter = restoreAdapter
         recyclerView.setHasFixedSize(true)
         recyclerView.setItemViewCacheSize(20)
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
     }
 
     private fun updateAdapter() {
@@ -130,7 +139,7 @@ class RestoreActivity : AppCompatActivity() {
 
     private fun getStoredPackages() {
         val tempApps = mutableListOf<Application>()
-        val path = (this.getExternalFilesDir(null)!!.absolutePath).run {
+        val path = (requireContext().getExternalFilesDir(null)!!.absolutePath).run {
             substring(0, indexOf("Android")).plus(ROOT)
         }
         val dir = File(path)
@@ -169,23 +178,49 @@ class RestoreActivity : AppCompatActivity() {
         }
     }
 
-    fun getAdapter(): RestoreAdapter {
-        return restoreAdapter
-    }
-
-    private fun createProgressBar(binding: ActivityRestoreBinding) {
+    private fun createProgressBar(binding: FragmentRestoreListBinding) {
         progressBar = binding.progressBar
     }
 
-    private fun createTopBar(binding: ActivityRestoreBinding) {
-        topBar = binding.topAppBar
-        topBar.setTitleTextAppearance(this, R.style.ActionBarTextAppearance)
-        setSupportActionBar(topBar)
-        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
-        supportActionBar!!.setDisplayShowHomeEnabled(true)
+    private fun createTopBar(binding: FragmentRestoreListBinding) {
+        toolBar = binding.toolBar
+        toolBar.setTitleTextAppearance(requireContext(), R.style.ActionBarTextAppearance)
+        toolBar.setNavigationIcon(R.drawable.baseline_arrow_back_white_24dp)
+
+        toolBar.setNavigationOnClickListener {
+            it.setOnClickListener {
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .replace(this.id, AppListFragment()).commit()
+            }
+        }
+
+        toolBar.setOnMenuItemClickListener {
+            when (it.itemId) {
+                R.id.search -> {
+                    val searchView = it?.actionView as SearchView
+                    searchView.imeOptions = EditorInfo.IME_ACTION_DONE
+                    searchView.queryHint = "Search for apps"
+                    searchView.setBackgroundColor(Color.TRANSPARENT)
+
+                    searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            return false
+                        }
+
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            if (applicationList.size > 0) {
+                                SearchUtil.search(applicationList, requireContext(), newText)
+                            }
+                            return true
+                        }
+                    })
+                }
+            }
+            true
+        }
     }
 
-    private fun createFloatingButton(binding: ActivityRestoreBinding) {
+    private fun createFloatingButton(binding: FragmentRestoreListBinding) {
         floatingButton = binding.floatingButton
         floatingButton.hide()
 

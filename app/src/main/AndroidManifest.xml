@@ -12,12 +12,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
-        tools:ignore="QueryAllPackagesPermission" /> <!-- Permissions required by GoogleAuthUtil -->
+        tools:ignore="QueryAllPackagesPermission" />
+    <!-- Permissions required by GoogleAuthUtil -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.MANAGE_ACCOUNTS" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
+        android:name=".database.DatabaseApplication"
         android:allowBackup="false"
         android:extractNativeLibs="true"
         android:icon="@mipmap/ic_launcher"
@@ -42,17 +44,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.restore.RestoreActivity"
-            android:exported="true"
-            android:parentActivityName=".activities.MainActivity" />
-        <activity
             android:name=".activities.backup.BackupActivity"
             android:exported="true"
             android:screenOrientation="portrait"
+            android:parentActivityName=".activities.MainActivity"
             tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".activities.MainActivity"
-            android:configChanges="keyboard"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
     </application>
