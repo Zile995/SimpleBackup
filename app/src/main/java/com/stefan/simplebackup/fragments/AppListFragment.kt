@@ -13,7 +13,6 @@ import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.DefaultLifecycleObserver
-import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -80,14 +79,7 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
                 if (savedInstanceState != null) {
                     progressBar.visibility = View.GONE
                 }
-                val get = launch {
-                    setAppViewModel()
-                }
-                get.join()
-                launch {
-                    progressBar.visibility = View.GONE
-                    updateAdapter()
-                }
+                setAppViewModelObservers()
             }
         }
     }
@@ -223,12 +215,24 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
         })
     }
 
-    private fun setAppViewModel() {
+    private fun setAppViewModelObservers() {
         appViewModel.getAllApps.observe(viewLifecycleOwner, {
             it?.let {
                 applicationList = it
-                println("application list: $it")
                 updateAdapter()
+            }
+        })
+
+        appViewModel.spinner.observe(viewLifecycleOwner, { value ->
+            value.let {
+                println("spinner $it")
+                if (it) {
+                    scope.launch {
+                        progressBar.visibility = View.GONE
+                    }
+                } else {
+                    progressBar.visibility = View.VISIBLE
+                }
             }
         })
     }

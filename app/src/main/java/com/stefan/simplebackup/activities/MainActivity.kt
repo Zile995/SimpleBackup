@@ -33,11 +33,7 @@ open class MainActivity : AppCompatActivity() {
     // Const values
     companion object {
         private const val STORAGE_PERMISSION_CODE: Int = 500
-        lateinit var result: Deferred<MutableList<Application>>
     }
-
-    // NavController
-//    private lateinit var navController: NavController
 
     // Package name reference
     private var PACKAGE_NAME: String = ""
@@ -137,7 +133,7 @@ open class MainActivity : AppCompatActivity() {
                 }
             }
             if (selectedFragment != null) {
-                supportFragmentManager.beginTransaction()
+                supportFragmentManager.beginTransaction().setReorderingAllowed(true)
                     .replace(R.id.nav_host_fragment, selectedFragment).commit()
             }
             true
