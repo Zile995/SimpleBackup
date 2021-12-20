@@ -81,11 +81,6 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putBoolean("rotated", true)
-        super.onSaveInstanceState(outState)
-    }
-
     private fun bindViews(binding: FragmentAppListBinding) {
         with(binding) {
             createToolBar(this)
