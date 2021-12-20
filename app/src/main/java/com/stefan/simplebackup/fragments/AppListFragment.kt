@@ -76,9 +76,6 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
         scope.launch {
             if (isAdded) {
                 bindViews(binding)
-                if (savedInstanceState != null) {
-                    progressBar.visibility = View.GONE
-                }
                 setAppViewModelObservers()
             }
         }
@@ -226,12 +223,9 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
         appViewModel.spinner.observe(viewLifecycleOwner, { value ->
             value.let {
                 println("spinner $it")
-                if (it) {
-                    scope.launch {
-                        progressBar.visibility = View.GONE
-                    }
-                } else {
-                    progressBar.visibility = View.VISIBLE
+                scope.launch {
+                    progressBar.visibility =
+                        if (value) View.VISIBLE else View.GONE
                 }
             }
         })

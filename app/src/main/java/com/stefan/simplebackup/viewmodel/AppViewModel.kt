@@ -8,23 +8,36 @@ import kotlinx.coroutines.launch
 
 class AppViewModel(private val repository: AppRepository) : ViewModel() {
 
-    private var _spinner = MutableLiveData(false)
+    private var _spinner = MutableLiveData(true)
     val spinner: LiveData<Boolean>
         get() = _spinner
 
-    private var _allApps: LiveData<MutableList<Application>> = getAllApps()
+    private lateinit var _allApps: LiveData<MutableList<Application>>
     val getAllApps: LiveData<MutableList<Application>>
         get() = _allApps
 
+    init {
+        launchListLoading { getAllApps() }
+    }
 
     fun insertApp(app: Application) = viewModelScope.launch {
         repository.insert(app)
     }
 
     private fun getAllApps(): LiveData<MutableList<Application>> {
-        val allApps = repository.getAllApps
-        _spinner.postValue(true)
-        return allApps
+        return repository.getAllApps
+    }
+
+    private fun launchListLoading(block: () -> LiveData<MutableList<Application>>) {
+        viewModelScope.launch {
+            try {
+                _allApps = block()
+            } catch (error: Throwable) {
+                println(error.message)
+            } finally {
+                _spinner.postValue(false)
+            }
+        }
     }
 
     init {
