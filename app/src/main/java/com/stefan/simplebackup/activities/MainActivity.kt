@@ -5,7 +5,6 @@ import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.graphics.PorterDuff
 import android.net.Uri
 import android.os.Bundle
 import android.os.Process
@@ -49,7 +48,6 @@ open class MainActivity : AppCompatActivity() {
 
     // Flags
     private var isSubmitted: Boolean = false
-    private var currentFragment: Fragment? = null
 
     /**
      * - Standardna onCreate metoda Activity Lifecycle-a
@@ -124,7 +122,7 @@ open class MainActivity : AppCompatActivity() {
         bottomBar.setOnItemSelectedListener() {
             var selectedFragment: Fragment? = null
 
-            currentFragment = supportFragmentManager.fragments.get(0)
+            val currentFragment = supportFragmentManager.fragments.get(0)
 
             when (it.itemId) {
                 R.id.appListFragment -> {
@@ -139,7 +137,7 @@ open class MainActivity : AppCompatActivity() {
                     setReorderingAllowed(true)
                     setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     addToBackStack(null)
-                    replace(currentFragment!!.id, selectedFragment, "tag")
+                    replace(currentFragment.id, selectedFragment, "tag")
                 }
             }
             true
@@ -148,8 +146,7 @@ open class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         super.onBackPressed()
-
-        bottomBar.selectedItemId = currentFragment!!.id
+        bottomBar.selectedItemId = R.id.appListFragment
     }
 
     private fun prepareActivity(savedInstanceState: Bundle?) {

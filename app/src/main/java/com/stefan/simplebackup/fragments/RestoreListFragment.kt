@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.fragments
 
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -20,7 +19,6 @@ import com.stefan.simplebackup.adapter.RestoreAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
 import com.stefan.simplebackup.utils.FileUtil
-import com.stefan.simplebackup.utils.SearchUtil
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -188,7 +186,6 @@ class RestoreListFragment : Fragment() {
                     val searchView = it?.actionView as SearchView
                     searchView.imeOptions = EditorInfo.IME_ACTION_DONE
                     searchView.queryHint = "Search for apps"
-                    searchView.setBackgroundColor(Color.TRANSPARENT)
 
                     searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                         override fun onQueryTextSubmit(query: String?): Boolean {
@@ -196,9 +193,6 @@ class RestoreListFragment : Fragment() {
                         }
 
                         override fun onQueryTextChange(newText: String?): Boolean {
-                            if (applicationList.size > 0) {
-                                SearchUtil.search(applicationList, requireContext(), newText)
-                            }
                             return true
                         }
                     })

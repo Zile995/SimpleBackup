@@ -1,7 +1,6 @@
 package com.stefan.simplebackup.fragments
 
 import android.annotation.SuppressLint
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -23,7 +22,6 @@ import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
-import com.stefan.simplebackup.utils.SearchUtil
 import com.stefan.simplebackup.viewmodel.AppViewModel
 import com.stefan.simplebackup.viewmodel.AppViewModelFactory
 import kotlinx.coroutines.*
@@ -109,7 +107,6 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
                     val searchView = it?.actionView as SearchView
                     searchView.imeOptions = EditorInfo.IME_ACTION_DONE
                     searchView.queryHint = "Search for apps"
-                    searchView.setBackgroundColor(Color.TRANSPARENT)
 
                     searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                         override fun onQueryTextSubmit(query: String?): Boolean {
@@ -117,9 +114,7 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
                         }
 
                         override fun onQueryTextChange(newText: String?): Boolean {
-                            if (applicationList.size > 0) {
-                                SearchUtil.search(applicationList, requireContext(), newText)
-                            }
+                            appAdapter.filter.filter(newText)
                             return true
                         }
                     })
@@ -140,12 +135,14 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
     private fun createRecyclerView(
         binding: FragmentAppListBinding
     ) {
-        recyclerView = binding.recyclerView
         appAdapter = AppAdapter(requireContext())
-        recyclerView.adapter = appAdapter
-        recyclerView.setHasFixedSize(true)
-        recyclerView.setItemViewCacheSize(20)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        recyclerView = binding.recyclerView
+        recyclerView.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = appAdapter
+            setItemViewCacheSize(20)
+            setHasFixedSize(true)
+        }
     }
 
     private fun createSwipeContainer(binding: FragmentAppListBinding) {
@@ -159,7 +156,7 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
                 launch {
                     swipeContainer.isRefreshing = false
                     delay(200)
-                    updateAdapter()
+                    appAdapter.submitList(applicationList)
                 }
             }
         }
@@ -214,9 +211,9 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
 
     private fun setAppViewModelObservers() {
         appViewModel.getAllApps.observe(viewLifecycleOwner, {
-            it?.let {
+            it.let {
+                appAdapter.setData(it)
                 applicationList = it
-                updateAdapter()
             }
         })
 
@@ -238,10 +235,6 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
             launch {
             }
         }
-    }
-
-    private fun updateAdapter() {
-        appAdapter.updateList(applicationList)
     }
 
     override fun onDestroyView() {

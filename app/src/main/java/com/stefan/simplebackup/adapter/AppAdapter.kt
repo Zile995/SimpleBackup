@@ -1,13 +1,16 @@
 package com.stefan.simplebackup.adapter
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Filter
+import android.widget.Filterable
 import android.widget.ImageView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
@@ -17,10 +20,12 @@ import com.stefan.simplebackup.activities.backup.BackupActivity
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.utils.FileUtil
 import java.io.ByteArrayOutputStream
+import java.util.*
 
-class AppAdapter(context: Context) : RecyclerView.Adapter<AppAdapter.AppViewHolder>() {
+class AppAdapter(context: Context) :
+    ListAdapter<Application, AppAdapter.AppViewHolder>(AppDiffCallBack()), Filterable {
 
-    private var appList = mutableListOf<Application>()
+    private var appList = currentList
     private var mainContext = context
 
     class AppViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
@@ -51,7 +56,7 @@ class AppAdapter(context: Context) : RecyclerView.Adapter<AppAdapter.AppViewHold
      */
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val context = holder.view.context
-        val item = appList[position]
+        val item = getItem(position)
         val bitmap = item.getBitmapFromArray()
         val charSequencePackage: CharSequence = item.getPackageName()
         val charSequenceVersion: CharSequence = "v" + item.getVersionName()
@@ -77,13 +82,6 @@ class AppAdapter(context: Context) : RecyclerView.Adapter<AppAdapter.AppViewHold
         }
     }
 
-    fun deleteItem(position: Int) {
-        appList.removeAt(position)
-        notifyItemRemoved(position)
-    }
-
-    override fun getItemCount() = this.appList.size
-
     private fun saveBitmap(bitmap: Bitmap, fileName: String, context: Context) {
         try {
             val bytes = ByteArrayOutputStream()
@@ -97,11 +95,46 @@ class AppAdapter(context: Context) : RecyclerView.Adapter<AppAdapter.AppViewHold
         }
     }
 
-    @SuppressLint("NotifyDataSetChanged")
-    fun updateList(
-        newList: MutableList<Application>
-    ) {
-        appList = newList
-        notifyDataSetChanged()
+    fun setData(list: MutableList<Application>?) {
+        appList = list!!
+        submitList(appList)
+    }
+
+    override fun getFilter(): Filter {
+        return appFilter
+    }
+
+    private val appFilter = object : Filter() {
+        override fun performFiltering(sequence: CharSequence?): FilterResults {
+            val filteredList = mutableListOf<Application>()
+            if (sequence.isNullOrBlank()) {
+                filteredList.addAll(appList)
+            } else {
+                appList.forEach() {
+                    if (it.getName().lowercase().contains(sequence.toString().lowercase().trim())) {
+                        filteredList.add(it)
+                    }
+                }
+            }
+            val results = FilterResults()
+            results.values = filteredList
+            return results
+        }
+
+        override fun publishResults(sequence: CharSequence?, results: FilterResults?) {
+            @Suppress("UNCHECKED_CAST")
+            submitList(results?.values as ArrayList<Application>)
+        }
+
+    }
+}
+
+class AppDiffCallBack : DiffUtil.ItemCallback<Application>() {
+    override fun areItemsTheSame(oldItem: Application, newItem: Application): Boolean {
+        return oldItem.getName() == newItem.getName()
+    }
+
+    override fun areContentsTheSame(oldItem: Application, newItem: Application): Boolean {
+        return oldItem == newItem
     }
 }
