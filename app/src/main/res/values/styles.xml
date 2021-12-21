@@ -4,7 +4,7 @@
         <item name="android:textSize">5pt</item>
         <item name="android:fontFamily">@font/inter</item>
     </style>
-    <style name="BottomNavigationView" parent="@style/TextAppearance.AppCompat.Caption">
+    <style name="BottomNavigationViewText" parent="@style/TextAppearance.AppCompat.Caption">
         <item name="android:fontFamily">@font/inter</item>
     </style>
     <style name="ActionBarTextAppearance">
@@ -19,4 +19,5 @@
         <item name="android:textColorPrimary">@color/white</item>
         <item name="android:fontFamily">@font/inter_family</item>
     </style>
+
 </resources>

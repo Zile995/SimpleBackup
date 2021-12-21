@@ -51,11 +51,6 @@ class RestoreListFragment : Fragment() {
     private lateinit var restoreAdapter: RestoreAdapter
     private lateinit var floatingButton: FloatingActionButton
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setHasOptionsMenu(true)
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -63,6 +58,7 @@ class RestoreListFragment : Fragment() {
         super.onCreateView(inflater, container, savedInstanceState)
         // Inflate the layout for this fragment
         _binding = FragmentRestoreListBinding.inflate(inflater, container, false)
+        createToolBar(binding)
         return binding.root
     }
 
@@ -70,6 +66,7 @@ class RestoreListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         scope.launch {
+            delay(200)
             if (isAdded) {
                 bindViews(binding)
                 launch {
@@ -92,7 +89,6 @@ class RestoreListFragment : Fragment() {
     private fun bindViews(binding: FragmentRestoreListBinding) {
         with(binding) {
             createProgressBar(this)
-            createTopBar(this)
             createRecyclerView(this)
             createSwipeContainer(this)
             createFloatingButton(this)
@@ -111,7 +107,7 @@ class RestoreListFragment : Fragment() {
                 refresh.join()
                 launch {
                     swipeContainer.isRefreshing = false
-                    delay(200)
+                    delay(250)
                     updateAdapter()
                 }
             }
@@ -182,17 +178,9 @@ class RestoreListFragment : Fragment() {
         progressBar = binding.progressBar
     }
 
-    private fun createTopBar(binding: FragmentRestoreListBinding) {
+    private fun createToolBar(binding: FragmentRestoreListBinding) {
         toolBar = binding.toolBar
         toolBar.setTitleTextAppearance(requireContext(), R.style.ActionBarTextAppearance)
-        toolBar.setNavigationIcon(R.drawable.baseline_arrow_back_white_24dp)
-
-        toolBar.setNavigationOnClickListener {
-            it.setOnClickListener {
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .replace(this.id, AppListFragment()).commit()
-            }
-        }
 
         toolBar.setOnMenuItemClickListener {
             when (it.itemId) {

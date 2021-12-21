@@ -67,6 +67,7 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
         super.onCreateView(inflater, container, savedInstanceState)
         // Inflate the layout for this fragment
         _binding = FragmentAppListBinding.inflate(inflater, container, false)
+        createToolBar(binding)
         return binding.root
     }
 
@@ -76,6 +77,11 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
         scope.launch {
             if (isAdded) {
                 bindViews(binding)
+                progressBar.visibility = View.VISIBLE
+                if (savedInstanceState != null) {
+                    progressBar.visibility = View.GONE
+                }
+                delay(250)
                 setAppViewModelObservers()
             }
         }
@@ -83,7 +89,6 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
 
     private fun bindViews(binding: FragmentAppListBinding) {
         with(binding) {
-            createToolBar(this)
             createProgressBar(this)
             createRecyclerView(this)
             createSwipeContainer(this)
@@ -217,7 +222,6 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
 
         appViewModel.spinner.observe(viewLifecycleOwner, { value ->
             value.let {
-                println("spinner $it")
                 scope.launch {
                     progressBar.visibility =
                         if (value) View.VISIBLE else View.GONE

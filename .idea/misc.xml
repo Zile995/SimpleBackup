@@ -13,13 +13,16 @@
         <entry key="app/src/main/res/drawable/baseline_search_white_24dp.xml" value="0.2015625" />
         <entry key="app/src/main/res/drawable/baseline_settings_backup_restore_indigo_200_36dp.xml" value="0.2015625" />
         <entry key="app/src/main/res/drawable/baseline_storage_orange_300_24dp.xml" value="0.3536458333333333" />
+        <entry key="app/src/main/res/drawable/bottom_nav_tint.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/curved_bottom_view.xml" value="0.20677083333333332" />
         <entry key="app/src/main/res/drawable/curved_tab_layout.xml" value="0.1828125" />
         <entry key="app/src/main/res/drawable/dialog_style.xml" value="0.3482051282051282" />
+        <entry key="app/src/main/res/drawable/drawable_selector.xml" value="0.3482051282051282" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.20677083333333332" />
         <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/round_playlist_add_check_white_24dp.xml" value="0.11388888888888889" />
         <entry key="app/src/main/res/drawable/scrollbar_style.xml" value="0.3536458333333333" />
+        <entry key="app/src/main/res/drawable/selected_nav_item.xml" value="0.3482051282051282" />
         <entry key="app/src/main/res/drawable/starting_screen.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/twotone_android_black_24dp.xml" value="0.3" />
         <entry key="app/src/main/res/drawable/twotone_api_black_24dp.xml" value="0.11388888888888889" />

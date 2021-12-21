@@ -7,6 +7,7 @@
     <color name="teal_700">#97FFEF</color>
     <color name="black">#1A2565</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="gray">#C3C3C3</color>
     <color name="darker">#1C1C1C</color>
     <color name="background">#192945</color>
     <color name="app_size_color">#FFEAD1</color>
@@ -34,7 +35,7 @@
 
     <!-- Bars -->
     <color name="bottom_bar">#213B61</color>
-    <color name="status_bar">#162844</color>
+    <color name="status_bar">#1A2C49</color>
     <color name="scroll_bar">#274570</color>
 
 </resources>

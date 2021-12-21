@@ -5,6 +5,7 @@ import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.PorterDuff
 import android.net.Uri
 import android.os.Bundle
 import android.os.Process
@@ -15,11 +16,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.AppInfo
-import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.fragments.AppListFragment
 import com.stefan.simplebackup.fragments.RestoreListFragment
@@ -49,6 +49,7 @@ open class MainActivity : AppCompatActivity() {
 
     // Flags
     private var isSubmitted: Boolean = false
+    private var currentFragment: Fragment? = null
 
     /**
      * - Standardna onCreate metoda Activity Lifecycle-a
@@ -58,7 +59,6 @@ open class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         bindViews()
-
         // Activity ne treba da kreira fragment. Ne želimo da pri configuration change-u to radi
         if (savedInstanceState == null) {
             setFragment()
@@ -105,7 +105,7 @@ open class MainActivity : AppCompatActivity() {
     private fun setFragment() {
         supportFragmentManager.commit {
             setReorderingAllowed(true)
-            add(R.id.nav_host_fragment, AppListFragment())
+            add(R.id.nav_host_fragment, AppListFragment(), "home")
         }
     }
 
@@ -124,6 +124,8 @@ open class MainActivity : AppCompatActivity() {
         bottomBar.setOnItemSelectedListener() {
             var selectedFragment: Fragment? = null
 
+            currentFragment = supportFragmentManager.fragments.get(0)
+
             when (it.itemId) {
                 R.id.appListFragment -> {
                     selectedFragment = AppListFragment()
@@ -133,11 +135,21 @@ open class MainActivity : AppCompatActivity() {
                 }
             }
             if (selectedFragment != null) {
-                supportFragmentManager.beginTransaction().setReorderingAllowed(true)
-                    .replace(R.id.nav_host_fragment, selectedFragment).commit()
+                supportFragmentManager.commit {
+                    setReorderingAllowed(true)
+                    setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    addToBackStack(null)
+                    replace(currentFragment!!.id, selectedFragment, "tag")
+                }
             }
             true
         }
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+
+        bottomBar.selectedItemId = currentFragment!!.id
     }
 
     private fun prepareActivity(savedInstanceState: Bundle?) {
