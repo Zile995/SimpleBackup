@@ -1,13 +1,15 @@
 package com.stefan.simplebackup.adapter
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Filter
+import android.widget.Filterable
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
@@ -22,8 +24,19 @@ import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
+import java.util.*
+import kotlin.collections.HashMap
+import kotlin.collections.MutableList
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.filter
+import kotlin.collections.forEach
+import kotlin.collections.iterator
+import kotlin.collections.mutableListOf
+import kotlin.collections.set
 
-class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.RestoreViewHolder>() {
+class RestoreAdapter(rContext: Context) :
+    ListAdapter<Application, RestoreAdapter.RestoreViewHolder>(AppDiffCallBack()), Filterable {
 
     companion object {
         private const val ROOT: String = "SimpleBackup/local"
@@ -31,7 +44,7 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
         private const val DATA: String = "/data/data"
     }
 
-    private var appList = mutableListOf<Application>()
+    private var appList = currentList
     private var context = rContext
 
     class RestoreViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -61,8 +74,7 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
      * - Služi da postavimo parametre
      */
     override fun onBindViewHolder(holder: RestoreViewHolder, position: Int) {
-
-        val item = appList[position]
+        val item = getItem(position)
         val bitmap = item.getBitmapFromArray()
         val charSequenceVersion: CharSequence = "v" + item.getVersionName()
 
@@ -98,7 +110,38 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
         }
     }
 
-    override fun getItemCount() = this.appList.size
+    fun setData(list: MutableList<Application>) {
+        this.appList = list
+        submitList(appList)
+    }
+
+    override fun getFilter(): Filter {
+        return appFilter
+    }
+
+    private val appFilter = object : Filter() {
+        override fun performFiltering(sequence: CharSequence?): FilterResults {
+            val filteredList = mutableListOf<Application>()
+            if (sequence.isNullOrBlank()) {
+                filteredList.addAll(appList)
+            } else {
+                appList.forEach() {
+                    if (it.getName().lowercase().contains(sequence.toString().lowercase().trim())) {
+                        filteredList.add(it)
+                    }
+                }
+            }
+            val results = FilterResults()
+            results.values = filteredList
+            return results
+        }
+
+        override fun publishResults(sequence: CharSequence?, results: FilterResults?) {
+            @Suppress("UNCHECKED_CAST")
+            submitList(results?.values as ArrayList<Application>)
+        }
+
+    }
 
     private suspend fun installApp(context: Context, app: Application) {
         val libDir = context.applicationInfo.nativeLibraryDir
@@ -123,7 +166,8 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
 //                            " && $libDir/libtar.so -zxf \"\$x\" -C \"\$y\"").exec()
                     Shell.su("rm -rf $packageDataDir/*").exec()
                     //installApk(context, tempDir)
-                    Shell.su("x=$(echo -e \"$backupDir/${app.getPackageName()}.tar.gz\") && $libDir/libtar.so -zxf \"\$x\" -C $packageDataDir/ --recursive-unlink --preserve-permissions\n --preserve-permissions").exec()
+                    Shell.su("x=$(echo -e \"$backupDir/${app.getPackageName()}.tar.gz\") && $libDir/libtar.so -zxf \"\$x\" -C $packageDataDir/ --recursive-unlink --preserve-permissions\n --preserve-permissions")
+                        .exec()
                     //Shell.su(getPermissions(packageName)).exec()
                     //Shell.su("restorecon -R $packageDataDir").exec()
                     //Shell.su("x=$(echo -e \"$tempDir\") && rm -rf \"\$x\"").exec()
@@ -175,14 +219,6 @@ class RestoreAdapter(rContext: Context) : RecyclerView.Adapter<RestoreAdapter.Re
             println(line)
             return line
         }
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    fun updateList(
-        newList: MutableList<Application>
-    ) {
-        appList = newList
-        notifyDataSetChanged()
     }
 
 }

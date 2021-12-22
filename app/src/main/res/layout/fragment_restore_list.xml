@@ -16,6 +16,7 @@
             style="@style/ToolbarTheme"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            app:titleTextAppearance="@style/ActionBarTextAppearance"
             app:menu="@menu/top_restore_bar"
             app:title="@string/restore"
             app:titleTextColor="@color/white" />
@@ -58,7 +59,7 @@
         android:layout_alignEnd="@+id/swipe_refresh"
         android:layout_alignBottom="@+id/swipe_refresh"
         android:layout_marginEnd="25dp"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="?attr/actionBarSize"
         android:contentDescription="TODO"
         android:visibility="invisible"
         android:src="@drawable/baseline_keyboard_arrow_up_deep_purple_50_24dp"

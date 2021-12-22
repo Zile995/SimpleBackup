@@ -48,6 +48,7 @@ open class MainActivity : AppCompatActivity() {
 
     // Flags
     private var isSubmitted: Boolean = false
+    private var doubleBackPressed: Boolean = false
 
     /**
      * - Standardna onCreate metoda Activity Lifecycle-a
@@ -103,7 +104,7 @@ open class MainActivity : AppCompatActivity() {
     private fun setFragment() {
         supportFragmentManager.commit {
             setReorderingAllowed(true)
-            add(R.id.nav_host_fragment, AppListFragment(), "home")
+            add(R.id.nav_host_fragment, AppListFragment())
         }
     }
 
@@ -121,32 +122,55 @@ open class MainActivity : AppCompatActivity() {
 
         bottomBar.setOnItemSelectedListener() {
             var selectedFragment: Fragment? = null
+            val currentItem = bottomBar.selectedItemId
 
-            val currentFragment = supportFragmentManager.fragments.get(0)
+            val currentFragmentId = supportFragmentManager.fragments.first().id
 
             when (it.itemId) {
                 R.id.appListFragment -> {
-                    selectedFragment = AppListFragment()
+                    if (checkItem(currentItem, it.itemId)) {
+                        selectedFragment = AppListFragment()
+                    }
                 }
                 R.id.restoreListFragment -> {
-                    selectedFragment = RestoreListFragment()
+                    if (checkItem(currentItem, it.itemId)) {
+                        selectedFragment = RestoreListFragment()
+                    }
                 }
             }
+
             if (selectedFragment != null) {
                 supportFragmentManager.commit {
                     setReorderingAllowed(true)
                     setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
                     addToBackStack(null)
-                    replace(currentFragment.id, selectedFragment, "tag")
+                    replace(currentFragmentId, selectedFragment)
                 }
             }
+            doubleBackPressed = false
             true
         }
     }
 
+    private fun checkItem(current: Int, selected: Int): Boolean {
+        return if (current != selected) {
+            true
+        } else
+            false
+    }
+
     override fun onBackPressed() {
-        super.onBackPressed()
-        bottomBar.selectedItemId = R.id.appListFragment
+        val homeItemId = R.id.appListFragment
+        val selectedItemId = bottomBar.selectedItemId
+        if (selectedItemId == homeItemId && doubleBackPressed) {
+            finish()
+        } else {
+            if (selectedItemId == homeItemId) {
+                doubleBackPressed = true
+                Toast.makeText(this, "Press back again to exit", Toast.LENGTH_SHORT).show()
+            } else
+                bottomBar.selectedItemId = homeItemId
+        }
     }
 
     private fun prepareActivity(savedInstanceState: Bundle?) {

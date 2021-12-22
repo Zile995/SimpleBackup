@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/fragment_app_constraint"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
@@ -21,6 +22,7 @@
             style="@style/ToolbarTheme"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            app:titleTextAppearance="@style/ActionBarTextAppearance"
             app:menu="@menu/top_app_bar"
             app:title="@string/app_name"
             app:titleTextColor="@color/white" />

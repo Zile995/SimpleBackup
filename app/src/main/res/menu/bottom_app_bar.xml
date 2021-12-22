@@ -11,7 +11,7 @@
     <item
         android:id="@+id/restoreListFragment"
         android:title="@string/restore"
-        android:icon="@drawable/baseline_settings_backup_restore_indigo_200_36dp"
+        android:icon="@drawable/baseline_settings_backup_restore_white_24dp"
         app:showAsAction="ifRoom" />
 
     <item

@@ -6,15 +6,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import android.widget.ProgressBar
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.activities.MainActivity
@@ -29,7 +27,7 @@ import kotlinx.coroutines.*
 /**
  * A simple [AppListFragment] class.
  */
-class AppListFragment : Fragment(), DefaultLifecycleObserver {
+class AppListFragment : Fragment() {
     // Binding
     private var _binding: FragmentAppListBinding? = null
     private val binding get() = _binding!!
@@ -47,17 +45,6 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
         AppViewModelFactory((activity.application as DatabaseApplication).getRepository)
     }
 
-    // UI
-    private lateinit var toolBar: Toolbar
-    private lateinit var swipeContainer: SwipeRefreshLayout
-    private lateinit var floatingButton: FloatingActionButton
-    private lateinit var progressBar: ProgressBar
-
-    // RecyclerView
-    private lateinit var appAdapter: AppAdapter
-    private lateinit var recyclerView: RecyclerView
-
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -65,41 +52,39 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
         super.onCreateView(inflater, container, savedInstanceState)
         // Inflate the layout for this fragment
         _binding = FragmentAppListBinding.inflate(inflater, container, false)
-        createToolBar(binding)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         activity = this@AppListFragment.requireActivity() as MainActivity
+        val recyclerView = binding.recyclerView
+        val appAdapter = AppAdapter(requireContext())
         scope.launch {
             if (isAdded) {
-                bindViews(binding)
-                progressBar.visibility = View.VISIBLE
+                bindViews(recyclerView, appAdapter)
+                binding.progressBar.visibility = View.VISIBLE
                 if (savedInstanceState != null) {
-                    progressBar.visibility = View.GONE
+                    binding.progressBar.visibility = View.GONE
                 }
-                delay(250)
-                setAppViewModelObservers()
+                delay(210)
+                setAppViewModelObservers(appAdapter)
             }
         }
     }
 
-    private fun bindViews(binding: FragmentAppListBinding) {
-        with(binding) {
-            createProgressBar(this)
-            createRecyclerView(this)
-            createSwipeContainer(this)
-            createFloatingButton(this)
-        }
+    private fun bindViews(recyclerView: RecyclerView, appAdapter: AppAdapter) {
+        createToolBar(appAdapter)
+        createRecyclerView(recyclerView, appAdapter)
+        createSwipeContainer(appAdapter)
+        createFloatingButton(recyclerView)
     }
 
     /**
      * - Inicijalizuj gornju traku, ili ToolBar
      */
-    private fun createToolBar(binding: FragmentAppListBinding) {
-        toolBar = binding.toolBar
-        toolBar.setTitleTextAppearance(requireContext(), R.style.ActionBarTextAppearance)
+    private fun createToolBar(appAdapter: AppAdapter) {
+        val toolBar = binding.toolBar
 
         toolBar.setOnMenuItemClickListener {
             when (it.itemId) {
@@ -124,19 +109,11 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
         }
     }
 
-    private fun createProgressBar(binding: FragmentAppListBinding) {
-        progressBar = binding.progressBar
-    }
-
     /**
      * - Inicijalizuj recycler view
      */
     @SuppressLint("NotifyDataSetChanged")
-    private fun createRecyclerView(
-        binding: FragmentAppListBinding
-    ) {
-        appAdapter = AppAdapter(requireContext())
-        recyclerView = binding.recyclerView
+    private fun createRecyclerView(recyclerView: RecyclerView, appAdapter: AppAdapter) {
         recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = appAdapter
@@ -145,8 +122,8 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
         }
     }
 
-    private fun createSwipeContainer(binding: FragmentAppListBinding) {
-        swipeContainer = binding.swipeRefresh
+    private fun createSwipeContainer(appAdapter: AppAdapter) {
+        val swipeContainer = binding.swipeRefresh
 
         swipeContainer.setOnRefreshListener {
             scope.launch {
@@ -165,10 +142,10 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
     /**
      * - Inicijalizuj Floating dugme
      */
-    private fun createFloatingButton(binding: FragmentAppListBinding) {
-        floatingButton = binding.floatingButton
+    private fun createFloatingButton(recyclerView: RecyclerView) {
+        val floatingButton = binding.floatingButton
         floatingButton.hide()
-        hideButton(recyclerView)
+        hideButton(floatingButton, recyclerView)
 
         floatingButton.setOnClickListener {
             recyclerView.smoothScrollToPosition(0)
@@ -180,7 +157,7 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
      * - Ako je dy > 0, odnosno kada skrolujemo prstom na gore i ako je prikazano dugme, sakrij ga
      * - Ako je dy < 0, odnosno kada skrolujemo prstom na dole i ako je sakriveno dugme, prikaži ga
      */
-    private fun hideButton(recyclerView: RecyclerView) {
+    private fun hideButton(floatingButton: FloatingActionButton, recyclerView: RecyclerView) {
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
@@ -209,7 +186,7 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
         })
     }
 
-    private fun setAppViewModelObservers() {
+    private fun setAppViewModelObservers(appAdapter: AppAdapter) {
         appViewModel.getAllApps.observe(viewLifecycleOwner, {
             it.let {
                 appAdapter.setData(it)
@@ -220,7 +197,7 @@ class AppListFragment : Fragment(), DefaultLifecycleObserver {
         appViewModel.spinner.observe(viewLifecycleOwner, { value ->
             value.let {
                 scope.launch {
-                    progressBar.visibility =
+                    binding.progressBar.visibility =
                         if (value) View.VISIBLE else View.GONE
                 }
             }

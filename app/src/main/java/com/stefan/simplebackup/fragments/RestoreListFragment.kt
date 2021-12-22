@@ -8,11 +8,9 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.ProgressBar
 import androidx.appcompat.widget.SearchView
-import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.adapter.RestoreAdapter
@@ -42,12 +40,6 @@ class RestoreListFragment : Fragment() {
 
     private var applicationList = mutableListOf<Application>()
 
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var progressBar: ProgressBar
-    private lateinit var toolBar: Toolbar
-    private lateinit var swipeContainer: SwipeRefreshLayout
-    private lateinit var restoreAdapter: RestoreAdapter
-    private lateinit var floatingButton: FloatingActionButton
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,23 +48,23 @@ class RestoreListFragment : Fragment() {
         super.onCreateView(inflater, container, savedInstanceState)
         // Inflate the layout for this fragment
         _binding = FragmentRestoreListBinding.inflate(inflater, container, false)
-        createToolBar(binding)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        val recyclerView = binding.restoreRecyclerView
+        val restoreAdapter = RestoreAdapter(requireContext())
         scope.launch {
-            delay(200)
+            delay(210)
             if (isAdded) {
-                bindViews(binding)
+                bindViews(recyclerView, restoreAdapter)
                 launch {
                     getStoredPackages()
                 }.join()
                 launch {
-                    progressBar.visibility = ProgressBar.INVISIBLE
-                    updateAdapter()
+                    binding.progressBar.visibility = ProgressBar.INVISIBLE
+                    restoreAdapter.setData(applicationList)
                 }
             }
         }
@@ -84,18 +76,15 @@ class RestoreListFragment : Fragment() {
         _binding = null
     }
 
-    private fun bindViews(binding: FragmentRestoreListBinding) {
-        with(binding) {
-            createProgressBar(this)
-            createRecyclerView(this)
-            createSwipeContainer(this)
-            createFloatingButton(this)
-        }
-
+    private fun bindViews(recyclerView: RecyclerView, restoreAdapter: RestoreAdapter) {
+        createToolBar(restoreAdapter)
+        createRecyclerView(recyclerView, restoreAdapter)
+        createSwipeContainer(restoreAdapter)
+        createFloatingButton(recyclerView)
     }
 
-    private fun createSwipeContainer(binding: FragmentRestoreListBinding) {
-        swipeContainer = binding.swipeRefresh
+    private fun createSwipeContainer(restoreAdapter: RestoreAdapter) {
+        val swipeContainer = binding.swipeRefresh
 
         swipeContainer.setOnRefreshListener {
             scope.launch {
@@ -106,24 +95,19 @@ class RestoreListFragment : Fragment() {
                 launch {
                     swipeContainer.isRefreshing = false
                     delay(250)
-                    updateAdapter()
+                    restoreAdapter.setData(applicationList)
                 }
             }
         }
     }
 
-    private fun createRecyclerView(binding: FragmentRestoreListBinding) {
-        recyclerView = binding.restoreRecyclerView
-        restoreAdapter = RestoreAdapter(requireContext())
+    private fun createRecyclerView(recyclerView: RecyclerView, restoreAdapter: RestoreAdapter) {
         recyclerView.adapter = restoreAdapter
         recyclerView.setHasFixedSize(true)
         recyclerView.setItemViewCacheSize(20)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
     }
 
-    private fun updateAdapter() {
-        restoreAdapter.updateList(applicationList)
-    }
 
     private suspend fun refreshStoredPackages() {
         withContext(Dispatchers.IO) {
@@ -172,13 +156,8 @@ class RestoreListFragment : Fragment() {
         }
     }
 
-    private fun createProgressBar(binding: FragmentRestoreListBinding) {
-        progressBar = binding.progressBar
-    }
-
-    private fun createToolBar(binding: FragmentRestoreListBinding) {
-        toolBar = binding.toolBar
-        toolBar.setTitleTextAppearance(requireContext(), R.style.ActionBarTextAppearance)
+    private fun createToolBar(restoreAdapter: RestoreAdapter) {
+        val toolBar = binding.toolBar
 
         toolBar.setOnMenuItemClickListener {
             when (it.itemId) {
@@ -193,6 +172,7 @@ class RestoreListFragment : Fragment() {
                         }
 
                         override fun onQueryTextChange(newText: String?): Boolean {
+                            restoreAdapter.filter.filter(newText)
                             return true
                         }
                     })
@@ -202,18 +182,18 @@ class RestoreListFragment : Fragment() {
         }
     }
 
-    private fun createFloatingButton(binding: FragmentRestoreListBinding) {
-        floatingButton = binding.floatingButton
+    private fun createFloatingButton(recyclerView: RecyclerView) {
+        val floatingButton = binding.floatingButton
         floatingButton.hide()
 
-        hideButton(recyclerView)
+        hideButton(recyclerView, floatingButton)
 
         floatingButton.setOnClickListener {
             recyclerView.smoothScrollToPosition(0)
         }
     }
 
-    private fun hideButton(recyclerView: RecyclerView) {
+    private fun hideButton(recyclerView: RecyclerView, floatingButton: FloatingActionButton) {
         recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
