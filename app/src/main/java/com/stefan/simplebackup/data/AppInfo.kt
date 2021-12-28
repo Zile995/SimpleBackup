@@ -5,6 +5,9 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import com.stefan.simplebackup.utils.FileUtil
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -13,18 +16,46 @@ import kotlin.system.measureTimeMillis
 
 class AppInfo(private val context: Context) {
 
-     /**
+    private var sequenceNumber: Int = 0
+
+    /**
      * - Sadrži [PackageManager]
      */
-    private var packageManager: PackageManager = context.packageManager
+    private val packageManager: PackageManager = context.packageManager
 
     // Prazne liste u koje kasnije dodajemo odgovarajuće elemente
     private var applicationHashMap = ConcurrentHashMap<Int, Application>()
 
+    fun getChangedPackageNames(): Flow<HashMap<String, Boolean>> = flow {
+        val hashMap = HashMap<String, Boolean>()
+        val changedPackages = packageManager.getChangedPackages(sequenceNumber)
+        changedPackages?.let {
+            sequenceNumber = it.sequenceNumber
+            for (i in 0 until it.packageNames.size) {
+                val packageName = it.packageNames[i]
+                hashMap[packageName] = doesPackageExists(packageName)
+                emit(hashMap)
+            }
+        }
+    }
+
+    fun getPackageApplicationInfo(packageName: String): ApplicationInfo {
+        return packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+    }
+
+    private fun doesPackageExists(packageName: String): Boolean {
+        try {
+            packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
+        } catch (e: PackageManager.NameNotFoundException) {
+            return false
+        }
+        return true
+    }
+
     /**
      * Postavi listu
      */
-    suspend fun setPackageList(): MutableList<Application> {
+    suspend fun getPackageList(): MutableList<Application> {
         var time: Long
         val userAppsList = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
 
@@ -39,22 +70,22 @@ class AppInfo(private val context: Context) {
             time = measureTimeMillis {
                 launch {
                     for (i in 0 until quarter) {
-                        insertApp(userAppsList[i], i)
+                        getApp(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
                     }
                 }
                 launch {
                     for (i in quarter until secondQuarter) {
-                        insertApp(userAppsList[i], i)
+                        getApp(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
                     }
                 }
                 launch {
                     for (i in secondQuarter until thirdQuarter) {
-                        insertApp(userAppsList[i], i)
+                        getApp(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
                     }
                 }
                 launch {
                     for (i in thirdQuarter until size) {
-                        insertApp(userAppsList[i], i)
+                        getApp(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
                     }
                 }.join()
             }
@@ -63,45 +94,42 @@ class AppInfo(private val context: Context) {
         return applicationHashMap.values.toMutableList()
     }
 
-
     /**
-     * - Puni MutableList sa izdvojenim objektima [Application] klase
+     * - Kreira objekte [Application] klase
      *
      * - Android 11 po defaultu ne prikazuje sve informacije instaliranih aplikacija.
      *   To se može zaobići u AndroidManifest.xml fajlu dodavanjem
      *   **<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
      *   tools:ignore="QueryAllPackagesPermission" />**
      */
-    private suspend fun insertApp(appInfo: ApplicationInfo, key: Int) {
-        withContext(Dispatchers.IO) {
-            val packageName = context.applicationContext.packageName
-            if (!(isSystemApp(appInfo) || appInfo.packageName.equals(packageName))) {
-                val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }
-                val name = appInfo.loadLabel(packageManager).toString()
-                val drawable = appInfo.loadIcon(packageManager)
-                val versionName = packageManager.getPackageInfo(
-                    appInfo.packageName,
-                    PackageManager.GET_META_DATA
-                ).versionName ?: ""
+    fun getApp(appInfo: ApplicationInfo): Flow<Application> = flow {
+        val packageName = context.applicationContext.packageName
+        if (!(isSystemApp(appInfo) || appInfo.packageName.equals(packageName))) {
+            val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }
+            val name = appInfo.loadLabel(packageManager).toString()
+            val drawable = appInfo.loadIcon(packageManager)
+            val versionName = packageManager.getPackageInfo(
+                appInfo.packageName,
+                PackageManager.GET_META_DATA
+            ).versionName ?: ""
 
-                val application = Application(
-                    0,
-                    name,
-                    FileUtil.drawableToByteArray(drawable),
-                    appInfo.packageName,
-                    versionName,
-                    appInfo.targetSdkVersion,
-                    appInfo.minSdkVersion,
-                    appInfo.dataDir,
-                    apkDir,
-                    "",
-                    "",
-                    getApkSize(apkDir),
-                    1
-                )
+            val application = Application(
+                0,
+                name,
+                FileUtil.drawableToByteArray(drawable),
+                appInfo.packageName,
+                versionName,
+                appInfo.targetSdkVersion,
+                appInfo.minSdkVersion,
+                appInfo.dataDir,
+                apkDir,
+                "",
+                "",
+                getApkSize(apkDir),
+                1
+            )
 
-                applicationHashMap[key] = application
-            }
+            emit(application)
         }
     }
 

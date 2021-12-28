@@ -58,46 +58,16 @@ open class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         bindViews()
+
         // Activity ne treba da kreira fragment. Ne želimo da pri configuration change-u to radi
         if (savedInstanceState == null) {
             setFragment()
         }
 
         scope.launch {
-            val rootSharedPref = getRootPreferences()
-            launch {
-                prepareActivity(savedInstanceState)
-            }.join()
-            launch {
-                delay(250)
-                if (!isSubmitted) {
-                    // Ostavićemo da Magisk prikazuje Toast kao obaveštenje da nemamo root access
-                    // Prikazuj kada se svaki put pozove onCreate metoda
-                    checkForRoot(rootSharedPref)
-                    isSubmitted = true
-                }
-                if (!rootSharedPref.getBoolean(
-                        "checked",
-                        false
-                    ) && rootChecker.isRooted() && !rootSharedPref.getBoolean("root_granted", false)
-                ) {
-                    rootDialog(
-                        false,
-                        getString(R.string.root_detected),
-                        getString(R.string.not_granted)
-                    )
-                } else if (!rootSharedPref.getBoolean(
-                        "checked",
-                        false
-                    ) && !rootChecker.isRooted()
-                ) {
-                    rootDialog(
-                        false,
-                        getString(R.string.not_rooted),
-                        getString(R.string.not_rooted_info)
-                    )
-                }
-            }
+            prepareActivity(savedInstanceState)
+            delay(250)
+            setRootDialogs()
         }
     }
 
@@ -112,7 +82,6 @@ open class MainActivity : AppCompatActivity() {
         // Postavi View Binding
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         createBottomBar(binding)
         println("Created bottomBar")
     }
@@ -159,60 +128,45 @@ open class MainActivity : AppCompatActivity() {
             false
     }
 
-    override fun onBackPressed() {
-        val homeItemId = R.id.appListFragment
-        val selectedItemId = bottomBar.selectedItemId
-        if (selectedItemId == homeItemId && doubleBackPressed) {
-            finish()
-        } else {
-            if (selectedItemId == homeItemId) {
-                doubleBackPressed = true
-                Toast.makeText(this, "Press back again to exit", Toast.LENGTH_SHORT).show()
-            } else
-                bottomBar.selectedItemId = homeItemId
-        }
-    }
-
     private fun prepareActivity(savedInstanceState: Bundle?) {
-        setSavedInsanceState(savedInstanceState)
-        setWindowBackground()
-        setPackageName()
-        println("Prepared activity")
-    }
-
-    private fun setPackageName() {
-        PACKAGE_NAME = this.applicationContext.packageName
-        println("Set packageName")
-    }
-
-    private fun setWindowBackground() {
-        with(this) {
-            window.setBackgroundDrawableResource(R.color.background)
-        }
-        println("Set windows background")
-    }
-
-    private fun getRootPreferences() =
-        this@MainActivity.getSharedPreferences("root_access", MODE_PRIVATE)
-
-    private fun setSavedInsanceState(savedInstanceState: Bundle?) {
-        println("Set saved instance")
         if (savedInstanceState != null) {
             // Pokupi sačuvano informaciju o tome da li je postavljen root upit.
             isSubmitted = savedInstanceState.getBoolean("isSubmitted");
         }
+        PACKAGE_NAME = this.applicationContext.packageName
+        this.window.setBackgroundDrawableResource(R.color.background)
+        println("Prepared activity")
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        outState.putBoolean("isSubmitted", isSubmitted)
-        super.onSaveInstanceState(outState)
-    }
-
-    override fun onResume() {
-        if (!checkPermission()) {
-            requestPermission()
+    private suspend fun setRootDialogs() {
+        val rootSharedPref = getRootPreferences()
+        if (!isSubmitted) {
+            // Ostavićemo da Magisk prikazuje Toast kao obaveštenje da nemamo root access
+            // Prikazuj kada se svaki put pozove onCreate metoda
+            checkForRoot(rootSharedPref)
+            isSubmitted = true
         }
-        super.onResume()
+        if (!rootSharedPref.getBoolean(
+                "checked",
+                false
+            ) && rootChecker.isRooted() && !rootSharedPref.getBoolean("root_granted", false)
+        ) {
+            rootDialog(
+                false,
+                getString(R.string.root_detected),
+                getString(R.string.not_granted)
+            )
+        } else if (!rootSharedPref.getBoolean(
+                "checked",
+                false
+            ) && !rootChecker.isRooted()
+        ) {
+            rootDialog(
+                false,
+                getString(R.string.not_rooted),
+                getString(R.string.not_rooted_info)
+            )
+        }
     }
 
     private fun checkForRoot(rootSharedPref: SharedPreferences) {
@@ -220,6 +174,28 @@ open class MainActivity : AppCompatActivity() {
             rootSharedPref.edit().putBoolean("root_granted", true).apply()
         } else {
             rootSharedPref.edit().putBoolean("root_granted", false).apply()
+        }
+    }
+
+    private fun getRootPreferences() =
+        this@MainActivity.getSharedPreferences("root_access", MODE_PRIVATE)
+
+    private fun rootDialog(checked: Boolean, title: String, message: String) {
+        if (!checked) {
+            val builder = AlertDialog.Builder(this, R.style.DialogTheme)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton(getString(R.string.OK)) { dialog, _ ->
+                    dialog.cancel()
+                }
+            this.getSharedPreferences("root_access", MODE_PRIVATE).edit()
+                .putBoolean("checked", true).apply()
+            val alert = builder.create()
+            alert.setOnShowListener {
+                alert.getButton(AlertDialog.BUTTON_POSITIVE)
+                    .setTextColor(ContextCompat.getColor(this, R.color.blue))
+            }
+            alert.show()
         }
     }
 
@@ -296,29 +272,41 @@ open class MainActivity : AppCompatActivity() {
         val alert = builder.create()
         alert.setOnShowListener {
             alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-                .setTextColor(resources.getColor(R.color.red))
+                .setTextColor(ContextCompat.getColor(this, R.color.red))
             alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setTextColor(resources.getColor(R.color.blue))
+                .setTextColor(ContextCompat.getColor(this, R.color.blue))
         }
         alert.show()
     }
 
-    private fun rootDialog(checked: Boolean, title: String, message: String) {
-        if (!checked) {
-            val builder = AlertDialog.Builder(this, R.style.DialogTheme)
-                .setTitle(title)
-                .setMessage(message)
-                .setPositiveButton(getString(R.string.OK)) { dialog, _ ->
-                    dialog.cancel()
-                }
-            this.getSharedPreferences("root_access", MODE_PRIVATE).edit()
-                .putBoolean("checked", true).apply()
-            val alert = builder.create()
-            alert.setOnShowListener {
-                alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                    .setTextColor(resources.getColor(R.color.blue))
-            }
-            alert.show()
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("isSubmitted", isSubmitted)
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onResume() {
+        if (!checkPermission()) {
+            requestPermission()
         }
+        super.onResume()
+    }
+
+    override fun onBackPressed() {
+        val homeItemId = R.id.appListFragment
+        val selectedItemId = bottomBar.selectedItemId
+        if (selectedItemId == homeItemId && doubleBackPressed) {
+            finish()
+        } else {
+            if (selectedItemId == homeItemId) {
+                doubleBackPressed = true
+                Toast.makeText(this, "Press back again to exit", Toast.LENGTH_SHORT).show()
+            } else
+                bottomBar.selectedItemId = homeItemId
+        }
+    }
+
+    override fun onDestroy() {
+        scope.cancel()
+        super.onDestroy()
     }
 }

@@ -49,7 +49,6 @@ import net.lingala.zip4j.model.enums.EncryptionMethod
 import java.io.*
 import java.util.*
 
-
 class BackupActivity : AppCompatActivity() {
 
     companion object {
@@ -297,8 +296,6 @@ class BackupActivity : AppCompatActivity() {
                 "Can't read"
         }
     }
-
-
 
     private suspend fun createLocalBackup(app: Application) {
 

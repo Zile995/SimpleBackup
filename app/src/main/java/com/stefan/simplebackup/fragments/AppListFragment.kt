@@ -6,9 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
-import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
-import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -40,6 +38,8 @@ class AppListFragment : Fragment() {
     // Application data list and ViewModel
     private var applicationList = mutableListOf<Application>()
 
+    private var delay: Long = 250
+
     // ViewModel
     private val appViewModel: AppViewModel by viewModels {
         AppViewModelFactory((activity.application as DatabaseApplication).getRepository)
@@ -57,7 +57,10 @@ class AppListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        activity = this@AppListFragment.requireActivity() as MainActivity
+        val currentActivity = this@AppListFragment.requireActivity()
+        if (currentActivity is MainActivity) {
+            activity = currentActivity
+        }
         val recyclerView = binding.recyclerView
         val appAdapter = AppAdapter(requireContext())
         scope.launch {
@@ -65,9 +68,10 @@ class AppListFragment : Fragment() {
                 bindViews(recyclerView, appAdapter)
                 binding.progressBar.visibility = View.VISIBLE
                 if (savedInstanceState != null) {
+                    delay = 0
                     binding.progressBar.visibility = View.GONE
                 }
-                delay(210)
+                delay(delay)
                 setAppViewModelObservers(appAdapter)
             }
         }

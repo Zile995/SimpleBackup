@@ -8,6 +8,7 @@ import android.os.Parcelable
 import androidx.annotation.Keep
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -15,7 +16,7 @@ import kotlinx.serialization.Transient
 /**
  * Klasa koja će sadržati sve podatke o aplikaciji
  */
-@Entity (tableName = "app_table")
+@Entity(tableName = "app_table", indices = [Index(value = ["name", "package_name"], unique = true)])
 @Keep
 @Serializable
 data class Application(

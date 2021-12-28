@@ -18,10 +18,15 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
 
     init {
         launchListLoading { getAllApps() }
+        Log.d("viewmodel", "AppViewModel created")
     }
 
     fun insertApp(app: Application) = viewModelScope.launch {
         repository.insert(app)
+    }
+
+    fun deleteApp(packageName: String) = viewModelScope.launch {
+        repository.delete(packageName)
     }
 
     private fun getAllApps(): LiveData<MutableList<Application>> {
@@ -38,10 +43,6 @@ class AppViewModel(private val repository: AppRepository) : ViewModel() {
                 _spinner.postValue(false)
             }
         }
-    }
-
-    init {
-        Log.d("viewmodel", "AppViewModel created")
     }
 
     override fun onCleared() {

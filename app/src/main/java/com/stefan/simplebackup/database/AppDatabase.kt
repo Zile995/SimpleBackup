@@ -8,6 +8,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.stefan.simplebackup.data.AppInfo
 import com.stefan.simplebackup.data.Application
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 /**
@@ -20,19 +21,50 @@ abstract class AppDatabase : RoomDatabase() {
 
     private class AppDatabaseCallback(
         private val scope: CoroutineScope,
-        private val appsInfo: AppInfo
+        private val appInfo: AppInfo
     ) :
         RoomDatabase.Callback() {
+
+        private suspend fun insert() {
+            val packageList = appInfo.getPackageList()
+            if (INSTANCE != null) {
+                val appDao = INSTANCE!!.appDao()
+                packageList.forEach {
+                    appDao.insert(it)
+                }
+            }
+        }
+
+        private suspend fun deleteOrUpdate() {
+            if (INSTANCE != null) {
+                val appDao = INSTANCE!!.appDao()
+                appInfo.getChangedPackageNames().collect { app ->
+                    app.forEach { hashMap ->
+                        if (hashMap.value) {
+                            appInfo.getApp(appInfo.getPackageApplicationInfo(hashMap.key))
+                                .collect { app ->
+                                    appDao.insert(app)
+                                }
+                        } else {
+                            appDao.delete(hashMap.key)
+                        }
+                    }
+                }
+            }
+        }
+
 
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             scope.launch {
-                if (INSTANCE != null) {
-                    val appDao = INSTANCE!!.appDao()
-                    appsInfo.setPackageList().forEach {
-                        appDao.insert(it)
-                    }
-                }
+                insert()
+            }
+        }
+
+        override fun onOpen(db: SupportSQLiteDatabase) {
+            super.onOpen(db)
+            scope.launch {
+                deleteOrUpdate()
             }
         }
     }

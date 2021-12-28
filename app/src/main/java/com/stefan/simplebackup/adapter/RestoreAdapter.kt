@@ -24,15 +24,8 @@ import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
-import java.util.*
-import kotlin.collections.HashMap
-import kotlin.collections.MutableList
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.filter
-import kotlin.collections.forEach
-import kotlin.collections.iterator
-import kotlin.collections.mutableListOf
 import kotlin.collections.set
 
 class RestoreAdapter(rContext: Context) :
@@ -138,7 +131,7 @@ class RestoreAdapter(rContext: Context) :
 
         override fun publishResults(sequence: CharSequence?, results: FilterResults?) {
             @Suppress("UNCHECKED_CAST")
-            submitList(results?.values as ArrayList<Application>)
+            submitList(results?.values as MutableList<Application>)
         }
 
     }

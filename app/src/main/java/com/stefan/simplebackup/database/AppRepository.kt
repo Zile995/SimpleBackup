@@ -10,10 +10,14 @@ class AppRepository(private val appDao: AppDao) {
     private val _allApps: Flow<MutableList<Application>> = getAppList()
     val getAllApps: LiveData<MutableList<Application>> get() = _allApps.asLiveData()
 
+    private fun getAppList() = appDao.getAppList()
+
     suspend fun insert(app: Application) {
         appDao.insert(app)
     }
 
-    private fun getAppList() = appDao.getAppList()
+    suspend fun delete(packageName: String) {
+        appDao.delete(packageName)
+    }
 
 }

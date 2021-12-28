@@ -20,7 +20,6 @@ import com.stefan.simplebackup.activities.backup.BackupActivity
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.utils.FileUtil
 import java.io.ByteArrayOutputStream
-import java.util.*
 
 class AppAdapter(context: Context) :
     ListAdapter<Application, AppAdapter.AppViewHolder>(AppDiffCallBack()), Filterable {
@@ -123,7 +122,7 @@ class AppAdapter(context: Context) :
 
         override fun publishResults(sequence: CharSequence?, results: FilterResults?) {
             @Suppress("UNCHECKED_CAST")
-            submitList(results?.values as ArrayList<Application>)
+            submitList(results?.values as MutableList<Application>)
         }
 
     }

@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.utils
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.util.Log
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
@@ -21,13 +22,12 @@ class RootChecker(context: Context) {
 
     private fun hasRootManagerApp(context: Context): Boolean {
         val rootPackageName = "com.topjohnwu.magisk"
-            try {
-                context.packageManager.getApplicationInfo(rootPackageName, 0)
-                return true
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        return false
+        try {
+            context.packageManager.getApplicationInfo(rootPackageName, 0)
+        } catch (e: PackageManager.NameNotFoundException) {
+            return false
+        }
+        return true
     }
 
     private suspend fun hasSuBinary(): Boolean {
