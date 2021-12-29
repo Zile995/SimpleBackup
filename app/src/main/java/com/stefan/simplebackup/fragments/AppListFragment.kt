@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -15,12 +16,14 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.activities.MainActivity
 import com.stefan.simplebackup.adapter.AppAdapter
+import com.stefan.simplebackup.data.AppInfo
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
 import com.stefan.simplebackup.viewmodel.AppViewModel
 import com.stefan.simplebackup.viewmodel.AppViewModelFactory
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 
 /**
  * A simple [AppListFragment] class.
@@ -41,7 +44,7 @@ class AppListFragment : Fragment() {
     private var delay: Long = 250
 
     // ViewModel
-    private val appViewModel: AppViewModel by viewModels {
+    private val appViewModel: AppViewModel by activityViewModels {
         AppViewModelFactory((activity.application as DatabaseApplication).getRepository)
     }
 
@@ -132,7 +135,7 @@ class AppListFragment : Fragment() {
         swipeContainer.setOnRefreshListener {
             scope.launch {
                 launch {
-                    refreshPackageList()
+                    activity.refreshPackageList()
                 }.join()
                 launch {
                     swipeContainer.isRefreshing = false
@@ -206,16 +209,6 @@ class AppListFragment : Fragment() {
                 }
             }
         })
-    }
-
-    /**
-     *  - Prosleđuje AppAdapter adapteru novu listu i obaveštava RecyclerView da je lista promenjena
-     */
-    private suspend fun refreshPackageList() {
-        withContext(Dispatchers.IO) {
-            launch {
-            }
-        }
     }
 
     override fun onDestroyView() {

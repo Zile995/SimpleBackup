@@ -2,14 +2,14 @@ package com.stefan.simplebackup.activities
 
 import android.Manifest
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-import android.content.Intent
-import android.content.SharedPreferences
+import android.content.*
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Process
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -19,16 +19,22 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.broadcasts.BroadcastListener
+import com.stefan.simplebackup.broadcasts.PackageBroadcastReceiver
+import com.stefan.simplebackup.data.AppInfo
+import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.fragments.AppListFragment
 import com.stefan.simplebackup.fragments.RestoreListFragment
 import com.stefan.simplebackup.utils.PermissionUtils
 import com.stefan.simplebackup.utils.RootChecker
+import com.stefan.simplebackup.viewmodel.AppViewModel
+import com.stefan.simplebackup.viewmodel.AppViewModelFactory
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 import java.util.*
 
-open class MainActivity : AppCompatActivity() {
-
+open class MainActivity : AppCompatActivity(), BroadcastListener {
     // Const values
     companion object {
         private const val STORAGE_PERMISSION_CODE: Int = 500
@@ -45,6 +51,16 @@ open class MainActivity : AppCompatActivity() {
 
     // UI
     private lateinit var bottomBar: BottomNavigationView
+
+    // ViewModel
+    private val appViewModel: AppViewModel by viewModels {
+        AppViewModelFactory((application as DatabaseApplication).getRepository)
+    }
+
+    // App informations
+    private val appInfo: AppInfo by lazy { AppInfo(this) }
+
+    private val receiver: PackageBroadcastReceiver by lazy { PackageBroadcastReceiver(this, scope) }
 
     // Flags
     private var isSubmitted: Boolean = false
@@ -66,6 +82,7 @@ open class MainActivity : AppCompatActivity() {
 
         scope.launch {
             prepareActivity(savedInstanceState)
+            registerBroadcast()
             delay(250)
             setRootDialogs()
         }
@@ -128,6 +145,29 @@ open class MainActivity : AppCompatActivity() {
             false
     }
 
+    /**
+     *  - Prosleđuje AppAdapter adapteru novu listu i obaveštava RecyclerView da je lista promenjena
+     */
+    suspend fun refreshPackageList() {
+        withContext(Dispatchers.IO) {
+            launch {
+                appInfo.getChangedPackageNames().collect { hashMap ->
+                    hashMap.forEach { entry ->
+                        if (entry.value) {
+                            with(appInfo) {
+                                getApp(getPackageApplicationInfo(entry.key)).collect {
+                                    appViewModel.insertApp(it)
+                                }
+                            }
+                        } else {
+                            appViewModel.deleteApp(entry.key)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private fun prepareActivity(savedInstanceState: Bundle?) {
         if (savedInstanceState != null) {
             // Pokupi sačuvano informaciju o tome da li je postavljen root upit.
@@ -136,6 +176,14 @@ open class MainActivity : AppCompatActivity() {
         PACKAGE_NAME = this.applicationContext.packageName
         this.window.setBackgroundDrawableResource(R.color.background)
         println("Prepared activity")
+    }
+
+    private fun registerBroadcast() {
+        registerReceiver(receiver, IntentFilter().apply {
+            addAction(Intent.ACTION_PACKAGE_ADDED)
+            addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addDataScheme("package")
+        })
     }
 
     private suspend fun setRootDialogs() {
@@ -285,10 +333,13 @@ open class MainActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-        if (!checkPermission()) {
-            requestPermission()
-        }
         super.onResume()
+        scope.launch {
+            if (!checkPermission()) {
+                requestPermission()
+            }
+            refreshPackageList()
+        }
     }
 
     override fun onBackPressed() {
@@ -307,6 +358,19 @@ open class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         scope.cancel()
+        unregisterReceiver(receiver)
         super.onDestroy()
+    }
+
+    override suspend fun addOrUpdatePackages(packageName: String) {
+        with(appInfo) {
+            getApp(getPackageApplicationInfo(packageName)).collect { app ->
+                appViewModel.insertApp(app)
+            }
+        }
+    }
+
+    override suspend fun removePackages(packageName: String) {
+        appViewModel.deleteApp(packageName)
     }
 }

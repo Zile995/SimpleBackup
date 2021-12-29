@@ -29,6 +29,12 @@
         android:supportsRtl="true"
         android:testOnly="false"
         android:theme="@style/Theme.SimpleBackup">
+        <receiver
+            android:name=".broadcasts.PackageReceiver"
+            android:enabled="true"
+            android:exported="true">
+
+        </receiver>
         <activity
             android:name=".activities.shell.SplashActivity"
             android:exported="true">
