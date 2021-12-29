@@ -9,21 +9,18 @@ import android.view.inputmethod.EditorInfo
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.activities.MainActivity
 import com.stefan.simplebackup.adapter.AppAdapter
-import com.stefan.simplebackup.data.AppInfo
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
 import com.stefan.simplebackup.viewmodel.AppViewModel
 import com.stefan.simplebackup.viewmodel.AppViewModelFactory
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 
 /**
  * A simple [AppListFragment] class.

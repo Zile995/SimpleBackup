@@ -21,7 +21,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.broadcasts.BroadcastListener
 import com.stefan.simplebackup.broadcasts.PackageBroadcastReceiver
-import com.stefan.simplebackup.data.AppInfo
+import com.stefan.simplebackup.data.AppBuilder
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.fragments.AppListFragment
@@ -57,9 +57,13 @@ open class MainActivity : AppCompatActivity(), BroadcastListener {
         AppViewModelFactory((application as DatabaseApplication).getRepository)
     }
 
-    // App informations
-    private val appInfo: AppInfo by lazy { AppInfo(this) }
+    /**
+     * App informations class, used to create [Application] objects
+     */
 
+    private val appBuilder: AppBuilder by lazy { AppBuilder(this) }
+
+    //
     private val receiver: PackageBroadcastReceiver by lazy { PackageBroadcastReceiver(this, scope) }
 
     // Flags
@@ -151,10 +155,10 @@ open class MainActivity : AppCompatActivity(), BroadcastListener {
     suspend fun refreshPackageList() {
         withContext(Dispatchers.IO) {
             launch {
-                appInfo.getChangedPackageNames().collect { hashMap ->
+                appBuilder.getChangedPackageNames().collect { hashMap ->
                     hashMap.forEach { entry ->
                         if (entry.value) {
-                            with(appInfo) {
+                            with(appBuilder) {
                                 getApp(getPackageApplicationInfo(entry.key)).collect {
                                     appViewModel.insertApp(it)
                                 }
@@ -338,7 +342,6 @@ open class MainActivity : AppCompatActivity(), BroadcastListener {
             if (!checkPermission()) {
                 requestPermission()
             }
-            refreshPackageList()
         }
     }
 
@@ -363,7 +366,7 @@ open class MainActivity : AppCompatActivity(), BroadcastListener {
     }
 
     override suspend fun addOrUpdatePackages(packageName: String) {
-        with(appInfo) {
+        with(appBuilder) {
             getApp(getPackageApplicationInfo(packageName)).collect { app ->
                 appViewModel.insertApp(app)
             }

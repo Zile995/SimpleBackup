@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.stefan.simplebackup.data.AppInfo
+import com.stefan.simplebackup.data.AppBuilder
 import com.stefan.simplebackup.data.Application
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
@@ -21,12 +21,12 @@ abstract class AppDatabase : RoomDatabase() {
 
     private class AppDatabaseCallback(
         private val scope: CoroutineScope,
-        private val appInfo: AppInfo
+        private val appBuilder: AppBuilder
     ) :
         RoomDatabase.Callback() {
 
         private suspend fun insert() {
-            val packageList = appInfo.getPackageList()
+            val packageList = appBuilder.getPackageList()
             if (INSTANCE != null) {
                 val appDao = INSTANCE!!.appDao()
                 packageList.forEach {
@@ -38,10 +38,10 @@ abstract class AppDatabase : RoomDatabase() {
         private suspend fun deleteOrUpdate() {
             if (INSTANCE != null) {
                 val appDao = INSTANCE!!.appDao()
-                appInfo.getChangedPackageNames().collect { app ->
+                appBuilder.getChangedPackageNames().collect { app ->
                     app.forEach { hashMap ->
                         if (hashMap.value) {
-                            appInfo.getApp(appInfo.getPackageApplicationInfo(hashMap.key))
+                            appBuilder.getApp(appBuilder.getPackageApplicationInfo(hashMap.key))
                                 .collect { app ->
                                     appDao.insert(app)
                                 }
@@ -79,7 +79,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java, "app_database"
                 )
-                    .addCallback(AppDatabaseCallback(scope, AppInfo(context)))
+                    .addCallback(AppDatabaseCallback(scope, AppBuilder(context)))
                     .build()
                 INSTANCE = instance
                 instance

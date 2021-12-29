@@ -14,7 +14,7 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.system.measureTimeMillis
 
-class AppInfo(private val context: Context) {
+class AppBuilder(private val context: Context) {
 
     private var sequenceNumber: Int = 0
 
