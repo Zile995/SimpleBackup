@@ -42,7 +42,8 @@ class AppListFragment : Fragment() {
 
     // ViewModel
     private val appViewModel: AppViewModel by activityViewModels {
-        AppViewModelFactory((activity.application as DatabaseApplication).getRepository)
+        val mainApplication = activity.application as DatabaseApplication
+        AppViewModelFactory(mainApplication.getRepository, mainApplication.getAppBuilder)
     }
 
     override fun onCreateView(
@@ -63,6 +64,7 @@ class AppListFragment : Fragment() {
         }
         val recyclerView = binding.recyclerView
         val appAdapter = AppAdapter(requireContext())
+        delay = if (requireContext().getDatabasePath("app_database").exists()) 0 else 250
         scope.launch {
             if (isAdded) {
                 bindViews(recyclerView, appAdapter)
@@ -73,6 +75,7 @@ class AppListFragment : Fragment() {
                 }
                 delay(delay)
                 setAppViewModelObservers(appAdapter)
+                restoreRecyclerViewState()
             }
         }
     }
@@ -132,7 +135,7 @@ class AppListFragment : Fragment() {
         swipeContainer.setOnRefreshListener {
             scope.launch {
                 launch {
-                    activity.refreshPackageList()
+                    appViewModel.refreshPackageList()
                 }.join()
                 launch {
                     swipeContainer.isRefreshing = false
@@ -178,9 +181,13 @@ class AppListFragment : Fragment() {
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
                 // Ako ne može da skroluje više na dole (1 je down direction) i ako može ma gore (-1 up direction)
-                if (!recyclerView.canScrollVertically(1) && recyclerView.canScrollVertically(-1) && newState == RecyclerView.SCROLL_STATE_IDLE) {
+                if (!recyclerView.canScrollVertically(1)
+                    && recyclerView.canScrollVertically(-1)
+                    && newState == RecyclerView.SCROLL_STATE_IDLE
+                ) {
                     floatingButton.show()
-                } else if (recyclerView.canScrollVertically(1) && !recyclerView.canScrollVertically(
+                } else if (recyclerView.canScrollVertically(1)
+                    && !recyclerView.canScrollVertically(
                         -1
                     )
                 ) {
@@ -188,6 +195,12 @@ class AppListFragment : Fragment() {
                 }
             }
         })
+    }
+
+    private fun restoreRecyclerViewState() {
+        if (appViewModel.isStateInitialized) {
+            binding.recyclerView.layoutManager?.onRestoreInstanceState(appViewModel.restoreRecyclerViewState)
+        }
     }
 
     private fun setAppViewModelObservers(appAdapter: AppAdapter) {
@@ -206,6 +219,13 @@ class AppListFragment : Fragment() {
                 }
             }
         })
+    }
+
+    override fun onPause() {
+        binding.recyclerView.layoutManager?.onSaveInstanceState()?.let {
+            appViewModel.saveRecyclerViewState(it)
+        }
+        super.onPause()
     }
 
     override fun onDestroyView() {

@@ -21,7 +21,6 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.broadcasts.BroadcastListener
 import com.stefan.simplebackup.broadcasts.PackageBroadcastReceiver
-import com.stefan.simplebackup.data.AppBuilder
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.fragments.AppListFragment
@@ -54,16 +53,11 @@ open class MainActivity : AppCompatActivity(), BroadcastListener {
 
     // ViewModel
     private val appViewModel: AppViewModel by viewModels {
-        AppViewModelFactory((application as DatabaseApplication).getRepository)
+        val mainApplication = application as DatabaseApplication
+        AppViewModelFactory(mainApplication.getRepository, mainApplication.getAppBuilder)
     }
 
-    /**
-     * App informations class, used to create [Application] objects
-     */
-
-    private val appBuilder: AppBuilder by lazy { AppBuilder(this) }
-
-    //
+    // Broadcast Receiver
     private val receiver: PackageBroadcastReceiver by lazy { PackageBroadcastReceiver(this, scope) }
 
     // Flags
@@ -149,28 +143,6 @@ open class MainActivity : AppCompatActivity(), BroadcastListener {
             false
     }
 
-    /**
-     *  - Prosleđuje AppAdapter adapteru novu listu i obaveštava RecyclerView da je lista promenjena
-     */
-    suspend fun refreshPackageList() {
-        withContext(Dispatchers.IO) {
-            launch {
-                appBuilder.getChangedPackageNames().collect { hashMap ->
-                    hashMap.forEach { entry ->
-                        if (entry.value) {
-                            with(appBuilder) {
-                                getApp(getPackageApplicationInfo(entry.key)).collect {
-                                    appViewModel.insertApp(it)
-                                }
-                            }
-                        } else {
-                            appViewModel.deleteApp(entry.key)
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     private fun prepareActivity(savedInstanceState: Bundle?) {
         if (savedInstanceState != null) {
@@ -366,7 +338,8 @@ open class MainActivity : AppCompatActivity(), BroadcastListener {
     }
 
     override suspend fun addOrUpdatePackages(packageName: String) {
-        with(appBuilder) {
+        val mainApplication = application as DatabaseApplication
+        with(mainApplication.getAppBuilder) {
             getApp(getPackageApplicationInfo(packageName)).collect { app ->
                 appViewModel.insertApp(app)
             }

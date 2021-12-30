@@ -53,7 +53,6 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             scope.launch {
@@ -73,13 +72,13 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        fun getDbInstance(context: Context, scope: CoroutineScope): AppDatabase {
+        fun getDbInstance(context: Context, scope: CoroutineScope, appBuilder: AppBuilder): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java, "app_database"
                 )
-                    .addCallback(AppDatabaseCallback(scope, AppBuilder(context)))
+                    .addCallback(AppDatabaseCallback(scope, appBuilder))
                     .build()
                 INSTANCE = instance
                 instance
