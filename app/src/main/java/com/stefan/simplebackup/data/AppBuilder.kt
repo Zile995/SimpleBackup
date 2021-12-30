@@ -23,8 +23,16 @@ class AppBuilder(private val context: Context) {
      */
     private val packageManager: PackageManager = context.packageManager
 
-    // Prazne liste u koje kasnije dodajemo odgovarajuće elemente
-    private var applicationHashMap = ConcurrentHashMap<Int, Application>()
+    /**
+     * - Prazna application HashMap lista u koju kasnije dodajemo [Application] objekte
+     * - Mora biti val jer ostali thread-ovi upisuju u nju
+     */
+    private val applicationHashMap = ConcurrentHashMap<Int, Application>()
+
+    /**
+     * - Vrati kreiran [Application] objekat
+     */
+    fun getApp(packageName: String) = getAppObject(getPackageApplicationInfo(packageName))
 
     fun getChangedPackageNames(): Flow<HashMap<String, Boolean>> = flow {
         val hashMap = HashMap<String, Boolean>()
@@ -39,10 +47,6 @@ class AppBuilder(private val context: Context) {
         }
     }
 
-    fun getPackageApplicationInfo(packageName: String): ApplicationInfo {
-        return packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
-    }
-
     private fun doesPackageExists(packageName: String): Boolean {
         try {
             packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
@@ -52,10 +56,13 @@ class AppBuilder(private val context: Context) {
         return true
     }
 
+    private fun getPackageApplicationInfo(packageName: String) = packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+
     /**
-     * Postavi listu
+     * - Vrat
+     * - Koristi se kada se Database prvi put kreira.
      */
-    suspend fun getPackageList(): MutableList<Application> {
+    suspend fun getApplicationList(): MutableList<Application> {
         var time: Long
         val userAppsList = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
 
@@ -70,22 +77,22 @@ class AppBuilder(private val context: Context) {
             time = measureTimeMillis {
                 launch {
                     for (i in 0 until quarter) {
-                        getApp(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
+                        getAppObject(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
                     }
                 }
                 launch {
                     for (i in quarter until secondQuarter) {
-                        getApp(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
+                        getAppObject(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
                     }
                 }
                 launch {
                     for (i in secondQuarter until thirdQuarter) {
-                        getApp(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
+                        getAppObject(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
                     }
                 }
                 launch {
                     for (i in thirdQuarter until size) {
-                        getApp(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
+                        getAppObject(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
                     }
                 }.join()
             }
@@ -102,7 +109,7 @@ class AppBuilder(private val context: Context) {
      *   **<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
      *   tools:ignore="QueryAllPackagesPermission" />**
      */
-    fun getApp(appInfo: ApplicationInfo): Flow<Application> = flow {
+    private fun getAppObject(appInfo: ApplicationInfo): Flow<Application> = flow {
         val packageName = context.applicationContext.packageName
         if (!(isSystemApp(appInfo) || appInfo.packageName.equals(packageName))) {
             val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }

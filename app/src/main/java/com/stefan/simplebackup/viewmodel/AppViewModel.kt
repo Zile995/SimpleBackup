@@ -52,8 +52,8 @@ class AppViewModel(private val repository: AppRepository, private val appBuilder
                 hashMap.forEach { entry ->
                     if (entry.value) {
                         with(appBuilder) {
-                            getApp(getPackageApplicationInfo(entry.key)).collect {
-                                insertApp(it)
+                            getApp(entry.key).collect { app ->
+                                insertApp(app)
                             }
                         }
                     } else {

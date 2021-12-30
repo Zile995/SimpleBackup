@@ -25,29 +25,24 @@ abstract class AppDatabase : RoomDatabase() {
     ) :
         RoomDatabase.Callback() {
 
+        private val appDao by lazy { INSTANCE?.appDao() }
+
         private suspend fun insert() {
-            val packageList = appBuilder.getPackageList()
-            if (INSTANCE != null) {
-                val appDao = INSTANCE!!.appDao()
-                packageList.forEach {
-                    appDao.insert(it)
-                }
+            val appList = appBuilder.getApplicationList()
+            appList.forEach { app ->
+                appDao?.insert(app)
             }
         }
 
         private suspend fun deleteOrUpdate() {
-            if (INSTANCE != null) {
-                val appDao = INSTANCE!!.appDao()
-                appBuilder.getChangedPackageNames().collect { app ->
-                    app.forEach { hashMap ->
-                        if (hashMap.value) {
-                            appBuilder.getApp(appBuilder.getPackageApplicationInfo(hashMap.key))
-                                .collect { app ->
-                                    appDao.insert(app)
-                                }
-                        } else {
-                            appDao.delete(hashMap.key)
+            appBuilder.getChangedPackageNames().collect { hashMap ->
+                hashMap.forEach { entry ->
+                    if (entry.value) {
+                        appBuilder.getApp(entry.key).collect { app ->
+                            appDao?.insert(app)
                         }
+                    } else {
+                        appDao?.delete(entry.key)
                     }
                 }
             }
@@ -72,7 +67,11 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        fun getDbInstance(context: Context, scope: CoroutineScope, appBuilder: AppBuilder): AppDatabase {
+        fun getDbInstance(
+            context: Context,
+            scope: CoroutineScope,
+            appBuilder: AppBuilder
+        ): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,

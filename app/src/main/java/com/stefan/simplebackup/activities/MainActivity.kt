@@ -340,7 +340,7 @@ open class MainActivity : AppCompatActivity(), BroadcastListener {
     override suspend fun addOrUpdatePackages(packageName: String) {
         val mainApplication = application as DatabaseApplication
         with(mainApplication.getAppBuilder) {
-            getApp(getPackageApplicationInfo(packageName)).collect { app ->
+            getApp(packageName).collect { app ->
                 appViewModel.insertApp(app)
             }
         }
