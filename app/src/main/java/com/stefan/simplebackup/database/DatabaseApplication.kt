@@ -1,7 +1,7 @@
 package com.stefan.simplebackup.database
 
 import android.app.Application
-import com.stefan.simplebackup.data.AppBuilder
+import com.stefan.simplebackup.data.AppManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 
@@ -12,14 +12,20 @@ class DatabaseApplication : Application() {
      * - App Builder class reference
      * - Used to create [Application] objects in ViewModel or Database Callback
      */
-    private val appBuilder: AppBuilder by lazy { AppBuilder(this) }
+    private val appManager: AppManager by lazy { AppManager(this) }
 
     /**
      * - Reference to singleton object of [AppDatabase] class
      * - Used to create, open, update Room SQL database
      * - It is controlled by [AppRepository] which uses [AppDao] exposed interface methods
      */
-    private val database by lazy { AppDatabase.getDbInstance(this, applicationScope, getAppBuilder) }
+    private val database by lazy {
+        AppDatabase.getDbInstance(
+            this,
+            applicationScope,
+            getAppManager
+        )
+    }
 
     /**
      * - Used to update Room [AppDatabase] content by using [AppDao] methods
@@ -32,7 +38,7 @@ class DatabaseApplication : Application() {
     val getRepository get() = repository
 
     /**
-     * - Get [AppBuilder] reference
+     * - Get [AppManager] reference
      */
-    val getAppBuilder get() = appBuilder
+    val getAppManager get() = appManager
 }

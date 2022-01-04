@@ -129,7 +129,7 @@ open class MainActivity : AppCompatActivity() {
             if (selectedFragment != null) {
                 supportFragmentManager.commit {
                     setReorderingAllowed(true)
-                    setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                    setTransition(FragmentTransaction.TRANSIT_NONE)
                     addToBackStack(null)
                     replace(currentFragmentId, selectedFragment)
                 }

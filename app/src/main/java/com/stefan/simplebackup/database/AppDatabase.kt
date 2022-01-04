@@ -6,7 +6,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.stefan.simplebackup.data.AppBuilder
+import com.stefan.simplebackup.data.AppManager
 import com.stefan.simplebackup.data.Application
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.collect
@@ -22,24 +22,24 @@ abstract class AppDatabase : RoomDatabase() {
 
     private class AppDatabaseCallback(
         private val scope: CoroutineScope,
-        private val appBuilder: AppBuilder
+        private val appManager: AppManager
     ) :
         RoomDatabase.Callback() {
 
         private val appDao by lazy { INSTANCE?.appDao() }
 
         private suspend fun insertAll() {
-            val appList = appBuilder.getApplicationList()
+            val appList = appManager.getApplicationList()
             appList.forEach { app ->
                 appDao?.insert(app)
             }
         }
 
         private suspend fun deleteOrUpdate() {
-            Log.d("AppDatabase","Calling the deleteOrUpdate()")
-            appBuilder.getChangedPackageNames().collect { packageName ->
-                if (appBuilder.doesPackageExists(packageName)) {
-                    appBuilder.build(packageName).collect { app ->
+            Log.d("AppDatabase", "Calling the deleteOrUpdate()")
+            appManager.getChangedPackageNames().collect { packageName ->
+                if (appManager.doesPackageExists(packageName)) {
+                    appManager.build(packageName).collect { app ->
                         appDao?.insert(app)
                     }
                 } else {
@@ -70,14 +70,14 @@ abstract class AppDatabase : RoomDatabase() {
         fun getDbInstance(
             context: Context,
             scope: CoroutineScope,
-            appBuilder: AppBuilder
+            appManager: AppManager
         ): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java, "app_database"
                 )
-                    .addCallback(AppDatabaseCallback(scope, appBuilder))
+                    .addCallback(AppDatabaseCallback(scope, appManager))
                     .build()
                 INSTANCE = instance
                 instance

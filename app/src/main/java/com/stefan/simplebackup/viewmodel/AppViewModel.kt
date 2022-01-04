@@ -4,19 +4,18 @@ import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.*
 import com.stefan.simplebackup.broadcasts.BroadcastListener
-import com.stefan.simplebackup.data.AppBuilder
+import com.stefan.simplebackup.data.AppManager
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.database.AppRepository
 import com.stefan.simplebackup.database.DatabaseApplication
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class AppViewModel(application: DatabaseApplication) :
     ViewModel(), BroadcastListener {
     private val repository: AppRepository = application.getRepository
-    private val appBuilder: AppBuilder = application.getAppBuilder
+    private val appManager: AppManager = application.getAppManager
 
     private lateinit var state: Parcelable
     val restoreRecyclerViewState: Parcelable get() = state
@@ -30,9 +29,12 @@ class AppViewModel(application: DatabaseApplication) :
     val getAllApps: LiveData<MutableList<Application>>
         get() = _allApps
 
+    private var _areAppsLoaded = MutableLiveData(false)
+    val areAppsLoaded: LiveData<Boolean> get() = _areAppsLoaded
+
     init {
-        launchListLoading { getAllApps() }
-        Log.d("viewmodel", "AppViewModel created")
+        launchListLoading { getAllAppsFromRepository() }
+        Log.d("ViewModel", "AppViewModel created")
     }
 
     fun saveRecyclerViewState(parcelable: Parcelable) {
@@ -47,15 +49,15 @@ class AppViewModel(application: DatabaseApplication) :
         repository.delete(packageName)
     }
 
-    private fun getAllApps(): LiveData<MutableList<Application>> {
+    private fun getAllAppsFromRepository(): LiveData<MutableList<Application>> {
         return repository.getAllApps
     }
 
     suspend fun refreshPackageList() {
         viewModelScope.launch(Dispatchers.IO) {
-            appBuilder.getChangedPackageNames().collect { packageName ->
-                if (appBuilder.doesPackageExists(packageName)) {
-                    appBuilder.build(packageName).collect { app ->
+            appManager.getChangedPackageNames().collect { packageName ->
+                if (appManager.doesPackageExists(packageName)) {
+                    appManager.build(packageName).collect { app ->
                         insertApp(app)
                     }
                 } else {
@@ -66,7 +68,7 @@ class AppViewModel(application: DatabaseApplication) :
     }
 
     override suspend fun addOrUpdatePackage(packageName: String) {
-        with(appBuilder) {
+        with(appManager) {
             build(packageName).collect { app ->
                 insertApp(app)
             }
@@ -81,19 +83,18 @@ class AppViewModel(application: DatabaseApplication) :
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _allApps = block()
+                _areAppsLoaded.postValue(::_allApps.isInitialized)
             } catch (error: Throwable) {
                 println(error.message)
             } finally {
-                withContext(Dispatchers.Main) {
-                    _spinner.postValue(false)
-                }
+                _spinner.postValue(false)
             }
         }
     }
 
     override fun onCleared() {
         super.onCleared()
-        Log.d("viewmodel", "AppViewModel cleared")
+        Log.d("ViewModel", "AppViewModel cleared")
     }
 }
 

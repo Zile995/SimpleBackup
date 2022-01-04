@@ -66,7 +66,6 @@ class AppListFragment : Fragment() {
         scope.launch {
             if (isAdded) {
                 bindViews()
-                binding.progressBar.visibility = View.VISIBLE
                 if (savedInstanceState != null) {
                     binding.progressBar.visibility = View.GONE
                 }
@@ -200,19 +199,23 @@ class AppListFragment : Fragment() {
     }
 
     private fun setAppViewModelObservers() {
-        appViewModel.getAllApps.observe(viewLifecycleOwner, {
-            it.let {
-                appAdapter.setData(it)
-                applicationList = it
-            }
-        })
-
-        appViewModel.spinner.observe(viewLifecycleOwner, { value ->
-            value.let {
-                scope.launch {
-                    binding.progressBar.visibility =
-                        if (value) View.VISIBLE else View.GONE
-                }
+        appViewModel.areAppsLoaded.observe(viewLifecycleOwner, { initialized ->
+            // Do nothing, break the loop on initialization
+            // Prevent observing data list when lateinit property is not initialized
+            // Fixes the blank recyclerview list on some devices when the application is launched for the first time
+            if (initialized) {
+                appViewModel.getAllApps.observe(viewLifecycleOwner, { appList ->
+                    appList.let {
+                        appAdapter.setData(appList)
+                        applicationList = appList
+                    }
+                })
+                appViewModel.spinner.observe(viewLifecycleOwner, { value ->
+                    scope.launch {
+                        binding.progressBar.visibility =
+                            if (value) View.VISIBLE else View.GONE
+                    }
+                })
             }
         })
     }

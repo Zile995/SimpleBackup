@@ -14,7 +14,7 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.system.measureTimeMillis
 
-class AppBuilder(private val context: Context) {
+class AppManager(private val context: Context) {
 
     private val packageSharedPref = context.getSharedPreferences("package", Context.MODE_PRIVATE)
 
@@ -38,15 +38,15 @@ class AppBuilder(private val context: Context) {
         val savedSequence = packageSharedPref.getInt("sequence_number", 0)
         val changedPackages = packageManager.getChangedPackages(savedSequence)
         changedPackages?.let { changed ->
-                packageSharedPref.apply {
-                    edit()
-                        .putInt("sequence_number", changed.sequenceNumber)
-                        .apply()
-                }
-                changed.packageNames.forEach { packageName ->
-                    emit(packageName)
-                }
+            packageSharedPref.apply {
+                edit()
+                    .putInt("sequence_number", changed.sequenceNumber)
+                    .apply()
             }
+            changed.packageNames.forEach { packageName ->
+                emit(packageName)
+            }
+        }
     }
 
     fun doesPackageExists(packageName: String): Boolean {

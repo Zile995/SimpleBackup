@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.lifecycle.asFlow
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.stefan.simplebackup.data.AppBuilder
+import com.stefan.simplebackup.data.AppManager
 import com.stefan.simplebackup.database.AppDatabase
 import com.stefan.simplebackup.database.AppRepository
 import kotlinx.coroutines.*
@@ -16,21 +16,25 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) : Corouti
     params
 ) {
     private val scope = CoroutineScope(Job() + Dispatchers.IO)
-    private val appBuilder = AppBuilder(appContext)
-    private val database = AppDatabase.getDbInstance(applicationContext, scope, appBuilder)
+    private val appManager = AppManager(appContext)
+    private val database = AppDatabase.getDbInstance(applicationContext, scope, appManager)
     private val repository = AppRepository(database.appDao())
 
     override suspend fun doWork(): Result = coroutineScope {
         try {
             withContext(Dispatchers.IO) {
-                val newList = appBuilder.getApplicationList().toMutableList()
-                newList.forEach {
-                    repository.insert(it)
+                launch {
+                    val newList = appManager.getApplicationList().toMutableList()
+                    newList.forEach { newApp ->
+                        repository.insert(newApp)
+                    }
                 }
-                repository.getAllApps.asFlow().collect {
-                    it.forEach { app ->
-                        if (!appBuilder.doesPackageExists(app.getPackageName())) {
-                            repository.delete(app.getPackageName())
+                launch {
+                    repository.getAllApps.asFlow().collect { databaseList ->
+                        databaseList.forEach { app ->
+                            if (!appManager.doesPackageExists(app.getPackageName())) {
+                                repository.delete(app.getPackageName())
+                            }
                         }
                     }
                 }
