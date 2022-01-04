@@ -11,7 +11,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.activities.MainActivity
 import com.stefan.simplebackup.adapter.AppAdapter
@@ -38,12 +37,13 @@ class AppListFragment : Fragment() {
     // Application data list and ViewModel
     private var applicationList = mutableListOf<Application>()
 
-    private var delay: Long = 250
+    private var _appAdapter: AppAdapter? = null
+    private val appAdapter get() = _appAdapter!!
 
     // ViewModel
     private val appViewModel: AppViewModel by activityViewModels {
         val mainApplication = activity.application as DatabaseApplication
-        AppViewModelFactory(mainApplication.getRepository, mainApplication.getAppBuilder)
+        AppViewModelFactory(mainApplication)
     }
 
     override fun onCreateView(
@@ -62,35 +62,31 @@ class AppListFragment : Fragment() {
         if (currentActivity is MainActivity) {
             activity = currentActivity
         }
-        val recyclerView = binding.recyclerView
-        val appAdapter = AppAdapter(requireContext())
-        delay = if (requireContext().getDatabasePath("app_database").exists()) 0 else 250
+        _appAdapter = AppAdapter(requireContext())
         scope.launch {
             if (isAdded) {
-                bindViews(recyclerView, appAdapter)
+                bindViews()
                 binding.progressBar.visibility = View.VISIBLE
                 if (savedInstanceState != null) {
-                    delay = 0
                     binding.progressBar.visibility = View.GONE
                 }
-                delay(delay)
-                setAppViewModelObservers(appAdapter)
+                setAppViewModelObservers()
                 restoreRecyclerViewState()
             }
         }
     }
 
-    private fun bindViews(recyclerView: RecyclerView, appAdapter: AppAdapter) {
-        createToolBar(appAdapter)
-        createRecyclerView(recyclerView, appAdapter)
-        createSwipeContainer(appAdapter)
-        createFloatingButton(recyclerView)
+    private fun bindViews() {
+        createToolBar()
+        createRecyclerView()
+        createSwipeContainer()
+        createFloatingButton()
     }
 
     /**
      * - Inicijalizuj gornju traku, ili ToolBar
      */
-    private fun createToolBar(appAdapter: AppAdapter) {
+    private fun createToolBar() {
         val toolBar = binding.toolBar
 
         toolBar.setOnMenuItemClickListener {
@@ -120,8 +116,8 @@ class AppListFragment : Fragment() {
      * - Inicijalizuj recycler view
      */
     @SuppressLint("NotifyDataSetChanged")
-    private fun createRecyclerView(recyclerView: RecyclerView, appAdapter: AppAdapter) {
-        recyclerView.apply {
+    private fun createRecyclerView() {
+        binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = appAdapter
             setItemViewCacheSize(20)
@@ -129,7 +125,7 @@ class AppListFragment : Fragment() {
         }
     }
 
-    private fun createSwipeContainer(appAdapter: AppAdapter) {
+    private fun createSwipeContainer() {
         val swipeContainer = binding.swipeRefresh
 
         swipeContainer.setOnRefreshListener {
@@ -149,13 +145,13 @@ class AppListFragment : Fragment() {
     /**
      * - Inicijalizuj Floating dugme
      */
-    private fun createFloatingButton(recyclerView: RecyclerView) {
+    private fun createFloatingButton() {
         val floatingButton = binding.floatingButton
         floatingButton.hide()
-        hideButton(floatingButton, recyclerView)
+        hideButton()
 
         floatingButton.setOnClickListener {
-            recyclerView.smoothScrollToPosition(0)
+            binding.recyclerView.smoothScrollToPosition(0)
         }
     }
 
@@ -164,17 +160,17 @@ class AppListFragment : Fragment() {
      * - Ako je dy > 0, odnosno kada skrolujemo prstom na gore i ako je prikazano dugme, sakrij ga
      * - Ako je dy < 0, odnosno kada skrolujemo prstom na dole i ako je sakriveno dugme, prikaži ga
      */
-    private fun hideButton(floatingButton: FloatingActionButton, recyclerView: RecyclerView) {
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+    private fun hideButton() {
+        binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                if (dy > 0 && floatingButton.isShown) {
-                    floatingButton.hide()
+                if (dy > 0 && binding.floatingButton.isShown) {
+                    binding.floatingButton.hide()
 
 
-                } else if (dy < 0 && !floatingButton.isShown) {
-                    floatingButton.show()
+                } else if (dy < 0 && !binding.floatingButton.isShown) {
+                    binding.floatingButton.show()
                 }
             }
 
@@ -185,13 +181,13 @@ class AppListFragment : Fragment() {
                     && recyclerView.canScrollVertically(-1)
                     && newState == RecyclerView.SCROLL_STATE_IDLE
                 ) {
-                    floatingButton.show()
+                    binding.floatingButton.show()
                 } else if (recyclerView.canScrollVertically(1)
                     && !recyclerView.canScrollVertically(
                         -1
                     )
                 ) {
-                    floatingButton.hide()
+                    binding.floatingButton.hide()
                 }
             }
         })
@@ -203,7 +199,7 @@ class AppListFragment : Fragment() {
         }
     }
 
-    private fun setAppViewModelObservers(appAdapter: AppAdapter) {
+    private fun setAppViewModelObservers() {
         appViewModel.getAllApps.observe(viewLifecycleOwner, {
             it.let {
                 appAdapter.setData(it)
@@ -232,6 +228,6 @@ class AppListFragment : Fragment() {
         super.onDestroyView()
         scope.cancel()
         _binding = null
+        _appAdapter = null
     }
-
 }

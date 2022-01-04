@@ -19,7 +19,6 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.broadcasts.BroadcastListener
 import com.stefan.simplebackup.broadcasts.PackageBroadcastReceiver
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.ActivityMainBinding
@@ -30,10 +29,9 @@ import com.stefan.simplebackup.utils.RootChecker
 import com.stefan.simplebackup.viewmodel.AppViewModel
 import com.stefan.simplebackup.viewmodel.AppViewModelFactory
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 import java.util.*
 
-open class MainActivity : AppCompatActivity(), BroadcastListener {
+open class MainActivity : AppCompatActivity() {
     // Const values
     companion object {
         private const val STORAGE_PERMISSION_CODE: Int = 500
@@ -54,11 +52,16 @@ open class MainActivity : AppCompatActivity(), BroadcastListener {
     // ViewModel
     private val appViewModel: AppViewModel by viewModels {
         val mainApplication = application as DatabaseApplication
-        AppViewModelFactory(mainApplication.getRepository, mainApplication.getAppBuilder)
+        AppViewModelFactory(mainApplication)
     }
 
     // Broadcast Receiver
-    private val receiver: PackageBroadcastReceiver by lazy { PackageBroadcastReceiver(this, scope) }
+    private val receiver: PackageBroadcastReceiver by lazy {
+        PackageBroadcastReceiver(
+            appViewModel,
+            scope
+        )
+    }
 
     // Flags
     private var isSubmitted: Boolean = false
@@ -126,7 +129,7 @@ open class MainActivity : AppCompatActivity(), BroadcastListener {
             if (selectedFragment != null) {
                 supportFragmentManager.commit {
                     setReorderingAllowed(true)
-                    setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+                    setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
                     addToBackStack(null)
                     replace(currentFragmentId, selectedFragment)
                 }
@@ -143,7 +146,6 @@ open class MainActivity : AppCompatActivity(), BroadcastListener {
             false
     }
 
-
     private fun prepareActivity(savedInstanceState: Bundle?) {
         if (savedInstanceState != null) {
             // Pokupi sačuvano informaciju o tome da li je postavljen root upit.
@@ -158,6 +160,7 @@ open class MainActivity : AppCompatActivity(), BroadcastListener {
         registerReceiver(receiver, IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED)
             addAction(Intent.ACTION_PACKAGE_REMOVED)
+            addAction(Intent.ACTION_PACKAGE_REPLACED)
             addDataScheme("package")
         })
     }
@@ -335,18 +338,5 @@ open class MainActivity : AppCompatActivity(), BroadcastListener {
         scope.cancel()
         unregisterReceiver(receiver)
         super.onDestroy()
-    }
-
-    override suspend fun addOrUpdatePackages(packageName: String) {
-        val mainApplication = application as DatabaseApplication
-        with(mainApplication.getAppBuilder) {
-            getApp(packageName).collect { app ->
-                appViewModel.insertApp(app)
-            }
-        }
-    }
-
-    override suspend fun removePackages(packageName: String) {
-        appViewModel.deleteApp(packageName)
     }
 }

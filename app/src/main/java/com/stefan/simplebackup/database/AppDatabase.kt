@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.database
 
 import android.content.Context
+import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -27,7 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         private val appDao by lazy { INSTANCE?.appDao() }
 
-        private suspend fun insert() {
+        private suspend fun insertAll() {
             val appList = appBuilder.getApplicationList()
             appList.forEach { app ->
                 appDao?.insert(app)
@@ -35,15 +36,14 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         private suspend fun deleteOrUpdate() {
-            appBuilder.getChangedPackageNames().collect { hashMap ->
-                hashMap.forEach { entry ->
-                    if (entry.value) {
-                        appBuilder.getApp(entry.key).collect { app ->
-                            appDao?.insert(app)
-                        }
-                    } else {
-                        appDao?.delete(entry.key)
+            Log.d("AppDatabase","Calling the deleteOrUpdate()")
+            appBuilder.getChangedPackageNames().collect { packageName ->
+                if (appBuilder.doesPackageExists(packageName)) {
+                    appBuilder.build(packageName).collect { app ->
+                        appDao?.insert(app)
                     }
+                } else {
+                    appDao?.delete(packageName)
                 }
             }
         }
@@ -51,7 +51,7 @@ abstract class AppDatabase : RoomDatabase() {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             scope.launch {
-                insert()
+                insertAll()
             }
         }
 
@@ -84,5 +84,4 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
     }
-
 }

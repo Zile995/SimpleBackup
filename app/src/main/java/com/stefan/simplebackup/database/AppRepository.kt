@@ -6,7 +6,6 @@ import com.stefan.simplebackup.data.Application
 import kotlinx.coroutines.flow.Flow
 
 class AppRepository(private val appDao: AppDao) {
-
     private val _allApps: Flow<MutableList<Application>> = getAppList()
     val getAllApps: LiveData<MutableList<Application>> get() = _allApps.asLiveData()
 
@@ -19,5 +18,4 @@ class AppRepository(private val appDao: AppDao) {
     suspend fun delete(packageName: String) {
         appDao.delete(packageName)
     }
-
 }

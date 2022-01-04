@@ -90,6 +90,9 @@ dependencies {
     // Kotlin serialization
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$rootProject.kotlinSerializationVersiom"
 
+    // WorkManager kotlin + coroutines
+    implementation "androidx.work:work-runtime-ktx:$rootProject.workVersion"
+
     // Kotlin Room
     implementation "androidx.room:room-runtime:$rootProject.roomVersion"
     annotationProcessor "androidx.room:room-compiler:$rootProject.roomVersion"

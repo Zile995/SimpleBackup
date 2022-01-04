@@ -1,15 +1,13 @@
 package com.stefan.simplebackup.database
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import com.stefan.simplebackup.data.Application
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AppDao {
     @Query("SELECT * FROM app_table ORDER BY name ASC")
+    @Transaction
     fun getAppList(): Flow<MutableList<Application>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

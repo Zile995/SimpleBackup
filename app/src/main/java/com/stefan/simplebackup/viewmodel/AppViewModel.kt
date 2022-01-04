@@ -3,16 +3,24 @@ package com.stefan.simplebackup.viewmodel
 import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.*
+import com.stefan.simplebackup.broadcasts.BroadcastListener
 import com.stefan.simplebackup.data.AppBuilder
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.database.AppRepository
+import com.stefan.simplebackup.database.DatabaseApplication
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
-class AppViewModel(private val repository: AppRepository, private val appBuilder: AppBuilder) :
-    ViewModel() {
+class AppViewModel(application: DatabaseApplication) :
+    ViewModel(), BroadcastListener {
+    private val repository: AppRepository = application.getRepository
+    private val appBuilder: AppBuilder = application.getAppBuilder
 
     private lateinit var state: Parcelable
+    val restoreRecyclerViewState: Parcelable get() = state
+    val isStateInitialized: Boolean get() = ::state.isInitialized
 
     private var _spinner = MutableLiveData(true)
     val spinner: LiveData<Boolean>
@@ -21,9 +29,6 @@ class AppViewModel(private val repository: AppRepository, private val appBuilder
     private lateinit var _allApps: LiveData<MutableList<Application>>
     val getAllApps: LiveData<MutableList<Application>>
         get() = _allApps
-
-    val restoreRecyclerViewState: Parcelable get() = state
-    val isStateInitialized: Boolean get() = ::state.isInitialized
 
     init {
         launchListLoading { getAllApps() }
@@ -34,11 +39,11 @@ class AppViewModel(private val repository: AppRepository, private val appBuilder
         state = parcelable
     }
 
-    fun insertApp(app: Application) = viewModelScope.launch {
+    private fun insertApp(app: Application) = viewModelScope.launch {
         repository.insert(app)
     }
 
-    fun deleteApp(packageName: String) = viewModelScope.launch {
+    private fun deleteApp(packageName: String) = viewModelScope.launch {
         repository.delete(packageName)
     }
 
@@ -47,31 +52,41 @@ class AppViewModel(private val repository: AppRepository, private val appBuilder
     }
 
     suspend fun refreshPackageList() {
-        viewModelScope.launch {
-            appBuilder.getChangedPackageNames().collect { hashMap ->
-                hashMap.forEach { entry ->
-                    if (entry.value) {
-                        with(appBuilder) {
-                            getApp(entry.key).collect { app ->
-                                insertApp(app)
-                            }
-                        }
-                    } else {
-                        deleteApp(entry.key)
+        viewModelScope.launch(Dispatchers.IO) {
+            appBuilder.getChangedPackageNames().collect { packageName ->
+                if (appBuilder.doesPackageExists(packageName)) {
+                    appBuilder.build(packageName).collect { app ->
+                        insertApp(app)
                     }
+                } else {
+                    deleteApp(packageName)
                 }
             }
         }
     }
 
+    override suspend fun addOrUpdatePackage(packageName: String) {
+        with(appBuilder) {
+            build(packageName).collect { app ->
+                insertApp(app)
+            }
+        }
+    }
+
+    override suspend fun deletePackage(packageName: String) {
+        deleteApp(packageName)
+    }
+
     private fun launchListLoading(block: () -> LiveData<MutableList<Application>>) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 _allApps = block()
             } catch (error: Throwable) {
                 println(error.message)
             } finally {
-                _spinner.postValue(false)
+                withContext(Dispatchers.Main) {
+                    _spinner.postValue(false)
+                }
             }
         }
     }
@@ -82,12 +97,14 @@ class AppViewModel(private val repository: AppRepository, private val appBuilder
     }
 }
 
-class AppViewModelFactory(private val repository: AppRepository, private val appBuilder: AppBuilder) :
+class AppViewModelFactory(
+    private val application: DatabaseApplication
+) :
     ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AppViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AppViewModel(repository, appBuilder) as T
+            return AppViewModel(application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

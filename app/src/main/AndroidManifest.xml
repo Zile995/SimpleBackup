@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.stefan.simplebackup">
 
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -30,10 +31,13 @@
         android:testOnly="false"
         android:theme="@style/Theme.SimpleBackup">
         <receiver
-            android:name=".broadcasts.PackageReceiver"
+            android:name=".broadcasts.BootBroadcastReceiver"
             android:enabled="true"
             android:exported="true">
-
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
         </receiver>
         <activity
             android:name=".activities.shell.SplashActivity"

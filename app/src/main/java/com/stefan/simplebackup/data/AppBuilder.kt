@@ -16,7 +16,7 @@ import kotlin.system.measureTimeMillis
 
 class AppBuilder(private val context: Context) {
 
-    private var sequenceNumber: Int = 0
+    private val packageSharedPref = context.getSharedPreferences("package", Context.MODE_PRIVATE)
 
     /**
      * - Sadrži [PackageManager]
@@ -32,22 +32,24 @@ class AppBuilder(private val context: Context) {
     /**
      * - Vrati kreiran [Application] objekat
      */
-    fun getApp(packageName: String) = getAppObject(getPackageApplicationInfo(packageName))
+    fun build(packageName: String) = getAppObject(getPackageApplicationInfo(packageName))
 
-    fun getChangedPackageNames(): Flow<HashMap<String, Boolean>> = flow {
-        val hashMap = HashMap<String, Boolean>()
-        val changedPackages = packageManager.getChangedPackages(sequenceNumber)
-        changedPackages?.let {
-            sequenceNumber = it.sequenceNumber
-            for (i in 0 until it.packageNames.size) {
-                val packageName = it.packageNames[i]
-                hashMap[packageName] = doesPackageExists(packageName)
-                emit(hashMap)
+    fun getChangedPackageNames(): Flow<String> = flow {
+        val savedSequence = packageSharedPref.getInt("sequence_number", 0)
+        val changedPackages = packageManager.getChangedPackages(savedSequence)
+        changedPackages?.let { changed ->
+                packageSharedPref.apply {
+                    edit()
+                        .putInt("sequence_number", changed.sequenceNumber)
+                        .apply()
+                }
+                changed.packageNames.forEach { packageName ->
+                    emit(packageName)
+                }
             }
-        }
     }
 
-    private fun doesPackageExists(packageName: String): Boolean {
+    fun doesPackageExists(packageName: String): Boolean {
         try {
             packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
         } catch (e: PackageManager.NameNotFoundException) {
@@ -56,10 +58,10 @@ class AppBuilder(private val context: Context) {
         return true
     }
 
-    private fun getPackageApplicationInfo(packageName: String) = packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+    private fun getPackageApplicationInfo(packageName: String) =
+        packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
 
     /**
-     * - Vrat
      * - Koristi se kada se Database prvi put kreira.
      */
     suspend fun getApplicationList(): MutableList<Application> {
@@ -135,7 +137,6 @@ class AppBuilder(private val context: Context) {
                 getApkSize(apkDir),
                 1
             )
-
             emit(application)
         }
     }
@@ -162,5 +163,4 @@ class AppBuilder(private val context: Context) {
             }
         }
     }
-
 }

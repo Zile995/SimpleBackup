@@ -23,8 +23,7 @@ import java.io.ByteArrayOutputStream
 
 class AppAdapter(context: Context) :
     ListAdapter<Application, AppAdapter.AppViewHolder>(AppDiffCallBack()), Filterable {
-
-    private var appList = currentList
+    private var appList = mutableListOf<Application>()
     private var mainContext = context
 
     class AppViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
@@ -94,8 +93,8 @@ class AppAdapter(context: Context) :
         }
     }
 
-    fun setData(list: MutableList<Application>?) {
-        appList = list!!
+    fun setData(list: MutableList<Application>) {
+        appList = list
         submitList(appList)
     }
 
@@ -130,7 +129,9 @@ class AppAdapter(context: Context) :
 
 class AppDiffCallBack : DiffUtil.ItemCallback<Application>() {
     override fun areItemsTheSame(oldItem: Application, newItem: Application): Boolean {
-        return oldItem.getName() == newItem.getName()
+        return oldItem.getName() == newItem.getName() &&
+                oldItem.getPackageName() == newItem.getPackageName() &&
+                oldItem.getVersionName() == newItem.getVersionName()
     }
 
     override fun areContentsTheSame(oldItem: Application, newItem: Application): Boolean {

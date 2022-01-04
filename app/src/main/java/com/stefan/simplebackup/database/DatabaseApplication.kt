@@ -15,14 +15,14 @@ class DatabaseApplication : Application() {
     private val appBuilder: AppBuilder by lazy { AppBuilder(this) }
 
     /**
-     * - One reference to singleton [AppDatabase] class
+     * - Reference to singleton object of [AppDatabase] class
      * - Used to create, open, update Room SQL database
      * - It is controlled by [AppRepository] which uses [AppDao] exposed interface methods
      */
     private val database by lazy { AppDatabase.getDbInstance(this, applicationScope, getAppBuilder) }
 
     /**
-     * - Used to update Room [AppDatabase] content using [AppDao] methods
+     * - Used to update Room [AppDatabase] content by using [AppDao] methods
      */
     private val repository by lazy { AppRepository(database.appDao()) }
 

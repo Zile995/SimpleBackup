@@ -11,19 +11,22 @@ class PackageBroadcastReceiver(
     private val scope: CoroutineScope
 ) : BroadcastReceiver() {
 
+    /**
+     * - This Broadcast intents works while application is running
+     */
     override fun onReceive(context: Context, intent: Intent) {
         scope.launch {
             intent.data?.let {
                 val packageName = it.encodedSchemeSpecificPart
                 when (intent.action) {
                     Intent.ACTION_PACKAGE_ADDED -> {
-                        broadcastListener.addOrUpdatePackages(packageName)
+                        broadcastListener.addOrUpdatePackage(packageName)
                     }
                     Intent.ACTION_PACKAGE_REMOVED -> {
-                        broadcastListener.removePackages(packageName)
+                        broadcastListener.deletePackage(packageName)
                     }
                     Intent.ACTION_PACKAGE_REPLACED -> {
-                        broadcastListener.addOrUpdatePackages(packageName)
+                        broadcastListener.addOrUpdatePackage(packageName)
                     }
                 }
             }
