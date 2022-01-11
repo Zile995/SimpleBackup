@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.fragments
+package com.stefan.simplebackup.ui.fragments
 
 import android.os.Bundle
 import android.util.Log
@@ -11,12 +11,12 @@ import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.adapter.RestoreAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
 import com.stefan.simplebackup.utils.FileUtil
+import com.stefan.simplebackup.utils.backup.ROOT
 import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -26,20 +26,18 @@ import java.io.File
  * A simple [Fragment] subclass.
  */
 class RestoreListFragment : Fragment() {
-
-    companion object {
-        private const val ROOT: String = "SimpleBackup/local"
-    }
-
     // Binding
     private var _binding: FragmentRestoreListBinding? = null
     private val binding get() = _binding!!
+
+    // Restore List Adapter
+    private var _restoreAdapter: RestoreAdapter? = null
+    private val restoreAdapter get() = _restoreAdapter!!
 
     // Coroutine scope
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private var applicationList = mutableListOf<Application>()
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,12 +51,10 @@ class RestoreListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val recyclerView = binding.restoreRecyclerView
-        val restoreAdapter = RestoreAdapter(requireContext())
+        _restoreAdapter = RestoreAdapter(requireContext())
         scope.launch {
-            delay(210)
             if (isAdded) {
-                bindViews(recyclerView, restoreAdapter)
+                bindViews()
                 launch {
                     getStoredPackages()
                 }.join()
@@ -70,30 +66,22 @@ class RestoreListFragment : Fragment() {
         }
     }
 
-    override fun onDestroyView() {
-        super.onDestroyView()
-        scope.cancel()
-        _binding = null
+    private fun bindViews() {
+        createToolBar()
+        createRecyclerView()
+        createSwipeContainer()
+        createFloatingButton()
     }
 
-    private fun bindViews(recyclerView: RecyclerView, restoreAdapter: RestoreAdapter) {
-        createToolBar(restoreAdapter)
-        createRecyclerView(recyclerView, restoreAdapter)
-        createSwipeContainer(restoreAdapter)
-        createFloatingButton(recyclerView)
-    }
-
-    private fun createSwipeContainer(restoreAdapter: RestoreAdapter) {
-        val swipeContainer = binding.swipeRefresh
-
-        swipeContainer.setOnRefreshListener {
+    private fun createSwipeContainer() {
+        binding.swipeRefresh.setOnRefreshListener {
             scope.launch {
                 val refresh = launch {
-                    refreshStoredPackages()
+                    getStoredPackages()
                 }
                 refresh.join()
                 launch {
-                    swipeContainer.isRefreshing = false
+                    binding.swipeRefresh.isRefreshing = false
                     delay(250)
                     restoreAdapter.setData(applicationList)
                 }
@@ -101,68 +89,60 @@ class RestoreListFragment : Fragment() {
         }
     }
 
-    private fun createRecyclerView(recyclerView: RecyclerView, restoreAdapter: RestoreAdapter) {
-        recyclerView.adapter = restoreAdapter
-        recyclerView.setHasFixedSize(true)
-        recyclerView.setItemViewCacheSize(20)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+    private fun createRecyclerView() {
+        binding.restoreRecyclerView.apply {
+            adapter = restoreAdapter
+            setHasFixedSize(true)
+            setItemViewCacheSize(20)
+            layoutManager = LinearLayoutManager(requireContext())
+        }
     }
 
-
-    private suspend fun refreshStoredPackages() {
+    private suspend fun getStoredPackages() {
         withContext(Dispatchers.IO) {
-            getStoredPackages()
-        }
-    }
-
-    private fun getStoredPackages() {
-        val tempApps = mutableListOf<Application>()
-        val path = (requireContext().getExternalFilesDir(null)!!.absolutePath).run {
-            substring(0, indexOf("Android")).plus(ROOT)
-        }
-        val dir = File(path)
-        if (dir.exists()) {
-            val listFiles = dir.listFiles()
-
-            if (!listFiles.isNullOrEmpty()) {
-                listFiles.forEach { file ->
-                    if (file.isDirectory) {
-                        Log.d("listdirs", file.toString())
-                        file.listFiles()?.filter {
-                            it.isFile
-                        }?.forEach {
-                            var application: Application
-                            if (it.absolutePath.contains(".json")) {
-                                Log.d("listfiles", it.toString())
-                                File(it.absolutePath).inputStream().bufferedReader()
+            val tempApps = mutableListOf<Application>()
+            requireContext().getExternalFilesDir(null)?.absolutePath?.run {
+                substring(0, indexOf("Android")) + ROOT
+            }?.let { path ->
+                val dir = File(path)
+                if (dir.exists()) {
+                    dir.listFiles()?.forEach { appDirList ->
+                        appDirList.listFiles()?.filter { appDirFile ->
+                            appDirFile.isFile && appDirFile.extension == "json"
+                        }?.forEach { jsonFile ->
+                            runCatching {
+                                jsonFile.inputStream()
+                                    .bufferedReader()
                                     .use { reader ->
-                                        val string = reader.readLine()
-                                        Log.d("asdf", string)
-                                        application = Json.decodeFromString(string)
+                                        val application: Application =
+                                            Json.decodeFromString(reader.readLine())
                                         tempApps.add(application)
                                     }
+                            }.onFailure { throwable ->
+                                throwable.message?.let { message ->
+                                    Log.e("Serialization", message)
+                                }
                             }
                         }
                     }
+                    applicationList.clear()
+                    applicationList.addAll(tempApps)
+                    applicationList.sortBy { it.getName() }
+                } else {
+                    FileUtil.apply {
+                        createDirectory(path)
+                        createFile("$path/.nomedia")
+                    }
                 }
-            }
-            applicationList = tempApps
-            applicationList.sortBy { it.getName() }
-        } else {
-            with(FileUtil) {
-                createDirectory(path)
-                createFile(path.plus("/.nomedia"))
             }
         }
     }
 
-    private fun createToolBar(restoreAdapter: RestoreAdapter) {
-        val toolBar = binding.toolBar
-
-        toolBar.setOnMenuItemClickListener {
-            when (it.itemId) {
+    private fun createToolBar() {
+        binding.toolBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
                 R.id.search -> {
-                    val searchView = it?.actionView as SearchView
+                    val searchView = menuItem?.actionView as SearchView
                     searchView.imeOptions = EditorInfo.IME_ACTION_DONE
                     searchView.queryHint = "Search for apps"
 
@@ -182,26 +162,25 @@ class RestoreListFragment : Fragment() {
         }
     }
 
-    private fun createFloatingButton(recyclerView: RecyclerView) {
-        val floatingButton = binding.floatingButton
-        floatingButton.hide()
+    private fun createFloatingButton() {
+        binding.floatingButton.hide()
+        hideButton()
 
-        hideButton(recyclerView, floatingButton)
-
-        floatingButton.setOnClickListener {
-            recyclerView.smoothScrollToPosition(0)
+        binding.floatingButton.setOnClickListener {
+            binding.restoreRecyclerView.smoothScrollToPosition(0)
         }
     }
 
-    private fun hideButton(recyclerView: RecyclerView, floatingButton: FloatingActionButton) {
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+    private fun hideButton() {
+        binding.restoreRecyclerView.addOnScrollListener(object :
+            RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                if (dy > 0 && floatingButton.isShown) {
-                    floatingButton.hide()
-                } else if (dy < 0 && !floatingButton.isShown) {
-                    floatingButton.show()
+                if (dy > 0 && binding.floatingButton.isShown) {
+                    binding.floatingButton.hide()
+                } else if (dy < 0 && !binding.floatingButton.isShown) {
+                    binding.floatingButton.show()
                 }
             }
 
@@ -210,14 +189,21 @@ class RestoreListFragment : Fragment() {
 
                 // Ako ne može da skroluje više na dole (1 je down direction) i ako može ma gore (-1 up direction)
                 if (!recyclerView.canScrollVertically(1) && recyclerView.canScrollVertically(-1) && newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    floatingButton.show()
+                    binding.floatingButton.show()
                 } else if (recyclerView.canScrollVertically(1) && !recyclerView.canScrollVertically(
                         -1
                     )
                 ) {
-                    floatingButton.hide()
+                    binding.floatingButton.hide()
                 }
             }
         })
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        scope.cancel()
+        _binding = null
+        _restoreAdapter = null
     }
 }

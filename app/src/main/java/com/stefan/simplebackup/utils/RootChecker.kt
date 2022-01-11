@@ -31,7 +31,7 @@ class RootChecker(context: Context) {
     }
 
     private suspend fun hasSuBinary(): Boolean {
-        return withContext(Dispatchers.IO) {
+        return withContext(Dispatchers.Default) {
             val paths = System.getenv("PATH")
             if (!paths.isNullOrBlank()) {
                 val systemPaths: List<String> = paths.split(":")

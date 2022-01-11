@@ -16,7 +16,7 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.activities.backup.BackupActivity
+import com.stefan.simplebackup.ui.ui.backup.BackupActivity
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.utils.FileUtil
 import java.io.ByteArrayOutputStream

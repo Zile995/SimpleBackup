@@ -24,7 +24,7 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) : Corouti
         try {
             withContext(Dispatchers.IO) {
                 launch {
-                    val newList = appManager.getApplicationList().toMutableList()
+                    val newList = appManager.getApplicationList()
                     newList.forEach { newApp ->
                         repository.insert(newApp)
                     }
@@ -42,7 +42,7 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) : Corouti
                 Result.success()
             }
         } catch (e: Throwable) {
-            Log.e("BootPackageWorker", "Error updating database")
+            Log.e("BootPackageWorker", "Error updating database: + ${e.message}")
             Result.failure()
         }
     }

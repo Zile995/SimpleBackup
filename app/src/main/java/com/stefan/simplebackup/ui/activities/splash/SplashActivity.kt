@@ -1,17 +1,16 @@
-package com.stefan.simplebackup.activities.shell
+package com.stefan.simplebackup.ui.activities.splash
 
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import com.stefan.simplebackup.BuildConfig
-import com.stefan.simplebackup.activities.MainActivity
-import com.stefan.simplebackup.data.Application
+import com.stefan.simplebackup.ui.activities.main.MainActivity
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 
 class SplashActivity : Activity() {
-    companion object {
 
+    companion object {
         init {
             // Set settings before the main shell can be created
             Shell.enableVerboseLogging = BuildConfig.DEBUG

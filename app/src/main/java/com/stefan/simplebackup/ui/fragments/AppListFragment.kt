@@ -1,6 +1,5 @@
-package com.stefan.simplebackup.fragments
+package com.stefan.simplebackup.ui.fragments
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,11 +11,11 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.activities.MainActivity
 import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
+import com.stefan.simplebackup.ui.activities.main.MainActivity
 import com.stefan.simplebackup.viewmodel.AppViewModel
 import com.stefan.simplebackup.viewmodel.AppViewModelFactory
 import kotlinx.coroutines.*
@@ -114,7 +113,6 @@ class AppListFragment : Fragment() {
     /**
      * - Inicijalizuj recycler view
      */
-    @SuppressLint("NotifyDataSetChanged")
     private fun createRecyclerView() {
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())

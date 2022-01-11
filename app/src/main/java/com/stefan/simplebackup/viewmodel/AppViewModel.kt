@@ -9,6 +9,7 @@ import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.database.AppRepository
 import com.stefan.simplebackup.database.DatabaseApplication
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
@@ -81,13 +82,14 @@ class AppViewModel(application: DatabaseApplication) :
 
     private fun launchListLoading(block: () -> LiveData<MutableList<Application>>) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
+            runCatching {
                 _allApps = block()
                 _areAppsLoaded.postValue(::_allApps.isInitialized)
-            } catch (error: Throwable) {
-                println(error.message)
-            } finally {
+            }.onSuccess {
+                delay(200)
                 _spinner.postValue(false)
+            }.onFailure { throwable ->
+                throwable.message?.let { message -> Log.e("ViewModel", message) }
             }
         }
     }

@@ -3,7 +3,6 @@ plugins {
     id 'kotlin-android'
     id 'kotlin-kapt'
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.6.10-RC'
-    id 'androidx.navigation.safeargs.kotlin'
 }
 
 android {
@@ -14,7 +13,7 @@ android {
         minSdk 26
         targetSdk 29
         versionCode 20
-        versionName "1.2"
+        versionName "1.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
@@ -121,9 +120,11 @@ dependencies {
 
     //ViewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.lifecycleVersion"
+
     // LiveData
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$rootProject.lifecycleVersion"
 
+    // Leak Canary
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.7'
 
 }

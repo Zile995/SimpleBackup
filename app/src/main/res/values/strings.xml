@@ -34,8 +34,7 @@
     <string name="storage_perm_info">This permission is required to manage backup files and folders.
         \nPlease set the storage permission.</string>
     <string name="storage_perm_success">Storage permission granted successfully</string>
-    <string name="set_manually">SET MANUALLY</string>
-    <string name="exit">EXIT</string>
+    <string name="set_manually">Set Manually</string>
     <string name="filter">Filter</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>

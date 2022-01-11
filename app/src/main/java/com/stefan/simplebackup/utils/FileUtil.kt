@@ -4,8 +4,12 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.Log
-import java.io.ByteArrayOutputStream
-import java.io.File
+import com.stefan.simplebackup.data.Application
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.io.*
 import kotlin.math.pow
 
 class FileUtil private constructor() {
@@ -53,6 +57,20 @@ class FileUtil private constructor() {
             val bytes = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
             return bytes.toByteArray()
+        }
+
+        suspend fun appToJson(dir: String, app: Application) {
+            withContext(Dispatchers.Default) {
+                runCatching {
+                    val file = File(dir, app.getName() + ".json")
+                    OutputStreamWriter(FileOutputStream(file)).use { outputStreamWriter ->
+                        file.createNewFile()
+                        outputStreamWriter.append(Json.encodeToString(app))
+                    }
+                }.onFailure { throwable ->
+                    throwable.message?.let { message -> Log.e("Serialization", message) }
+                }
+            }
         }
     }
 }
