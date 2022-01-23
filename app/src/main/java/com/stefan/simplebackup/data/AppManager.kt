@@ -132,10 +132,8 @@ class AppManager(private val context: Context) {
                 appInfo.minSdkVersion,
                 appInfo.dataDir,
                 apkDir,
-                "",
-                "",
                 getApkSize(apkDir),
-                1
+                false
             )
             emit(application)
         }

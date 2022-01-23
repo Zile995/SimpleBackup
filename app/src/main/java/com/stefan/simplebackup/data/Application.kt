@@ -16,7 +16,7 @@ import kotlinx.serialization.Transient
 /**
  * Klasa koja će sadržati sve podatke o aplikaciji
  */
-@Entity(tableName = "app_table", indices = [Index(value = ["name", "package_name"], unique = true)])
+@Entity(tableName = "app_table", indices = [Index(value = ["package_name"], unique = true)])
 @Keep
 @Serializable
 data class Application(
@@ -36,30 +36,33 @@ data class Application(
     @ColumnInfo(name = "version_name")
     private var versionName: String = "",
 
+    @Transient
     @ColumnInfo(name = "target_sdk")
     private var targetSdk: Int = 0,
 
+    @Transient
     @ColumnInfo(name = "min_sdk")
     private var minSdk: Int = 0,
 
     @ColumnInfo(name = "data_dir")
     private var dataDir: String = "",
 
+    @Transient
     @ColumnInfo(name = "apk_dir")
     private var apkDir: String = "",
-
-    @ColumnInfo(name = "date")
-    private var date: String = "",
-
-    @ColumnInfo(name = "data_size")
-    private var dataSize: String = "",
 
     @ColumnInfo(name = "apk_size")
     private var apkSize: Float = 0f,
 
     @ColumnInfo(name = "favorites")
-    private var favorites: Int = 0
+    private var favorites: Boolean = false
 ) : Parcelable {
+
+    @ColumnInfo(name = "date")
+    private var date: String = ""
+
+    @ColumnInfo(name = "data_size")
+    private var dataSize: String = ""
 
     constructor(parcel: Parcel) : this() {
         readFromParcel(parcel)
@@ -88,7 +91,7 @@ data class Application(
         date = parcel.readString() ?: ""
         dataSize = parcel.readString() ?: ""
         apkSize = parcel.readFloat()
-        favorites = parcel.readInt()
+        parcel.readBooleanValue()?.let { booleanValue -> favorites = booleanValue }
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
@@ -105,7 +108,7 @@ data class Application(
         dest.writeString(date)
         dest.writeString(dataSize)
         dest.writeFloat(apkSize)
-        dest.writeInt(favorites)
+        dest.writeBooleanValue(favorites)
     }
 
     fun getUid() = this.uid
@@ -193,7 +196,7 @@ data class Application(
         this.apkSize = apkSize
     }
 
-    fun setFavorites(favorites: Int) {
+    fun setFavorites(favorites: Boolean) {
         this.favorites = favorites
     }
 
@@ -219,6 +222,22 @@ data class Application(
 
         override fun newArray(size: Int): Array<Application?> {
             return arrayOfNulls(size)
+        }
+
+        fun Parcel.writeBooleanValue(flag: Boolean?) {
+            when(flag) {
+                true -> writeInt(1)
+                false -> writeInt(0)
+                else -> writeInt(-1)
+            }
+        }
+
+        fun Parcel.readBooleanValue(): Boolean? {
+            return when(readInt()) {
+                1 -> true
+                0 -> false
+                else -> null
+            }
         }
     }
 }

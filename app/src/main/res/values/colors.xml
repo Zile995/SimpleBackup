@@ -28,7 +28,8 @@
 
     <!-- Card color -->
     <color name="card">#1D3558</color>
-    <color name="ripple">#1E375E</color>
+    <color name="selected_card">#24406C</color>
+    <color name="ripple">#223E69</color>
 
     <!-- Tab Layout-->
     <color name="selected">#758FD1</color>

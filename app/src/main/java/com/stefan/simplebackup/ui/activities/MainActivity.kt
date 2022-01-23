@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.ui.activities.main
+package com.stefan.simplebackup.ui.activities
 
 import android.content.Intent
 import android.content.IntentFilter

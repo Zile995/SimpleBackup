@@ -9,8 +9,6 @@ import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.database.AppRepository
 import com.stefan.simplebackup.database.DatabaseApplication
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class AppViewModel(application: DatabaseApplication) :
@@ -30,8 +28,8 @@ class AppViewModel(application: DatabaseApplication) :
     val getAllApps: LiveData<MutableList<Application>>
         get() = _allApps
 
-    private var _areAppsLoaded = MutableLiveData(false)
-    val areAppsLoaded: LiveData<Boolean> get() = _areAppsLoaded
+//    private var _areAppsLoaded = MutableLiveData(false)
+//    val areAppsLoaded: LiveData<Boolean> get() = _areAppsLoaded
 
     init {
         launchListLoading { getAllAppsFromRepository() }
@@ -84,9 +82,7 @@ class AppViewModel(application: DatabaseApplication) :
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 _allApps = block()
-                _areAppsLoaded.postValue(::_allApps.isInitialized)
             }.onSuccess {
-                delay(200)
                 _spinner.postValue(false)
             }.onFailure { throwable ->
                 throwable.message?.let { message -> Log.e("ViewModel", message) }

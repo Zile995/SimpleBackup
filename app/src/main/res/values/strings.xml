@@ -38,4 +38,8 @@
     <string name="filter">Filter</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="select_all">Select all</string>
+    <string name="scroll_to_top">Scroll to top</string>
+    <string name="applications">Applications</string>
+    <string name="favorites">Favorites</string>
 </resources>

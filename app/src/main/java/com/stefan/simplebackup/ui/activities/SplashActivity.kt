@@ -1,10 +1,9 @@
-package com.stefan.simplebackup.ui.activities.splash
+package com.stefan.simplebackup.ui.activities
 
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import com.stefan.simplebackup.BuildConfig
-import com.stefan.simplebackup.ui.activities.main.MainActivity
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 

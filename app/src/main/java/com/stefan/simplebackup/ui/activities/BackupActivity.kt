@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.ui.ui.backup
+package com.stefan.simplebackup.ui.activities
 
 import android.Manifest
 import android.app.ActivityManager
@@ -40,8 +40,6 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.databinding.ActivityBackupBinding
 import com.stefan.simplebackup.utils.FileUtil
-import com.stefan.simplebackup.utils.PermissionUtils
-import com.stefan.simplebackup.utils.PermissionUtils.neverAskAgainSelected
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import java.io.*
@@ -143,9 +141,11 @@ class BackupActivity : AppCompatActivity() {
                 }
             }.onSuccess {
                 this@BackupActivity.deleteFile(app.getName())
-                bitmap?.let { bitmap -> FileUtil.bitmapToByteArray(bitmap).apply {
-                    app.setBitmap(this)
-                } }
+                bitmap?.let { bitmap ->
+                    FileUtil.bitmapToByteArray(bitmap).apply {
+                        app.setBitmap(this)
+                    }
+                }
             }.onFailure {
                 it.message?.let { message -> Log.e("BackupActivityError", message) }
             }
@@ -281,7 +281,8 @@ class BackupActivity : AppCompatActivity() {
             withContext(Dispatchers.Main) {
                 progressBar.visibility = View.INVISIBLE
                 progressBar.progress = 0
-                Toast.makeText(this@BackupActivity.applicationContext, "Done!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@BackupActivity.applicationContext, "Done!", Toast.LENGTH_SHORT)
+                    .show()
             }
         }
     }
@@ -322,20 +323,20 @@ class BackupActivity : AppCompatActivity() {
         when (requestCode) {
             STORAGE_PERMISSION_CODE -> {
                 if (grantResults.isNotEmpty() && grantResults.first() == PackageManager.PERMISSION_GRANTED) {
-                        scope.launch {
-                            progressBar.visibility = View.VISIBLE
-                            selectedApp?.let { app -> createLocalBackup(app) }
-                            Toast.makeText(
-                                this@BackupActivity.applicationContext,
-                                getString(R.string.storage_perm_success),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    } else {
-                        permissionDialog()
+                    scope.launch {
+                        progressBar.visibility = View.VISIBLE
+                        selectedApp?.let { app -> createLocalBackup(app) }
+                        Toast.makeText(
+                            this@BackupActivity.applicationContext,
+                            getString(R.string.storage_perm_success),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
-                    return
+                } else {
+                    permissionDialog()
                 }
+                return
+            }
             else -> {
                 // Ignore all other requests.
             }

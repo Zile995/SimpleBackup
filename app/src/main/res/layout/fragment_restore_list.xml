@@ -60,10 +60,10 @@
         android:layout_alignBottom="@+id/swipe_refresh"
         android:layout_marginEnd="25dp"
         android:layout_marginBottom="?attr/actionBarSize"
-        android:contentDescription="TODO"
         android:visibility="invisible"
         android:src="@drawable/baseline_keyboard_arrow_up_deep_purple_50_24dp"
         app:borderWidth="0dp"
-        app:backgroundTint="@color/purple_200" />
+        app:backgroundTint="@color/purple_200"
+        android:contentDescription="@string/scroll_to_top" />
 
 </RelativeLayout>

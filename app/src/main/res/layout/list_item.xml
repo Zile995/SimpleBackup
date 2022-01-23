@@ -6,11 +6,11 @@
     android:layout_height="125dp"
     android:layout_margin="8dp"
     android:layout_marginBottom="0dp"
+    android:checkable="true"
     android:clickable="true"
     android:focusable="true"
-    android:checkable="true"
-    app:cardCornerRadius="8dp"
     app:cardBackgroundColor="@color/card"
+    app:cardCornerRadius="8dp"
     app:rippleColor="@color/ripple">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -36,11 +36,11 @@
             android:fontFamily="@font/inter"
             android:gravity="center_horizontal|center_vertical"
             android:maxLines="2"
+            android:textAlignment="center"
             android:textAppearance="?attr/textAppearanceBody1"
             android:textColor="@color/white"
             android:textSize="6pt"
             android:textStyle="bold"
-            android:textAlignment="center"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="@+id/application_image"
             app:layout_constraintStart_toStartOf="@+id/application_image"
@@ -76,14 +76,24 @@
             android:id="@+id/app_size_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
             android:layout_marginTop="15dp"
+            android:layout_marginEnd="10dp"
             android:fontFamily="@font/meslo_family"
             android:textColor="@color/app_size_color"
             android:textSize="5.5pt"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-        </com.google.android.material.textview.MaterialTextView>
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:visibility="gone"
+            android:buttonTint="@color/button"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_package"

@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.utils
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
@@ -9,7 +10,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.io.*
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import kotlin.math.pow
 
 class FileUtil private constructor() {
@@ -30,9 +34,6 @@ class FileUtil private constructor() {
             return String.format("%3.1f %s", bytes / 1000.0.pow(2), "MB")
         }
 
-        /**
-         * - Prebacuje drawable u bitmap da bi je kasnije skladištili na internu memoriju
-         */
         fun drawableToByteArray(drawable: Drawable): ByteArray {
 
             val bitmap: Bitmap =
@@ -57,6 +58,19 @@ class FileUtil private constructor() {
             val bytes = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
             return bytes.toByteArray()
+        }
+
+        fun saveBitmap(bitmap: Bitmap, fileName: String, context: Context) {
+            try {
+                val bytes = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
+                context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
+                    output.write(bytes.toByteArray())
+                    output.close()
+                }
+            } catch (e: Throwable) {
+                Log.e("Bitmap", "Bitmap error + ${e.message}")
+            }
         }
 
         suspend fun appToJson(dir: String, app: Application) {

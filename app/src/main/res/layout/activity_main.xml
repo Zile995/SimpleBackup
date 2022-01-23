@@ -5,13 +5,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
-    tools:context=".ui.activities.main.MainActivity">
+    tools:context=".ui.activities.MainActivity">
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="65dp"
+        android:layout_marginBottom="@dimen/bottom_navigation_height"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -20,10 +20,9 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
-        android:layout_height="65dp"
-        android:layout_gravity="bottom|center"
-        android:animateLayoutChanges="true"
+        android:layout_height="@dimen/bottom_navigation_height"
         android:background="@drawable/curved_bottom_view"
+        app:labelVisibilityMode="auto"
         app:itemTextAppearanceActive="@style/BottomNavigationViewText"
         app:itemTextAppearanceInactive="@style/BottomNavigationViewText"
         app:layout_constraintBottom_toBottomOf="parent"

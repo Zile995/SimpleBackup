@@ -109,7 +109,7 @@ class RestoreListFragment : Fragment() {
                     dir.listFiles()?.forEach { appDirList ->
                         appDirList.listFiles()?.filter { appDirFile ->
                             appDirFile.isFile && appDirFile.extension == "json"
-                        }?.forEach { jsonFile ->
+                        }?.map { jsonFile ->
                             runCatching {
                                 jsonFile.inputStream()
                                     .bufferedReader()

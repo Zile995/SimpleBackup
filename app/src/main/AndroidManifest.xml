@@ -43,7 +43,7 @@
             </intent-filter>
         </receiver>
         <activity
-            android:name="com.stefan.simplebackup.ui.activities.splash.SplashActivity"
+            android:name="com.stefan.simplebackup.ui.activities.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -52,13 +52,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.stefan.simplebackup.ui.ui.backup.BackupActivity"
+            android:name="com.stefan.simplebackup.ui.activities.BackupActivity"
             android:exported="true"
-            android:parentActivityName="com.stefan.simplebackup.ui.activities.main.MainActivity"
+            android:parentActivityName="com.stefan.simplebackup.ui.activities.MainActivity"
             android:screenOrientation="portrait"
             tools:ignore="LockedOrientationActivity" />
         <activity
-            android:name="com.stefan.simplebackup.ui.activities.main.MainActivity"
+            android:name="com.stefan.simplebackup.ui.activities.MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustPan" />
     </application>

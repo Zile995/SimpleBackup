@@ -6,13 +6,13 @@
         android:id="@+id/appListFragment"
         android:title="@string/home"
         android:icon="@drawable/baseline_home_white_24dp"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/restoreListFragment"
         android:title="@string/restore"
         android:icon="@drawable/baseline_settings_backup_restore_white_24dp"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="always" />
 
     <item
         android:id="@+id/batch_restore"

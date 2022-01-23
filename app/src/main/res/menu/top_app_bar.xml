@@ -1,10 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/select_all"
+        android:icon="@drawable/baseline_select_all_white_24dp"
+        android:title="@string/select_all"
+        android:visible="false"
+        app:showAsAction="always|collapseActionView" />
+
     <item
         android:id="@+id/search"
         android:icon="@drawable/baseline_search_white_24dp"
         android:title="@string/search_for_application"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
-        app:showAsAction="ifRoom|collapseActionView" />
+        app:showAsAction="always|collapseActionView" />
 </menu>

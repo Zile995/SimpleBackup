@@ -1,7 +1,9 @@
 package com.stefan.simplebackup.ui.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
@@ -15,7 +17,7 @@ import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
-import com.stefan.simplebackup.ui.activities.main.MainActivity
+import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.viewmodel.AppViewModel
 import com.stefan.simplebackup.viewmodel.AppViewModelFactory
 import kotlinx.coroutines.*
@@ -55,13 +57,18 @@ class AppListFragment : Fragment() {
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
         val currentActivity = this@AppListFragment.requireActivity()
         if (currentActivity is MainActivity) {
             activity = currentActivity
         }
-        _appAdapter = AppAdapter(requireContext())
+        appViewModel
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        _appAdapter = AppAdapter()
         scope.launch {
             if (isAdded) {
                 bindViews()
@@ -87,12 +94,28 @@ class AppListFragment : Fragment() {
     private fun createToolBar() {
         val toolBar = binding.toolBar
 
-        toolBar.setOnMenuItemClickListener {
-            when (it.itemId) {
+        toolBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
                 R.id.search -> {
-                    val searchView = it?.actionView as SearchView
+                    val selectAllVisibility = toolBar.menu.findItem(R.id.select_all).isVisible
+                    val searchView = menuItem?.actionView as SearchView
                     searchView.imeOptions = EditorInfo.IME_ACTION_DONE
                     searchView.queryHint = "Search for apps"
+
+                    menuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+                        override fun onMenuItemActionExpand(menuItem: MenuItem?): Boolean {
+                            toolBar.menu.findItem(R.id.select_all).isVisible = false
+                            return true
+                        }
+
+                        override fun onMenuItemActionCollapse(menuItem: MenuItem?): Boolean {
+                            if (selectAllVisibility) {
+                                toolBar.menu.findItem(R.id.select_all).isVisible =
+                                    selectAllVisibility
+                            }
+                            return true
+                        }
+                    })
 
                     searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                         override fun onQueryTextSubmit(query: String?): Boolean {
@@ -197,23 +220,21 @@ class AppListFragment : Fragment() {
     }
 
     private fun setAppViewModelObservers() {
-        appViewModel.areAppsLoaded.observe(viewLifecycleOwner, { initialized ->
-            // Do nothing, break the loop on initialization
-            // Prevent observing data list when lateinit property is not initialized
-            // Fixes the blank recyclerview list on some devices when the application is launched for the first time
-            if (initialized) {
-                appViewModel.getAllApps.observe(viewLifecycleOwner, { appList ->
-                    appList.let {
-                        appAdapter.setData(appList)
-                        applicationList = appList
-                    }
-                })
-                appViewModel.spinner.observe(viewLifecycleOwner, { value ->
-                    scope.launch {
-                        binding.progressBar.visibility =
-                            if (value) View.VISIBLE else View.GONE
-                    }
-                })
+//        appViewModel.areAppsLoaded.observe(viewLifecycleOwner, { initialized ->
+//            // Do nothing, break the loop on initialization
+//            // Prevent observing data list when lateinit property is not initialized
+//            // Fixes the blank recyclerview list on some devices when the application is launched for the first time
+//            if (initialized) {
+        appViewModel.getAllApps.observe(viewLifecycleOwner, { appList ->
+            appList.let {
+                appAdapter.setData(appList)
+                applicationList = appList
+            }
+        })
+        appViewModel.spinner.observe(viewLifecycleOwner, { value ->
+            scope.launch {
+                binding.progressBar.visibility =
+                    if (value) View.VISIBLE else View.GONE
             }
         })
     }
