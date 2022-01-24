@@ -1,7 +1,6 @@
 package com.stefan.simplebackup.ui.fragments
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,11 +14,11 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.adapter.RestoreAdapter
 import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
-import com.stefan.simplebackup.utils.FileUtil
+import com.stefan.simplebackup.utils.FileUtil.createDirectory
+import com.stefan.simplebackup.utils.FileUtil.createFile
+import com.stefan.simplebackup.utils.FileUtil.jsonToApp
 import com.stefan.simplebackup.utils.backup.ROOT
 import kotlinx.coroutines.*
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
 import java.io.File
 
 /**
@@ -110,18 +109,8 @@ class RestoreListFragment : Fragment() {
                         appDirList.listFiles()?.filter { appDirFile ->
                             appDirFile.isFile && appDirFile.extension == "json"
                         }?.map { jsonFile ->
-                            runCatching {
-                                jsonFile.inputStream()
-                                    .bufferedReader()
-                                    .use { reader ->
-                                        val application: Application =
-                                            Json.decodeFromString(reader.readLine())
-                                        tempApps.add(application)
-                                    }
-                            }.onFailure { throwable ->
-                                throwable.message?.let { message ->
-                                    Log.e("Serialization", message)
-                                }
+                            jsonToApp(jsonFile).collect { app ->
+                                tempApps.add(app)
                             }
                         }
                     }
@@ -129,10 +118,8 @@ class RestoreListFragment : Fragment() {
                     applicationList.addAll(tempApps)
                     applicationList.sortBy { it.getName() }
                 } else {
-                    FileUtil.apply {
-                        createDirectory(path)
-                        createFile("$path/.nomedia")
-                    }
+                    createDirectory(path)
+                    createFile("$path/.nomedia")
                 }
             }
         }

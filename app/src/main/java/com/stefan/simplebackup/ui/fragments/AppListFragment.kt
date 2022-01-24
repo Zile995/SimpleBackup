@@ -33,7 +33,7 @@ class AppListFragment : Fragment() {
     private lateinit var activity: MainActivity
 
     // Coroutine scope
-    private var scope = CoroutineScope(Job() + Dispatchers.Main)
+    private var scope = CoroutineScope( Job() + Dispatchers.Main)
 
     // Application data list and ViewModel
     private var applicationList = mutableListOf<Application>()
@@ -53,6 +53,7 @@ class AppListFragment : Fragment() {
     ): View {
         super.onCreateView(inflater, container, savedInstanceState)
         // Inflate the layout for this fragment
+        println("Creating AppListFragment")
         _binding = FragmentAppListBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -71,10 +72,10 @@ class AppListFragment : Fragment() {
         _appAdapter = AppAdapter()
         scope.launch {
             if (isAdded) {
-                bindViews()
                 if (savedInstanceState != null) {
                     binding.progressBar.visibility = View.GONE
                 }
+                bindViews()
                 setAppViewModelObservers()
                 restoreRecyclerViewState()
             }
@@ -220,11 +221,6 @@ class AppListFragment : Fragment() {
     }
 
     private fun setAppViewModelObservers() {
-//        appViewModel.areAppsLoaded.observe(viewLifecycleOwner, { initialized ->
-//            // Do nothing, break the loop on initialization
-//            // Prevent observing data list when lateinit property is not initialized
-//            // Fixes the blank recyclerview list on some devices when the application is launched for the first time
-//            if (initialized) {
         appViewModel.getAllApps.observe(viewLifecycleOwner, { appList ->
             appList.let {
                 appAdapter.setData(appList)

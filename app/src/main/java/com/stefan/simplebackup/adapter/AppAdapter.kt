@@ -44,14 +44,14 @@ class AppAdapter() :
 
         fun bind(item: Application) {
             bitmap = item.getBitmapFromArray()
-            val charSequencePackage: CharSequence = item.getPackageName()
-            val charSequenceVersion: CharSequence = "v" + item.getVersionName()
+            val packageNameSequence: CharSequence = item.getPackageName()
+            val versionNameSequence: CharSequence = "v" + item.getVersionName()
 
             textItem.text = item.getName()
             appImage.setImageBitmap(bitmap)
-            chipVersion.text = charSequenceVersion.toString()
+            chipVersion.text = versionNameSequence.toString()
             appSize.text = FileUtil.transformBytes(item.getApkSize())
-            chipPackage.text = charSequencePackage.toString()
+            chipPackage.text = packageNameSequence.toString()
         }
 
         companion object {

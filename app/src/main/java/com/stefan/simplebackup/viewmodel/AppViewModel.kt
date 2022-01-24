@@ -28,9 +28,6 @@ class AppViewModel(application: DatabaseApplication) :
     val getAllApps: LiveData<MutableList<Application>>
         get() = _allApps
 
-//    private var _areAppsLoaded = MutableLiveData(false)
-//    val areAppsLoaded: LiveData<Boolean> get() = _areAppsLoaded
-
     init {
         launchListLoading { getAllAppsFromRepository() }
         Log.d("ViewModel", "AppViewModel created")

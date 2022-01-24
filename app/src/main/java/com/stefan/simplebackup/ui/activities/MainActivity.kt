@@ -34,6 +34,10 @@ class MainActivity : AppCompatActivity() {
     // UI
     private lateinit var bottomBar: BottomNavigationView
 
+    private lateinit var activeFragment: Fragment
+    private lateinit var homeFragment: Fragment
+    private lateinit var restoreFragment: Fragment
+
     // ViewModel
     private val appViewModel: AppViewModel by viewModels {
         val mainApplication = application as DatabaseApplication
@@ -62,17 +66,50 @@ class MainActivity : AppCompatActivity() {
         bindViews()
         // Activity ne treba da kreira fragment. Ne želimo da pri configuration change-u to radi
         if (savedInstanceState == null) {
-            setFragment()
+            setFragments()
+        } else {
+            restoreFragments(savedInstanceState)
         }
         prepareActivity(savedInstanceState)
         registerBroadcast()
     }
 
-    private fun setFragment() {
-        supportFragmentManager.commit {
-            setReorderingAllowed(true)
-            add(R.id.nav_host_fragment, AppListFragment())
+    private fun setFragments() {
+        homeFragment = AppListFragment()
+        restoreFragment = RestoreListFragment()
+        activeFragment = homeFragment
+        supportFragmentManager.apply {
+            commit {
+                setReorderingAllowed(true)
+                add(R.id.nav_host_fragment, homeFragment, "homeFragment")
+                add(R.id.nav_host_fragment, restoreFragment, "restoreFragment")
+                hide(restoreFragment)
+            }
         }
+    }
+
+    private fun restoreFragments(savedInstanceState: Bundle) {
+        supportFragmentManager.apply {
+            getFragment(savedInstanceState, "homeFragment")?.let {
+                homeFragment = it
+            }
+            getFragment(savedInstanceState, "restoreFragment")?.let {
+                restoreFragment = it
+            }
+            getFragment(savedInstanceState, "activeFragment")?.let {
+                activeFragment = it
+            }
+        }
+    }
+
+    private fun showFragment(active: Fragment, new: Fragment) {
+        supportFragmentManager.commit {
+            hide(active)
+            setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+            show(new)
+        }
+        println("Hiding $active and showing $new")
+
     }
 
     private fun bindViews() {
@@ -86,31 +123,23 @@ class MainActivity : AppCompatActivity() {
     private fun createBottomBar(binding: ActivityMainBinding) {
         bottomBar = binding.bottomNavigation
 
-        bottomBar.setOnItemSelectedListener() {
-            var selectedFragment: Fragment? = null
+        bottomBar.setOnItemSelectedListener { menuItem ->
             val currentItem = bottomBar.selectedItemId
 
-            val currentFragmentId = supportFragmentManager.fragments.first().id
-
-            when (it.itemId) {
-                R.id.appListFragment -> {
-                    if (checkItem(currentItem, it.itemId)) {
-                        selectedFragment = AppListFragment()
+            menuItem.itemId.let { itemId ->
+                when (itemId) {
+                    R.id.appListFragment -> {
+                        if (checkItem(currentItem, itemId)) {
+                            showFragment(activeFragment, homeFragment)
+                        }
+                        activeFragment = homeFragment
                     }
-                }
-                R.id.restoreListFragment -> {
-                    if (checkItem(currentItem, it.itemId)) {
-                        selectedFragment = RestoreListFragment()
+                    R.id.restoreListFragment -> {
+                        if (checkItem(currentItem, itemId)) {
+                            showFragment(activeFragment, restoreFragment)
+                        }
+                        activeFragment = restoreFragment
                     }
-                }
-            }
-
-            if (selectedFragment != null) {
-                supportFragmentManager.commit {
-                    setReorderingAllowed(true)
-                    setTransition(FragmentTransaction.TRANSIT_NONE)
-                    addToBackStack(null)
-                    replace(currentFragmentId, selectedFragment)
                 }
             }
             doubleBackPressed = false
@@ -207,6 +236,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("isSubmitted", isSubmitted)
+        supportFragmentManager.apply {
+            putFragment(outState, "homeFragment", homeFragment)
+            putFragment(outState, "restoreFragment", restoreFragment)
+            putFragment(outState, "activeFragment", activeFragment)
+        }
         super.onSaveInstanceState(outState)
     }
 
