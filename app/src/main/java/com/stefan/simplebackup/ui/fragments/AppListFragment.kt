@@ -60,7 +60,7 @@ class AppListFragment : Fragment() {
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        val currentActivity = this@AppListFragment.requireActivity()
+        val currentActivity = requireActivity()
         if (currentActivity is MainActivity) {
             activity = currentActivity
         }
