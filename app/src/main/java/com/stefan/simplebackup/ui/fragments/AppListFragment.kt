@@ -33,7 +33,7 @@ class AppListFragment : Fragment() {
     private lateinit var activity: MainActivity
 
     // Coroutine scope
-    private var scope = CoroutineScope( Job() + Dispatchers.Main)
+    private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     // Application data list and ViewModel
     private var applicationList = mutableListOf<Application>()
@@ -69,7 +69,7 @@ class AppListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        _appAdapter = AppAdapter()
+        _appAdapter = AppAdapter(appViewModel)
         scope.launch {
             if (isAdded) {
                 if (savedInstanceState != null) {
@@ -110,10 +110,8 @@ class AppListFragment : Fragment() {
                         }
 
                         override fun onMenuItemActionCollapse(menuItem: MenuItem?): Boolean {
-                            if (selectAllVisibility) {
-                                toolBar.menu.findItem(R.id.select_all).isVisible =
-                                    selectAllVisibility
-                            }
+                            toolBar.menu.findItem(R.id.select_all).isVisible =
+                                selectAllVisibility
                             return true
                         }
                     })
@@ -231,6 +229,11 @@ class AppListFragment : Fragment() {
             scope.launch {
                 binding.progressBar.visibility =
                     if (value) View.VISIBLE else View.GONE
+            }
+        })
+        appViewModel.isSelected.observe(viewLifecycleOwner, { isSelected ->
+            binding.toolBar.menu.findItem(R.id.select_all).apply {
+                isVisible = isSelected
             }
         })
     }

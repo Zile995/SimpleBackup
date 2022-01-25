@@ -20,14 +20,10 @@ import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.ui.activities.BackupActivity
 import com.stefan.simplebackup.utils.FileUtil
 
-class AppAdapter() :
+class AppAdapter(private val selectionListener: SelectionListener) :
     ListAdapter<Application, AppAdapter.AppViewHolder>(AppDiffCallBack()), Filterable {
 
     private var appList = mutableListOf<Application>()
-
-    private var selectedItems = mutableListOf<Application>()
-    private var isSelected: Boolean = false
-    val getSelectedItems get() = selectedItems
 
     class AppViewHolder private constructor(private val view: View) : RecyclerView.ViewHolder(view) {
         private var bitmap: Bitmap? = null
@@ -52,6 +48,8 @@ class AppAdapter() :
             chipVersion.text = versionNameSequence.toString()
             appSize.text = FileUtil.transformBytes(item.getApkSize())
             chipPackage.text = packageNameSequence.toString()
+
+
         }
 
         companion object {
@@ -75,21 +73,22 @@ class AppAdapter() :
         return AppViewHolder.from(parent)
     }
 
-    /**
-     * - Služi da postavimo parametre
-     */
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val item = getItem(position)
         holder.bind(item)
 
+        if (selectionListener.getSelected().contains(item)) {
+            holder.getCardView.setCardBackgroundColor(holder.getContext.getColor(R.color.selected_card))
+        }
+
         holder.getCardView.setOnLongClickListener {
-            isSelected = true
+            selectionListener.setSelection(true)
             doSelection(holder, position)
             true
         }
 
         holder.getCardView.setOnClickListener {
-            if (isSelected) {
+            if (selectionListener.isSelected()) {
                 doSelection(holder, position)
             } else {
                 val context = holder.getContext
@@ -111,16 +110,17 @@ class AppAdapter() :
 
     private fun doSelection(holder: AppViewHolder, position: Int) {
         val context = holder.getContext
-        if (selectedItems.contains(appList[position])) {
+        if (selectionListener.getSelected().contains(appList[position])) {
             holder.getCardView.setCardBackgroundColor(context.getColor(R.color.card))
-            selectedItems.remove(appList[position])
+            selectionListener.removeSelection(appList[position])
         } else {
             holder.getCardView.setCardBackgroundColor(context.getColor(R.color.selected_card))
-            selectedItems.add(appList[position])
+            selectionListener.addSelection(appList[position])
         }
-        if (selectedItems.isEmpty()) {
-            isSelected = false
+        if (selectionListener.getSelected().isEmpty()) {
+            selectionListener.setSelection(false)
         }
+        println("Listener list: ${selectionListener.getSelected().size}")
     }
 
     fun setData(list: MutableList<Application>) {

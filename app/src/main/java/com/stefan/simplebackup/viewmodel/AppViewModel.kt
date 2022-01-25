@@ -3,6 +3,7 @@ package com.stefan.simplebackup.viewmodel
 import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.*
+import com.stefan.simplebackup.adapter.SelectionListener
 import com.stefan.simplebackup.broadcasts.BroadcastListener
 import com.stefan.simplebackup.data.AppManager
 import com.stefan.simplebackup.data.Application
@@ -12,9 +13,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class AppViewModel(application: DatabaseApplication) :
-    ViewModel(), BroadcastListener {
+    ViewModel(), BroadcastListener, SelectionListener {
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
+
+    private var _isSelected = MutableLiveData(false)
+    val isSelected: LiveData<Boolean> get() = _isSelected
+    private val selectionList = mutableListOf<Application>()
 
     private lateinit var state: Parcelable
     val restoreRecyclerViewState: Parcelable get() = state
@@ -35,6 +40,24 @@ class AppViewModel(application: DatabaseApplication) :
 
     fun saveRecyclerViewState(parcelable: Parcelable) {
         state = parcelable
+    }
+
+    override fun setSelection(selection: Boolean) {
+        _isSelected.postValue(selection)
+    }
+
+    override fun isSelected(): Boolean = _isSelected.value ?: false
+
+    override fun getSelected(): MutableList<Application> {
+        return selectionList
+    }
+
+    override fun addSelection(app: Application) {
+        selectionList.add(app)
+    }
+
+    override fun removeSelection(app: Application) {
+        selectionList.remove(app)
     }
 
     private fun insertApp(app: Application) = viewModelScope.launch {
