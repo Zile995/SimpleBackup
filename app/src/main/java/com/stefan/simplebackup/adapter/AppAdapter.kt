@@ -48,8 +48,6 @@ class AppAdapter(private val selectionListener: SelectionListener) :
             chipVersion.text = versionNameSequence.toString()
             appSize.text = FileUtil.transformBytes(item.getApkSize())
             chipPackage.text = packageNameSequence.toString()
-
-
         }
 
         companion object {

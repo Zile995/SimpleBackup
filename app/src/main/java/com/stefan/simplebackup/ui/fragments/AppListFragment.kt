@@ -98,23 +98,10 @@ class AppListFragment : Fragment() {
         toolBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.search -> {
-                    val selectAllVisibility = toolBar.menu.findItem(R.id.select_all).isVisible
                     val searchView = menuItem?.actionView as SearchView
                     searchView.imeOptions = EditorInfo.IME_ACTION_DONE
                     searchView.queryHint = "Search for apps"
 
-                    menuItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-                        override fun onMenuItemActionExpand(menuItem: MenuItem?): Boolean {
-                            toolBar.menu.findItem(R.id.select_all).isVisible = false
-                            return true
-                        }
-
-                        override fun onMenuItemActionCollapse(menuItem: MenuItem?): Boolean {
-                            toolBar.menu.findItem(R.id.select_all).isVisible =
-                                selectAllVisibility
-                            return true
-                        }
-                    })
 
                     searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                         override fun onQueryTextSubmit(query: String?): Boolean {

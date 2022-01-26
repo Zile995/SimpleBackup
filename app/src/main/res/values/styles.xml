@@ -10,10 +10,8 @@
     </style>
     <style name="ActionBarTextAppearance">
         <item name="android:fontFamily">@font/inter</item>
-        <item name="android:textSize">9.5pt</item>
-    </style>
-    <style name="ToolbarTheme" parent="Widget.MaterialComponents.Toolbar">
-        <item name="android:background">@color/bottom_bar</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:textSize">9pt</item>
     </style>
     <style name="DialogTheme" parent="Theme.MaterialComponents.Dialog.Alert">
         <item name="android:windowBackground">@drawable/dialog_style</item>

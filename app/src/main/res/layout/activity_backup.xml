@@ -10,9 +10,9 @@
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar_backup"
-        style="@style/ToolbarTheme"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/bottom_bar"
         android:backgroundTint="@color/bottom_bar"
         app:layout_constraintTop_toTopOf="parent"
         app:title="Backup"
@@ -21,8 +21,8 @@
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/card_view"
         android:layout_width="match_parent"
-        android:layout_height="160dp"
-        android:layout_margin="15dp"
+        android:layout_height="150dp"
+        android:layout_margin="12dp"
         android:clickable="true"
         android:focusable="true"
         app:cardBackgroundColor="@color/card"
@@ -106,7 +106,7 @@
                 android:fontFamily="@font/inter"
                 android:gravity="center_horizontal"
                 android:maxLines="1"
-                android:text="Target SDK"
+                android:text="@string/target_sdk"
                 android:textAppearance="?attr/textAppearanceBody1"
                 android:textColor="@color/red_200"
                 android:textSize="5pt"
@@ -181,16 +181,16 @@
                 android:id="@+id/text_apk_size"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="40dp"
                 android:layout_marginTop="-5dp"
+                android:layout_marginStart="10dp"
                 android:fontFamily="@font/inter"
                 android:gravity="center_horizontal"
                 android:maxLines="1"
-                android:text="Apk"
+                android:text="@string/apk"
                 android:textAppearance="?attr/textAppearanceBody1"
                 android:textColor="@color/teal_200"
                 android:textSize="5pt"
-                app:layout_constraintStart_toEndOf="@+id/application_image_backup"
+                app:layout_constraintStart_toEndOf="@+id/text_item_backup"
                 app:layout_constraintTop_toTopOf="@+id/application_image_backup" />
 
             <com.google.android.material.textview.MaterialTextView
@@ -215,8 +215,8 @@
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/card_view_package"
         android:layout_width="match_parent"
-        android:layout_height="160dp"
-        android:layout_margin="15dp"
+        android:layout_height="150dp"
+        android:layout_margin="12dp"
         android:clickable="false"
         android:focusable="false"
         app:cardBackgroundColor="@color/card"
@@ -341,12 +341,11 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/card_view_buttons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="15dp"
+        android:layout_margin="12dp"
         android:clickable="false"
         android:focusable="false"
         app:cardBackgroundColor="@color/card"

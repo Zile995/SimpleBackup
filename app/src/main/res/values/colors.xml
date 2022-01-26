@@ -10,6 +10,7 @@
     <color name="gray">#C3C3C3</color>
     <color name="darker">#1C1C1C</color>
     <color name="background">#192945</color>
+    <color name="search_bar">#1C2E4C</color>
     <color name="app_size_color">#FFEAD1</color>
 
     <!--  Chip color -->
@@ -28,7 +29,7 @@
 
     <!-- Card color -->
     <color name="card">#1D3558</color>
-    <color name="selected_card">#24406C</color>
+    <color name="selected_card">#294878</color>
     <color name="ripple">#223E69</color>
 
     <!-- Tab Layout-->

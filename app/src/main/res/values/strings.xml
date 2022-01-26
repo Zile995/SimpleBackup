@@ -42,4 +42,5 @@
     <string name="scroll_to_top">Scroll to top</string>
     <string name="applications">Applications</string>
     <string name="favorites">Favorites</string>
+    <string name="target_sdk">Target SDK</string>
 </resources>
