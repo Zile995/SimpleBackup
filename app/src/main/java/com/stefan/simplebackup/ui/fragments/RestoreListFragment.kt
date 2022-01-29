@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.adapter.RestoreAdapter
-import com.stefan.simplebackup.data.Application
+import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
 import com.stefan.simplebackup.utils.FileUtil.createDirectory
 import com.stefan.simplebackup.utils.FileUtil.createFile
@@ -36,7 +36,7 @@ class RestoreListFragment : Fragment() {
     // Coroutine scope
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
-    private var applicationList = mutableListOf<Application>()
+    private var applicationList = mutableListOf<AppData>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -99,7 +99,7 @@ class RestoreListFragment : Fragment() {
 
     private suspend fun getStoredPackages() {
         withContext(Dispatchers.IO) {
-            val tempApps = mutableListOf<Application>()
+            val tempApps = mutableListOf<AppData>()
             requireContext().getExternalFilesDir(null)?.absolutePath?.run {
                 substring(0, indexOf("Android")) + ROOT
             }?.let { path ->

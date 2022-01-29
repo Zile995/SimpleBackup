@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.adapter
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -16,38 +17,36 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.Application
+import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.ui.activities.BackupActivity
 import com.stefan.simplebackup.utils.FileUtil
 
 class AppAdapter(private val selectionListener: SelectionListener) :
-    ListAdapter<Application, AppAdapter.AppViewHolder>(AppDiffCallBack()), Filterable {
+    ListAdapter<AppData, AppAdapter.AppViewHolder>(AppDiffCallBack()), Filterable {
 
-    private var appList = mutableListOf<Application>()
+    private var appList = mutableListOf<AppData>()
 
     class AppViewHolder private constructor(private val view: View) : RecyclerView.ViewHolder(view) {
         private var bitmap: Bitmap? = null
         private val cardView: MaterialCardView = view.findViewById(R.id.card_item)
-        private val textItem: MaterialTextView = view.findViewById(R.id.text_item)
-        private val appSize: MaterialTextView = view.findViewById(R.id.app_size_text)
         private val appImage: ImageView = view.findViewById(R.id.application_image)
-        private val chipVersion: Chip = view.findViewById(R.id.chip_version)
-        private val chipPackage: Chip = view.findViewById(R.id.chip_package)
+        private val appName: MaterialTextView = view.findViewById(R.id.application_name)
+        private val versionName: MaterialTextView = view.findViewById(R.id.version_name)
+        private val packageName: MaterialTextView = view.findViewById(R.id.package_name)
+        private val apkSize: Chip = view.findViewById(R.id.apk_size)
 
         val getBitmap get() = bitmap
         val getCardView get() = cardView
         val getContext: Context get() = view.context
 
-        fun bind(item: Application) {
+        fun bind(item: AppData) {
             bitmap = item.getBitmapFromArray()
-            val packageNameSequence: CharSequence = item.getPackageName()
-            val versionNameSequence: CharSequence = "v" + item.getVersionName()
 
-            textItem.text = item.getName()
             appImage.setImageBitmap(bitmap)
-            chipVersion.text = versionNameSequence.toString()
-            appSize.text = FileUtil.transformBytes(item.getApkSize())
-            chipPackage.text = packageNameSequence.toString()
+            appName.text = item.getName()
+            versionName.text = item.getVersionName()
+            packageName.text = item.getPackageName()
+            apkSize.text = FileUtil.transformBytes(item.getApkSize())
         }
 
         companion object {
@@ -107,21 +106,22 @@ class AppAdapter(private val selectionListener: SelectionListener) :
     }
 
     private fun doSelection(holder: AppViewHolder, position: Int) {
-        val context = holder.getContext
-        if (selectionListener.getSelected().contains(appList[position])) {
+        val selectionList = selectionListener.getSelected()
+        val context = holder.getCardView.context
+        if (selectionList.contains(appList[position])) {
             holder.getCardView.setCardBackgroundColor(context.getColor(R.color.card))
             selectionListener.removeSelection(appList[position])
         } else {
             holder.getCardView.setCardBackgroundColor(context.getColor(R.color.selected_card))
             selectionListener.addSelection(appList[position])
         }
-        if (selectionListener.getSelected().isEmpty()) {
+        if (selectionList.isEmpty()) {
             selectionListener.setSelection(false)
         }
         println("Listener list: ${selectionListener.getSelected().size}")
     }
 
-    fun setData(list: MutableList<Application>) {
+    fun setData(list: MutableList<AppData>) {
         appList = list
         submitList(appList)
     }
@@ -132,7 +132,7 @@ class AppAdapter(private val selectionListener: SelectionListener) :
 
     private val appFilter = object : Filter() {
         override fun performFiltering(sequence: CharSequence?): FilterResults {
-            val filteredList = mutableListOf<Application>()
+            val filteredList = mutableListOf<AppData>()
             if (sequence.isNullOrBlank()) {
                 filteredList.addAll(appList)
             } else {
@@ -147,22 +147,24 @@ class AppAdapter(private val selectionListener: SelectionListener) :
             return results
         }
 
+        @SuppressLint("NotifyDataSetChanged")
         override fun publishResults(sequence: CharSequence?, results: FilterResults?) {
             @Suppress("UNCHECKED_CAST")
-            submitList(results?.values as MutableList<Application>)
+            submitList(results?.values as MutableList<AppData>)
+            notifyDataSetChanged()
         }
     }
 
 }
 
-class AppDiffCallBack : DiffUtil.ItemCallback<Application>() {
-    override fun areItemsTheSame(oldItem: Application, newItem: Application): Boolean {
+class AppDiffCallBack : DiffUtil.ItemCallback<AppData>() {
+    override fun areItemsTheSame(oldItem: AppData, newItem: AppData): Boolean {
         return oldItem.getName() == newItem.getName() &&
                 oldItem.getPackageName() == newItem.getPackageName() &&
                 oldItem.getVersionName() == newItem.getVersionName()
     }
 
-    override fun areContentsTheSame(oldItem: Application, newItem: Application): Boolean {
+    override fun areContentsTheSame(oldItem: AppData, newItem: AppData): Boolean {
         return oldItem == newItem
     }
 }

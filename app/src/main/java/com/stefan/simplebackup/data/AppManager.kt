@@ -2,16 +2,19 @@ package com.stefan.simplebackup.data
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
+import android.content.pm.ChangedPackages
 import android.content.pm.PackageManager
+import android.util.Log
 import com.stefan.simplebackup.utils.FileUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileInputStream
 import java.util.concurrent.ConcurrentHashMap
+import java.util.zip.ZipInputStream
 import kotlin.system.measureTimeMillis
 
 class AppManager(private val context: Context) {
@@ -24,25 +27,38 @@ class AppManager(private val context: Context) {
     private val packageManager: PackageManager = context.packageManager
 
     /**
-     * - Prazna application HashMap lista u koju kasnije dodajemo [Application] objekte
-     * - Mora biti val jer ostali thread-ovi upisuju u nju
-     */
-    private val applicationHashMap = ConcurrentHashMap<Int, Application>()
-
-    /**
-     * - Vrati kreiran [Application] objekat
+     * - Vrati kreiran [AppData] objekat
      */
     fun build(packageName: String) = getAppObject(getPackageApplicationInfo(packageName))
 
-    fun getChangedPackageNames(): Flow<String> = flow {
-        val savedSequence = packageSharedPref.getInt("sequence_number", 0)
-        val changedPackages = packageManager.getChangedPackages(savedSequence)
+    fun printSequence() {
+        Log.d("AppManager", "Sequence number: ${packageSharedPref.getInt("sequence_number", 0)}")
+    }
+
+    private fun updatePackageSharedPref(newSequenceNumber: Int) {
+        packageSharedPref.apply {
+            edit()
+                .putInt("sequence_number", newSequenceNumber)
+                .apply()
+        }
+        Log.d("AppManager", "Sequence number: ${packageSharedPref.getInt("sequence_number", 0)}")
+    }
+
+    private fun getChangedPackages(): ChangedPackages? {
+        val savedSequenceNumber = packageSharedPref.getInt("sequence_number", 0)
+        return packageManager.getChangedPackages(savedSequenceNumber)
+    }
+
+    fun updateSequenceNumber() {
+        val changedPackages = getChangedPackages()
         changedPackages?.let { changed ->
-            packageSharedPref.apply {
-                edit()
-                    .putInt("sequence_number", changed.sequenceNumber)
-                    .apply()
-            }
+            updatePackageSharedPref(changed.sequenceNumber)
+        }
+    }
+
+    fun getChangedPackageNames(): Flow<String> = flow {
+        val changedPackages = getChangedPackages()
+        changedPackages?.let { changed ->
             changed.packageNames.forEach { packageName ->
                 emit(packageName)
             }
@@ -64,13 +80,17 @@ class AppManager(private val context: Context) {
     /**
      * - Koristi se kada se Database prvi put kreira.
      */
-    suspend fun getApplicationList(): MutableList<Application> {
+    suspend fun getApplicationList(): MutableList<AppData> {
         var time: Long
         val userAppsList = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
 
-        withContext(Dispatchers.IO) {
-            applicationHashMap.clear()
+        /**
+         * - Prazna application HashMap lista u koju kasnije dodajemo [AppData] objekte
+         * - Mora biti val jer ostali thread-ovi upisuju u nju
+         */
+        val applicationHashMap = ConcurrentHashMap<Int, AppData>()
 
+        withContext(Dispatchers.IO) {
             val size = userAppsList.size
             val quarter = (size / 4)
             val secondQuarter = size / 2
@@ -99,19 +119,19 @@ class AppManager(private val context: Context) {
                 }.join()
             }
         }
-        println("Thread time: $time")
+        Log.d("AppManager", "Load time: $time")
         return applicationHashMap.values.toMutableList()
     }
 
     /**
-     * - Kreira objekte [Application] klase
+     * - Kreira objekte [AppData] klase
      *
      * - Android 11 po defaultu ne prikazuje sve informacije instaliranih aplikacija.
      *   To se može zaobići u AndroidManifest.xml fajlu dodavanjem
      *   **<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
      *   tools:ignore="QueryAllPackagesPermission" />**
      */
-    private fun getAppObject(appInfo: ApplicationInfo): Flow<Application> = flow {
+    private fun getAppObject(appInfo: ApplicationInfo): Flow<AppData> = flow {
         val packageName = context.applicationContext.packageName
         if (!(isSystemApp(appInfo) || appInfo.packageName.equals(packageName))) {
             val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }
@@ -120,9 +140,11 @@ class AppManager(private val context: Context) {
             val versionName = packageManager.getPackageInfo(
                 appInfo.packageName,
                 PackageManager.GET_META_DATA
-            ).versionName ?: ""
+            ).versionName.run { substringBefore(" (") }
 
-            val application = Application(
+            //Log.d("AppManager", "Apk file list: ${listApkLibs(File(appInfo.publicSourceDir))}")
+
+            val application = AppData(
                 0,
                 name,
                 FileUtil.drawableToByteArray(drawable),
@@ -147,18 +169,41 @@ class AppManager(private val context: Context) {
     }
 
     private suspend fun getApkSize(path: String): Float {
-        return withContext(Dispatchers.Default) {
+        return withContext(Dispatchers.IO) {
             val dir = File(path)
             val listFiles = dir.listFiles()
             if (!listFiles.isNullOrEmpty()) {
                 listFiles.filter {
                     it.isFile && it.name.endsWith(".apk")
-                }.map {
+                }.sumOf {
                     it.length()
-                }.sum().toFloat()
+                }.toFloat()
             } else {
                 0f
             }
+        }
+    }
+
+    private suspend fun listApkLibs(apkFile: File): List<String> {
+        return withContext(Dispatchers.IO) {
+            val abiList = mutableListOf<String>()
+            runCatching {
+                ZipInputStream(FileInputStream(apkFile)).use { zipInputStream ->
+                    var entry = zipInputStream.nextEntry
+                    while (entry != null) {
+                        Log.d("AppManager", "Entry name: ${entry.name}")
+                        entry = zipInputStream.nextEntry
+                    }
+                }
+            }.onFailure { throwable ->
+                throwable.message?.let { message ->
+                    Log.e(
+                        "AppManager",
+                        "${apkFile.name}: $message"
+                    )
+                }
+            }
+            abiList.toList()
         }
     }
 }

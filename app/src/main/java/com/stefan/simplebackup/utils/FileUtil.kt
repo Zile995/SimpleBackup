@@ -5,7 +5,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.Log
-import com.stefan.simplebackup.data.Application
+import com.stefan.simplebackup.data.AppData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
@@ -21,15 +21,23 @@ import kotlin.math.pow
 object FileUtil {
 
     fun createDirectory(path: String) {
-        val dir = File(path)
-        if (!dir.exists()) {
-            dir.mkdirs()
+        runCatching {
+            val dir = File(path)
+            if (!dir.exists()) {
+                dir.mkdirs()
+            }
+        }.onFailure { throwable ->
+            throwable.message?.let { message -> Log.e("FileUtil", "$path: $message") }
         }
     }
 
     fun createFile(path: String) {
-        val file = File(path)
-        file.createNewFile()
+        runCatching {
+            val file = File(path)
+            file.createNewFile()
+        }.onFailure { throwable ->
+            throwable.message?.let { message -> Log.e("FileUtil", "$path: $message") }
+        }
     }
 
     fun transformBytes(bytes: Float): String {
@@ -74,7 +82,7 @@ object FileUtil {
         }
     }
 
-    suspend fun appToJson(dir: String, app: Application) {
+    suspend fun appToJson(dir: String, app: AppData) {
         withContext(Dispatchers.Default) {
             runCatching {
                 val file = File(dir, app.getName() + ".json")
@@ -88,7 +96,7 @@ object FileUtil {
         }
     }
 
-    suspend fun jsonToApp(jsonFile: File) = flow<Application> {
+    suspend fun jsonToApp(jsonFile: File) = flow<AppData> {
         runCatching {
             jsonFile.inputStream()
                 .bufferedReader()

@@ -1,15 +1,17 @@
 package com.stefan.simplebackup.adapter
 
-import com.stefan.simplebackup.data.Application
+import com.stefan.simplebackup.data.AppData
 
 interface SelectionListener {
     fun setSelection(selection: Boolean)
 
     fun isSelected(): Boolean
 
-    fun getSelected(): MutableList<Application>
+    fun setSelected(selectedList: MutableList<AppData>)
 
-    fun addSelection(app: Application)
+    fun getSelected(): MutableList<AppData>
 
-    fun removeSelection(app: Application)
+    fun addSelection(app: AppData)
+
+    fun removeSelection(app: AppData)
 }

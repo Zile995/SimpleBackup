@@ -15,7 +15,7 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.Application
+import com.stefan.simplebackup.data.AppData
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +29,7 @@ import kotlin.collections.component2
 import kotlin.collections.set
 
 class RestoreAdapter(rContext: Context) :
-    ListAdapter<Application, RestoreAdapter.RestoreViewHolder>(AppDiffCallBack()), Filterable {
+    ListAdapter<AppData, RestoreAdapter.RestoreViewHolder>(AppDiffCallBack()), Filterable {
 
     companion object {
         private const val ROOT: String = "SimpleBackup/local"
@@ -103,7 +103,7 @@ class RestoreAdapter(rContext: Context) :
         }
     }
 
-    fun setData(list: MutableList<Application>) {
+    fun setData(list: MutableList<AppData>) {
         this.appList = list
         submitList(appList)
     }
@@ -114,7 +114,7 @@ class RestoreAdapter(rContext: Context) :
 
     private val appFilter = object : Filter() {
         override fun performFiltering(sequence: CharSequence?): FilterResults {
-            val filteredList = mutableListOf<Application>()
+            val filteredList = mutableListOf<AppData>()
             if (sequence.isNullOrBlank()) {
                 filteredList.addAll(appList)
             } else {
@@ -131,12 +131,12 @@ class RestoreAdapter(rContext: Context) :
 
         override fun publishResults(sequence: CharSequence?, results: FilterResults?) {
             @Suppress("UNCHECKED_CAST")
-            submitList(results?.values as MutableList<Application>)
+            submitList(results?.values as MutableList<AppData>)
         }
 
     }
 
-    private suspend fun installApp(context: Context, app: Application) {
+    private suspend fun installApp(context: Context, app: AppData) {
         val libDir = context.applicationInfo.nativeLibraryDir
 
         withContext(Dispatchers.IO) {

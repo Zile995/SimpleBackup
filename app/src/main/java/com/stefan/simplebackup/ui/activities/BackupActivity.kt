@@ -37,12 +37,11 @@ import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.Application
+import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.databinding.ActivityBackupBinding
 import com.stefan.simplebackup.utils.FileUtil
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
-import java.io.*
 import java.util.*
 
 class BackupActivity : AppCompatActivity() {
@@ -79,7 +78,7 @@ class BackupActivity : AppCompatActivity() {
     private lateinit var cardViewButtons: MaterialCardView
 
     private lateinit var bitmap: Bitmap
-    private var selectedApp: Application? = null
+    private var selectedApp: AppData? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -116,7 +115,7 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private fun setUI(app: Application) {
+    private fun setUI(app: AppData) {
         with(app) {
             textItem.text = getName()
             chipPackage.text = (getPackageName() as CharSequence).toString()
@@ -131,7 +130,7 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun getAppBitmap(app: Application): Bitmap? {
+    private suspend fun getAppBitmap(app: AppData): Bitmap? {
         var bitmap = app.getBitmapFromArray()
         withContext(Dispatchers.IO) {
             runCatching {
@@ -264,7 +263,7 @@ class BackupActivity : AppCompatActivity() {
         supportActionBar?.setDisplayShowHomeEnabled(true)
     }
 
-    private suspend fun createLocalBackup(app: Application) {
+    private suspend fun createLocalBackup(app: AppData) {
         withContext(Dispatchers.IO) {
             with(progressBar) {
                 launch {
@@ -297,7 +296,7 @@ class BackupActivity : AppCompatActivity() {
         val activityManager =
             applicationContext.getSystemService(ACTIVITY_SERVICE) as ActivityManager
         activityManager.killBackgroundProcesses(packageName)
-        Toast.makeText(this@BackupActivity, "Application stopped!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this@BackupActivity, "AppData stopped!", Toast.LENGTH_SHORT).show()
     }
 
     private fun checkPermission(): Boolean {

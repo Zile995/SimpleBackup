@@ -7,15 +7,14 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.stefan.simplebackup.data.AppManager
-import com.stefan.simplebackup.data.Application
+import com.stefan.simplebackup.data.AppData
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 /**
- * Singleton Application Database klasa
+ * Singleton AppData Database klasa
  */
-@Database(entities = [Application::class], version = 1, exportSchema = false)
+@Database(entities = [AppData::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun appDao(): AppDao
@@ -40,9 +39,11 @@ abstract class AppDatabase : RoomDatabase() {
             appManager.getChangedPackageNames().collect { packageName ->
                 if (appManager.doesPackageExists(packageName)) {
                     appManager.build(packageName).collect { app ->
+                        Log.d("AppDatabase", "Adding the $packageName")
                         appDao?.insert(app)
                     }
                 } else {
+                    Log.d("AppDatabase", "Deleting the $packageName")
                     appDao?.delete(packageName)
                 }
             }
@@ -51,6 +52,7 @@ abstract class AppDatabase : RoomDatabase() {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             scope.launch {
+                appManager.updateSequenceNumber()
                 insertAll()
             }
         }

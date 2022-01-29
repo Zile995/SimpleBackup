@@ -16,10 +16,10 @@
     <!--  Chip color -->
     <color name="red">#D35151</color>
     <color name="red_200">#FF7878</color>
+    <color name="red_100">#FFA5A5</color>
     <color name="data">#FF07433A</color>
     <color name="red_500">#531F1F</color>
     <color name="blue">#2F7EE6</color>
-    <color name="pink_text">#F5CAC9</color>
     <color name="blue_text">#B9CDF4</color>
     <color name="weak_yellow">#E6E4B6</color>
 

@@ -3,9 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/card_item"
     android:layout_width="match_parent"
-    android:layout_height="110dp"
-    android:layout_marginTop="10dp"
+    android:layout_height="100dp"
     android:layout_marginStart="10dp"
+    android:layout_marginTop="10dp"
     android:layout_marginEnd="10dp"
     android:layout_marginBottom="0dp"
     android:checkable="true"
@@ -23,114 +23,68 @@
             android:id="@+id/application_image"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_marginStart="25dp"
-            android:layout_marginBottom="30dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginBottom="20dp"
             android:contentDescription="@string/application_image"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/text_item"
-            android:layout_width="70dp"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="15dp"
-            android:fontFamily="@font/inter"
-            android:gravity="center_horizontal|center_vertical"
-            android:maxLines="2"
-            android:textAlignment="center"
-            android:textAppearance="?attr/textAppearanceBody1"
-            android:textColor="@color/white"
-            android:textSize="6pt"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/application_image"
-            app:layout_constraintStart_toStartOf="@+id/application_image"
-            app:layout_constraintTop_toBottomOf="@id/application_image" />
-
-        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/version_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:layout_marginEnd="5dp"
-            android:buttonTint="@color/purple_200"
-            android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@+id/chip_version"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/apk_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="5dp"
-            android:fontFamily="@font/meslo_family"
-            android:text="@string/apk"
-            android:textAppearance="?attr/textAppearanceBody1"
-            android:textColor="@color/app_size_color"
-            android:textSize="5.5pt"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/app_size_text"
-            app:layout_constraintEnd_toStartOf="@id/app_size_text"
-            app:layout_constraintTop_toTopOf="@+id/app_size_text" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/app_size_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="15dp"
-            android:layout_marginEnd="10dp"
-            android:fontFamily="@font/meslo_family"
-            android:textColor="@color/app_size_color"
-            android:textSize="5.5pt"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <com.google.android.material.checkbox.MaterialCheckBox
-            android:id="@+id/checkbox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:visibility="gone"
-            android:buttonTint="@color/button"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
-
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_package"
-            android:layout_width="wrap_content"
-            android:layout_height="45dp"
-            android:layout_marginTop="10dp"
-            android:clickable="false"
-            android:fontFamily="@font/inter"
-            android:textAlignment="center"
-            android:textAppearance="@style/chipText"
+            android:layout_marginStart="15dp"
+            android:fontFamily="@font/inter_family"
             android:textColor="@color/blue_text"
-            android:textSize="5pt"
-            android:textStyle="bold"
-            app:chipBackgroundColor="@color/blue"
-            app:layout_constraintBottom_toBottomOf="@+id/text_item"
-            app:layout_constraintStart_toStartOf="@+id/chip_version"
-            app:layout_constraintTop_toBottomOf="@+id/chip_version" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/chip_version"
-            android:layout_width="wrap_content"
-            android:layout_height="45dp"
-            android:layout_marginStart="20dp"
-            android:layout_marginBottom="10dp"
-            android:clickable="false"
-            android:fontFamily="@font/inter"
-            android:textAlignment="center"
-            android:textAppearance="@style/chipText"
-            android:textColor="@color/pink_text"
-            android:textSize="5pt"
-            android:textStyle="bold"
-            app:chipBackgroundColor="@color/red"
-            app:layout_constraintBottom_toBottomOf="@+id/application_image"
+            android:textSize="6pt"
+            app:layout_constraintBottom_toTopOf="@+id/application_name"
             app:layout_constraintStart_toEndOf="@+id/application_image"
             app:layout_constraintTop_toTopOf="@+id/application_image" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/application_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter"
+            android:maxLines="1"
+            android:textAlignment="textStart"
+            android:textAppearance="?attr/textAppearanceBody1"
+            android:textColor="@color/white"
+            android:textSize="7pt"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/package_name"
+            app:layout_constraintStart_toStartOf="@+id/version_name"
+            app:layout_constraintTop_toTopOf="@+id/version_name" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/package_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter_family"
+            android:textColor="@color/blue_text"
+            android:textSize="6pt"
+            app:layout_constraintBottom_toBottomOf="@+id/application_image"
+            app:layout_constraintStart_toStartOf="@+id/application_name"
+            app:layout_constraintTop_toBottomOf="@+id/application_name" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/apk_size"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
+            android:clickable="false"
+            android:fontFamily="@font/inter"
+            android:textAlignment="center"
+            android:textAppearance="@style/chipText"
+            android:textColor="@color/data"
+            android:textSize="5pt"
+            android:textStyle="bold"
+            app:chipBackgroundColor="@color/teal_200"
+            app:chipEndPadding="2dp"
+            app:chipStartPadding="2dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

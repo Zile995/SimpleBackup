@@ -4,22 +4,22 @@ import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.*
 import com.stefan.simplebackup.adapter.SelectionListener
-import com.stefan.simplebackup.broadcasts.BroadcastListener
+import com.stefan.simplebackup.broadcasts.PackageListener
+import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.data.AppManager
-import com.stefan.simplebackup.data.Application
 import com.stefan.simplebackup.database.AppRepository
 import com.stefan.simplebackup.database.DatabaseApplication
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class AppViewModel(application: DatabaseApplication) :
-    ViewModel(), BroadcastListener, SelectionListener {
+    ViewModel(), PackageListener, SelectionListener {
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
 
     private var _isSelected = MutableLiveData(false)
     val isSelected: LiveData<Boolean> get() = _isSelected
-    private val selectionList = mutableListOf<Application>()
+    private val selectionList = mutableListOf<AppData>()
 
     private lateinit var state: Parcelable
     val restoreRecyclerViewState: Parcelable get() = state
@@ -29,11 +29,12 @@ class AppViewModel(application: DatabaseApplication) :
     val spinner: LiveData<Boolean>
         get() = _spinner
 
-    private lateinit var _allApps: LiveData<MutableList<Application>>
-    val getAllApps: LiveData<MutableList<Application>>
+    private lateinit var _allApps: LiveData<MutableList<AppData>>
+    val getAllApps: LiveData<MutableList<AppData>>
         get() = _allApps
 
     init {
+        appManager.printSequence()
         launchListLoading { getAllAppsFromRepository() }
         Log.d("ViewModel", "AppViewModel created")
     }
@@ -48,48 +49,59 @@ class AppViewModel(application: DatabaseApplication) :
 
     override fun isSelected(): Boolean = _isSelected.value ?: false
 
-    override fun getSelected(): MutableList<Application> {
+    override fun setSelected(selectedList: MutableList<AppData>) {
+        selectionList.clear()
+        selectionList.addAll(selectedList)
+    }
+
+    override fun getSelected(): MutableList<AppData> {
         return selectionList
     }
 
-    override fun addSelection(app: Application) {
+    override fun addSelection(app: AppData) {
         selectionList.add(app)
     }
 
-    override fun removeSelection(app: Application) {
+    override fun removeSelection(app: AppData) {
         selectionList.remove(app)
     }
 
-    private fun insertApp(app: Application) = viewModelScope.launch {
+    private fun insertApp(app: AppData) = viewModelScope.launch {
         repository.insert(app)
+        appManager.updateSequenceNumber()
     }
 
     private fun deleteApp(packageName: String) = viewModelScope.launch {
         repository.delete(packageName)
+        appManager.updateSequenceNumber()
     }
 
-    private fun getAllAppsFromRepository(): LiveData<MutableList<Application>> {
+    private fun getAllAppsFromRepository(): LiveData<MutableList<AppData>> {
         return repository.getAllApps
     }
 
     suspend fun refreshPackageList() {
         viewModelScope.launch(Dispatchers.IO) {
-            appManager.getChangedPackageNames().collect { packageName ->
-                if (appManager.doesPackageExists(packageName)) {
-                    appManager.build(packageName).collect { app ->
-                        insertApp(app)
+            appManager.apply {
+                getChangedPackageNames().collect { packageName ->
+                    if (doesPackageExists(packageName)) {
+                        build(packageName).collect { app ->
+                            insertApp(app)
+                        }
+                    } else {
+                        deleteApp(packageName)
                     }
-                } else {
-                    deleteApp(packageName)
                 }
             }
         }
     }
 
     override suspend fun addOrUpdatePackage(packageName: String) {
-        with(appManager) {
-            build(packageName).collect { app ->
-                insertApp(app)
+        viewModelScope.launch {
+            appManager.apply {
+                build(packageName).collect { app ->
+                    insertApp(app)
+                }
             }
         }
     }
@@ -98,7 +110,7 @@ class AppViewModel(application: DatabaseApplication) :
         deleteApp(packageName)
     }
 
-    private fun launchListLoading(block: () -> LiveData<MutableList<Application>>) {
+    private fun launchListLoading(block: () -> LiveData<MutableList<AppData>>) {
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 _allApps = block()

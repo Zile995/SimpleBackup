@@ -108,7 +108,7 @@
             android:fontFamily="@font/inter"
             android:textAlignment="center"
             android:textAppearance="@style/chipText"
-            android:textColor="@color/pink_text"
+            android:textColor="@color/red_100"
             android:textSize="5pt"
             android:textStyle="bold"
             app:chipBackgroundColor="@color/red"

@@ -38,6 +38,7 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) : Corouti
                         }
                     }
                 }
+                appManager.updateSequenceNumber()
                 Log.d("BootPackageWorker", "Updated successfully")
                 Result.success()
             }

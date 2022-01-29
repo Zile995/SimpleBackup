@@ -1,9 +1,9 @@
 package com.stefan.simplebackup.ui.fragments
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.adapter.AppAdapter
-import com.stefan.simplebackup.data.Application
+import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
@@ -35,8 +35,8 @@ class AppListFragment : Fragment() {
     // Coroutine scope
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
-    // Application data list and ViewModel
-    private var applicationList = mutableListOf<Application>()
+    // AppData list and ViewModel
+    private lateinit var applicationList: MutableList<AppData>
 
     private var _appAdapter: AppAdapter? = null
     private val appAdapter get() = _appAdapter!!
@@ -72,12 +72,12 @@ class AppListFragment : Fragment() {
         _appAdapter = AppAdapter(appViewModel)
         scope.launch {
             if (isAdded) {
-                if (savedInstanceState != null) {
-                    binding.progressBar.visibility = View.GONE
-                }
                 bindViews()
                 setAppViewModelObservers()
-                restoreRecyclerViewState()
+                if (savedInstanceState != null) {
+                    binding.progressBar.visibility = View.GONE
+                    restoreRecyclerViewState()
+                }
             }
         }
     }
@@ -92,6 +92,7 @@ class AppListFragment : Fragment() {
     /**
      * - Inicijalizuj gornju traku, ili ToolBar
      */
+    @SuppressLint("NotifyDataSetChanged")
     private fun createToolBar() {
         val toolBar = binding.toolBar
 
@@ -101,7 +102,6 @@ class AppListFragment : Fragment() {
                     val searchView = menuItem?.actionView as SearchView
                     searchView.imeOptions = EditorInfo.IME_ACTION_DONE
                     searchView.queryHint = "Search for apps"
-
 
                     searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
                         override fun onQueryTextSubmit(query: String?): Boolean {
@@ -113,6 +113,10 @@ class AppListFragment : Fragment() {
                             return true
                         }
                     })
+                }
+                R.id.select_all -> {
+                    appViewModel.setSelected(applicationList)
+                    appAdapter.notifyDataSetChanged()
                 }
             }
             true
@@ -206,23 +210,28 @@ class AppListFragment : Fragment() {
     }
 
     private fun setAppViewModelObservers() {
-        appViewModel.getAllApps.observe(viewLifecycleOwner, { appList ->
+        appViewModel.getAllApps.observe(viewLifecycleOwner) { appList ->
             appList.let {
                 appAdapter.setData(appList)
                 applicationList = appList
             }
-        })
-        appViewModel.spinner.observe(viewLifecycleOwner, { value ->
+        }
+        appViewModel.spinner.observe(viewLifecycleOwner) { value ->
             scope.launch {
                 binding.progressBar.visibility =
-                    if (value) View.VISIBLE else View.GONE
+                    if (value)
+                        View.VISIBLE
+                    else {
+                        delay(200)
+                        View.GONE }
             }
-        })
-        appViewModel.isSelected.observe(viewLifecycleOwner, { isSelected ->
-            binding.toolBar.menu.findItem(R.id.select_all).apply {
-                isVisible = isSelected
+        }
+        appViewModel.isSelected.observe(viewLifecycleOwner) { isSelected ->
+            binding.toolBar.menu.apply {
+                findItem(R.id.select_all).isVisible = isSelected
+                findItem(R.id.search).isVisible = !isSelected
             }
-        })
+        }
     }
 
     override fun onPause() {

@@ -1,6 +1,6 @@
 package com.stefan.simplebackup.utils.backup
 
-import com.stefan.simplebackup.data.Application
+import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.utils.FileUtil
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
@@ -9,7 +9,7 @@ import java.io.File
 
 const val ROOT: String = "SimpleBackup/local"
 
-class BackupUtil(private val app: Application, private val internalStoragePath: String) {
+class BackupUtil(private val app: AppData, private val internalStoragePath: String) {
 
     private val mainBackupDir: String = internalStoragePath.run {
         substring(0, indexOf("Android")) + ROOT

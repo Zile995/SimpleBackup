@@ -7,7 +7,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class PackageBroadcastReceiver(
-    private val broadcastListener: BroadcastListener,
+    private val packageListener: PackageListener,
     private val scope: CoroutineScope
 ) : BroadcastReceiver() {
 
@@ -20,13 +20,13 @@ class PackageBroadcastReceiver(
                 val packageName = it.encodedSchemeSpecificPart
                 when (intent.action) {
                     Intent.ACTION_PACKAGE_ADDED -> {
-                        broadcastListener.addOrUpdatePackage(packageName)
+                        packageListener.addOrUpdatePackage(packageName)
                     }
                     Intent.ACTION_PACKAGE_REMOVED -> {
-                        broadcastListener.deletePackage(packageName)
+                        packageListener.deletePackage(packageName)
                     }
                     Intent.ACTION_PACKAGE_REPLACED -> {
-                        broadcastListener.addOrUpdatePackage(packageName)
+                        packageListener.addOrUpdatePackage(packageName)
                     }
                 }
             }

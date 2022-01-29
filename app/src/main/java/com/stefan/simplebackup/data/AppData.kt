@@ -19,7 +19,7 @@ import kotlinx.serialization.Transient
 @Entity(tableName = "app_table", indices = [Index(value = ["package_name"], unique = true)])
 @Keep
 @Serializable
-data class Application(
+data class AppData(
     @Transient
     @PrimaryKey(autoGenerate = true)
     private var uid: Int = 0,
@@ -74,8 +74,8 @@ data class Application(
 
     /**
      * * U parceli može postojati i null String tako da readString() može čitati i String? tip
-     * * Međutim imamo definisane String varijable u Application klasi
-     * * Ukoliko je pročitan String null, upiši prazan String "" u konstruktor Application klase
+     * * Međutim imamo definisane String varijable u AppData klasi
+     * * Ukoliko je pročitan String null, upiši prazan String "" u konstruktor AppData klase
      */
     private fun readFromParcel(parcel: Parcel) {
         uid = parcel.readInt()
@@ -204,7 +204,7 @@ data class Application(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Application
+        other as AppData
 
         if (!bitmap.contentEquals(other.bitmap)) return false
 
@@ -215,12 +215,12 @@ data class Application(
         return bitmap.contentHashCode()
     }
 
-    companion object CREATOR : Parcelable.Creator<Application> {
-        override fun createFromParcel(parcel: Parcel): Application {
-            return Application(parcel)
+    companion object CREATOR : Parcelable.Creator<AppData> {
+        override fun createFromParcel(parcel: Parcel): AppData {
+            return AppData(parcel)
         }
 
-        override fun newArray(size: Int): Array<Application?> {
+        override fun newArray(size: Int): Array<AppData?> {
             return arrayOfNulls(size)
         }
 
