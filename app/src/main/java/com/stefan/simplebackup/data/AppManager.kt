@@ -2,7 +2,6 @@ package com.stefan.simplebackup.data
 
 import android.content.Context
 import android.content.pm.ApplicationInfo
-import android.content.pm.ChangedPackages
 import android.content.pm.PackageManager
 import android.util.Log
 import com.stefan.simplebackup.utils.FileUtil
@@ -20,6 +19,8 @@ import kotlin.system.measureTimeMillis
 class AppManager(private val context: Context) {
 
     private val packageSharedPref = context.getSharedPreferences("package", Context.MODE_PRIVATE)
+    private val getSavedSequenceNumber get() = packageSharedPref.getInt("sequence_number", 0)
+    private val getChangedPackages get() = packageManager.getChangedPackages(getSavedSequenceNumber)
 
     /**
      * - Sadrži [PackageManager]
@@ -35,30 +36,28 @@ class AppManager(private val context: Context) {
         Log.d("AppManager", "Sequence number: ${packageSharedPref.getInt("sequence_number", 0)}")
     }
 
-    private fun updatePackageSharedPref(newSequenceNumber: Int) {
-        packageSharedPref.apply {
-            edit()
-                .putInt("sequence_number", newSequenceNumber)
-                .apply()
+    private fun saveSequenceNumber(newSequenceNumber: Int) {
+        if (newSequenceNumber != getSavedSequenceNumber) {
+            packageSharedPref.apply {
+                edit()
+                    .putInt("sequence_number", newSequenceNumber)
+                    .apply()
+            }
         }
         Log.d("AppManager", "Sequence number: ${packageSharedPref.getInt("sequence_number", 0)}")
     }
 
-    private fun getChangedPackages(): ChangedPackages? {
-        val savedSequenceNumber = packageSharedPref.getInt("sequence_number", 0)
-        return packageManager.getChangedPackages(savedSequenceNumber)
-    }
-
     fun updateSequenceNumber() {
-        val changedPackages = getChangedPackages()
+        val changedPackages = getChangedPackages
         changedPackages?.let { changed ->
-            updatePackageSharedPref(changed.sequenceNumber)
+            saveSequenceNumber(changed.sequenceNumber)
         }
     }
 
     fun getChangedPackageNames(): Flow<String> = flow {
-        val changedPackages = getChangedPackages()
+        val changedPackages = getChangedPackages
         changedPackages?.let { changed ->
+            saveSequenceNumber(changed.sequenceNumber)
             changed.packageNames.forEach { packageName ->
                 emit(packageName)
             }

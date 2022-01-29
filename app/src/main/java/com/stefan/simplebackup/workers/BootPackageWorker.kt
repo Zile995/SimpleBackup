@@ -9,7 +9,6 @@ import com.stefan.simplebackup.data.AppManager
 import com.stefan.simplebackup.database.AppDatabase
 import com.stefan.simplebackup.database.AppRepository
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 
 class BootPackageWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext,
@@ -38,7 +37,6 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) : Corouti
                         }
                     }
                 }
-                appManager.updateSequenceNumber()
                 Log.d("BootPackageWorker", "Updated successfully")
                 Result.success()
             }
