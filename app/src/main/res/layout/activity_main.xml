@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="@color/darkBackground"
     tools:context=".ui.activities.MainActivity">
 
     <androidx.fragment.app.FragmentContainerView
@@ -21,10 +21,8 @@
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="@dimen/bottom_navigation_height"
-        android:background="@drawable/curved_bottom_view"
+        style="@style/Widget.SimpleBackup.BottomNavigationView"
         app:labelVisibilityMode="auto"
-        app:itemTextAppearanceActive="@style/BottomNavigationViewText"
-        app:itemTextAppearanceInactive="@style/BottomNavigationViewText"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

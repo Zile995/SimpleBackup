@@ -1,18 +1,20 @@
 package com.stefan.simplebackup.adapter
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Filter
-import android.widget.Filterable
 import android.widget.ImageView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.android.material.textview.MaterialTextView
@@ -21,28 +23,57 @@ import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.ui.activities.BackupActivity
 import com.stefan.simplebackup.utils.FileUtil
 
-class AppAdapter(private val selectionListener: SelectionListener) :
-    ListAdapter<AppData, AppAdapter.AppViewHolder>(AppDiffCallBack()), Filterable {
+class AppAdapter(
+    private val selectionListener: SelectionListener
+) :
+    ListAdapter<AppData, AppAdapter.AppViewHolder>(AppDiffCallBack) {
 
-    private var appList = mutableListOf<AppData>()
+    object AppDiffCallBack : DiffUtil.ItemCallback<AppData>() {
+        override fun areItemsTheSame(oldItem: AppData, newItem: AppData): Boolean {
+            return oldItem.getName() == newItem.getName() &&
+                    oldItem.getPackageName() == newItem.getPackageName() &&
+                    oldItem.getVersionName() == newItem.getVersionName()
+        }
 
-    class AppViewHolder private constructor(private val view: View) : RecyclerView.ViewHolder(view) {
-        private var bitmap: Bitmap? = null
+        override fun areContentsTheSame(oldItem: AppData, newItem: AppData): Boolean {
+            return oldItem == newItem
+        }
+    }
+
+    private lateinit var appList: MutableList<AppData>
+
+    class AppViewHolder private constructor(private val view: View) :
+        RecyclerView.ViewHolder(view) {
         private val cardView: MaterialCardView = view.findViewById(R.id.card_item)
         private val appImage: ImageView = view.findViewById(R.id.application_image)
         private val appName: MaterialTextView = view.findViewById(R.id.application_name)
         private val versionName: MaterialTextView = view.findViewById(R.id.version_name)
         private val packageName: MaterialTextView = view.findViewById(R.id.package_name)
         private val apkSize: Chip = view.findViewById(R.id.apk_size)
-
-        val getBitmap get() = bitmap
         val getCardView get() = cardView
         val getContext: Context get() = view.context
 
         fun bind(item: AppData) {
-            bitmap = item.getBitmapFromArray()
+            Glide.with(getContext).apply {
+                asBitmap()
+                    .load(item.getBitmapByteArray())
+                    .placeholder(R.drawable.glide_placeholder)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
+                    .dontAnimate()
+                    .into(object : CustomTarget<Bitmap?>() {
+                        override fun onResourceReady(
+                            resource: Bitmap,
+                            transition: Transition<in Bitmap?>?
+                        ) {
+                            appImage.setImageBitmap(resource)
+                        }
 
-            appImage.setImageBitmap(bitmap)
+                        override fun onLoadCleared(placeholder: Drawable?) {
+                            appImage.setImageDrawable(placeholder)
+                        }
+                    })
+            }
             appName.text = item.getName()
             versionName.text = item.getVersionName()
             packageName.text = item.getPackageName()
@@ -54,8 +85,6 @@ class AppAdapter(private val selectionListener: SelectionListener) :
                 val layout = LayoutInflater
                     .from(parent.context)
                     .inflate(R.layout.list_item, parent, false)
-
-                // Vrati ViewHolder
                 return AppViewHolder(layout)
             }
         }
@@ -63,41 +92,34 @@ class AppAdapter(private val selectionListener: SelectionListener) :
 
     /**
      * - Služi da kreiramo View preko kojeg možemo da pristupimo elementima iz list item-a
+     * - Parent parametar, je view grupa za koju će da se zakači list item view kao child view. Parent je RecyclerView.
+     * - Layout sadži referencu na child view (list_item) koji je zakačen na parent view (RecyclerView)
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
-        // Parent parametar, je view grupa za koju će da se zakači list item view kao child view. Parent je RecyclerView.
-        // layout sadži referencu na child view (list_item) koji je zakačen na parent view (RecyclerView)
         return AppViewHolder.from(parent)
     }
 
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val item = getItem(position)
+        val cardView = holder.getCardView
         holder.bind(item)
 
-        if (selectionListener.getSelected().contains(item)) {
-            holder.getCardView.setCardBackgroundColor(holder.getContext.getColor(R.color.selected_card))
+
+        if (selectionListener.getSelectedItems().contains(item)) {
+            holder.getCardView.setCardBackgroundColor(holder.getContext.getColor(R.color.darkCardViewSelected))
         }
 
-        holder.getCardView.setOnLongClickListener {
-            selectionListener.setSelection(true)
-            doSelection(holder, position)
+        cardView.setOnLongClickListener {
+            selectionListener.setSelectionMode(true)
+            doSelection(holder, item)
             true
         }
 
-        holder.getCardView.setOnClickListener {
-            if (selectionListener.isSelected()) {
-                doSelection(holder, position)
+        cardView.setOnClickListener {
+            if (selectionListener.hasSelectedItems()) {
+                doSelection(holder, item)
             } else {
                 val context = holder.getContext
-                val bitmap = holder.getBitmap
-                /** Zato što parcelable ima Binder IPC ograničenje, postavi prazan byte niz za prenos
-                 *  i sačuvaj bitmap array u MODE_PRIVATE, odnosno u data/files folder naše aplikacije
-                 */
-                if (bitmap != null && bitmap.allocationByteCount > 500000) {
-                    FileUtil.saveBitmap(bitmap, item.getName(), context)
-                    item.setBitmap(byteArrayOf())
-                    println("Bitmap = ${item.getBitmapFromArray()}")
-                }
                 val intent = Intent(context, BackupActivity::class.java)
                 intent.putExtra("application", item)
                 context.startActivity(intent)
@@ -105,20 +127,22 @@ class AppAdapter(private val selectionListener: SelectionListener) :
         }
     }
 
-    private fun doSelection(holder: AppViewHolder, position: Int) {
-        val selectionList = selectionListener.getSelected()
-        val context = holder.getCardView.context
-        if (selectionList.contains(appList[position])) {
-            holder.getCardView.setCardBackgroundColor(context.getColor(R.color.card))
-            selectionListener.removeSelection(appList[position])
+    private fun doSelection(holder: AppViewHolder, item: AppData) {
+        val selectionList = selectionListener.getSelectedItems()
+        val context = holder.getContext
+        if (selectionList.contains(item)) {
+            selectionListener.removeSelectedItem(item)
+            holder.getCardView.toggle()
+            holder.getCardView.setCardBackgroundColor(context.getColor(R.color.darkCardView))
         } else {
-            holder.getCardView.setCardBackgroundColor(context.getColor(R.color.selected_card))
-            selectionListener.addSelection(appList[position])
+            selectionListener.addSelectedItem(item)
+            holder.getCardView.toggle()
+            holder.getCardView.setCardBackgroundColor(context.getColor(R.color.darkCardViewSelected))
         }
         if (selectionList.isEmpty()) {
-            selectionListener.setSelection(false)
+            selectionListener.setSelectionMode(false)
         }
-        println("Listener list: ${selectionListener.getSelected().size}")
+        println("Listener list: ${selectionListener.getSelectedItems().size}")
     }
 
     fun setData(list: MutableList<AppData>) {
@@ -126,45 +150,13 @@ class AppAdapter(private val selectionListener: SelectionListener) :
         submitList(appList)
     }
 
-    override fun getFilter(): Filter {
-        return appFilter
-    }
-
-    private val appFilter = object : Filter() {
-        override fun performFiltering(sequence: CharSequence?): FilterResults {
-            val filteredList = mutableListOf<AppData>()
-            if (sequence.isNullOrBlank()) {
-                filteredList.addAll(appList)
-            } else {
-                appList.forEach {
-                    if (it.getName().lowercase().contains(sequence.toString().lowercase().trim())) {
-                        filteredList.add(it)
-                    }
-                }
-            }
-            val results = FilterResults()
-            results.values = filteredList
-            return results
+    fun filter(newText: String) {
+        if (newText.length < 2) {
+            setData(appList)
+            return
         }
-
-        @SuppressLint("NotifyDataSetChanged")
-        override fun publishResults(sequence: CharSequence?, results: FilterResults?) {
-            @Suppress("UNCHECKED_CAST")
-            submitList(results?.values as MutableList<AppData>)
-            notifyDataSetChanged()
-        }
-    }
-
-}
-
-class AppDiffCallBack : DiffUtil.ItemCallback<AppData>() {
-    override fun areItemsTheSame(oldItem: AppData, newItem: AppData): Boolean {
-        return oldItem.getName() == newItem.getName() &&
-                oldItem.getPackageName() == newItem.getPackageName() &&
-                oldItem.getVersionName() == newItem.getVersionName()
-    }
-
-    override fun areContentsTheSame(oldItem: AppData, newItem: AppData): Boolean {
-        return oldItem == newItem
+        val pattern = newText.lowercase().trim()
+        val filteredList = appList.filter { pattern in it.getName().lowercase() }
+        submitList(filteredList)
     }
 }

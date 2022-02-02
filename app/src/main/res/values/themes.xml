@@ -1,19 +1,71 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.SimpleBackup" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.SimpleBackup" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/selected</item>
-        <item name="colorPrimaryVariant">@color/button</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <item name="android:textColorPrimary">@color/white</item>
+        <item name="colorPrimary">@color/darkBottomView</item>
+        <item name="colorPrimaryVariant">@color/darkBackground</item>
+        <item name="colorOnPrimary">@color/darkSelectedTab</item>
+        <item name="colorSurface">@color/darkCardView</item>
+        <item name="colorOnSurface">@color/textColorPrimary</item>
+        <item name="colorOnSurfaceVariant">@color/darkBottomLabelInactive</item>
+        <item name="android:textColorPrimary">@color/textColorPrimary</item>
+        <item name="colorError">@color/darkError</item>
+        <!-- Used for material3 navigation bar color -->
+        <item name="colorSecondaryContainer">@color/darkSearchBar</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_200</item>
-        <item name="colorOnSecondary">@color/black</item>
-        <item name="android:textColorSecondary">@color/white</item>
-        <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">@color/status_bar</item>
-        <item name="android:navigationBarColor">@color/bottom_bar</item>
+        <!--        <item name="colorSecondary">@color/teal_200</item>-->
+        <!--        <item name="colorSecondaryVariant">@color/teal_200</item>-->
+        <!--        <item name="colorOnSecondary">@color/black</item>-->
+        <!--        <item name="android:textColorSecondary">@color/white</item>-->
+
+        <item name="android:statusBarColor" tools:targetApi="l">@color/darkStatusBar</item>
+        <item name="android:navigationBarColor">@color/darkBottomView</item>
         <item name="android:windowBackground">@drawable/starting_screen</item>
+    </style>
+
+    <style name="chipText" parent="Widget.MaterialComponents.Chip.Action">
+        <item name="android:textSize">9sp</item>
+        <item name="android:fontFamily">@font/inter_family</item>
+    </style>
+
+    <style name="TextAppearance.SimpleBackup.BottomNavigationView.Active" parent="TextAppearance.Material3.LabelMedium">
+        <item name="fontFamily">@font/inter_family</item>
+        <item name="android:fontFamily">@font/inter_family</item>
+    </style>
+    <style name="TextAppearance.SimpleBackup.BottomNavigationView.Inactive" parent="TextAppearance.Material3.LabelSmall">
+        <item name="fontFamily">@font/inter_family</item>
+        <item name="android:fontFamily">@font/inter_family</item>
+    </style>
+    <style name="Widget.SimpleBackup.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+        <item name="android:background">@drawable/curved_bottom_view</item>
+        <item name="itemTextAppearanceInactive">@style/TextAppearance.SimpleBackup.BottomNavigationView.Inactive</item>
+        <item name="itemTextAppearanceActive">@style/TextAppearance.SimpleBackup.BottomNavigationView.Active</item>
+    </style>
+
+    <style name="ToolBarFont" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="elevation">2dp</item>
+        <item name="fontFamily">@font/inter_family</item>
+        <item name="android:fontFamily">@font/inter_family</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="Widget.SimpleBackup.CardView" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">8dp</item>
+        <item name="cardElevation">2dp</item>
+        <item name="backgroundColor">@color/darkCardView</item>
+        <item name="rippleColor">@color/darkCardViewRipple</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="Widget.SimpleBackup.FloatingActionButton" parent="Widget.Material3.FloatingActionButton.Large.Primary">
+        <item name="cornerSize">100%</item>
+    </style>
+
+    <style name="DialogTheme" parent="Theme.Material3.DayNight.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/dialog_style</item>
+        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="android:textColorPrimary">@color/textColorPrimary</item>
+        <item name="android:fontFamily">@font/inter_family</item>
     </style>
 </resources>

@@ -11,6 +11,7 @@ import com.stefan.simplebackup.database.AppRepository
 import com.stefan.simplebackup.database.DatabaseApplication
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AppViewModel(application: DatabaseApplication) :
     ViewModel(), PackageListener, SelectionListener {
@@ -25,13 +26,13 @@ class AppViewModel(application: DatabaseApplication) :
     val restoreRecyclerViewState: Parcelable get() = state
     val isStateInitialized: Boolean get() = ::state.isInitialized
 
-    private var _spinner = MutableLiveData(true)
+    var _spinner = MutableLiveData(true)
     val spinner: LiveData<Boolean>
         get() = _spinner
 
-    private lateinit var _allApps: LiveData<MutableList<AppData>>
+    private lateinit var allApps: LiveData<MutableList<AppData>>
     val getAllApps: LiveData<MutableList<AppData>>
-        get() = _allApps
+        get() = allApps
 
     init {
         appManager.printSequence()
@@ -39,30 +40,54 @@ class AppViewModel(application: DatabaseApplication) :
         Log.d("ViewModel", "AppViewModel created")
     }
 
+    private fun launchListLoading(block: () -> LiveData<MutableList<AppData>>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            runCatching {
+                allApps = block()
+            }.onSuccess {
+                checkIfLoaded()
+                _spinner.postValue(false)
+            }.onFailure { throwable ->
+                throwable.message?.let { message -> Log.e("ViewModel", message) }
+            }
+        }
+    }
+
+    private suspend fun checkIfLoaded() {
+        withContext(Dispatchers.Default) {
+            val numberOfInstalled = appManager.getNumberOfInstalled()
+            while (true) {
+                val numberOfStored = getAllApps.value?.size ?: 0
+                if (numberOfStored == numberOfInstalled)
+                    break
+            }
+        }
+    }
+
     fun saveRecyclerViewState(parcelable: Parcelable) {
         state = parcelable
     }
 
-    override fun setSelection(selection: Boolean) {
+    override fun setSelectionMode(selection: Boolean) {
         _isSelected.postValue(selection)
     }
 
-    override fun isSelected(): Boolean = _isSelected.value ?: false
+    override fun hasSelectedItems(): Boolean = _isSelected.value ?: false
 
-    override fun setSelected(selectedList: MutableList<AppData>) {
+    override fun setSelectedItems(selectedList: MutableList<AppData>) {
         selectionList.clear()
         selectionList.addAll(selectedList)
     }
 
-    override fun getSelected(): MutableList<AppData> {
+    override fun getSelectedItems(): MutableList<AppData> {
         return selectionList
     }
 
-    override fun addSelection(app: AppData) {
+    override fun addSelectedItem(app: AppData) {
         selectionList.add(app)
     }
 
-    override fun removeSelection(app: AppData) {
+    override fun removeSelectedItem(app: AppData) {
         selectionList.remove(app)
     }
 
@@ -108,18 +133,6 @@ class AppViewModel(application: DatabaseApplication) :
 
     override suspend fun deletePackage(packageName: String) {
         deleteApp(packageName)
-    }
-
-    private fun launchListLoading(block: () -> LiveData<MutableList<AppData>>) {
-        viewModelScope.launch(Dispatchers.IO) {
-            runCatching {
-                _allApps = block()
-            }.onSuccess {
-                _spinner.postValue(false)
-            }.onFailure { throwable ->
-                throwable.message?.let { message -> Log.e("ViewModel", message) }
-            }
-        }
     }
 
     override fun onCleared() {

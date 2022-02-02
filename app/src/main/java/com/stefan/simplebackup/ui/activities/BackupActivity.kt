@@ -257,7 +257,6 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private fun setToolBar() {
-        toolBar.setTitleTextAppearance(this, R.style.ActionBarTextAppearance)
         setSupportActionBar(toolBar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
@@ -361,9 +360,9 @@ class BackupActivity : AppCompatActivity() {
         val alert = builder.create()
         alert.setOnShowListener {
             alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-                .setTextColor(ContextCompat.getColor(this, R.color.blue_text))
+                .setTextColor(ContextCompat.getColor(this, R.color.darkPositiveDialog))
             alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setTextColor(ContextCompat.getColor(this, R.color.blue_text))
+                .setTextColor(ContextCompat.getColor(this, R.color.darkPositiveDialog))
         }
         alert.show()
     }

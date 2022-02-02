@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity() {
             // Pokupi sačuvano informaciju o tome da li je postavljen root upit.
             isSubmitted = savedInstanceState.getBoolean("isSubmitted")
         }
-        this.window.setBackgroundDrawableResource(R.color.background)
+        this.window.setBackgroundDrawableResource(R.color.darkBackground)
         println("Prepared activity")
     }
 
@@ -228,7 +228,7 @@ class MainActivity : AppCompatActivity() {
             val alert = builder.create()
             alert.setOnShowListener {
                 alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                    .setTextColor(ContextCompat.getColor(this, R.color.blue))
+                    .setTextColor(ContextCompat.getColor(this, R.color.darkPositiveDialog))
             }
             alert.show()
         }
@@ -259,7 +259,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             if (selectedItemId == homeItemId) {
                 doubleBackPressed = true
-                Toast.makeText(this, "Press back again to exit", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "Press back again to exit", Toast.LENGTH_SHORT).show()
             } else
                 bottomBar.selectedItemId = homeItemId
         }

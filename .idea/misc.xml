@@ -12,12 +12,14 @@
         <entry key="app/src/main/res/drawable/baseline_keyboard_arrow_up_deep_purple_50_24dp.xml" value="0.2015625" />
         <entry key="app/src/main/res/drawable/baseline_search_white_24dp.xml" value="0.2015625" />
         <entry key="app/src/main/res/drawable/baseline_settings_backup_restore_indigo_200_36dp.xml" value="0.2015625" />
+        <entry key="app/src/main/res/drawable/baseline_settings_backup_restore_white_24dp.xml" value="0.213" />
         <entry key="app/src/main/res/drawable/baseline_storage_orange_300_24dp.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/bottom_nav_tint.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/curved_bottom_view.xml" value="0.20677083333333332" />
         <entry key="app/src/main/res/drawable/curved_tab_layout.xml" value="0.1828125" />
         <entry key="app/src/main/res/drawable/dialog_style.xml" value="0.3482051282051282" />
         <entry key="app/src/main/res/drawable/drawable_selector.xml" value="0.3482051282051282" />
+        <entry key="app/src/main/res/drawable/glide_placeholder.xml" value="0.1305" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.20677083333333332" />
         <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/round_playlist_add_check_white_24dp.xml" value="0.11388888888888889" />
@@ -36,13 +38,13 @@
         <entry key="app/src/main/res/font/inter_family.xml" value="0.215625" />
         <entry key="app/src/main/res/font/meslo_family.xml" value="0.215625" />
         <entry key="app/src/main/res/font/sailec_font.xml" value="0.215625" />
-        <entry key="app/src/main/res/layout/activity_backup.xml" value="0.33" />
+        <entry key="app/src/main/res/layout/activity_backup.xml" value="0.21" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.16" />
         <entry key="app/src/main/res/layout/activity_restore.xml" value="0.22" />
         <entry key="app/src/main/res/layout/activity_search.xml" value="0.3375" />
         <entry key="app/src/main/res/layout/fragment_app_list.xml" value="0.25" />
         <entry key="app/src/main/res/layout/fragment_restore_list.xml" value="0.22" />
-        <entry key="app/src/main/res/layout/list_item.xml" value="0.41487603305785126" />
+        <entry key="app/src/main/res/layout/list_item.xml" value="0.22" />
         <entry key="app/src/main/res/layout/restore_item.xml" value="0.4481216457960644" />
         <entry key="app/src/main/res/layout/search_view_layout.xml" value="0.18541666666666667" />
         <entry key="app/src/main/res/layout/toolbar_search_view.xml" value="0.25" />

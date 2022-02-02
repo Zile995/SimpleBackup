@@ -10,10 +10,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import net.lingala.zip4j.ZipFile
 import java.io.File
-import java.io.FileInputStream
 import java.util.concurrent.ConcurrentHashMap
-import java.util.zip.ZipInputStream
 import kotlin.system.measureTimeMillis
 
 class AppManager(private val context: Context) {
@@ -139,9 +138,9 @@ class AppManager(private val context: Context) {
             val versionName = packageManager.getPackageInfo(
                 appInfo.packageName,
                 PackageManager.GET_META_DATA
-            ).versionName.run { substringBefore(" (") }
+            ).versionName?.substringBefore(" (") ?: ""
 
-            //Log.d("AppManager", "Apk file list: ${listApkLibs(File(appInfo.publicSourceDir))}")
+            //Log.d("AppManager", "Apk $name libs: ${listApkLibs(File(appInfo.publicSourceDir))}")
 
             val application = AppData(
                 0,
@@ -167,6 +166,18 @@ class AppManager(private val context: Context) {
         return pkgInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
     }
 
+    fun getNumberOfInstalled(): Int {
+        var size = 0
+        val installedApps =
+            packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+        installedApps.forEach { appInfo ->
+            if (!isSystemApp(appInfo)) {
+                size++
+            }
+        }
+        return size - 1
+    }
+
     private suspend fun getApkSize(path: String): Float {
         return withContext(Dispatchers.IO) {
             val dir = File(path)
@@ -187,13 +198,15 @@ class AppManager(private val context: Context) {
         return withContext(Dispatchers.IO) {
             val abiList = mutableListOf<String>()
             runCatching {
-                ZipInputStream(FileInputStream(apkFile)).use { zipInputStream ->
-                    var entry = zipInputStream.nextEntry
-                    while (entry != null) {
-                        Log.d("AppManager", "Entry name: ${entry.name}")
-                        entry = zipInputStream.nextEntry
-                    }
-                }
+                val zipFile = ZipFile(apkFile)
+                val headerList = zipFile.fileHeaders
+                abiList.addAll(headerList.map { fileHeader ->
+                    fileHeader.fileName
+                }.filter { fileName ->
+                    fileName.contains("lib") && fileName.endsWith(".so")
+                }.map {
+                    it.substringAfter("/").substringBeforeLast("/")
+                }.distinct())
             }.onFailure { throwable ->
                 throwable.message?.let { message ->
                     Log.e(

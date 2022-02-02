@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.card.MaterialCardView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.AppData
@@ -69,15 +70,12 @@ class AppListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        _appAdapter = AppAdapter(appViewModel)
         scope.launch {
+            _appAdapter = AppAdapter(appViewModel)
             if (isAdded) {
                 bindViews()
                 setAppViewModelObservers()
-                if (savedInstanceState != null) {
-                    binding.progressBar.visibility = View.GONE
-                    restoreRecyclerViewState()
-                }
+                restoreRecyclerViewState()
             }
         }
     }
@@ -109,13 +107,15 @@ class AppListFragment : Fragment() {
                         }
 
                         override fun onQueryTextChange(newText: String?): Boolean {
-                            appAdapter.filter.filter(newText)
+                            newText?.let { text ->
+                                appAdapter.filter(text)
+                            }
                             return true
                         }
                     })
                 }
                 R.id.select_all -> {
-                    appViewModel.setSelected(applicationList)
+                    appViewModel.setSelectedItems(applicationList)
                     appAdapter.notifyDataSetChanged()
                 }
             }
@@ -178,7 +178,6 @@ class AppListFragment : Fragment() {
                 if (dy > 0 && binding.floatingButton.isShown) {
                     binding.floatingButton.hide()
 
-
                 } else if (dy < 0 && !binding.floatingButton.isShown) {
                     binding.floatingButton.show()
                 }
@@ -212,19 +211,16 @@ class AppListFragment : Fragment() {
     private fun setAppViewModelObservers() {
         appViewModel.getAllApps.observe(viewLifecycleOwner) { appList ->
             appList.let {
-                appAdapter.setData(appList)
                 applicationList = appList
+                appAdapter.setData(appList)
             }
         }
         appViewModel.spinner.observe(viewLifecycleOwner) { value ->
-            scope.launch {
-                binding.progressBar.visibility =
-                    if (value)
-                        View.VISIBLE
-                    else {
-                        delay(200)
-                        View.GONE }
-            }
+            binding.progressBar.visibility =
+                if (value)
+                    View.VISIBLE
+                else
+                    View.GONE
         }
         appViewModel.isSelected.observe(viewLifecycleOwner) { isSelected ->
             binding.toolBar.menu.apply {
@@ -233,6 +229,7 @@ class AppListFragment : Fragment() {
             }
         }
     }
+
 
     override fun onPause() {
         binding.recyclerView.layoutManager?.onSaveInstanceState()?.let {

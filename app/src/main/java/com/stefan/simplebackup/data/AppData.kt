@@ -10,6 +10,8 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
@@ -128,6 +130,8 @@ data class AppData(
         }
     }
 
+    fun getBitmapByteArray() = bitmap
+
     fun getPackageName() = this.packageName
 
     fun getVersionName() = this.versionName
@@ -225,7 +229,7 @@ data class AppData(
         }
 
         fun Parcel.writeBooleanValue(flag: Boolean?) {
-            when(flag) {
+            when (flag) {
                 true -> writeInt(1)
                 false -> writeInt(0)
                 else -> writeInt(-1)
@@ -233,7 +237,7 @@ data class AppData(
         }
 
         fun Parcel.readBooleanValue(): Boolean? {
-            return when(readInt()) {
+            return when (readInt()) {
                 1 -> true
                 0 -> false
                 else -> null

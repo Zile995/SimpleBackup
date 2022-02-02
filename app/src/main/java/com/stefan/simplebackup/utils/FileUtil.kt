@@ -69,21 +69,23 @@ object FileUtil {
         return bytes.toByteArray()
     }
 
-    fun saveBitmap(bitmap: Bitmap, fileName: String, context: Context) {
-        try {
-            val bytes = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
-            context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
-                output.write(bytes.toByteArray())
-                output.close()
+    suspend fun saveBitmap(bitmap: Bitmap, fileName: String, context: Context) {
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val bytes = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
+                context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
+                    output.write(bytes.toByteArray())
+                    output.close()
+                }
+            }.onFailure { throwable ->
+                throwable.message?.let { message -> Log.e("Serialization", message) }
             }
-        } catch (e: Throwable) {
-            Log.e("Bitmap", "Bitmap error + ${e.message}")
         }
     }
 
     suspend fun appToJson(dir: String, app: AppData) {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             runCatching {
                 val file = File(dir, app.getName() + ".json")
                 OutputStreamWriter(FileOutputStream(file)).use { outputStreamWriter ->

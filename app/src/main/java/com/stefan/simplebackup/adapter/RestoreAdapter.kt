@@ -29,7 +29,7 @@ import kotlin.collections.component2
 import kotlin.collections.set
 
 class RestoreAdapter(rContext: Context) :
-    ListAdapter<AppData, RestoreAdapter.RestoreViewHolder>(AppDiffCallBack()), Filterable {
+    ListAdapter<AppData, RestoreAdapter.RestoreViewHolder>(AppAdapter.AppDiffCallBack), Filterable {
 
     companion object {
         private const val ROOT: String = "SimpleBackup/local"
@@ -95,9 +95,9 @@ class RestoreAdapter(rContext: Context) :
             val alert = builder.create()
             alert.setOnShowListener {
                 alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-                    .setTextColor(context.getColor(R.color.red))
+                    .setTextColor(context.getColor(R.color.darkNegativeDialog))
                 alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                    .setTextColor(context.getColor(R.color.blue))
+                    .setTextColor(context.getColor(R.color.darkPositiveDialog))
             }
             alert.show()
         }

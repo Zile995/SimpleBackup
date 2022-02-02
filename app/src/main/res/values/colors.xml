@@ -1,43 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#55709E</color>
-    <color name="purple_500">#222D42</color>
-    <color name="purple_700">#000016</color>
-    <color name="teal_200">#79B4B7</color>
-    <color name="teal_700">#97FFEF</color>
-    <color name="black">#1A2565</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="gray">#C3C3C3</color>
-    <color name="darker">#1C1C1C</color>
-    <color name="background">#192945</color>
-    <color name="search_bar">#1C2E4C</color>
-    <color name="app_size_color">#FFEAD1</color>
 
-    <!--  Chip color -->
-    <color name="red">#D35151</color>
-    <color name="red_200">#FF7878</color>
-    <color name="red_100">#FFA5A5</color>
-    <color name="data">#FF07433A</color>
-    <color name="red_500">#531F1F</color>
-    <color name="blue">#2F7EE6</color>
-    <color name="blue_text">#B9CDF4</color>
-    <color name="weak_yellow">#E6E4B6</color>
+    <color name="darkError">#D35151</color>
+    <color name="textColorPrimary">#FFFFFFFF</color>
+    <color name="colorAccent">#213B61</color>
 
-    <color name="button">#5B77A8</color>
-    <color name="local">#67B8BC</color>
-    <color name="drive">#D1CF8F</color>
+    <!-- Backgrounds -->
+    <color name="darkBackground">#192945</color>
+    <color name="darkSearchBar">#1C2E4C</color>
 
-    <!-- Card color -->
-    <color name="card">#1D3558</color>
-    <color name="selected_card">#294878</color>
-    <color name="ripple">#223E69</color>
+    <!-- Dialogs -->
+    <color name="darkNegativeDialog">#D35151</color>
+    <color name="darkPositiveDialog">#2F7EE6</color>
 
-    <!-- Tab Layout-->
-    <color name="selected">#758FD1</color>
+    <!-- Chips -->
+    <color name="darkRedChip">#FF7878</color>
+    <color name="darkTextInRedChip">#531F1F</color>>
+    <color name="darkGreenChip">#79B4B7</color>
+    <color name="darkTextInGreenChip">#FF07433A</color>
+    <color name="darkWeakRedChip">#FFA5A5</color>
+
+    <!-- TextViews -->
+    <color name="darkGreenChipLabel">@color/darkGreenChip</color>
+    <color name="darkRedChipLabel">@color/darkRedChip</color>
+    <color name="darkAppNameLabel">@color/textColorPrimary</color>
+    <color name="darkTextView">#B9CDF4</color>
+
+    <!-- Buttons -->
+    <color name="darkButton">#5B77A8</color>
+    <color name="darkFloatingButton">#55709E</color>
+    <color name="darkBackupButtonText">#222D42</color>
+    <color name="darkLocalStorageIcon">#67B8BC</color>
+    <color name="darkDriveStorageIcon">#D1CF8F</color>
+
+    <!-- CardViews -->
+    <color name="darkCardView">#1D3558</color>
+    <color name="darkCardViewSelected">#294878</color>
+    <color name="darkCardViewRipple">#223E69</color>
+
+    <!-- Tab Layouts -->
+    <color name="darkSelectedTab">#758FD1</color>
 
     <!-- Bars -->
-    <color name="bottom_bar">#213B61</color>
-    <color name="status_bar">#1A2C49</color>
-    <color name="scroll_bar">#274570</color>
+    <color name="darkBottomView">@color/colorAccent</color>
+    <color name="darkBottomLabelActive">@color/darkTextView</color>
+    <color name="darkBottomLabelInactive">#929FB6</color>
+    <color name="darkStatusBar">#1A2C49</color>
+    <color name="darkScrollBar">#274570</color>
 
 </resources>

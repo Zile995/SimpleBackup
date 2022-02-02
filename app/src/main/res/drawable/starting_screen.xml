@@ -4,7 +4,7 @@
     <item>
         <shape>
             <!-- background -->
-            <solid android:color="@color/status_bar" />
+            <solid android:color="@color/darkStatusBar" />
         </shape>
     </item>
     <!-- launcher icon -->

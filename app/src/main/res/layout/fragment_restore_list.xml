@@ -15,11 +15,11 @@
             android:id="@+id/tool_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/bottom_bar"
+            android:background="?android:attr/colorPrimary"
             app:menu="@menu/top_restore_bar"
             app:title="@string/restore"
-            app:titleTextAppearance="@style/ActionBarTextAppearance"
-            app:titleTextColor="@color/white" />
+            app:titleTextAppearance="@style/ToolBarFont"
+            app:titleTextColor="?android:attr/textColorPrimary" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -33,7 +33,7 @@
             android:id="@+id/restore_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/background"
+            android:background="@color/darkBackground"
             android:clipToPadding="false"
             android:scrollbarThumbVertical="@drawable/scrollbar_style"
             android:scrollbars="vertical"
@@ -47,13 +47,14 @@
         android:layout_height="match_parent"
         android:layout_below="@id/app_bar_layout"
         android:layout_centerInParent="true"
-        android:indeterminateTint="@color/purple_200"
+        android:indeterminateTint="@color/darkFloatingButton"
         android:scaleX="0.12"
         android:scaleY="0.12"
         android:visibility="visible" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floating_button"
+        style="@style/Widget.SimpleBackup.FloatingActionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignEnd="@+id/swipe_refresh"
@@ -63,7 +64,7 @@
         android:contentDescription="@string/scroll_to_top"
         android:src="@drawable/baseline_keyboard_arrow_up_deep_purple_50_24dp"
         android:visibility="invisible"
-        app:backgroundTint="@color/purple_200"
+        app:backgroundTint="@color/darkFloatingButton"
         app:borderWidth="0dp" />
 
 </RelativeLayout>
