@@ -360,9 +360,9 @@ class BackupActivity : AppCompatActivity() {
         val alert = builder.create()
         alert.setOnShowListener {
             alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-                .setTextColor(ContextCompat.getColor(this, R.color.darkPositiveDialog))
+                .setTextColor(ContextCompat.getColor(this, R.color.positiveDialog))
             alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setTextColor(ContextCompat.getColor(this, R.color.darkPositiveDialog))
+                .setTextColor(ContextCompat.getColor(this, R.color.positiveDialog))
         }
         alert.show()
     }

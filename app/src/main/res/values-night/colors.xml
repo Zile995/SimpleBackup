@@ -6,7 +6,7 @@
     <color name="colorAccent">#213B61</color>
 
     <!-- Backgrounds -->
-    <color name="background">#192945</color>
+    <color name="background">#172641</color>
 
     <!-- Dialogs -->
     <color name="negativeDialog">#D35151</color>
@@ -41,7 +41,7 @@
     <color name="selectedTab">#758FD1</color>
 
     <!-- Bars -->
-    <color name="bottomView">#9DBBE8</color>
+    <color name="bottomView">@color/colorAccent</color>
     <color name="bottomLabelActive">@color/textView</color>
     <color name="bottomLabelInactive">#929FB6</color>
     <color name="scrollBar">#274570</color>

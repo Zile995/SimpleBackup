@@ -12,7 +12,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.card.MaterialCardView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.AppData
@@ -26,18 +25,18 @@ import kotlinx.coroutines.*
 /**
  * A simple [AppListFragment] class.
  */
-class AppListFragment : Fragment() {
+class AppListFragment : Fragment(), MenuItemListener {
     // Binding
     private var _binding: FragmentAppListBinding? = null
     private val binding get() = _binding!!
-
-    private lateinit var activity: MainActivity
 
     // Coroutine scope
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     // AppData list and ViewModel
     private lateinit var applicationList: MutableList<AppData>
+
+    private lateinit var activity: MainActivity
 
     private var _appAdapter: AppAdapter? = null
     private val appAdapter get() = _appAdapter!!
@@ -46,17 +45,6 @@ class AppListFragment : Fragment() {
     private val appViewModel: AppViewModel by activityViewModels {
         val mainApplication = activity.application as DatabaseApplication
         AppViewModelFactory(mainApplication)
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        super.onCreateView(inflater, container, savedInstanceState)
-        // Inflate the layout for this fragment
-        println("Creating AppListFragment")
-        _binding = FragmentAppListBinding.inflate(inflater, container, false)
-        return binding.root
     }
 
     override fun onAttach(context: Context) {
@@ -68,12 +56,22 @@ class AppListFragment : Fragment() {
         appViewModel
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        super.onCreateView(inflater, container, savedInstanceState)
+        // Inflate the layout for this fragment
+        println("Creating AppListFragment")
+        _binding = FragmentAppListBinding.inflate(inflater, container, false)
+        bindViews()
+        return binding.root
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         scope.launch {
-            _appAdapter = AppAdapter(appViewModel)
             if (isAdded) {
-                bindViews()
                 setAppViewModelObservers()
                 restoreRecyclerViewState()
             }
@@ -81,7 +79,8 @@ class AppListFragment : Fragment() {
     }
 
     private fun bindViews() {
-        createToolBar()
+        _appAdapter = AppAdapter(appViewModel)
+        //createToolBar()
         createRecyclerView()
         createSwipeContainer()
         createFloatingButton()
@@ -92,9 +91,7 @@ class AppListFragment : Fragment() {
      */
     @SuppressLint("NotifyDataSetChanged")
     private fun createToolBar() {
-        val toolBar = binding.toolBar
-
-        toolBar.setOnMenuItemClickListener { menuItem ->
+        activity.toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.search -> {
                     val searchView = menuItem?.actionView as SearchView
@@ -121,6 +118,17 @@ class AppListFragment : Fragment() {
             }
             true
         }
+    }
+
+    override fun searchQuery(text: String) {
+        println("processing search $text")
+        appAdapter.filter(text)
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    override fun selectAll() {
+        appViewModel.setSelectedItems(applicationList)
+        appAdapter.notifyDataSetChanged()
     }
 
     /**
@@ -208,6 +216,7 @@ class AppListFragment : Fragment() {
         }
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     private fun setAppViewModelObservers() {
         appViewModel.getAllApps.observe(viewLifecycleOwner) { appList ->
             appList.let {
@@ -223,13 +232,12 @@ class AppListFragment : Fragment() {
                     View.GONE
         }
         appViewModel.isSelected.observe(viewLifecycleOwner) { isSelected ->
-            binding.toolBar.menu.apply {
+            activity.toolbar.menu.apply {
                 findItem(R.id.select_all).isVisible = isSelected
                 findItem(R.id.search).isVisible = !isSelected
             }
         }
     }
-
 
     override fun onPause() {
         binding.recyclerView.layoutManager?.onSaveInstanceState()?.let {

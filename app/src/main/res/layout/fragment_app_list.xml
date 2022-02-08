@@ -5,88 +5,23 @@
     android:id="@+id/fragment_app_constraint"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/darkBackground"
+    android:background="?attr/colorPrimaryVariant"
     tools:context=".ui.fragments.AppListFragment">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar_layout"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/app_bar_height"
-        android:background="?attr/colorPrimary"
-        app:elevation="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/tab_layout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="?attr/colorPrimary">
-
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/tool_bar"
-                android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginEnd="16dp"
-                android:background="@drawable/search_bar"
-                android:elevation="2dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:menu="@menu/top_app_bar"
-                app:title="@string/app_name"
-                app:titleTextAppearance="@style/ToolBarFont" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tab_layout"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/tab_layout_height"
-        android:background="@drawable/curved_tab_layout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/app_bar_layout"
-        app:tabIndicatorColor="@color/darkSelectedTab"
-        app:tabIndicatorFullWidth="false"
-        app:tabMode="fixed"
-        app:tabRippleColor="@color/darkCardViewRipple"
-        app:tabSelectedTextColor="@color/darkSelectedTab">
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/applications" />
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/favorites" />
-
-    </com.google.android.material.tabs.TabLayout>
-
     <LinearLayout
-        android:id="@+id/linear"
+        android:id="@+id/linear_layout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tab_layout">
+        app:layout_constraintTop_toTopOf="parent">
 
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipe_refresh"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tab_layout">
+            android:layout_height="match_parent">
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recycler_view"
@@ -94,7 +29,6 @@
                 android:layout_height="wrap_content"
                 android:background="?attr/colorPrimaryVariant"
                 android:clipToPadding="false"
-                android:fadingEdge="vertical"
                 android:paddingBottom="10dp"
                 android:scrollbarThumbVertical="@drawable/scrollbar_style"
                 android:scrollbars="vertical"
@@ -108,27 +42,28 @@
         android:id="@+id/progress_bar"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:indeterminateTint="@color/darkFloatingButton"
+        android:indeterminateTint="@color/floatingButton"
         android:scaleX="0.12"
         android:scaleY="0.12"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tab_layout" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floating_button"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        style="@style/Widget.SimpleBackup.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="50dp"
-        android:backgroundTint="@color/darkFloatingButton"
+        android:backgroundTint="@color/floatingButton"
         android:contentDescription="@string/scroll_to_top"
         android:src="@drawable/baseline_keyboard_arrow_up_deep_purple_50_24dp"
-        android:visibility="invisible"
+        android:visibility="visible"
         app:borderWidth="0dp"
-        app:fabCustomSize="50dp"
+        app:fabCustomSize="54dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

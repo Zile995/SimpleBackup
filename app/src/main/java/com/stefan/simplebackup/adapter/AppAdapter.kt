@@ -75,9 +75,13 @@ class AppAdapter(
                     })
             }
             appName.text = item.getName()
-            versionName.text = item.getVersionName()
-            packageName.text = item.getPackageName()
+            versionName.text = checkAndSetString(item.getVersionName())
+            packageName.text = checkAndSetString(item.getPackageName())
             apkSize.text = FileUtil.transformBytes(item.getApkSize())
+        }
+
+        private fun checkAndSetString(string: String): String {
+            return if (string.length > 36) string.substring(0, 36).plus("...") else string
         }
 
         companion object {
@@ -106,7 +110,7 @@ class AppAdapter(
 
 
         if (selectionListener.getSelectedItems().contains(item)) {
-            holder.getCardView.setCardBackgroundColor(holder.getContext.getColor(R.color.darkCardViewSelected))
+            holder.getCardView.setCardBackgroundColor(holder.getContext.getColor(R.color.cardViewSelected))
         }
 
         cardView.setOnLongClickListener {
@@ -133,11 +137,11 @@ class AppAdapter(
         if (selectionList.contains(item)) {
             selectionListener.removeSelectedItem(item)
             holder.getCardView.toggle()
-            holder.getCardView.setCardBackgroundColor(context.getColor(R.color.darkCardView))
+            holder.getCardView.setCardBackgroundColor(context.getColor(R.color.cardView))
         } else {
             selectionListener.addSelectedItem(item)
             holder.getCardView.toggle()
-            holder.getCardView.setCardBackgroundColor(context.getColor(R.color.darkCardViewSelected))
+            holder.getCardView.setCardBackgroundColor(context.getColor(R.color.cardViewSelected))
         }
         if (selectionList.isEmpty()) {
             selectionListener.setSelectionMode(false)

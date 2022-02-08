@@ -10,14 +10,13 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 /**
  * Klasa koja će sadržati sve podatke o aplikaciji
  */
+@Suppress("unused")
 @Entity(tableName = "app_table", indices = [Index(value = ["package_name"], unique = true)])
 @Keep
 @Serializable
@@ -70,9 +69,7 @@ data class AppData(
         readFromParcel(parcel)
     }
 
-    override fun describeContents(): Int {
-        TODO("Not yet implemented")
-    }
+    override fun describeContents(): Int = 0
 
     /**
      * * U parceli može postojati i null String tako da readString() može čitati i String? tip

@@ -95,9 +95,9 @@ class RestoreAdapter(rContext: Context) :
             val alert = builder.create()
             alert.setOnShowListener {
                 alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-                    .setTextColor(context.getColor(R.color.darkNegativeDialog))
+                    .setTextColor(context.getColor(R.color.negativeDialog))
                 alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                    .setTextColor(context.getColor(R.color.darkPositiveDialog))
+                    .setTextColor(context.getColor(R.color.positiveDialog))
             }
             alert.show()
         }

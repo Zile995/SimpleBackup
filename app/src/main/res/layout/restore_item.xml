@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/Widget.SimpleBackup.CardView"
     android:id="@+id/card_item"
     android:layout_width="match_parent"
     android:layout_height="125dp"
@@ -9,9 +10,7 @@
     android:clickable="true"
     android:focusable="true"
     android:checkable="true"
-    app:cardCornerRadius="8dp"
-    app:cardBackgroundColor="@color/darkCardView"
-    app:rippleColor="@color/darkCardViewRipple">
+    app:cardCornerRadius="8dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -37,7 +36,7 @@
             android:gravity="center_horizontal"
             android:maxLines="2"
             android:textAppearance="?attr/textAppearanceBody1"
-            android:textColor="@color/darkAppNameLabel"
+            android:textColor="@color/appNameLabel"
             android:textSize="6pt"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -101,17 +100,16 @@
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chip_version"
+            style="@style/Widget.SimpleBackup.Chip"
             android:layout_width="wrap_content"
             android:layout_height="45dp"
             android:layout_marginStart="20dp"
             android:clickable="false"
-            android:fontFamily="@font/inter"
             android:textAlignment="center"
-            android:textAppearance="@style/chipText"
-            android:textColor="@color/darkTextInRedChip"
+            android:textColor="@color/textInRedChip"
             android:textSize="5pt"
             android:textStyle="bold"
-            app:chipBackgroundColor="@color/darkRedChip"
+            app:chipBackgroundColor="@color/redChip"
             app:layout_constraintBottom_toBottomOf="@+id/application_image"
             app:layout_constraintStart_toEndOf="@+id/application_image"
             app:layout_constraintTop_toTopOf="@+id/application_image" />

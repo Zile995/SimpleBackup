@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.ui.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,6 +8,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.widget.ProgressBar
 import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,6 +16,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.adapter.RestoreAdapter
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
+import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.utils.FileUtil.createDirectory
 import com.stefan.simplebackup.utils.FileUtil.createFile
 import com.stefan.simplebackup.utils.FileUtil.jsonToApp
@@ -28,6 +31,9 @@ class RestoreListFragment : Fragment() {
     // Binding
     private var _binding: FragmentRestoreListBinding? = null
     private val binding get() = _binding!!
+
+    private lateinit var activity: MainActivity
+    private lateinit var toolbar: Toolbar
 
     // Restore List Adapter
     private var _restoreAdapter: RestoreAdapter? = null
@@ -48,11 +54,17 @@ class RestoreListFragment : Fragment() {
         return binding.root
     }
 
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        activity = requireActivity() as MainActivity
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _restoreAdapter = RestoreAdapter(requireContext())
         scope.launch {
             if (isAdded) {
+                toolbar = activity.toolbar
                 bindViews()
                 launch {
                     getStoredPackages()
@@ -126,7 +138,7 @@ class RestoreListFragment : Fragment() {
     }
 
     private fun createToolBar() {
-        binding.toolBar.setOnMenuItemClickListener { menuItem ->
+        activity.toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.search -> {
                     val searchView = menuItem?.actionView as SearchView

@@ -5,14 +5,14 @@
     android:id="@+id/parent_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/darkBackground"
+    android:background="?attr/colorPrimaryVariant"
     tools:context=".ui.activities.BackupActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar_backup"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/darkBottomView"
+        android:layout_height="@dimen/app_bar_height"
+        android:background="?attr/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -27,12 +27,10 @@
         android:layout_margin="12dp"
         android:clickable="true"
         android:focusable="true"
-        app:cardBackgroundColor="@color/darkCardView"
         app:cardCornerRadius="7dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar_backup"
-        app:rippleColor="@color/darkCardViewRipple">
+        app:layout_constraintTop_toBottomOf="@id/toolbar_backup">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -47,7 +45,7 @@
                 android:maxLines="1"
                 android:text="@string/min_sdk"
                 android:textAppearance="?attr/textAppearanceBody1"
-                android:textColor="@color/darkRedChipLabel"
+                android:textColor="@color/redChipLabel"
                 android:textSize="5pt"
                 app:layout_constraintStart_toStartOf="@+id/text_target_sdk"
                 app:layout_constraintTop_toBottomOf="@+id/target_sdk" />
@@ -72,7 +70,7 @@
                 android:gravity="center_horizontal|center_vertical"
                 android:maxLines="3"
                 android:textAppearance="?attr/textAppearanceBody1"
-                android:textColor="@color/darkAppNameLabel"
+                android:textColor="@color/appNameLabel"
                 android:textSize="6.3pt"
                 android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -82,6 +80,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/apk_size"
+                style="@style/Widget.SimpleBackup.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="42dp"
                 android:layout_marginTop="-5dp"
@@ -90,11 +89,10 @@
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:textAlignment="textStart"
-                android:textAppearance="@style/chipText"
-                android:textColor="@color/darkTextInGreenChip"
+                android:textColor="@color/textInGreenChip"
                 android:textSize="5.5pt"
                 android:textStyle="bold"
-                app:chipBackgroundColor="@color/darkGreenChip"
+                app:chipBackgroundColor="@color/greenChip"
                 app:chipIcon="@drawable/twotone_android_black_24dp"
                 app:iconStartPadding="5dp"
                 app:layout_constraintStart_toStartOf="@+id/text_apk_size"
@@ -109,7 +107,7 @@
                 android:maxLines="1"
                 android:text="@string/target_sdk"
                 android:textAppearance="?attr/textAppearanceBody1"
-                android:textColor="@color/darkRedChipLabel"
+                android:textColor="@color/redChipLabel"
                 android:textSize="5pt"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/apk_size"
@@ -117,6 +115,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/data_size"
+                style="@style/Widget.SimpleBackup.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="42dp"
                 android:layout_marginTop="-5dp"
@@ -125,11 +124,10 @@
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:textAlignment="textStart"
-                android:textAppearance="@style/chipText"
-                android:textColor="@color/darkTextInGreenChip"
+                android:textColor="@color/textInGreenChip"
                 android:textSize="5.5pt"
                 android:textStyle="bold"
-                app:chipBackgroundColor="@color/darkGreenChip"
+                app:chipBackgroundColor="@color/greenChip"
                 app:chipIcon="@drawable/twotone_sd_storage_black_24dp"
                 app:chipIconSize="22dp"
                 app:iconStartPadding="5dp"
@@ -138,6 +136,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/target_sdk"
+                style="@style/Widget.SimpleBackup.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="42dp"
                 android:layout_marginTop="-5dp"
@@ -146,11 +145,10 @@
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:textAlignment="textStart"
-                android:textAppearance="@style/chipText"
-                android:textColor="@color/darkTextInRedChip"
+                android:textColor="@color/textInRedChip"
                 android:textSize="5.5pt"
                 android:textStyle="bold"
-                app:chipBackgroundColor="@color/darkRedChip"
+                app:chipBackgroundColor="@color/redChip"
                 app:chipIcon="@drawable/twotone_api_black_24dp"
                 app:chipIconSize="20dp"
                 app:iconStartPadding="5dp"
@@ -159,6 +157,7 @@
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/min_sdk"
+                style="@style/Widget.SimpleBackup.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="42dp"
                 android:layout_marginTop="-5dp"
@@ -167,11 +166,10 @@
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:textAlignment="textStart"
-                android:textAppearance="@style/chipText"
-                android:textColor="@color/darkTextInRedChip"
+                android:textColor="@color/textInRedChip"
                 android:textSize="5.5pt"
                 android:textStyle="bold"
-                app:chipBackgroundColor="@color/darkRedChip"
+                app:chipBackgroundColor="@color/redChip"
                 app:chipIcon="@drawable/twotone_api_black_24dp"
                 app:chipIconSize="20dp"
                 app:iconStartPadding="5dp"
@@ -189,7 +187,7 @@
                 android:maxLines="1"
                 android:text="@string/apk"
                 android:textAppearance="?attr/textAppearanceBody1"
-                android:textColor="@color/darkGreenChipLabel"
+                android:textColor="@color/greenChipLabel"
                 android:textSize="5pt"
                 app:layout_constraintStart_toEndOf="@+id/text_item_backup"
                 app:layout_constraintTop_toTopOf="@+id/application_image_backup" />
@@ -203,7 +201,7 @@
                 android:maxLines="1"
                 android:text="@string/data"
                 android:textAppearance="?attr/textAppearanceBody1"
-                android:textColor="@color/darkGreenChipLabel"
+                android:textColor="@color/greenChipLabel"
                 android:textSize="5pt"
                 app:layout_constraintStart_toStartOf="@+id/text_apk_size"
                 app:layout_constraintTop_toBottomOf="@+id/apk_size" />
@@ -220,12 +218,12 @@
         android:layout_margin="12dp"
         android:clickable="false"
         android:focusable="false"
-        app:cardBackgroundColor="@color/darkCardView"
+        app:cardBackgroundColor="@color/cardView"
         app:cardCornerRadius="7dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/card_view"
-        app:rippleColor="@color/darkCardViewRipple">
+        app:rippleColor="@color/cardViewRipple">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -278,6 +276,7 @@
                 app:layout_constraintTop_toBottomOf="@id/text_view_package" />
 
             <com.google.android.material.chip.Chip
+                style="@style/Widget.SimpleBackup.Chip"
                 android:id="@+id/chip_version_backup"
                 android:layout_width="wrap_content"
                 android:layout_height="42dp"
@@ -286,42 +285,41 @@
                 android:clickable="false"
                 android:fontFamily="@font/inter"
                 android:textAlignment="center"
-                android:textAppearance="@style/chipText"
                 android:textColor="@color/textColorPrimary"
                 android:textSize="5.3pt"
                 android:textStyle="bold"
-                app:chipBackgroundColor="@color/darkRedChip"
+                app:chipBackgroundColor="@color/redChip"
                 app:layout_constraintStart_toEndOf="@id/text_view_version"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_package_backup"
+                style="@style/Widget.SimpleBackup.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="42dp"
                 android:clickable="false"
                 android:fontFamily="@font/inter"
                 android:textAlignment="center"
-                android:textAppearance="@style/chipText"
                 android:textColor="@color/textColorPrimary"
                 android:textSize="5pt"
                 android:textStyle="bold"
-                app:chipBackgroundColor="@color/darkRedChip"
+                app:chipBackgroundColor="@color/redChip"
                 app:layout_constraintBottom_toBottomOf="@+id/text_view_package"
                 app:layout_constraintStart_toStartOf="@+id/chip_version_backup"
                 app:layout_constraintTop_toTopOf="@+id/text_view_package" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chip_dir_backup"
+                style="@style/Widget.SimpleBackup.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="42dp"
                 android:clickable="false"
                 android:fontFamily="@font/inter"
                 android:textAlignment="center"
-                android:textAppearance="@style/chipText"
                 android:textColor="@color/textColorPrimary"
                 android:textSize="5pt"
                 android:textStyle="bold"
-                app:chipBackgroundColor="@color/darkRedChip"
+                app:chipBackgroundColor="@color/redChip"
                 app:layout_constraintBottom_toBottomOf="@id/text_view_data"
                 app:layout_constraintStart_toStartOf="@+id/chip_package_backup"
                 app:layout_constraintTop_toTopOf="@id/text_view_data" />
@@ -350,52 +348,40 @@
         android:layout_margin="12dp"
         android:clickable="false"
         android:focusable="false"
-        app:cardBackgroundColor="@color/darkCardView"
+        app:cardBackgroundColor="@color/cardView"
         app:cardCornerRadius="7dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/card_view_package"
-        app:rippleColor="@color/darkCardViewRipple">
+        app:rippleColor="@color/cardViewRipple">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.SimpleBackup.Button"
                 android:id="@+id/backup_button"
-                style="@style/Widget.MaterialComponents.Button.Icon"
-                android:layout_width="150dp"
-                android:layout_height="55dp"
+                android:layout_width="130dp"
+                android:layout_height="48dp"
                 android:layout_marginTop="20dp"
-                android:fontFamily="@font/inter"
-                android:text="@string/local"
-                android:textAlignment="center"
-                android:textAllCaps="true"
-                android:textColor="@color/darkBackupButtonText"
                 android:textStyle="bold"
-                app:backgroundTint="@color/darkButton"
+                android:text="@string/local"
                 app:icon="@drawable/baseline_storage_orange_300_24dp"
-                app:iconGravity="textStart"
-                app:iconTint="@color/darkLocalStorageIcon"
                 app:layout_constraintEnd_toStartOf="@id/backup_drive_button"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <com.google.android.material.button.MaterialButton
+                style="@style/Widget.SimpleBackup.Button"
                 android:id="@+id/backup_drive_button"
-                android:layout_width="150dp"
-                android:layout_height="55dp"
-                android:fontFamily="@font/inter"
+                android:layout_width="130dp"
+                android:layout_height="48dp"
                 android:text="@string/drive"
-                android:textAlignment="center"
-                android:textAllCaps="true"
-                android:textColor="@color/darkBackupButtonText"
                 android:textStyle="bold"
-                app:backgroundTint="@color/darkButton"
                 app:icon="@drawable/baseline_add_to_drive_yellow_300_24dp"
                 app:iconGravity="textStart"
-                app:iconTint="@color/darkDriveStorageIcon"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/backup_button"
                 app:layout_constraintTop_toTopOf="@+id/backup_button" />
@@ -407,7 +393,7 @@
                 android:layout_height="50dp"
                 android:layout_marginBottom="100dp"
                 android:indeterminate="false"
-                android:indeterminateTint="@color/darkFloatingButton"
+                android:indeterminateTint="@color/floatingButton"
                 android:max="100"
                 android:visibility="invisible"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -417,6 +403,7 @@
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/floating_delete_button"
+                style="@style/Widget.SimpleBackup.FloatingActionButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="30dp"

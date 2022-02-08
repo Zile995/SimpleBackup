@@ -4,10 +4,15 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.util.Log
+import android.view.Menu
+import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
@@ -33,6 +38,7 @@ class MainActivity : AppCompatActivity() {
 
     // UI
     private lateinit var bottomBar: BottomNavigationView
+    lateinit var toolbar: Toolbar
 
     private lateinit var activeFragment: Fragment
     private lateinit var homeFragment: Fragment
@@ -116,8 +122,27 @@ class MainActivity : AppCompatActivity() {
         // Postavi View Binding
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        createToolBar(binding)
         createBottomBar(binding)
         println("Created bottomBar")
+    }
+
+    private fun createToolBar(binding: ActivityMainBinding) {
+        toolbar = binding.toolBar
+
+        val searchView = toolbar.menu.findItem(R.id.search).actionView as SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText != null) {
+                    Log.d("onQueryTextChange", newText)
+                }
+                return true
+            }
+        })
     }
 
     private fun createBottomBar(binding: ActivityMainBinding) {
@@ -156,7 +181,7 @@ class MainActivity : AppCompatActivity() {
             // Pokupi sačuvano informaciju o tome da li je postavljen root upit.
             isSubmitted = savedInstanceState.getBoolean("isSubmitted")
         }
-        this.window.setBackgroundDrawableResource(R.color.darkBackground)
+        this.window.setBackgroundDrawableResource(R.color.background)
         println("Prepared activity")
     }
 
@@ -228,7 +253,7 @@ class MainActivity : AppCompatActivity() {
             val alert = builder.create()
             alert.setOnShowListener {
                 alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                    .setTextColor(ContextCompat.getColor(this, R.color.darkPositiveDialog))
+                    .setTextColor(ContextCompat.getColor(this, R.color.positiveDialog))
             }
             alert.show()
         }
@@ -259,7 +284,12 @@ class MainActivity : AppCompatActivity() {
         } else {
             if (selectedItemId == homeItemId) {
                 doubleBackPressed = true
-                Toast.makeText(applicationContext, "Press back again to exit", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    applicationContext,
+                    "Press back again to exit",
+                    Toast.LENGTH_SHORT
+                )
+                    .show()
             } else
                 bottomBar.selectedItemId = homeItemId
         }

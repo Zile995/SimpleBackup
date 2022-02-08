@@ -14,5 +14,5 @@
         android:icon="@drawable/baseline_search_white_24dp"
         android:title="@string/search_for_application"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
-        app:showAsAction="always|collapseActionView" />
+        app:showAsAction="ifRoom|collapseActionView" />
 </menu>

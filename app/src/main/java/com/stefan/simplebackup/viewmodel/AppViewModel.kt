@@ -26,7 +26,7 @@ class AppViewModel(application: DatabaseApplication) :
     val restoreRecyclerViewState: Parcelable get() = state
     val isStateInitialized: Boolean get() = ::state.isInitialized
 
-    var _spinner = MutableLiveData(true)
+    private var _spinner = MutableLiveData(true)
     val spinner: LiveData<Boolean>
         get() = _spinner
 
