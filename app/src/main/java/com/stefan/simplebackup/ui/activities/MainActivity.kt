@@ -4,15 +4,10 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
-import android.view.Menu
-import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
-import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
@@ -38,7 +33,6 @@ class MainActivity : AppCompatActivity() {
 
     // UI
     private lateinit var bottomBar: BottomNavigationView
-    lateinit var toolbar: Toolbar
 
     private lateinit var activeFragment: Fragment
     private lateinit var homeFragment: Fragment
@@ -111,7 +105,7 @@ class MainActivity : AppCompatActivity() {
     private fun showFragment(active: Fragment, new: Fragment) {
         supportFragmentManager.commit {
             hide(active)
-            setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
+            setTransition(FragmentTransaction.TRANSIT_NONE)
             show(new)
         }
         println("Hiding $active and showing $new")
@@ -122,27 +116,8 @@ class MainActivity : AppCompatActivity() {
         // Postavi View Binding
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        createToolBar(binding)
         createBottomBar(binding)
         println("Created bottomBar")
-    }
-
-    private fun createToolBar(binding: ActivityMainBinding) {
-        toolbar = binding.toolBar
-
-        val searchView = toolbar.menu.findItem(R.id.search).actionView as SearchView
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText != null) {
-                    Log.d("onQueryTextChange", newText)
-                }
-                return true
-            }
-        })
     }
 
     private fun createBottomBar(binding: ActivityMainBinding) {

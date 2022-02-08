@@ -64,7 +64,6 @@ class RestoreListFragment : Fragment() {
         _restoreAdapter = RestoreAdapter(requireContext())
         scope.launch {
             if (isAdded) {
-                toolbar = activity.toolbar
                 bindViews()
                 launch {
                     getStoredPackages()
@@ -138,10 +137,10 @@ class RestoreListFragment : Fragment() {
     }
 
     private fun createToolBar() {
-        activity.toolbar.setOnMenuItemClickListener { menuItem ->
+        binding.toolBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.search -> {
-                    val searchView = menuItem?.actionView as SearchView
+                    val searchView = menuItem.actionView as SearchView
                     searchView.imeOptions = EditorInfo.IME_ACTION_DONE
                     searchView.queryHint = "Search for apps"
 

@@ -3,6 +3,7 @@ package com.stefan.simplebackup.ui.fragments
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -80,7 +81,7 @@ class AppListFragment : Fragment(), MenuItemListener {
 
     private fun bindViews() {
         _appAdapter = AppAdapter(appViewModel)
-        //createToolBar()
+        createToolBar()
         createRecyclerView()
         createSwipeContainer()
         createFloatingButton()
@@ -91,7 +92,8 @@ class AppListFragment : Fragment(), MenuItemListener {
      */
     @SuppressLint("NotifyDataSetChanged")
     private fun createToolBar() {
-        activity.toolbar.setOnMenuItemClickListener { menuItem ->
+        binding.toolBar.setOnMenuItemClickListener { menuItem ->
+            Log.d("Search", "toolbar item clicked")
             when (menuItem.itemId) {
                 R.id.search -> {
                     val searchView = menuItem?.actionView as SearchView
@@ -232,7 +234,7 @@ class AppListFragment : Fragment(), MenuItemListener {
                     View.GONE
         }
         appViewModel.isSelected.observe(viewLifecycleOwner) { isSelected ->
-            activity.toolbar.menu.apply {
+            binding.toolBar.menu.apply {
                 findItem(R.id.select_all).isVisible = isSelected
                 findItem(R.id.search).isVisible = !isSelected
             }
