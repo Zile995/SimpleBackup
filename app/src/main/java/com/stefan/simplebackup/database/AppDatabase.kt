@@ -34,33 +34,11 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
-        private suspend fun deleteOrUpdate() {
-            Log.d("AppDatabase", "Calling the deleteOrUpdate()")
-            appManager.getChangedPackageNames().collect { packageName ->
-                if (appManager.doesPackageExists(packageName)) {
-                    appManager.build(packageName).collect { app ->
-                        Log.d("AppDatabase", "Adding the $packageName")
-                        appDao?.insert(app)
-                    }
-                } else {
-                    Log.d("AppDatabase", "Deleting the $packageName")
-                    appDao?.delete(packageName)
-                }
-            }
-        }
-
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             scope.launch {
                 appManager.updateSequenceNumber()
                 insertAll()
-            }
-        }
-
-        override fun onOpen(db: SupportSQLiteDatabase) {
-            super.onOpen(db)
-            scope.launch {
-                deleteOrUpdate()
             }
         }
     }

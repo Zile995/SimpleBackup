@@ -74,7 +74,6 @@
     <style name="Widget.SimpleBackup.BottomCardView" parent="Widget.Material3.CardView.Elevated">
         <item name="cardCornerRadius">10dp</item>
         <item name="cardElevation">2dp</item>
-        <item name="backgroundColor">@color/cardView</item>
         <item name="strokeWidth">0dp</item>
     </style>
 

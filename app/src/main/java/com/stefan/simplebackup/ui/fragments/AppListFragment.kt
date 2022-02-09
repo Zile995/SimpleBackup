@@ -3,17 +3,13 @@ package com.stefan.simplebackup.ui.fragments
 import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
-import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.stefan.simplebackup.R
 import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.database.DatabaseApplication
@@ -72,16 +68,14 @@ class AppListFragment : Fragment(), MenuItemListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         scope.launch {
-            if (isAdded) {
-                setAppViewModelObservers()
-                restoreRecyclerViewState()
-            }
+            setAppViewModelObservers()
+            restoreRecyclerViewState()
         }
     }
 
     private fun bindViews() {
         _appAdapter = AppAdapter(appViewModel)
-        createToolBar()
+        //createToolBar()
         createRecyclerView()
         createSwipeContainer()
         createFloatingButton()
@@ -91,36 +85,36 @@ class AppListFragment : Fragment(), MenuItemListener {
      * - Inicijalizuj gornju traku, ili ToolBar
      */
     @SuppressLint("NotifyDataSetChanged")
-    private fun createToolBar() {
-        binding.toolBar.setOnMenuItemClickListener { menuItem ->
-            Log.d("Search", "toolbar item clicked")
-            when (menuItem.itemId) {
-                R.id.search -> {
-                    val searchView = menuItem?.actionView as SearchView
-                    searchView.imeOptions = EditorInfo.IME_ACTION_DONE
-                    searchView.queryHint = "Search for apps"
-
-                    searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                        override fun onQueryTextSubmit(query: String?): Boolean {
-                            return false
-                        }
-
-                        override fun onQueryTextChange(newText: String?): Boolean {
-                            newText?.let { text ->
-                                appAdapter.filter(text)
-                            }
-                            return true
-                        }
-                    })
-                }
-                R.id.select_all -> {
-                    appViewModel.setSelectedItems(applicationList)
-                    appAdapter.notifyDataSetChanged()
-                }
-            }
-            true
-        }
-    }
+//    private fun createToolBar() {
+//        binding.toolBar.setOnMenuItemClickListener { menuItem ->
+//            Log.d("Search", "toolbar item clicked")
+//            when (menuItem.itemId) {
+//                R.id.search -> {
+//                    val searchView = menuItem?.actionView as SearchView
+//                    searchView.imeOptions = EditorInfo.IME_ACTION_DONE
+//                    searchView.queryHint = "Search for apps"
+//
+//                    searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+//                        override fun onQueryTextSubmit(query: String?): Boolean {
+//                            return false
+//                        }
+//
+//                        override fun onQueryTextChange(newText: String?): Boolean {
+//                            newText?.let { text ->
+//                                appAdapter.filter(text)
+//                            }
+//                            return true
+//                        }
+//                    })
+//                }
+//                R.id.select_all -> {
+//                    appViewModel.setSelectedItems(applicationList)
+//                    appAdapter.notifyDataSetChanged()
+//                }
+//            }
+//            true
+//        }
+//    }
 
     override fun searchQuery(text: String) {
         println("processing search $text")
@@ -220,12 +214,6 @@ class AppListFragment : Fragment(), MenuItemListener {
 
     @SuppressLint("NotifyDataSetChanged")
     private fun setAppViewModelObservers() {
-        appViewModel.getAllApps.observe(viewLifecycleOwner) { appList ->
-            appList.let {
-                applicationList = appList
-                appAdapter.setData(appList)
-            }
-        }
         appViewModel.spinner.observe(viewLifecycleOwner) { value ->
             binding.progressBar.visibility =
                 if (value)
@@ -233,11 +221,19 @@ class AppListFragment : Fragment(), MenuItemListener {
                 else
                     View.GONE
         }
-        appViewModel.isSelected.observe(viewLifecycleOwner) { isSelected ->
-            binding.toolBar.menu.apply {
-                findItem(R.id.select_all).isVisible = isSelected
-                findItem(R.id.search).isVisible = !isSelected
+
+        appViewModel.getAllApps.observe(viewLifecycleOwner) { appList ->
+            appList.let {
+                applicationList = appList
+                appAdapter.setData(appList)
             }
+        }
+
+        appViewModel.isSelected.observe(viewLifecycleOwner) { isSelected ->
+//            binding.toolBar.menu.apply {
+//                findItem(R.id.select_all).isVisible = isSelected
+//                findItem(R.id.search).isVisible = !isSelected
+//            }
         }
     }
 

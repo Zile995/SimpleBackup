@@ -23,22 +23,37 @@
             android:layout_height="match_parent"
             android:background="?attr/colorPrimary">
 
-            <androidx.appcompat.widget.Toolbar
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/tool_bar"
+                style="@style/Widget.SimpleBackup.BottomCardView"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/search_bar_height"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="5dp"
                 android:layout_marginEnd="16dp"
-                android:background="@drawable/search_bar"
-                android:elevation="2dp"
+                app:cardBackgroundColor="@color/searchBar"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:menu="@menu/top_app_bar"
-                app:title="@string/app_name"
-                app:titleTextAppearance="@style/ToolBarFont" />
+                app:titleTextAppearance="@style/ToolBarFont" >
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="16dp"
+                    android:src="@drawable/baseline_search_white_24dp"/>
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="40dp"
+                    android:layout_marginEnd="20dp"
+                    android:layout_gravity="center"
+                    android:hint="@string/search_app"
+                    android:background="@color/searchBar"/>
+
+            </com.google.android.material.card.MaterialCardView>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

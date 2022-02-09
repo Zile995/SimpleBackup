@@ -18,6 +18,10 @@ class AppViewModel(application: DatabaseApplication) :
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
 
+    private lateinit var allApps: LiveData<MutableList<AppData>>
+    val getAllApps: LiveData<MutableList<AppData>>
+        get() = allApps
+
     private var _isSelected = MutableLiveData(false)
     val isSelected: LiveData<Boolean> get() = _isSelected
     private val selectionList = mutableListOf<AppData>()
@@ -30,10 +34,6 @@ class AppViewModel(application: DatabaseApplication) :
     val spinner: LiveData<Boolean>
         get() = _spinner
 
-    private lateinit var allApps: LiveData<MutableList<AppData>>
-    val getAllApps: LiveData<MutableList<AppData>>
-        get() = allApps
-
     init {
         appManager.printSequence()
         launchListLoading { getAllAppsFromRepository() }
@@ -44,6 +44,7 @@ class AppViewModel(application: DatabaseApplication) :
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 allApps = block()
+                refreshPackageList()
             }.onSuccess {
                 checkIfLoaded()
                 _spinner.postValue(false)
@@ -106,15 +107,16 @@ class AppViewModel(application: DatabaseApplication) :
     }
 
     suspend fun refreshPackageList() {
+        Log.d("ViewModel", "Refreshing the package list")
         viewModelScope.launch(Dispatchers.IO) {
             appManager.apply {
                 getChangedPackageNames().collect { packageName ->
                     if (doesPackageExists(packageName)) {
-                        build(packageName).collect { app ->
-                            insertApp(app)
-                        }
+                        Log.d("ViewModel", "Adding or updating the $packageName")
+                        addOrUpdatePackage(packageName)
                     } else {
-                        deleteApp(packageName)
+                        Log.d("ViewModel", "Deleting the $packageName")
+                        deletePackage(packageName)
                     }
                 }
             }
