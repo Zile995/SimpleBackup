@@ -68,11 +68,10 @@ class RestoreAdapter(rContext: Context) :
      */
     override fun onBindViewHolder(holder: RestoreViewHolder, position: Int) {
         val item = getItem(position)
-        val bitmap = item.getBitmapFromArray()
+        val bitmap = item.getBitmap()
         val charSequenceVersion: CharSequence = "v" + item.getVersionName()
 
         holder.textItem.text = item.getName()
-        holder.appImage.setImageBitmap(bitmap)
         holder.chipVersion.text = charSequenceVersion.toString()
         holder.appSize.text = item.getDataSize()
         holder.dateText.text = item.getDate()

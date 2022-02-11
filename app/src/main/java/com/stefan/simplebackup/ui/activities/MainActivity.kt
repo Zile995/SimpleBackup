@@ -33,7 +33,6 @@ class MainActivity : AppCompatActivity() {
 
     // UI
     private lateinit var bottomBar: BottomNavigationView
-
     private lateinit var activeFragment: Fragment
     private lateinit var homeFragment: Fragment
     private lateinit var restoreFragment: Fragment

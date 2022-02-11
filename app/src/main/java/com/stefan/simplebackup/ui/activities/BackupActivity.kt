@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.Drawable
 import android.icu.text.SimpleDateFormat
 import android.net.Uri
 import android.os.Bundle
@@ -17,12 +18,17 @@ import android.view.View
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
@@ -38,8 +44,13 @@ import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.AppData
+import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.ActivityBackupBinding
 import com.stefan.simplebackup.utils.FileUtil
+import com.stefan.simplebackup.viewmodel.AppViewModel
+import com.stefan.simplebackup.viewmodel.AppViewModelFactory
+import com.stefan.simplebackup.viewmodel.BackupViewModel
+import com.stefan.simplebackup.viewmodel.BackupViewModelFactory
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
 import java.util.*
@@ -55,7 +66,6 @@ class BackupActivity : AppCompatActivity() {
 
     // Package name reference
     private var thisPackageName: String = ""
-    private var internalStoragePath: String = ""
     private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private lateinit var constraintLayout: ConstraintLayout
@@ -77,8 +87,13 @@ class BackupActivity : AppCompatActivity() {
     private lateinit var cardViewPackage: MaterialCardView
     private lateinit var cardViewButtons: MaterialCardView
 
-    private lateinit var bitmap: Bitmap
     private var selectedApp: AppData? = null
+
+    private val backupViewModel: BackupViewModel by viewModels {
+        val application = application as DatabaseApplication
+        val mainApplication = applicationContext.getExternalFilesDir(null)?.absolutePath ?: ""
+        BackupViewModelFactory(selectedApp, application)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -87,6 +102,7 @@ class BackupActivity : AppCompatActivity() {
         val binding = ActivityBackupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        backupViewModel
         bindViews(binding)
         setCardViewSize()
 
@@ -94,62 +110,54 @@ class BackupActivity : AppCompatActivity() {
             selectedApp = intent?.extras?.getParcelable("application")
 
             selectedApp?.let { app ->
-                with(app) {
-                    this@BackupActivity.getAppBitmap(this)?.let { bitmap = it }
-                    setUI(this)
-                }
-            }
-            launch {
-                this@BackupActivity.getExternalFilesDir(null)
-                    ?.let { internalStoragePath = it.absolutePath }
-                Log.d("internal", internalStoragePath)
-            }
-            launch {
-                withContext(Dispatchers.Default) {
-                    with(FileUtil) {
-                        createDirectory(internalStoragePath)
-                        createFile("$internalStoragePath/.nomedia")
-                    }
-                }
+                checkAndSetAppBitmap(app)
+                setUI(app)
             }
         }
     }
 
     private fun setUI(app: AppData) {
-        with(app) {
+        app.apply {
             textItem.text = getName()
             chipPackage.text = (getPackageName() as CharSequence).toString()
             chipVersion.text = (getVersionName() as CharSequence).toString()
             chipDir.text = (getDataDir() as CharSequence).toString()
-            chipApkSize.text = FileUtil.transformBytes(getApkSize())
+            chipApkSize.text = FileUtil.transformBytesToString(getApkSize())
             chipTargetSdk.text = getTargetSdk().toString()
             chipMinSdk.text = getMinSdk().toString()
             dataPath = getDataDir()
             chipDataSize.text = selectedApp?.getDataSize()
-            appImage.setImageBitmap(bitmap)
+            setAppImage(app)
         }
     }
 
-    private suspend fun getAppBitmap(app: AppData): Bitmap? {
-        var bitmap = app.getBitmapFromArray()
+    private fun setAppImage(app: AppData) {
+        Glide.with(applicationContext).apply {
+            asBitmap()
+                .load(app.getBitmap())
+                .placeholder(R.drawable.glide_placeholder)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
+                .dontAnimate()
+                .into(appImage)
+        }
+    }
+
+    private suspend fun checkAndSetAppBitmap(app: AppData) {
+        val context = applicationContext
+        val bitmapByteArray = app.getBitmap()
         withContext(Dispatchers.IO) {
             runCatching {
-                if (bitmap == null) {
-                    bitmap =
-                        BitmapFactory.decodeStream(this@BackupActivity.openFileInput(app.getName()))
+                if (bitmapByteArray.isEmpty()) {
+                    val savedBitmapArray = context.openFileInput(app.getName()).readBytes()
+                    app.setBitmap(savedBitmapArray)
                 }
             }.onSuccess {
                 this@BackupActivity.deleteFile(app.getName())
-                bitmap?.let { bitmap ->
-                    FileUtil.bitmapToByteArray(bitmap).apply {
-                        app.setBitmap(this)
-                    }
-                }
             }.onFailure {
-                it.message?.let { message -> Log.e("BackupActivityError", message) }
+                it.message?.let { message -> Log.e("BackupActivity", message) }
             }
         }
-        return bitmap
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -160,7 +168,9 @@ class BackupActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.force_stop -> {
-                forceStop(selectedApp!!.getPackageName())
+                selectedApp?.let { app ->
+                    forceStop(app.getPackageName())
+                }
                 true
             }
             else -> {

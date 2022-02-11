@@ -3,6 +3,8 @@ package com.stefan.simplebackup.viewmodel
 import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.*
+import com.stefan.simplebackup.R
+import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.adapter.SelectionListener
 import com.stefan.simplebackup.broadcasts.PackageListener
 import com.stefan.simplebackup.data.AppData
@@ -40,6 +42,7 @@ class AppViewModel(application: DatabaseApplication) :
         Log.d("ViewModel", "AppViewModel created")
     }
 
+    // Loading methods
     private fun launchListLoading(block: () -> LiveData<MutableList<AppData>>) {
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
@@ -54,6 +57,40 @@ class AppViewModel(application: DatabaseApplication) :
         }
     }
 
+    // Repository methods
+    private fun getAllAppsFromRepository(): LiveData<MutableList<AppData>> {
+        return repository.getAllApps
+    }
+
+    private fun insertApp(app: AppData) = viewModelScope.launch {
+        repository.insert(app)
+        appManager.updateSequenceNumber()
+    }
+
+    private fun deleteApp(packageName: String) = viewModelScope.launch {
+        repository.delete(packageName)
+        appManager.updateSequenceNumber()
+    }
+
+    // Used to check for changed packages on init
+    suspend fun refreshPackageList() {
+        Log.d("ViewModel", "Refreshing the package list")
+        viewModelScope.launch(Dispatchers.IO) {
+            appManager.apply {
+                getChangedPackageNames().collect { packageName ->
+                    if (doesPackageExists(packageName)) {
+                        Log.d("ViewModel", "Adding or updating the $packageName")
+                        addOrUpdatePackage(packageName)
+                    } else {
+                        Log.d("ViewModel", "Deleting the $packageName")
+                        deletePackage(packageName)
+                    }
+                }
+            }
+        }
+    }
+
+    // Wait for database list
     private suspend fun checkIfLoaded() {
         withContext(Dispatchers.Default) {
             val numberOfInstalled = appManager.getNumberOfInstalled()
@@ -65,10 +102,12 @@ class AppViewModel(application: DatabaseApplication) :
         }
     }
 
+    // Save RecyclerView state
     fun saveRecyclerViewState(parcelable: Parcelable) {
         state = parcelable
     }
 
+    // SelectionListener overridden methods
     override fun setSelectionMode(selection: Boolean) {
         _isSelected.postValue(selection)
     }
@@ -92,37 +131,25 @@ class AppViewModel(application: DatabaseApplication) :
         selectionList.remove(app)
     }
 
-    private fun insertApp(app: AppData) = viewModelScope.launch {
-        repository.insert(app)
-        appManager.updateSequenceNumber()
-    }
-
-    private fun deleteApp(packageName: String) = viewModelScope.launch {
-        repository.delete(packageName)
-        appManager.updateSequenceNumber()
-    }
-
-    private fun getAllAppsFromRepository(): LiveData<MutableList<AppData>> {
-        return repository.getAllApps
-    }
-
-    suspend fun refreshPackageList() {
-        Log.d("ViewModel", "Refreshing the package list")
-        viewModelScope.launch(Dispatchers.IO) {
-            appManager.apply {
-                getChangedPackageNames().collect { packageName ->
-                    if (doesPackageExists(packageName)) {
-                        Log.d("ViewModel", "Adding or updating the $packageName")
-                        addOrUpdatePackage(packageName)
-                    } else {
-                        Log.d("ViewModel", "Deleting the $packageName")
-                        deletePackage(packageName)
-                    }
-                }
-            }
+    override fun doSelection(holder: AppAdapter.AppViewHolder, item: AppData) {
+        val selectionList = getSelectedItems()
+        val context = holder.getContext
+        if (selectionList.contains(item)) {
+            removeSelectedItem(item)
+            holder.getCardView.toggle()
+            holder.getCardView.setCardBackgroundColor(context.getColor(R.color.cardView))
+        } else {
+            addSelectedItem(item)
+            holder.getCardView.toggle()
+            holder.getCardView.setCardBackgroundColor(context.getColor(R.color.cardViewSelected))
         }
+        if (selectionList.isEmpty()) {
+            setSelectionMode(false)
+        }
+        println("Listener list: ${getSelectedItems().size}")
     }
 
+    // PackageListener methods - Used for database package updates
     override suspend fun addOrUpdatePackage(packageName: String) {
         viewModelScope.launch {
             appManager.apply {

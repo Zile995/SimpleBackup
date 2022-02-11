@@ -14,4 +14,6 @@ interface SelectionListener {
     fun addSelectedItem(app: AppData)
 
     fun removeSelectedItem(app: AppData)
+
+    fun doSelection(holder: AppAdapter.AppViewHolder, item: AppData)
 }

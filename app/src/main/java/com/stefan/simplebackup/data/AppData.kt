@@ -1,8 +1,6 @@
 package com.stefan.simplebackup.data
 
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Parcel
 import android.os.Parcelable
 import androidx.annotation.Keep
@@ -118,16 +116,6 @@ data class AppData(
      * Specifični getter nazivi potrebnih funkcija kako bi room prepoznao polja
      */
     fun getBitmap() = this.bitmap
-
-    fun getBitmapFromArray(): Bitmap? {
-        return if (this.bitmap.isNotEmpty()) {
-            BitmapFactory.decodeByteArray(this.bitmap, 0, this.bitmap.size)
-        } else {
-            null
-        }
-    }
-
-    fun getBitmapByteArray() = bitmap
 
     fun getPackageName() = this.packageName
 

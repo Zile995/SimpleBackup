@@ -9,22 +9,11 @@ import java.io.File
 
 const val ROOT: String = "SimpleBackup/local"
 
-class BackupUtil(private val app: AppData, private val internalStoragePath: String) {
-
-    private val mainBackupDir: String = internalStoragePath.run {
-        substring(0, indexOf("Android")) + ROOT
-    }
-    private val appBackupDir: String = mainBackupDir + "${app.getName()}_${app.getVersionName()}"
-
-    private fun createMainDir() {
-        with(FileUtil) {
-            createDirectory(mainBackupDir)
-            createFile("$mainBackupDir/.nomedia")
-        }
-    }
+class BackupUtil(private val app: AppData?, internalStoragePath: String) :
+    StorageHelper(app, internalStoragePath) {
 
     fun getApkList(): MutableList<File> {
-        val dir = File(app.getApkDir())
+        val dir = File(app?.getApkDir() ?: "")
         val apkList = mutableListOf<File>()
         dir.walkTopDown().filter {
             it.extension == "apk"
@@ -34,7 +23,7 @@ class BackupUtil(private val app: AppData, private val internalStoragePath: Stri
         return apkList
     }
 
-    fun createAppBackupDir(): String {
+    suspend fun createAppBackupDir(): String {
         val dir = File(appBackupDir)
         var number = 1
         val newPath: String

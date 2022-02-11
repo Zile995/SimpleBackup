@@ -19,63 +19,79 @@ import java.io.OutputStreamWriter
 import kotlin.math.pow
 
 object FileUtil {
-
-    fun createDirectory(path: String) {
-        runCatching {
-            val dir = File(path)
-            if (!dir.exists()) {
-                dir.mkdirs()
+    suspend fun createDirectory(path: String) {
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val dir = File(path)
+                if (!dir.exists()) {
+                    dir.mkdirs()
+                }
+            }.onFailure { throwable ->
+                throwable.message?.let { message -> Log.e("FileUtil", "$path: $message") }
             }
-        }.onFailure { throwable ->
-            throwable.message?.let { message -> Log.e("FileUtil", "$path: $message") }
         }
     }
 
-    fun createFile(path: String) {
-        runCatching {
-            val file = File(path)
-            file.createNewFile()
-        }.onFailure { throwable ->
-            throwable.message?.let { message -> Log.e("FileUtil", "$path: $message") }
+    suspend fun createFile(path: String) {
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val file = File(path)
+                file.createNewFile()
+            }.onFailure { throwable ->
+                throwable.message?.let { message -> Log.e("FileUtil", "$path: $message") }
+            }
         }
     }
 
-    fun transformBytes(bytes: Float): String {
+    fun transformBytesToString(bytes: Float): String {
         return String.format("%3.1f %s", bytes / 1000.0.pow(2), "MB")
     }
 
-    fun drawableToByteArray(drawable: Drawable): ByteArray {
-        val bitmap: Bitmap =
-            if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
-                Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
-            } else {
-                Bitmap.createBitmap(
-                    drawable.intrinsicWidth,
-                    drawable.intrinsicHeight,
-                    Bitmap.Config.ARGB_8888
-                )
-            }
+    suspend fun drawableToByteArray(drawable: Drawable): ByteArray =
+        withContext(Dispatchers.Default) {
+            val bitmap: Bitmap =
+                if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
+                    Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
+                } else {
+                    Bitmap.createBitmap(
+                        drawable.intrinsicWidth,
+                        drawable.intrinsicHeight,
+                        Bitmap.Config.ARGB_8888
+                    )
+                }
 
-        Log.d("Bitmap", "Bytes bitmap: ${bitmap.allocationByteCount}")
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-        return bitmapToByteArray(bitmap)
+            Log.d("Bitmap", "Bytes bitmap: ${bitmap.allocationByteCount}")
+            val canvas = Canvas(bitmap)
+            drawable.setBounds(0, 0, canvas.width, canvas.height)
+            drawable.draw(canvas)
+            bitmapToByteArray(bitmap)
+        }
+
+    private suspend fun bitmapToByteArray(bitmap: Bitmap): ByteArray =
+        withContext(Dispatchers.Default) {
+            val bytes = ByteArrayOutputStream()
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
+            bytes.toByteArray()
+        }
+
+    suspend fun checkBitmap(item: AppData, context: Context) {
+        val bitmapByteArray = item.getBitmap()
+        if (bitmapByteArray.size > 500000) {
+            saveBitmapByteArray(bitmapByteArray, item.getName(), context)
+            item.setBitmap(byteArrayOf())
+            println("Bitmap = ${bitmapByteArray.size}")
+        }
     }
 
-    fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
-        val bytes = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
-        return bytes.toByteArray()
-    }
-
-    suspend fun saveBitmap(bitmap: Bitmap, fileName: String, context: Context) {
+    private suspend fun saveBitmapByteArray(
+        byteArray: ByteArray,
+        fileName: String,
+        context: Context
+    ) {
         withContext(Dispatchers.IO) {
             runCatching {
-                val bytes = ByteArrayOutputStream()
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
                 context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
-                    output.write(bytes.toByteArray())
+                    output.write(byteArray)
                     output.close()
                 }
             }.onFailure { throwable ->

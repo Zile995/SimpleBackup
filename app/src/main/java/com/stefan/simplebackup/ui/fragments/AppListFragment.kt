@@ -2,6 +2,7 @@ package com.stefan.simplebackup.ui.fragments
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -11,10 +12,13 @@ import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.adapter.AppAdapter
+import com.stefan.simplebackup.adapter.OnClickListener
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
+import com.stefan.simplebackup.ui.activities.BackupActivity
 import com.stefan.simplebackup.ui.activities.MainActivity
+import com.stefan.simplebackup.utils.FileUtil
 import com.stefan.simplebackup.viewmodel.AppViewModel
 import com.stefan.simplebackup.viewmodel.AppViewModelFactory
 import kotlinx.coroutines.*
@@ -74,11 +78,34 @@ class AppListFragment : Fragment(), MenuItemListener {
     }
 
     private fun bindViews() {
-        _appAdapter = AppAdapter(appViewModel)
+        setAppAdapter()
         //createToolBar()
         createRecyclerView()
         createSwipeContainer()
         createFloatingButton()
+    }
+
+    private fun setAppAdapter() {
+        _appAdapter = AppAdapter(appViewModel, object : OnClickListener {
+            override fun onItemViewClick(holder: AppAdapter.AppViewHolder, item: AppData) {
+                if (appViewModel.hasSelectedItems()) {
+                    appViewModel.doSelection(holder, item)
+                } else {
+                    scope.launch {
+                        val context = holder.itemView.context
+                        FileUtil.checkBitmap(item, context)
+                        val intent = Intent(context, BackupActivity::class.java)
+                        intent.putExtra("application", item)
+                        context.startActivity(intent)
+                    }
+                }
+            }
+
+            override fun onLongItemViewClick(holder: AppAdapter.AppViewHolder, item: AppData) {
+                appViewModel.setSelectionMode(true)
+                appViewModel.doSelection(holder, item)
+            }
+        })
     }
 
     /**

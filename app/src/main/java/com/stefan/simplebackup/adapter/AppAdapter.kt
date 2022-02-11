@@ -24,7 +24,8 @@ import com.stefan.simplebackup.ui.activities.BackupActivity
 import com.stefan.simplebackup.utils.FileUtil
 
 class AppAdapter(
-    private val selectionListener: SelectionListener
+    private val selectionListener: SelectionListener,
+    private val clickListener: OnClickListener
 ) :
     ListAdapter<AppData, AppAdapter.AppViewHolder>(AppDiffCallBack) {
 
@@ -54,9 +55,17 @@ class AppAdapter(
         val getContext: Context get() = view.context
 
         fun bind(item: AppData) {
+            loadBitmapByteArray(item.getBitmap())
+            appName.text = item.getName()
+            versionName.text = checkAndSetString(item.getVersionName())
+            packageName.text = checkAndSetString(item.getPackageName())
+            apkSize.text = FileUtil.transformBytesToString(item.getApkSize())
+        }
+
+        private fun loadBitmapByteArray(byteArray: ByteArray) {
             Glide.with(getContext).apply {
                 asBitmap()
-                    .load(item.getBitmapByteArray())
+                    .load(byteArray)
                     .placeholder(R.drawable.glide_placeholder)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .skipMemoryCache(true)
@@ -74,10 +83,6 @@ class AppAdapter(
                         }
                     })
             }
-            appName.text = item.getName()
-            versionName.text = checkAndSetString(item.getVersionName())
-            packageName.text = checkAndSetString(item.getPackageName())
-            apkSize.text = FileUtil.transformBytes(item.getApkSize())
         }
 
         private fun checkAndSetString(string: String): String {
@@ -105,48 +110,20 @@ class AppAdapter(
 
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val item = getItem(position)
-        val cardView = holder.getCardView
         holder.bind(item)
-
 
         if (selectionListener.getSelectedItems().contains(item)) {
             holder.getCardView.setCardBackgroundColor(holder.getContext.getColor(R.color.cardViewSelected))
         }
 
-        cardView.setOnLongClickListener {
-            selectionListener.setSelectionMode(true)
-            doSelection(holder, item)
+        holder.itemView.setOnLongClickListener {
+            clickListener.onLongItemViewClick(holder, item)
             true
         }
 
-        cardView.setOnClickListener {
-            if (selectionListener.hasSelectedItems()) {
-                doSelection(holder, item)
-            } else {
-                val context = holder.getContext
-                val intent = Intent(context, BackupActivity::class.java)
-                intent.putExtra("application", item)
-                context.startActivity(intent)
-            }
+        holder.itemView.setOnClickListener {
+            clickListener.onItemViewClick(holder, item)
         }
-    }
-
-    private fun doSelection(holder: AppViewHolder, item: AppData) {
-        val selectionList = selectionListener.getSelectedItems()
-        val context = holder.getContext
-        if (selectionList.contains(item)) {
-            selectionListener.removeSelectedItem(item)
-            holder.getCardView.toggle()
-            holder.getCardView.setCardBackgroundColor(context.getColor(R.color.cardView))
-        } else {
-            selectionListener.addSelectedItem(item)
-            holder.getCardView.toggle()
-            holder.getCardView.setCardBackgroundColor(context.getColor(R.color.cardViewSelected))
-        }
-        if (selectionList.isEmpty()) {
-            selectionListener.setSelectionMode(false)
-        }
-        println("Listener list: ${selectionListener.getSelectedItems().size}")
     }
 
     fun setData(list: MutableList<AppData>) {

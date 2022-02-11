@@ -8,8 +8,13 @@ import kotlinx.coroutines.SupervisorJob
 class DatabaseApplication : Application() {
     private val applicationScope = CoroutineScope(SupervisorJob())
 
+    private val internalStoragePath: String? by lazy {
+        applicationContext.getExternalFilesDir(null)?.absolutePath
+    }
+    val getInternalStoragePath get() = internalStoragePath
+
     /**
-     * - App Builder class reference
+     * - App Builder class instance
      * - Used to create [Application] objects in ViewModel or Database Callback
      */
     private val appManager: AppManager by lazy { AppManager(this) }
