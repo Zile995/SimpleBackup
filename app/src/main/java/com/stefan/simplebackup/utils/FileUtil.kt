@@ -121,7 +121,7 @@ object FileUtil {
         }
     }
 
-    suspend fun appToJsonFile(dir: String, app: AppData) {
+    suspend fun serializeApp(app: AppData, dir: String) {
         Log.d("Serialization", "Saving json to $dir/${app.getName()}.json")
         withContext(Dispatchers.IO) {
             runCatching {
@@ -138,7 +138,7 @@ object FileUtil {
         }
     }
 
-    suspend fun moveJsonFile(jsonFile: File, destination: String) {
+    suspend fun moveSerializedApp(jsonFile: File, destination: String) {
         withContext(Dispatchers.IO) {
             val jsonBackupFile = File(destination + "/${jsonFile.nameWithoutExtension}.json")
             runCatching {
@@ -156,7 +156,7 @@ object FileUtil {
         }
     }
 
-    suspend fun jsonToApp(jsonFile: File) = flow<AppData> {
+    suspend fun deserializeApp(jsonFile: File) = flow<AppData> {
         Log.d("Serialization", "Creating the app from ${jsonFile.absolutePath}")
         runCatching {
             jsonFile.inputStream()

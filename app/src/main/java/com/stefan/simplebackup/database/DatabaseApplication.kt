@@ -2,11 +2,22 @@ package com.stefan.simplebackup.database
 
 import android.app.Application
 import com.stefan.simplebackup.data.AppManager
+import com.stefan.simplebackup.utils.backup.ROOT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 
 class DatabaseApplication : Application() {
     private val applicationScope = CoroutineScope(SupervisorJob())
+
+    private val internalStoragePath: String by lazy {
+        getExternalFilesDir(null)?.absolutePath ?: ""
+    }
+
+    private val mainBackupDirPath: String get() {
+        return internalStoragePath.let { path ->
+            path.substring(0, path.indexOf("Android")) + ROOT
+        }
+    }
 
     /**
      * - App Builder class instance
@@ -41,6 +52,11 @@ class DatabaseApplication : Application() {
      * - Get [AppManager] reference
      */
     val getAppManager get() = appManager
+
+    /**
+     * - Get main backup dir path
+     */
+    val getMainBackupDirPath get() = mainBackupDirPath
 
     override fun onCreate() {
         super.onCreate()

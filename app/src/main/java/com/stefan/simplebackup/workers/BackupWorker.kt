@@ -16,15 +16,15 @@ class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWor
     appContext,
     params
 ) {
-    private var app: AppData? = null
-    private val context = appContext
-    private val backupUtil = BackupUtil(app, context)
-
     override suspend fun doWork(): Result = coroutineScope {
         try {
             withContext(Dispatchers.IO) {
-                backupUtil.backup()
-                Log.d("BackupWorker", "Worker is backing up ${backupUtil.getApp?.getName()}")
+                val backupDirPath = inputData.getString("KEY_BACKUP_DATA_PATH")
+                backupDirPath?.let {
+                    val backupUtil = BackupUtil(it)
+                    backupUtil.backup()
+                    Log.d("BackupWorker", "Worker is backing up ${backupUtil.getApp?.getName()}")
+                }
                 Log.d("BackupWorker", "Backup successful")
                 Result.success()
             }

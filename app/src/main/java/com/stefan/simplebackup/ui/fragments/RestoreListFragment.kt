@@ -19,7 +19,7 @@ import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.utils.FileUtil.createDirectory
 import com.stefan.simplebackup.utils.FileUtil.createFile
-import com.stefan.simplebackup.utils.FileUtil.jsonToApp
+import com.stefan.simplebackup.utils.FileUtil.deserializeApp
 import com.stefan.simplebackup.utils.backup.ROOT
 import kotlinx.coroutines.*
 import java.io.File
@@ -120,7 +120,7 @@ class RestoreListFragment : Fragment() {
                         appDirList.listFiles()?.filter { appDirFile ->
                             appDirFile.isFile && appDirFile.extension == "json"
                         }?.map { jsonFile ->
-                            jsonToApp(jsonFile).collect { app ->
+                            deserializeApp(jsonFile).collect { app ->
                                 tempApps.add(app)
                             }
                         }

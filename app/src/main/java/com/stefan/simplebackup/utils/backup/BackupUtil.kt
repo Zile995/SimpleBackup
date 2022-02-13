@@ -1,95 +1,50 @@
 package com.stefan.simplebackup.utils.backup
 
-import android.content.Context
-import android.icu.text.SimpleDateFormat
 import android.util.Log
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.utils.FileUtil
-import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.runBlocking
 import java.io.File
-import java.util.*
 
 const val ROOT: String = "SimpleBackup/local"
 
-class BackupUtil(private var app: AppData?, context: Context) :
-    StorageHelper(context) {
+class BackupUtil(inputDataPath: String) {
 
-    private val appBackupDirPath by lazy { mainBackupDirPath + "/${app?.getName()}" }
-    private var appJsonFile: File? = null
-    private val zipUtil by lazy { ZipUtil(appBackupDirPath) }
+    private var app: AppData? = null
     val getApp get() = app
+
+    private val inputData = File(inputDataPath)
+    private val zipUtil by lazy { ZipUtil(inputData.absolutePath) }
 
     init {
         Log.d("BackupUtil", "Created BackupUtil")
         runBlocking {
-            if (app == null)
-                getApp()
+            deserializeApp()
         }
     }
 
     suspend fun backup() {
-        app?.let { backupApp ->
-            moveJsonFile()
-            zipUtil.zipApk(getApkList(), backupApp.getDataDir())
+        app?.let {
+            zipUtil.zipApk(getApkList(), inputData.absolutePath)
         }
     }
 
-    private suspend fun getApp() {
-        findAppJson()
-        appJsonFile?.let { jsonFile ->
-            FileUtil.jsonToApp(jsonFile).collect { jsonApp ->
+    private suspend fun deserializeApp() {
+        findSerializedApp().collect { jsonFile ->
+            FileUtil.deserializeApp(jsonFile).collect { jsonApp ->
                 Log.d("BackupUtil", "I got the ${jsonApp.getName()}")
                 app = jsonApp
             }
         }
     }
 
-    private fun findAppJson() {
+    private fun findSerializedApp() = flow<File> {
         Log.d("BackupUtil", "Finding the json file")
-        privateDir.listFiles()?.filter { jsonFile ->
+        inputData.listFiles()?.filter { jsonFile ->
             jsonFile.isFile && jsonFile.extension == "json"
         }?.map { jsonFile ->
-            appJsonFile = jsonFile
-        }
-    }
-
-    suspend fun prepare() {
-        app?.let {
-            setBackupTime()
-            setAppBackupDataDir()
-            createMainDir()
-            createAppBackupDir()
-            FileUtil.appToJsonFile(privateDir.absolutePath, it)
-        }
-    }
-
-    private fun setBackupTime() {
-        val locale = Locale.getDefault()
-        val time = SimpleDateFormat(
-            "dd.MM.yy-HH:mm", locale
-        )
-        app?.let { app ->
-            Log.d("BackupUtil", "Setting the backup time")
-            app.setDate(time.format(Date()))
-        }
-    }
-
-    private fun setAppBackupDataDir() {
-        app?.let { app ->
-            Log.d("BackupUtil", "Setting the app backup dir $appBackupDirPath")
-            app.setDataDir(appBackupDirPath)
-        }
-    }
-
-    private suspend fun createAppBackupDir() {
-        app?.let {
-            FileUtil.createDirectory(appBackupDirPath)
-        }
-    }
-
-    private suspend fun moveJsonFile() {
-        appJsonFile?.let { jsonFile ->
-            FileUtil.moveJsonFile(jsonFile, appBackupDirPath)
+            emit(jsonFile)
         }
     }
 

@@ -163,6 +163,10 @@ class AppViewModel(application: DatabaseApplication) :
     override suspend fun deletePackage(packageName: String) {
         deleteApp(packageName)
     }
+    
+    suspend fun batchBackup() {
+        // TODO: Implement batch backup method 
+    }
 
     override fun onCleared() {
         super.onCleared()
