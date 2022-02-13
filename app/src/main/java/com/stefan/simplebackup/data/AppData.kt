@@ -46,7 +46,6 @@ data class AppData(
     @ColumnInfo(name = "data_dir")
     private var dataDir: String = "",
 
-    @Transient
     @ColumnInfo(name = "apk_dir")
     private var apkDir: String = "",
 

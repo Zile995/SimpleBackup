@@ -47,8 +47,8 @@ class AppViewModel(application: DatabaseApplication) :
         viewModelScope.launch(Dispatchers.IO) {
             runCatching {
                 allApps = block()
-                refreshPackageList()
             }.onSuccess {
+                refreshPackageList()
                 checkIfLoaded()
                 _spinner.postValue(false)
             }.onFailure { throwable ->
@@ -92,7 +92,7 @@ class AppViewModel(application: DatabaseApplication) :
 
     // Wait for database list
     private suspend fun checkIfLoaded() {
-        withContext(Dispatchers.Default) {
+        withContext(Dispatchers.IO) {
             val numberOfInstalled = appManager.getNumberOfInstalled()
             while (true) {
                 val numberOfStored = getAllApps.value?.size ?: 0

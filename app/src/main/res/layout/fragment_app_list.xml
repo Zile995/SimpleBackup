@@ -45,6 +45,7 @@
                     android:src="@drawable/baseline_search_white_24dp"/>
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/search_input"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_marginStart="40dp"

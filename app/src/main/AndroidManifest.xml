@@ -60,7 +60,9 @@
         <activity
             android:name="com.stefan.simplebackup.ui.activities.MainActivity"
             android:exported="true"
-            android:windowSoftInputMode="adjustPan" />
+            android:imeOptions="flagNoFullscreen"
+            android:windowSoftInputMode="stateUnchanged|adjustPan"
+            android:configChanges="screenLayout|keyboard" />
     </application>
 
 </manifest>

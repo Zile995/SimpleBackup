@@ -20,7 +20,7 @@
         app:title="Backup" />
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_view"
+        android:id="@+id/backup_card_view"
         style="@style/Widget.SimpleBackup.CardView"
         android:layout_width="match_parent"
         android:layout_height="150dp"
@@ -211,7 +211,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_view_package"
+        android:id="@+id/backup_card_view_package"
         style="@style/Widget.SimpleBackup.CardView"
         android:layout_width="match_parent"
         android:layout_height="150dp"
@@ -222,7 +222,7 @@
         app:cardCornerRadius="7dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/card_view"
+        app:layout_constraintTop_toBottomOf="@id/backup_card_view"
         app:rippleColor="@color/cardViewRipple">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -341,7 +341,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <com.google.android.material.card.MaterialCardView
-        android:id="@+id/card_view_buttons"
+        android:id="@+id/backup_card_view_buttons"
         style="@style/Widget.SimpleBackup.CardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -353,7 +353,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/card_view_package"
+        app:layout_constraintTop_toBottomOf="@id/backup_card_view_package"
         app:rippleColor="@color/cardViewRipple">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -387,7 +387,7 @@
                 app:layout_constraintTop_toTopOf="@+id/backup_button" />
 
             <ProgressBar
-                android:id="@+id/progress_bar"
+                android:id="@+id/backup_progress_bar"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="250dp"
                 android:layout_height="50dp"

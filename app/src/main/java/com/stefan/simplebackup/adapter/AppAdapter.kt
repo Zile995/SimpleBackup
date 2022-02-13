@@ -1,7 +1,6 @@
 package com.stefan.simplebackup.adapter
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
@@ -20,26 +19,13 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.AppData
-import com.stefan.simplebackup.ui.activities.BackupActivity
 import com.stefan.simplebackup.utils.FileUtil
 
 class AppAdapter(
     private val selectionListener: SelectionListener,
     private val clickListener: OnClickListener
 ) :
-    ListAdapter<AppData, AppAdapter.AppViewHolder>(AppDiffCallBack) {
-
-    object AppDiffCallBack : DiffUtil.ItemCallback<AppData>() {
-        override fun areItemsTheSame(oldItem: AppData, newItem: AppData): Boolean {
-            return oldItem.getName() == newItem.getName() &&
-                    oldItem.getPackageName() == newItem.getPackageName() &&
-                    oldItem.getVersionName() == newItem.getVersionName()
-        }
-
-        override fun areContentsTheSame(oldItem: AppData, newItem: AppData): Boolean {
-            return oldItem == newItem
-        }
-    }
+    ListAdapter<AppData, AppAdapter.AppViewHolder>(AppDiffCallBack()) {
 
     private lateinit var appList: MutableList<AppData>
 
@@ -139,5 +125,17 @@ class AppAdapter(
         val pattern = newText.lowercase().trim()
         val filteredList = appList.filter { pattern in it.getName().lowercase() }
         submitList(filteredList)
+    }
+}
+
+class AppDiffCallBack : DiffUtil.ItemCallback<AppData>() {
+    override fun areItemsTheSame(oldItem: AppData, newItem: AppData): Boolean {
+        return oldItem.getName() == newItem.getName() &&
+                oldItem.getPackageName() == newItem.getPackageName() &&
+                oldItem.getVersionName() == newItem.getVersionName()
+    }
+
+    override fun areContentsTheSame(oldItem: AppData, newItem: AppData): Boolean {
+        return oldItem == newItem
     }
 }

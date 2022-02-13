@@ -42,6 +42,8 @@ class AppListFragment : Fragment(), MenuItemListener {
     private var _appAdapter: AppAdapter? = null
     private val appAdapter get() = _appAdapter!!
 
+    private var isSearching = false
+
     // ViewModel
     private val appViewModel: AppViewModel by activityViewModels {
         val mainApplication = activity.application as DatabaseApplication
@@ -74,6 +76,23 @@ class AppListFragment : Fragment(), MenuItemListener {
         scope.launch {
             setAppViewModelObservers()
             restoreRecyclerViewState()
+            if (savedInstanceState != null) {
+                isSearching = savedInstanceState.getBoolean("isSearching")
+            }
+            if (isSearching) {
+                binding.searchInput.requestFocus()
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        if (binding.searchInput.hasFocus()) {
+            isSearching = true
+        }
+        outState.putBoolean("isSearching", isSearching)
+        binding.recyclerView.layoutManager?.onSaveInstanceState()?.let {
+            appViewModel.saveRecyclerViewState(it)
         }
     }
 
@@ -93,7 +112,7 @@ class AppListFragment : Fragment(), MenuItemListener {
                 } else {
                     scope.launch {
                         val context = holder.itemView.context
-                        FileUtil.checkBitmap(item, context)
+                        FileUtil.saveBigBitmap(item, context)
                         val intent = Intent(context, BackupActivity::class.java)
                         intent.putExtra("application", item)
                         context.startActivity(intent)
@@ -262,13 +281,6 @@ class AppListFragment : Fragment(), MenuItemListener {
 //                findItem(R.id.search).isVisible = !isSelected
 //            }
         }
-    }
-
-    override fun onPause() {
-        binding.recyclerView.layoutManager?.onSaveInstanceState()?.let {
-            appViewModel.saveRecyclerViewState(it)
-        }
-        super.onPause()
     }
 
     override fun onDestroyView() {

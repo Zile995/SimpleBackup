@@ -4,9 +4,6 @@ import android.Manifest
 import android.app.ActivityManager
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.drawable.Drawable
 import android.icu.text.SimpleDateFormat
 import android.net.Uri
 import android.os.Bundle
@@ -27,8 +24,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
@@ -47,8 +42,6 @@ import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.ActivityBackupBinding
 import com.stefan.simplebackup.utils.FileUtil
-import com.stefan.simplebackup.viewmodel.AppViewModel
-import com.stefan.simplebackup.viewmodel.AppViewModelFactory
 import com.stefan.simplebackup.viewmodel.BackupViewModel
 import com.stefan.simplebackup.viewmodel.BackupViewModelFactory
 import com.topjohnwu.superuser.Shell
@@ -87,11 +80,9 @@ class BackupActivity : AppCompatActivity() {
     private lateinit var cardViewPackage: MaterialCardView
     private lateinit var cardViewButtons: MaterialCardView
 
-    private var selectedApp: AppData? = null
-
     private val backupViewModel: BackupViewModel by viewModels {
         val application = application as DatabaseApplication
-        val mainApplication = applicationContext.getExternalFilesDir(null)?.absolutePath ?: ""
+        val selectedApp: AppData? = intent?.extras?.getParcelable("application")
         BackupViewModelFactory(selectedApp, application)
     }
 
@@ -102,22 +93,18 @@ class BackupActivity : AppCompatActivity() {
         val binding = ActivityBackupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        backupViewModel
-        bindViews(binding)
-        setCardViewSize()
-
-        scope.launch {
-            selectedApp = intent?.extras?.getParcelable("application")
-
-            selectedApp?.let { app ->
-                checkAndSetAppBitmap(app)
-                setUI(app)
+        backupViewModel.selectedApp?.let {
+            bindViews(binding)
+            setCardViewSize()
+            scope.launch {
+                setData()
             }
         }
     }
 
-    private fun setUI(app: AppData) {
-        app.apply {
+    private suspend fun setData() {
+        backupViewModel.selectedApp?.apply {
+            setAppImage()
             textItem.text = getName()
             chipPackage.text = (getPackageName() as CharSequence).toString()
             chipVersion.text = (getVersionName() as CharSequence).toString()
@@ -126,36 +113,21 @@ class BackupActivity : AppCompatActivity() {
             chipTargetSdk.text = getTargetSdk().toString()
             chipMinSdk.text = getMinSdk().toString()
             dataPath = getDataDir()
-            chipDataSize.text = selectedApp?.getDataSize()
-            setAppImage(app)
+            chipDataSize.text = getDataSize()
         }
     }
 
-    private fun setAppImage(app: AppData) {
-        Glide.with(applicationContext).apply {
-            asBitmap()
-                .load(app.getBitmap())
-                .placeholder(R.drawable.glide_placeholder)
-                .diskCacheStrategy(DiskCacheStrategy.NONE)
-                .skipMemoryCache(true)
-                .dontAnimate()
-                .into(appImage)
-        }
-    }
-
-    private suspend fun checkAndSetAppBitmap(app: AppData) {
-        val context = applicationContext
-        val bitmapByteArray = app.getBitmap()
-        withContext(Dispatchers.IO) {
-            runCatching {
-                if (bitmapByteArray.isEmpty()) {
-                    val savedBitmapArray = context.openFileInput(app.getName()).readBytes()
-                    app.setBitmap(savedBitmapArray)
-                }
-            }.onSuccess {
-                this@BackupActivity.deleteFile(app.getName())
-            }.onFailure {
-                it.message?.let { message -> Log.e("BackupActivity", message) }
+    private suspend fun setAppImage() {
+        backupViewModel.selectedApp?.let { app ->
+            FileUtil.setAppBitmap(app, applicationContext)
+            Glide.with(applicationContext).apply {
+                asBitmap()
+                    .load(app.getBitmap())
+                    .placeholder(R.drawable.glide_placeholder)
+                    .diskCacheStrategy(DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
+                    .dontAnimate()
+                    .into(appImage)
             }
         }
     }
@@ -168,7 +140,7 @@ class BackupActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.force_stop -> {
-                selectedApp?.let { app ->
+                backupViewModel.selectedApp?.let { app ->
                     forceStop(app.getPackageName())
                 }
                 true
@@ -195,22 +167,24 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private fun bindViews(binding: ActivityBackupBinding) {
-        constraintLayout = binding.parentView
-        toolBar = binding.toolbarBackup
-        textItem = binding.textItemBackup
-        appImage = binding.applicationImageBackup
-        chipApkSize = binding.apkSize
-        chipDataSize = binding.dataSize
-        chipTargetSdk = binding.targetSdk
-        chipMinSdk = binding.minSdk
-        chipPackage = binding.chipPackageBackup
-        chipVersion = binding.chipVersionBackup
-        chipDir = binding.chipDirBackup
-        progressBar = binding.progressBar
-        cardView = binding.cardView
-        cardViewPackage = binding.cardViewPackage
-        cardViewButtons = binding.cardViewButtons
-        thisPackageName = this.applicationContext.packageName
+        binding.apply {
+            constraintLayout = parentView
+            toolBar = toolbarBackup
+            textItem = textItemBackup
+            appImage = applicationImageBackup
+            chipApkSize = apkSize
+            chipDataSize = dataSize
+            chipTargetSdk = targetSdk
+            chipMinSdk = minSdk
+            chipPackage = chipPackageBackup
+            chipVersion = chipVersionBackup
+            chipDir = chipDirBackup
+            progressBar = backupProgressBar
+            cardView = backupCardView
+            cardViewPackage = backupCardViewPackage
+            cardViewButtons = binding.backupCardViewButtons
+            thisPackageName = this@BackupActivity.applicationContext.packageName
+        }
         createBackupButton(binding)
         createBackupDriveButton(binding)
         createDeleteButton(binding)
@@ -219,20 +193,14 @@ class BackupActivity : AppCompatActivity() {
 
     private fun createBackupButton(binding: ActivityBackupBinding) {
         backupButton = binding.backupButton
-
         backupButton.setOnClickListener {
-            selectedApp?.setDate(
-                SimpleDateFormat(
-                    "dd.MM.yy-HH:mm",
-                    Locale.getDefault()
-                ).format(Date())
-            )
-            scope.launch {
-                if (!checkPermission()) {
-                    requestPermission()
-                } else {
+            if (!checkPermission()) {
+                requestPermission()
+            } else {
+                backupViewModel.apply {
                     progressBar.visibility = View.VISIBLE
-                    selectedApp?.let { app -> createLocalBackup(app) }
+                    createLocalBackup()
+                    progressBar.visibility = View.GONE
                 }
             }
         }
@@ -252,7 +220,8 @@ class BackupActivity : AppCompatActivity() {
                 onBackPressed()
                 delay(150)
                 launch {
-                    selectedApp?.getPackageName()?.let { packageName -> deleteApp(packageName) }
+                    backupViewModel.selectedApp?.getPackageName()
+                        ?.let { packageName -> deleteApp(packageName) }
                 }.join()
             }
         }
@@ -270,29 +239,6 @@ class BackupActivity : AppCompatActivity() {
         setSupportActionBar(toolBar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
-    }
-
-    private suspend fun createLocalBackup(app: AppData) {
-        withContext(Dispatchers.IO) {
-            with(progressBar) {
-                launch {
-                    kotlin.runCatching {
-                        if (Shell.rootAccess()) {
-                            setProgress(20, true)
-                        }
-                    }
-                    setProgress(75, true)
-                }.join()
-                setProgress(100, true)
-            }
-            delay(500)
-            withContext(Dispatchers.Main) {
-                progressBar.visibility = View.INVISIBLE
-                progressBar.progress = 0
-                Toast.makeText(this@BackupActivity.applicationContext, "Done!", Toast.LENGTH_SHORT)
-                    .show()
-            }
-        }
     }
 
     private fun deleteApp(packageName: String) {
@@ -333,7 +279,8 @@ class BackupActivity : AppCompatActivity() {
                 if (grantResults.isNotEmpty() && grantResults.first() == PackageManager.PERMISSION_GRANTED) {
                     scope.launch {
                         progressBar.visibility = View.VISIBLE
-                        selectedApp?.let { app -> createLocalBackup(app) }
+                        backupViewModel.createLocalBackup()
+                        progressBar.visibility = View.GONE
                         Toast.makeText(
                             this@BackupActivity.applicationContext,
                             getString(R.string.storage_perm_success),

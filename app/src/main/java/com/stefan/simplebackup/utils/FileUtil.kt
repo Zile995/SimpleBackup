@@ -16,6 +16,8 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import kotlin.math.pow
 
 object FileUtil {
@@ -24,6 +26,7 @@ object FileUtil {
             runCatching {
                 val dir = File(path)
                 if (!dir.exists()) {
+                    Log.d("FileUtil", "Creating the $path dir")
                     dir.mkdirs()
                 }
             }.onFailure { throwable ->
@@ -74,12 +77,30 @@ object FileUtil {
             bytes.toByteArray()
         }
 
-    suspend fun checkBitmap(item: AppData, context: Context) {
+    suspend fun saveBigBitmap(item: AppData, context: Context) {
         val bitmapByteArray = item.getBitmap()
-        if (bitmapByteArray.size > 500000) {
+        Log.d("Bitmap", "${bitmapByteArray.size}")
+        if (bitmapByteArray.size > 200000) {
             saveBitmapByteArray(bitmapByteArray, item.getName(), context)
             item.setBitmap(byteArrayOf())
-            println("Bitmap = ${bitmapByteArray.size}")
+        }
+    }
+
+    suspend fun setAppBitmap(app: AppData, context: Context) {
+        val bitmapArray = app.getBitmap()
+        withContext(Dispatchers.IO) {
+            runCatching {
+                if (bitmapArray.isEmpty()) {
+                    val savedBitmapArray = context.openFileInput(app.getName()).readBytes()
+                    app.setBitmap(savedBitmapArray)
+                }
+            }.onSuccess {
+                if (bitmapArray.isEmpty()) {
+                    context.deleteFile(app.getName())
+                }
+            }.onFailure {
+                it.message?.let { message -> Log.e("BackupActivity", message) }
+            }
         }
     }
 
@@ -100,13 +121,16 @@ object FileUtil {
         }
     }
 
-    suspend fun appToJson(dir: String, app: AppData) {
+    suspend fun appToJsonFile(dir: String, app: AppData) {
+        Log.d("Serialization", "Saving json to $dir/${app.getName()}.json")
         withContext(Dispatchers.IO) {
             runCatching {
-                val file = File(dir, app.getName() + ".json")
-                OutputStreamWriter(FileOutputStream(file)).use { outputStreamWriter ->
-                    file.createNewFile()
-                    outputStreamWriter.append(Json.encodeToString(app))
+                Json.encodeToString(app).let { jsonString ->
+                    val file = File(dir, app.getName() + ".json")
+                    OutputStreamWriter(FileOutputStream(file)).use { outputStreamWriter ->
+                        file.createNewFile()
+                        outputStreamWriter.append(jsonString)
+                    }
                 }
             }.onFailure { throwable ->
                 throwable.message?.let { message -> Log.e("Serialization", message) }
@@ -114,7 +138,26 @@ object FileUtil {
         }
     }
 
+    suspend fun moveJsonFile(jsonFile: File, destination: String) {
+        withContext(Dispatchers.IO) {
+            val jsonBackupFile = File(destination + "/${jsonFile.nameWithoutExtension}.json")
+            runCatching {
+                Log.d("FileUtil", "Moving the ${jsonFile.name} file")
+                Files.move(
+                    jsonFile.toPath(),
+                    jsonBackupFile.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING
+                )
+            }
+        }.onFailure { throwable ->
+            throwable.message?.let { message ->
+                Log.e("FileUtil", "${jsonFile.name}: $message")
+            }
+        }
+    }
+
     suspend fun jsonToApp(jsonFile: File) = flow<AppData> {
+        Log.d("Serialization", "Creating the app from ${jsonFile.absolutePath}")
         runCatching {
             jsonFile.inputStream()
                 .bufferedReader()

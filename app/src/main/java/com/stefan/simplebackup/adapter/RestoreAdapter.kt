@@ -29,7 +29,7 @@ import kotlin.collections.component2
 import kotlin.collections.set
 
 class RestoreAdapter(rContext: Context) :
-    ListAdapter<AppData, RestoreAdapter.RestoreViewHolder>(AppAdapter.AppDiffCallBack), Filterable {
+    ListAdapter<AppData, RestoreAdapter.RestoreViewHolder>(AppDiffCallBack()), Filterable {
 
     companion object {
         private const val ROOT: String = "SimpleBackup/local"

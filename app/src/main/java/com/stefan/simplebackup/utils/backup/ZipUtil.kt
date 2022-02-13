@@ -11,21 +11,21 @@ import net.lingala.zip4j.model.enums.EncryptionMethod
 import java.io.File
 
 class ZipUtil(source: String) {
-    private val sourceFile = source
+    private val dataDirPath = source
 
     private suspend fun zipContainer() {
         withContext(Dispatchers.IO) {
             kotlin.runCatching {
-                val backupDir = File(sourceFile)
+                val backupDir = File(dataDirPath)
                 var containerFilePath = ""
-                backupDir.listFiles()?.filter {
-                    it.isFile && it.extension == "tar"
-                }?.forEach {
+                backupDir.listFiles()?.filter { dataFile ->
+                    dataFile.isFile && dataFile.extension == "tar"
+                }?.map {
                     containerFilePath = it.absolutePath
                 }
 
                 val zipParameters = ZipParameters()
-                with(zipParameters) {
+                zipParameters.apply {
                     isEncryptFiles = true
                     compressionMethod = CompressionMethod.DEFLATE
                     compressionLevel = CompressionLevel.FASTEST
@@ -34,19 +34,19 @@ class ZipUtil(source: String) {
                 }
 
                 val zipContainer = File(containerFilePath)
-                val zipFile = ZipFile("$sourceFile/data.zip", "pass123".toCharArray())
+                val zipFile = ZipFile("$dataDirPath/data.zip", "pass123".toCharArray())
                 zipFile.addFile(zipContainer, zipParameters)
                 zipContainer.delete()
             }
         }
     }
 
-    private suspend fun zipApk(apkFilesList: MutableList<File>, target: String) {
+    suspend fun zipApk(apkFilesList: MutableList<File>, destination: String) {
         withContext(Dispatchers.IO) {
             kotlin.runCatching {
                 val zipParameters = ZipParameters()
                 zipParameters.compressionMethod = CompressionMethod.STORE
-                val zipFile = ZipFile("$target/apk.zip")
+                val zipFile = ZipFile("$destination/apk.zip")
                 zipFile.addFiles(apkFilesList, zipParameters)
             }
         }
