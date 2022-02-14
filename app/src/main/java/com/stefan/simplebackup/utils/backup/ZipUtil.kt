@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.utils.backup
 
+import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile
@@ -10,13 +11,12 @@ import net.lingala.zip4j.model.enums.CompressionMethod
 import net.lingala.zip4j.model.enums.EncryptionMethod
 import java.io.File
 
-class ZipUtil(source: String) {
-    private val dataDirPath = source
+class ZipUtil {
 
-    private suspend fun zipContainer() {
+    suspend fun zipContainer(destination: String) {
         withContext(Dispatchers.IO) {
             kotlin.runCatching {
-                val backupDir = File(dataDirPath)
+                val backupDir = File(destination)
                 var containerFilePath = ""
                 backupDir.listFiles()?.filter { dataFile ->
                     dataFile.isFile && dataFile.extension == "tar"
@@ -34,7 +34,7 @@ class ZipUtil(source: String) {
                 }
 
                 val zipContainer = File(containerFilePath)
-                val zipFile = ZipFile("$dataDirPath/data.zip", "pass123".toCharArray())
+                val zipFile = ZipFile("$destination/data.zip", "pass123".toCharArray())
                 zipFile.addFile(zipContainer, zipParameters)
                 zipContainer.delete()
             }
@@ -47,6 +47,7 @@ class ZipUtil(source: String) {
                 val zipParameters = ZipParameters()
                 zipParameters.compressionMethod = CompressionMethod.STORE
                 val zipFile = ZipFile("$destination/apk.zip")
+                Log.d("ZipUtil", "Zipping apks to $destination")
                 zipFile.addFiles(apkFilesList, zipParameters)
             }
         }

@@ -102,6 +102,13 @@ class AppListFragment : Fragment(), MenuItemListener {
         createRecyclerView()
         createSwipeContainer()
         createFloatingButton()
+        setBackupChip()
+    }
+
+    private fun setBackupChip() {
+        binding.batchBackup.setOnClickListener {
+            appViewModel.createLocalBackup()
+        }
     }
 
     private fun setAppAdapter() {
@@ -276,6 +283,7 @@ class AppListFragment : Fragment(), MenuItemListener {
         }
 
         appViewModel.isSelected.observe(viewLifecycleOwner) { isSelected ->
+            binding.batchBackup.visibility = if (isSelected) View.VISIBLE else View.GONE
 //            binding.toolBar.menu.apply {
 //                findItem(R.id.select_all).isVisible = isSelected
 //                findItem(R.id.search).isVisible = !isSelected

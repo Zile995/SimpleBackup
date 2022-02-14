@@ -33,19 +33,13 @@ class BackupViewModel(
     fun createLocalBackup() {
         viewModelScope.launch(Dispatchers.IO) {
             app?.let {
+                backupHelper.prepare()
                 val backupRequest = OneTimeWorkRequestBuilder<BackupWorker>()
-                    .setInputData(createInputData())
+                    .setInputData(backupHelper.createInputData(arrayListOf(backupDirPath)))
                     .build()
                 workManager.enqueue(backupRequest)
             }
         }
-    }
-
-    private suspend fun createInputData(): Data {
-        val builder = Data.Builder()
-        backupHelper.prepare()
-        builder.putString("KEY_BACKUP_DATA_PATH", backupDirPath)
-        return builder.build()
     }
 
     override fun onCleared() {

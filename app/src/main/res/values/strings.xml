@@ -44,4 +44,5 @@
     <string name="favorites">Favorites</string>
     <string name="target_sdk">Target SDK</string>
     <string name="min_sdk">Min SDK</string>
+    <string name="backup">Backup</string>
 </resources>

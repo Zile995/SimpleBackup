@@ -9,57 +9,65 @@ import java.io.File
 
 const val ROOT: String = "SimpleBackup/local"
 
-class BackupUtil(inputDataPath: String) {
+class BackupUtil(private val backupDirPaths: Array<String>) {
 
-    private var app: AppData? = null
-    val getApp get() = app
-
-    private val inputData = File(inputDataPath)
-    private val zipUtil by lazy { ZipUtil(inputData.absolutePath) }
+    private val deserializedApps = HashMap<AppData, String>()
 
     init {
         Log.d("BackupUtil", "Created BackupUtil")
         runBlocking {
-            deserializeApp()
+            deserializeApps()
         }
     }
 
     suspend fun backup() {
-        app?.let {
-            zipUtil.zipApk(getApkList(), inputData.absolutePath)
+        if (deserializedApps.isNotEmpty()) {
+            zipApks()
         }
     }
 
-    private suspend fun deserializeApp() {
-        findSerializedApp().collect { jsonFile ->
+    private suspend fun zipApks() {
+        if (deserializedApps.isNotEmpty()) {
+            val zipUtil = ZipUtil()
+            deserializedApps.forEach { entry ->
+                Log.d("BackupUtil", "Backing up ${entry.key.getName()}")
+                getApkList(entry.key).collect { apkFiles ->
+                    zipUtil.zipApk(apkFiles, entry.value)
+                }
+            }
+        }
+    }
+
+    private suspend fun deserializeApps() {
+        findSerializedApps().collect { jsonFile ->
             FileUtil.deserializeApp(jsonFile).collect { jsonApp ->
                 Log.d("BackupUtil", "I got the ${jsonApp.getName()}")
-                app = jsonApp
+                deserializedApps[jsonApp] = jsonFile.absolutePath.substringBeforeLast("/")
             }
         }
     }
 
-    private fun findSerializedApp() = flow<File> {
+    private fun findSerializedApps() = flow<File> {
         Log.d("BackupUtil", "Finding the json file")
-        inputData.listFiles()?.filter { jsonFile ->
-            jsonFile.isFile && jsonFile.extension == "json"
-        }?.map { jsonFile ->
-            emit(jsonFile)
+        backupDirPaths.forEach { backupDirPath ->
+            File(backupDirPath).listFiles()?.filter { jsonFile ->
+                jsonFile.isFile && jsonFile.extension == "json"
+            }?.map { jsonFile ->
+                emit(jsonFile)
+            }
         }
     }
 
-    private fun getApkList(): MutableList<File> {
+    private fun getApkList(app: AppData) = flow {
         val apkList = mutableListOf<File>()
-        app?.let { app ->
-            Log.d("BackupUtil", "${app.getName()} dir: ${app.getApkDir()}")
-            val dir = File(app.getApkDir())
-            dir.walkTopDown().filter {
-                it.extension == "apk"
-            }.forEach { apk ->
-                apkList.add(apk)
-            }
+        Log.d("BackupUtil", "${app.getName()} apk dir: ${app.getApkDir()}")
+        val dir = File(app.getApkDir())
+        dir.walkTopDown().filter {
+            it.extension == "apk"
+        }.forEach { apk ->
+            apkList.add(apk)
         }
-        Log.d("BackupUtil", "Got the apk list: ${apkList.map { it.name }}")
-        return apkList
+        Log.d("BackupUtil", "Got the apk list for ${app.getName()}: ${apkList.map { it.name }}")
+        emit(apkList)
     }
 }

@@ -3,6 +3,8 @@ package com.stefan.simplebackup.viewmodel
 import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.*
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.adapter.SelectionListener
@@ -11,6 +13,8 @@ import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.data.AppManager
 import com.stefan.simplebackup.database.AppRepository
 import com.stefan.simplebackup.database.DatabaseApplication
+import com.stefan.simplebackup.utils.backup.BackupHelper
+import com.stefan.simplebackup.workers.BackupWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -19,6 +23,9 @@ class AppViewModel(application: DatabaseApplication) :
     ViewModel(), PackageListener, SelectionListener {
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
+    private val mainDirPath by lazy { application.getMainBackupDirPath }
+
+    private val workManager = WorkManager.getInstance(application)
 
     private lateinit var allApps: LiveData<MutableList<AppData>>
     val getAllApps: LiveData<MutableList<AppData>>
@@ -107,7 +114,7 @@ class AppViewModel(application: DatabaseApplication) :
         state = parcelable
     }
 
-    // SelectionListener overridden methods
+    // SelectionListener methods - used for RecyclerView selection
     override fun setSelectionMode(selection: Boolean) {
         _isSelected.postValue(selection)
     }
@@ -163,9 +170,25 @@ class AppViewModel(application: DatabaseApplication) :
     override suspend fun deletePackage(packageName: String) {
         deleteApp(packageName)
     }
-    
-    suspend fun batchBackup() {
-        // TODO: Implement batch backup method 
+
+    fun createLocalBackup() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val backupDirPaths = arrayListOf<String>()
+            val backupHelper = BackupHelper(selectionList.first(), mainDirPath)
+            backupHelper.prepare()
+            backupDirPaths.add(backupHelper.getBackupDirPath)
+            if (selectionList.size > 1) {
+                for (i in 1 until selectionList.size) {
+                    backupHelper.setAnApp(selectionList[i])
+                    backupHelper.prepare()
+                    backupDirPaths.add(backupHelper.getBackupDirPath)
+                }
+            }
+            val backupRequest = OneTimeWorkRequestBuilder<BackupWorker>()
+                .setInputData(backupHelper.createInputData(backupDirPaths))
+                .build()
+            workManager.enqueue(backupRequest)
+        }
     }
 
     override fun onCleared() {
