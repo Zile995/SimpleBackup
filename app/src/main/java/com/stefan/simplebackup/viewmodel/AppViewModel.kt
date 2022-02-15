@@ -173,19 +173,9 @@ class AppViewModel(application: DatabaseApplication) :
 
     fun createLocalBackup() {
         viewModelScope.launch(Dispatchers.IO) {
-            val backupDirPaths = arrayListOf<String>()
-            val backupHelper = BackupHelper(selectionList.first(), mainDirPath)
-            backupHelper.prepare()
-            backupDirPaths.add(backupHelper.getBackupDirPath)
-            if (selectionList.size > 1) {
-                for (i in 1 until selectionList.size) {
-                    backupHelper.setAnApp(selectionList[i])
-                    backupHelper.prepare()
-                    backupDirPaths.add(backupHelper.getBackupDirPath)
-                }
-            }
+            val backupHelper = BackupHelper(selectionList, mainDirPath)
             val backupRequest = OneTimeWorkRequestBuilder<BackupWorker>()
-                .setInputData(backupHelper.createInputData(backupDirPaths))
+                .setInputData(backupHelper.createInputData())
                 .build()
             workManager.enqueue(backupRequest)
         }

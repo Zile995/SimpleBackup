@@ -1,55 +1,49 @@
 package com.stefan.simplebackup.utils.backup
 
 import android.icu.text.SimpleDateFormat
-import android.util.Log
 import androidx.work.Data
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.utils.FileUtil
 import java.util.*
-import kotlin.collections.ArrayList
 
-class BackupHelper(private var app: AppData?, private val mainDirPath: String) {
+class BackupHelper(private val appList: MutableList<AppData>, private val mainDirPath: String) {
 
-    private var backupDirPath = mainDirPath + "/" + app?.getPackageName()
-    val getBackupDirPath get() = backupDirPath
+    constructor(app: AppData, mainDirPath: String) : this(mutableListOf(app), mainDirPath)
 
-    fun createInputData(backupDirPaths: ArrayList<String>): Data {
+    private val backupDirPaths = arrayListOf<String>()
+
+    suspend fun createInputData(): Data {
         val builder = Data.Builder()
+        prepare()
         builder.putStringArray("BACKUP_PATHS", backupDirPaths.toTypedArray())
         return builder.build()
     }
 
-    suspend fun prepare() {
-        app?.let {
-            setBackupTime()
-            createMainDir()
-            createAppBackupDir()
-            serializeApp()
+    private suspend fun prepare() {
+        createMainDir()
+        appList.forEach { app ->
+            val backupDirPath = mainDirPath + "/" + app.getPackageName()
+            addBackupDirPath(backupDirPath)
+            createAppBackupDir(backupDirPath)
+            setBackupTime(app)
+            serializeApp(app, backupDirPath)
         }
     }
 
-    fun setAnApp(newApp: AppData) {
-        app = newApp
-        backupDirPath = getNewDirPath(newApp)
+    private fun addBackupDirPath(backupDirPath: String) {
+        backupDirPaths.add(backupDirPath)
     }
 
-    private fun getNewDirPath(newApp: AppData): String {
-        return mainDirPath + "/" + newApp.getPackageName()
+    private suspend fun serializeApp(app: AppData, backupDirPath: String) {
+        FileUtil.serializeApp(app, backupDirPath)
     }
 
-    private suspend fun serializeApp() {
-        app?.let { backupApp ->
-            FileUtil.serializeApp(backupApp, backupDirPath)
-        }
-    }
-
-    private fun setBackupTime() {
+    private fun setBackupTime(app: AppData) {
         val locale = Locale.getDefault()
         val time = SimpleDateFormat(
             "dd.MM.yy-HH:mm", locale
         )
-        Log.d("ViewModel", "Setting the backup time")
-        app?.setDate(time.format(Date()))
+        app.setDate(time.format(Date()))
     }
 
     private suspend fun createMainDir() {
@@ -59,10 +53,8 @@ class BackupHelper(private var app: AppData?, private val mainDirPath: String) {
         }
     }
 
-    private suspend fun createAppBackupDir() {
-        app?.let {
-            FileUtil.createDirectory(backupDirPath)
-        }
+    private suspend fun createAppBackupDir(backupDirPath: String) {
+        FileUtil.createDirectory(backupDirPath)
     }
 
 }

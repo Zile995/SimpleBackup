@@ -22,9 +22,7 @@ class BackupViewModel(
 
     val selectedApp get() = app
     private val workManager = WorkManager.getInstance(application)
-
-    private val backupDirPath by lazy { application.getMainBackupDirPath + "/" + app?.getPackageName() }
-    private val backupHelper by lazy { BackupHelper(app, application.getMainBackupDirPath) }
+    private val mainDirPath = application.getMainBackupDirPath
 
     init {
         Log.d("ViewModel", "BackupViewModel created")
@@ -32,10 +30,10 @@ class BackupViewModel(
 
     fun createLocalBackup() {
         viewModelScope.launch(Dispatchers.IO) {
-            app?.let {
-                backupHelper.prepare()
+            app?.let { backupApp ->
+                val backupHelper = BackupHelper(backupApp, mainDirPath)
                 val backupRequest = OneTimeWorkRequestBuilder<BackupWorker>()
-                    .setInputData(backupHelper.createInputData(arrayListOf(backupDirPath)))
+                    .setInputData(backupHelper.createInputData())
                     .build()
                 workManager.enqueue(backupRequest)
             }
