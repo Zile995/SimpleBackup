@@ -14,14 +14,13 @@ class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWor
     params
 ) {
     override suspend fun doWork(): Result = coroutineScope {
-        try {
+        return@coroutineScope try {
             withContext(Dispatchers.IO) {
                 val backupDirPaths = inputData.getStringArray("BACKUP_PATHS")
-                backupDirPaths?.let {
-                    val backupUtil = BackupUtil(it)
+                if (backupDirPaths != null) {
+                    val backupUtil = BackupUtil(backupDirPaths)
                     backupUtil.backup()
                 }
-                Log.d("BackupWorker", "Backup successful")
                 Result.success()
             }
         } catch (e: Throwable) {

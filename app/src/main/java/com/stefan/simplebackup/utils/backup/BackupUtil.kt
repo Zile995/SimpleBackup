@@ -3,6 +3,7 @@ package com.stefan.simplebackup.utils.backup
 import android.util.Log
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.utils.FileUtil
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -28,13 +29,9 @@ class BackupUtil(private val backupDirPaths: Array<String>) {
 
     private suspend fun zipApks() {
         if (deserializedApps.isNotEmpty()) {
-            val zipUtil = ZipUtil()
-            deserializedApps.forEach { entry ->
-                Log.d("BackupUtil", "Backing up ${entry.key.getName()}")
-                getApkList(entry.key).collect { apkFiles ->
-                    zipUtil.zipApk(apkFiles, entry.value)
-                }
-            }
+            val zipUtil = ZipUtil(deserializedApps)
+            delay(3000)
+            zipUtil.zipApk()
         }
     }
 
@@ -56,18 +53,5 @@ class BackupUtil(private val backupDirPaths: Array<String>) {
                 emit(jsonFile)
             }
         }
-    }
-
-    private fun getApkList(app: AppData) = flow {
-        val apkList = mutableListOf<File>()
-        Log.d("BackupUtil", "${app.getName()} apk dir: ${app.getApkDir()}")
-        val dir = File(app.getApkDir())
-        dir.walkTopDown().filter {
-            it.extension == "apk"
-        }.forEach { apk ->
-            apkList.add(apk)
-        }
-        Log.d("BackupUtil", "Got the apk list for ${app.getName()}: ${apkList.map { it.name }}")
-        emit(apkList)
     }
 }

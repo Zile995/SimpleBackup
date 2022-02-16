@@ -5,24 +5,18 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.utils.backup.BackupHelper
-import com.stefan.simplebackup.workers.BackupWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class BackupViewModel(
     private val app: AppData?,
-    application: DatabaseApplication
+    private val application: DatabaseApplication
 ) : AndroidViewModel(application) {
 
     val selectedApp get() = app
-    private val workManager = WorkManager.getInstance(application)
-    private val mainDirPath = application.getMainBackupDirPath
 
     init {
         Log.d("ViewModel", "BackupViewModel created")
@@ -31,11 +25,8 @@ class BackupViewModel(
     fun createLocalBackup() {
         viewModelScope.launch(Dispatchers.IO) {
             app?.let { backupApp ->
-                val backupHelper = BackupHelper(backupApp, mainDirPath)
-                val backupRequest = OneTimeWorkRequestBuilder<BackupWorker>()
-                    .setInputData(backupHelper.createInputData())
-                    .build()
-                workManager.enqueue(backupRequest)
+                val backupHelper = BackupHelper(backupApp, application)
+                backupHelper.localBackup()
             }
         }
     }

@@ -2,19 +2,35 @@ package com.stefan.simplebackup.utils.backup
 
 import android.icu.text.SimpleDateFormat
 import androidx.work.Data
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.stefan.simplebackup.data.AppData
+import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.utils.FileUtil
+import com.stefan.simplebackup.workers.BackupWorker
 import java.util.*
 
-class BackupHelper(private val appList: MutableList<AppData>, private val mainDirPath: String) {
+class BackupHelper(private val appList: MutableList<AppData>, application: DatabaseApplication) {
 
-    constructor(app: AppData, mainDirPath: String) : this(mutableListOf(app), mainDirPath)
+    constructor(app: AppData, application: DatabaseApplication) : this(
+        mutableListOf(app),
+        application
+    )
 
+    private val mainDirPath by lazy { application.getMainBackupDirPath }
     private val backupDirPaths = arrayListOf<String>()
+    private val workManager = WorkManager.getInstance(application)
 
-    suspend fun createInputData(): Data {
-        val builder = Data.Builder()
+    suspend fun localBackup() {
         prepare()
+        val backupRequest = OneTimeWorkRequestBuilder<BackupWorker>()
+            .setInputData(createInputData())
+            .build()
+        workManager.enqueue(backupRequest)
+    }
+
+    private fun createInputData(): Data {
+        val builder = Data.Builder()
         builder.putStringArray("BACKUP_PATHS", backupDirPaths.toTypedArray())
         return builder.build()
     }

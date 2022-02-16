@@ -3,8 +3,6 @@ package com.stefan.simplebackup.viewmodel
 import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.*
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.adapter.AppAdapter
 import com.stefan.simplebackup.adapter.SelectionListener
@@ -14,38 +12,38 @@ import com.stefan.simplebackup.data.AppManager
 import com.stefan.simplebackup.database.AppRepository
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.utils.backup.BackupHelper
-import com.stefan.simplebackup.workers.BackupWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-class AppViewModel(application: DatabaseApplication) :
-    ViewModel(), PackageListener, SelectionListener {
+class AppViewModel(private val application: DatabaseApplication) :
+    AndroidViewModel(application), PackageListener, SelectionListener {
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
-    private val mainDirPath by lazy { application.getMainBackupDirPath }
+    private val getAllAppsFromRepository get() = repository.getAllApps
 
-    private val workManager = WorkManager.getInstance(application)
-
+    // Observable application properties used for list loading
     private lateinit var allApps: LiveData<MutableList<AppData>>
     val getAllApps: LiveData<MutableList<AppData>>
         get() = allApps
 
+    // Selection properties
     private var _isSelected = MutableLiveData(false)
     val isSelected: LiveData<Boolean> get() = _isSelected
     private val selectionList = mutableListOf<AppData>()
 
+    // Parcelable properties used for saving a RecyclerView layout position
     private lateinit var state: Parcelable
     val restoreRecyclerViewState: Parcelable get() = state
-    val isStateInitialized: Boolean get() = ::state.isInitialized
+    val isStateInitialized: Boolean get() = this::state.isInitialized
 
+    // Observable spinner properties used for progressbar observing
     private var _spinner = MutableLiveData(true)
     val spinner: LiveData<Boolean>
         get() = _spinner
 
     init {
         appManager.printSequence()
-        launchListLoading { getAllAppsFromRepository() }
+        launchListLoading { getAllAppsFromRepository }
         Log.d("ViewModel", "AppViewModel created")
     }
 
@@ -65,10 +63,6 @@ class AppViewModel(application: DatabaseApplication) :
     }
 
     // Repository methods
-    private fun getAllAppsFromRepository(): LiveData<MutableList<AppData>> {
-        return repository.getAllApps
-    }
-
     private fun insertApp(app: AppData) = viewModelScope.launch {
         repository.insert(app)
         appManager.updateSequenceNumber()
@@ -80,9 +74,9 @@ class AppViewModel(application: DatabaseApplication) :
     }
 
     // Used to check for changed packages on init
-    suspend fun refreshPackageList() {
+    fun refreshPackageList() {
         Log.d("ViewModel", "Refreshing the package list")
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             appManager.apply {
                 getChangedPackageNames().collect { packageName ->
                     if (doesPackageExists(packageName)) {
@@ -98,13 +92,12 @@ class AppViewModel(application: DatabaseApplication) :
     }
 
     // Wait for database list
-    private suspend fun checkIfLoaded() {
-        withContext(Dispatchers.IO) {
-            val numberOfInstalled = appManager.getNumberOfInstalled()
-            while (true) {
-                val numberOfStored = getAllApps.value?.size ?: 0
-                if (numberOfStored == numberOfInstalled)
-                    break
+    private fun checkIfLoaded() {
+        val numberOfInstalled = appManager.getNumberOfInstalled()
+        while (true) {
+            val numberOfStored = getAllApps.value?.size ?: 0
+            if (numberOfStored == numberOfInstalled) {
+                break
             }
         }
     }
@@ -171,13 +164,11 @@ class AppViewModel(application: DatabaseApplication) :
         deleteApp(packageName)
     }
 
+    // Batch backup methods
     fun createLocalBackup() {
         viewModelScope.launch(Dispatchers.IO) {
-            val backupHelper = BackupHelper(selectionList, mainDirPath)
-            val backupRequest = OneTimeWorkRequestBuilder<BackupWorker>()
-                .setInputData(backupHelper.createInputData())
-                .build()
-            workManager.enqueue(backupRequest)
+            val backupHelper = BackupHelper(selectionList, application)
+            backupHelper.localBackup()
         }
     }
 
@@ -190,7 +181,7 @@ class AppViewModel(application: DatabaseApplication) :
 class AppViewModelFactory(
     private val application: DatabaseApplication
 ) :
-    ViewModelProvider.Factory {
+    ViewModelProvider.AndroidViewModelFactory(application) {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(AppViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

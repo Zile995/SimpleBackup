@@ -2,33 +2,52 @@ package com.stefan.simplebackup.database
 
 import android.app.Application
 import com.stefan.simplebackup.data.AppManager
+import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.utils.backup.ROOT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 
+/**
+ * - Our main [Application] based class
+ * - Contains read-only properties
+ * - Mainly, objects will be created when they are called
+ */
 class DatabaseApplication : Application() {
+    /**
+     * - Main database scope using the [SupervisorJob].
+     * - All other child scopes will be canceled if this scope is canceled
+     */
     private val applicationScope = CoroutineScope(SupervisorJob())
 
-    private val internalStoragePath: String by lazy {
+    /**
+     * - Used to get external file dir path
+     * - It is usually Android/data/packageName directory
+     */
+    private val externalFilesDir: String by lazy {
         getExternalFilesDir(null)?.absolutePath ?: ""
     }
 
+    /**
+     * - Used to get our main backup dir path
+     */
     private val mainBackupDirPath: String get() {
-        return internalStoragePath.let { path ->
+        return externalFilesDir.let { path ->
             path.substring(0, path.indexOf("Android")) + ROOT
         }
     }
 
     /**
-     * - App Builder class instance
-     * - Used to create [Application] objects in ViewModel or Database Callback
+     * - App Builder class reference
+     * - Used to create [AppData] class objects in ViewModel or Database Callback
+     * - It will be initialised lazily, on the first call
      */
     private val appManager: AppManager by lazy { AppManager(this) }
 
     /**
      * - Reference to singleton object of [AppDatabase] class
      * - Used to create, open, update Room SQL database
-     * - It is controlled by [AppRepository] which uses [AppDao] exposed interface methods
+     * - It is controlled by [AppRepository] which uses interface [AppDao] exposed methods
+     * - It will be initialised lazily, on the first call
      */
     private val database by lazy {
         AppDatabase.getDbInstance(

@@ -12,7 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /**
- * Singleton AppData Database klasa
+ * Singleton AppData Database class
  */
 @Database(entities = [AppData::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
@@ -29,6 +29,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         private suspend fun insertAll() {
             val appList = appManager.getApplicationList()
+            appManager.updateSequenceNumber()
             appList.forEach { app ->
                 appDao?.insert(app)
             }
@@ -37,7 +38,6 @@ abstract class AppDatabase : RoomDatabase() {
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             scope.launch {
-                appManager.updateSequenceNumber()
                 insertAll()
             }
         }
