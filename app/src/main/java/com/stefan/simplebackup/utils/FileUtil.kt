@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.Log
 import com.stefan.simplebackup.data.AppData
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
@@ -16,13 +17,14 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import kotlin.math.pow
 
 object FileUtil {
+
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
     suspend fun createDirectory(path: String) {
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatching {
                 val dir = File(path)
                 if (!dir.exists()) {
@@ -36,7 +38,7 @@ object FileUtil {
     }
 
     suspend fun createFile(path: String) {
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatching {
                 val file = File(path)
                 file.createNewFile()
@@ -51,7 +53,7 @@ object FileUtil {
     }
 
     suspend fun drawableToByteArray(drawable: Drawable): ByteArray =
-        withContext(Dispatchers.Default) {
+        withContext(ioDispatcher) {
             val bitmap: Bitmap =
                 if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
                     Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
@@ -71,7 +73,7 @@ object FileUtil {
         }
 
     private suspend fun bitmapToByteArray(bitmap: Bitmap): ByteArray =
-        withContext(Dispatchers.Default) {
+        withContext(ioDispatcher) {
             val bytes = ByteArrayOutputStream()
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
             bytes.toByteArray()
@@ -88,7 +90,7 @@ object FileUtil {
 
     suspend fun setAppBitmap(app: AppData, context: Context) {
         val bitmapArray = app.getBitmap()
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatching {
                 if (bitmapArray.isEmpty()) {
                     val savedBitmapArray = context.openFileInput(app.getName()).readBytes()
@@ -109,7 +111,7 @@ object FileUtil {
         fileName: String,
         context: Context
     ) {
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatching {
                 context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
                     output.write(byteArray)
@@ -123,7 +125,7 @@ object FileUtil {
 
     suspend fun serializeApp(app: AppData, dir: String) {
         Log.d("Serialization", "Saving json to $dir/${app.getName()}.json")
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             runCatching {
                 Json.encodeToString(app).let { jsonString ->
                     val file = File(dir, app.getName() + ".json")
@@ -134,24 +136,6 @@ object FileUtil {
                 }
             }.onFailure { throwable ->
                 throwable.message?.let { message -> Log.e("Serialization", message) }
-            }
-        }
-    }
-
-    suspend fun moveSerializedApp(jsonFile: File, destination: String) {
-        withContext(Dispatchers.IO) {
-            val jsonBackupFile = File(destination + "/${jsonFile.nameWithoutExtension}.json")
-            runCatching {
-                Log.d("FileUtil", "Moving the ${jsonFile.name} file")
-                Files.move(
-                    jsonFile.toPath(),
-                    jsonBackupFile.toPath(),
-                    StandardCopyOption.REPLACE_EXISTING
-                )
-            }
-        }.onFailure { throwable ->
-            throwable.message?.let { message ->
-                Log.e("FileUtil", "${jsonFile.name}: $message")
             }
         }
     }

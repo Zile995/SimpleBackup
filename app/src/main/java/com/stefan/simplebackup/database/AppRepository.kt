@@ -18,4 +18,8 @@ class AppRepository(private val appDao: AppDao) {
     suspend fun delete(packageName: String) {
         appDao.delete(packageName)
     }
+
+    suspend fun getAppByPackageName(packageName: String): AppData {
+        return appDao.getAppByPackageName(packageName)
+    }
 }

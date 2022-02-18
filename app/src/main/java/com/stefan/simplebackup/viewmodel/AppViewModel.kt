@@ -11,12 +11,15 @@ import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.data.AppManager
 import com.stefan.simplebackup.database.AppRepository
 import com.stefan.simplebackup.database.DatabaseApplication
-import com.stefan.simplebackup.utils.backup.BackupHelper
+import com.stefan.simplebackup.utils.backup.BackupWorkerHelper
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class AppViewModel(private val application: DatabaseApplication) :
     AndroidViewModel(application), PackageListener, SelectionListener {
+
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
     private val getAllAppsFromRepository get() = repository.getAllApps
@@ -49,7 +52,7 @@ class AppViewModel(private val application: DatabaseApplication) :
 
     // Loading methods
     private fun launchListLoading(block: () -> LiveData<MutableList<AppData>>) {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             runCatching {
                 allApps = block()
             }.onSuccess {
@@ -166,9 +169,9 @@ class AppViewModel(private val application: DatabaseApplication) :
 
     // Batch backup methods
     fun createLocalBackup() {
-        viewModelScope.launch(Dispatchers.IO) {
-            val backupHelper = BackupHelper(selectionList, application)
-            backupHelper.localBackup()
+        viewModelScope.launch(ioDispatcher) {
+            val backupWorkerHelper = BackupWorkerHelper(selectionList, application)
+            backupWorkerHelper.startBackupWorker()
         }
     }
 

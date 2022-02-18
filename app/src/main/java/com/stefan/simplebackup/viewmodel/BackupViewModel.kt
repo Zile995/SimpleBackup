@@ -7,7 +7,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.database.DatabaseApplication
-import com.stefan.simplebackup.utils.backup.BackupHelper
+import com.stefan.simplebackup.utils.backup.BackupWorkerHelper
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -16,6 +17,7 @@ class BackupViewModel(
     private val application: DatabaseApplication
 ) : AndroidViewModel(application) {
 
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     val selectedApp get() = app
 
     init {
@@ -23,10 +25,10 @@ class BackupViewModel(
     }
 
     fun createLocalBackup() {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch(ioDispatcher) {
             app?.let { backupApp ->
-                val backupHelper = BackupHelper(backupApp, application)
-                backupHelper.localBackup()
+                val backupWorkerHelper = BackupWorkerHelper(backupApp, application)
+                backupWorkerHelper.startBackupWorker()
             }
         }
     }

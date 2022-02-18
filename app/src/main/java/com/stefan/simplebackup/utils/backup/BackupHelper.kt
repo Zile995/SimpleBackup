@@ -1,76 +1,59 @@
 package com.stefan.simplebackup.utils.backup
 
-import android.icu.text.SimpleDateFormat
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
+import android.content.Context
 import com.stefan.simplebackup.data.AppData
-import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.utils.FileUtil
-import com.stefan.simplebackup.workers.BackupWorker
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import java.text.SimpleDateFormat
 import java.util.*
 
-class BackupHelper(private val appList: MutableList<AppData>, application: DatabaseApplication) {
+abstract class BackupHelper(context: Context) {
 
-    constructor(app: AppData, application: DatabaseApplication) : this(
-        mutableListOf(app),
-        application
-    )
+    protected val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
-    private val mainDirPath by lazy { application.getMainBackupDirPath }
-    private val backupDirPaths = arrayListOf<String>()
-    private val workManager = WorkManager.getInstance(application)
-
-    suspend fun localBackup() {
-        prepare()
-        val backupRequest = OneTimeWorkRequestBuilder<BackupWorker>()
-            .setInputData(createInputData())
-            .build()
-        workManager.enqueue(backupRequest)
+    /**
+     * - Used to get external file dir path
+     * - It is usually Android/data/packageName directory
+     */
+    private val externalFilesDir: String by lazy {
+        context.getExternalFilesDir(null)?.absolutePath ?: ""
     }
 
-    private fun createInputData(): Data {
-        val builder = Data.Builder()
-        builder.putStringArray("BACKUP_PATHS", backupDirPaths.toTypedArray())
-        return builder.build()
-    }
+    /**
+     * - Used to get our main backup dir path
+     */
+    private val mainBackupDirPath: String
+        get() {
+            return externalFilesDir.let { path ->
+                path.substring(0, path.indexOf("Android")) + ROOT
+            }
+        }
 
-    private suspend fun prepare() {
-        createMainDir()
-        appList.forEach { app ->
-            val backupDirPath = mainDirPath + "/" + app.getPackageName()
-            addBackupDirPath(backupDirPath)
-            createAppBackupDir(backupDirPath)
-            setBackupTime(app)
-            serializeApp(app, backupDirPath)
+    protected suspend fun createMainDir() {
+        FileUtil.apply {
+            createDirectory(mainBackupDirPath)
+            createFile("${mainBackupDirPath}/.nomedia")
         }
     }
 
-    private fun addBackupDirPath(backupDirPath: String) {
-        backupDirPaths.add(backupDirPath)
+    protected suspend fun createAppBackupDir(backupDirPath: String) {
+        FileUtil.createDirectory(backupDirPath)
     }
 
-    private suspend fun serializeApp(app: AppData, backupDirPath: String) {
+    protected fun getBackupDirPath(app: AppData): String {
+        return mainBackupDirPath + "/" + app.getPackageName()
+    }
+
+    protected suspend fun serializeApp(app: AppData, backupDirPath: String) {
         FileUtil.serializeApp(app, backupDirPath)
     }
 
-    private fun setBackupTime(app: AppData) {
+    protected fun setBackupTime(app: AppData) {
         val locale = Locale.getDefault()
         val time = SimpleDateFormat(
             "dd.MM.yy-HH:mm", locale
         )
         app.setDate(time.format(Date()))
     }
-
-    private suspend fun createMainDir() {
-        FileUtil.apply {
-            createDirectory(mainDirPath)
-            createFile("${mainDirPath}/.nomedia")
-        }
-    }
-
-    private suspend fun createAppBackupDir(backupDirPath: String) {
-        FileUtil.createDirectory(backupDirPath)
-    }
-
 }

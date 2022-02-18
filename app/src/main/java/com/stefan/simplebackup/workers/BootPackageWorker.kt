@@ -14,7 +14,7 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) : Corouti
     appContext,
     params
 ) {
-    private val scope = CoroutineScope(Job() + Dispatchers.IO)
+    private val scope = CoroutineScope(SupervisorJob())
     private val appManager = AppManager(appContext)
     private val database = AppDatabase.getDbInstance(applicationContext, scope, appManager)
     private val repository = AppRepository(database.appDao())
