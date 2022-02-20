@@ -170,15 +170,11 @@ class AppManager(private val context: Context) {
     }
 
     fun getNumberOfInstalled(): Int {
-        var size: Int
         val installedApps =
             packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-        installedApps.filter { appInfo ->
+        return installedApps.filter { appInfo ->
             !isSystemApp(appInfo) && !appInfo.packageName.equals(myPackageName)
-        }.apply { 
-            size = this.size
-        }
-        return size
+        }.size
     }
 
     private suspend fun getApkInfo(apkDirPath: String): Pair<Float, Boolean> {
