@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.adapter
+package com.stefan.simplebackup.ui.adapters
 
 import com.stefan.simplebackup.data.AppData
 

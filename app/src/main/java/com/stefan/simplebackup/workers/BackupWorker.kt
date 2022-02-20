@@ -5,12 +5,13 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.stefan.simplebackup.data.AppData
-import com.stefan.simplebackup.data.AppManager
-import com.stefan.simplebackup.database.AppDatabase
-import com.stefan.simplebackup.database.AppRepository
+import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.utils.backup.BackupUtil
-import com.stefan.simplebackup.utils.backup.ROOT
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
+import kotlin.system.measureTimeMillis
 
 class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext,
@@ -18,18 +19,18 @@ class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWor
 ) {
 
     private lateinit var backupUtil: BackupUtil
-
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-    private val scope = CoroutineScope(SupervisorJob())
-    private val appManager = AppManager(appContext)
-    private val database = AppDatabase.getDbInstance(applicationContext, scope, appManager)
-    private val repository = AppRepository(database.appDao())
+    private val mainApplication: DatabaseApplication = applicationContext as DatabaseApplication
+    private val repository = mainApplication.getRepository
 
     override suspend fun doWork(): Result = coroutineScope {
         try {
             withContext(ioDispatcher) {
-                backupUtil = BackupUtil(applicationContext, getApps())
-                backupUtil.backup()
+                val time = measureTimeMillis {
+                    backupUtil = BackupUtil(applicationContext, getApps())
+                    backupUtil.backup()
+                }
+                Log.d("BackupWorker", "Backup successful, completed in: ${time/1000.0} seconds")
                 Result.success()
             }
         } catch (e: Throwable) {

@@ -20,8 +20,8 @@ import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.fragments.AppListFragment
 import com.stefan.simplebackup.ui.fragments.RestoreListFragment
 import com.stefan.simplebackup.utils.RootChecker
-import com.stefan.simplebackup.viewmodel.AppViewModel
-import com.stefan.simplebackup.viewmodel.AppViewModelFactory
+import com.stefan.simplebackup.viewmodels.AppViewModel
+import com.stefan.simplebackup.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.*
 
 class MainActivity : AppCompatActivity() {
@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
     private var rootChecker = RootChecker(this)
 
     // Coroutine scope, on main thread
-    private var scope = CoroutineScope(Job() + Dispatchers.Main)
+    private var scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     // UI
     private lateinit var bottomBar: BottomNavigationView

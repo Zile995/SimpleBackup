@@ -3,11 +3,10 @@ package com.stefan.simplebackup.utils.backup
 import android.content.Context
 import android.util.Log
 import com.stefan.simplebackup.data.AppData
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile
+import net.lingala.zip4j.exception.ZipException
 import net.lingala.zip4j.model.ZipParameters
 import net.lingala.zip4j.model.enums.AesKeyStrength
 import net.lingala.zip4j.model.enums.CompressionLevel
@@ -17,19 +16,19 @@ import java.io.File
 
 class ZipUtil(
     context: Context,
-    private val appList: MutableList<AppData>
+    private val app: AppData
 ) : BackupHelper(context) {
 
+    private val backupDirPath = getBackupDirPath(app)
+
     suspend fun zipAllData() {
-        appList.forEach { backupApp ->
-            withContext(ioDispatcher) {
-                launch { zipApks(backupApp, getBackupDirPath(backupApp)) }
-                launch { zipTarArchive(backupApp, getBackupDirPath(backupApp)) }
-            }
+        withContext(ioDispatcher) {
+            launch { zipApks() }
+            launch { zipTarArchive() }
         }
     }
 
-    private suspend fun zipTarArchive(app: AppData, backupDirPath: String) {
+    private fun zipTarArchive() {
         runCatching {
             val zipParameters = getZipParameters(false)
             getTarArchive(app)?.let { tarArchive ->
@@ -37,29 +36,47 @@ class ZipUtil(
                     "${backupDirPath}/${app.getPackageName()}.zip",
                     "pass123".toCharArray()
                 )
+                Log.d("ZipUtil", "Zipping the ${app.getPackageName()} tar archive to $backupDirPath")
                 zipFile.addFile(tarArchive, zipParameters)
-                serializeApp(app, backupDirPath)
                 tarArchive.delete()
             }
+        }.onSuccess {
+            Log.d("ZipUtil", "Successfully zipped ${app.getName()} data")
         }.onFailure { throwable ->
-            throwable.message?.let { message ->
-                Log.e("ZipUtil", message)
+            when (throwable) {
+                is ZipException -> {
+                    throwable.message?.let { message ->
+                        Log.e("ZipUtil", message)
+                    }
+                }
+                else -> {
+                    throw throwable
+                }
             }
         }
     }
 
-    private fun zipApks(app: AppData, backupDirPath: String) {
+    private fun zipApks() {
         runCatching {
             val zipParameters = getZipParameters(true)
-            Log.d("ZipUtil", "Zipping the ${app.getName()} apks to $backupDirPath")
             val zipFile = ZipFile(backupDirPath + "/${app.getName()}.zip")
             if (zipFile.file.exists()) {
                 zipFile.file.delete()
             }
+            Log.d("ZipUtil", "Zipping the ${app.getName()} apks to $backupDirPath")
             zipFile.addFiles(getApkList(app), zipParameters)
+        }.onSuccess {
+            Log.d("ZipUtil", "Successfully zipped ${app.getName()} apks")
         }.onFailure { throwable ->
-            throwable.message?.let { message ->
-                Log.e("ZipUtil", message)
+            when (throwable) {
+                is ZipException -> {
+                    throwable.message?.let { message ->
+                        Log.e("ZipUtil", message)
+                    }
+                }
+                else -> {
+                    throw throwable
+                }
             }
         }
     }

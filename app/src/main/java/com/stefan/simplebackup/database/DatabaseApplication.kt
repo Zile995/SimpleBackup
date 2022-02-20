@@ -16,6 +16,7 @@ class DatabaseApplication : Application() {
     /**
      * - Main database scope using the [SupervisorJob].
      * - All other child scopes will be canceled if this scope is canceled
+     * - If one child coroutine fails, others will not
      */
     private val applicationScope = CoroutineScope(SupervisorJob())
 

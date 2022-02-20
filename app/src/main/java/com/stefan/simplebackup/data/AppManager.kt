@@ -26,6 +26,8 @@ class AppManager(private val context: Context) {
      */
     private val packageManager: PackageManager = context.packageManager
 
+    private val myPackageName by lazy { context.applicationContext.packageName }
+
     /**
      * - Vrati kreiran [AppData] objekat
      */
@@ -130,8 +132,7 @@ class AppManager(private val context: Context) {
      *   tools:ignore="QueryAllPackagesPermission" />**
      */
     private fun getAppObject(appInfo: ApplicationInfo): Flow<AppData> = flow {
-        val packageName = context.applicationContext.packageName
-        if (!(isSystemApp(appInfo) || appInfo.packageName.equals(packageName))) {
+        if (!(isSystemApp(appInfo) || appInfo.packageName.equals(myPackageName))) {
             val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }
             val name = appInfo.loadLabel(packageManager).toString()
             val drawable = appInfo.loadIcon(packageManager)
@@ -139,6 +140,7 @@ class AppManager(private val context: Context) {
                 appInfo.packageName,
                 PackageManager.GET_META_DATA
             ).versionName?.substringBefore(" (") ?: ""
+            val apkInfo = getApkInfo(apkDir)
 
             //Log.d("AppManager", "Apk $name libs: ${listApkLibs(File(appInfo.publicSourceDir))}")
 
@@ -152,7 +154,8 @@ class AppManager(private val context: Context) {
                 appInfo.minSdkVersion,
                 appInfo.dataDir,
                 apkDir,
-                getApkSize(apkDir),
+                apkInfo.first,
+                apkInfo.second,
                 false
             )
             emit(application)
@@ -167,30 +170,33 @@ class AppManager(private val context: Context) {
     }
 
     fun getNumberOfInstalled(): Int {
-        var size = 0
+        var size: Int
         val installedApps =
             packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-        installedApps.forEach { appInfo ->
-            if (!isSystemApp(appInfo)) {
-                size++
-            }
+        installedApps.filter { appInfo ->
+            !isSystemApp(appInfo) && !appInfo.packageName.equals(myPackageName)
+        }.apply { 
+            size = this.size
         }
-        return size - 1
+        return size
     }
 
-    private suspend fun getApkSize(path: String): Float {
+    private suspend fun getApkInfo(apkDirPath: String): Pair<Float, Boolean> {
         return withContext(Dispatchers.IO) {
-            val dir = File(path)
+            var isSplit = false
+            var apkSize = 0f
+            val dir = File(apkDirPath)
             val listFiles = dir.listFiles()
             if (!listFiles.isNullOrEmpty()) {
-                listFiles.filter {
+                apkSize = listFiles.filter {
                     it.isFile && it.name.endsWith(".apk")
+                }.apply {
+                    if (this.size > 1) isSplit = true
                 }.sumOf {
                     it.length()
                 }.toFloat()
-            } else {
-                0f
             }
+            Pair(apkSize, isSplit)
         }
     }
 

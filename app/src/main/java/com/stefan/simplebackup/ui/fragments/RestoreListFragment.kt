@@ -13,7 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.adapter.RestoreAdapter
+import com.stefan.simplebackup.ui.adapters.RestoreAdapter
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
 import com.stefan.simplebackup.ui.activities.MainActivity

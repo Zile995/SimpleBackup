@@ -45,8 +45,8 @@ abstract class BackupHelper(context: Context) {
         return mainBackupDirPath + "/" + app.getPackageName()
     }
 
-    protected suspend fun serializeApp(app: AppData, backupDirPath: String) {
-        FileUtil.serializeApp(app, backupDirPath)
+    protected suspend fun serializeApp(app: AppData) {
+        FileUtil.serializeApp(app, getBackupDirPath(app))
     }
 
     protected fun setBackupTime(app: AppData) {

@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.adapter
+package com.stefan.simplebackup.ui.adapters
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -29,7 +29,7 @@ class AppAdapter(
 
     private lateinit var appList: MutableList<AppData>
 
-    class AppViewHolder private constructor(private val view: View) :
+    class AppViewHolder constructor(private val view: View, private val clickListener: OnClickListener) :
         RecyclerView.ViewHolder(view) {
         private val cardView: MaterialCardView = view.findViewById(R.id.card_item)
         private val appImage: ImageView = view.findViewById(R.id.application_image)
@@ -39,6 +39,17 @@ class AppAdapter(
         private val apkSize: Chip = view.findViewById(R.id.apk_size)
         val getCardView get() = cardView
         val getContext: Context get() = view.context
+
+        init {
+            view.setOnLongClickListener {
+                clickListener.onLongItemViewClick(this, adapterPosition)
+                true
+            }
+
+            view.setOnClickListener {
+                clickListener.onItemViewClick(this, adapterPosition)
+            }
+        }
 
         fun bind(item: AppData) {
             loadBitmapByteArray(item.getBitmap())
@@ -76,11 +87,11 @@ class AppAdapter(
         }
 
         companion object {
-            fun from(parent: ViewGroup): AppViewHolder {
-                val layout = LayoutInflater
+            fun getViewHolder(parent: ViewGroup, clickListener: OnClickListener): AppViewHolder {
+                val layoutView = LayoutInflater
                     .from(parent.context)
                     .inflate(R.layout.list_item, parent, false)
-                return AppViewHolder(layout)
+                return AppViewHolder(layoutView, clickListener)
             }
         }
     }
@@ -91,25 +102,30 @@ class AppAdapter(
      * - Layout sadži referencu na child view (list_item) koji je zakačen na parent view (RecyclerView)
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
-        return AppViewHolder.from(parent)
+        return AppViewHolder.getViewHolder(parent, clickListener)
     }
 
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
-        val item = getItem(position)
-        holder.bind(item)
-
-        if (selectionListener.getSelectedItems().contains(item)) {
-            holder.getCardView.setCardBackgroundColor(holder.getContext.getColor(R.color.cardViewSelected))
+        val item = currentList.getOrNull(position)
+        item?.let {
+            holder.bind(it)
+            if (selectionListener.getSelectedItems().contains(it)) {
+                holder.getCardView.apply {
+                    setCardBackgroundColor(
+                        holder.getContext.getColor(R.color.cardViewSelected)
+                    )
+                }
+            }
         }
+    }
 
-        holder.itemView.setOnLongClickListener {
-            clickListener.onLongItemViewClick(holder, item)
-            true
+    override fun onViewRecycled(holder: AppViewHolder) {
+        holder.getCardView.apply {
+            setCardBackgroundColor(
+                holder.getContext.getColor(R.color.cardView)
+            )
         }
-
-        holder.itemView.setOnClickListener {
-            clickListener.onItemViewClick(holder, item)
-        }
+        super.onViewRecycled(holder)
     }
 
     fun setData(list: MutableList<AppData>) {
@@ -130,8 +146,7 @@ class AppAdapter(
 
 class AppDiffCallBack : DiffUtil.ItemCallback<AppData>() {
     override fun areItemsTheSame(oldItem: AppData, newItem: AppData): Boolean {
-        return oldItem.getName() == newItem.getName() &&
-                oldItem.getPackageName() == newItem.getPackageName() &&
+        return oldItem.getPackageName() == newItem.getPackageName() &&
                 oldItem.getVersionName() == newItem.getVersionName()
     }
 

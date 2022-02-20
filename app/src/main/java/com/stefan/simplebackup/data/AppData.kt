@@ -52,8 +52,11 @@ data class AppData(
     @ColumnInfo(name = "apk_size")
     private var apkSize: Float = 0f,
 
-    @ColumnInfo(name = "favorites")
-    private var favorites: Boolean = false
+    @ColumnInfo(name = "split")
+    private var split: Boolean = false,
+
+    @ColumnInfo(name = "favorite")
+    private var favorite: Boolean = false
 ) : Parcelable {
 
     @ColumnInfo(name = "date")
@@ -87,7 +90,8 @@ data class AppData(
         date = parcel.readString() ?: ""
         dataSize = parcel.readString() ?: ""
         apkSize = parcel.readFloat()
-        parcel.readBooleanValue()?.let { booleanValue -> favorites = booleanValue }
+        parcel.readBooleanValue()?.let { booleanValue -> split = booleanValue }
+        parcel.readBooleanValue()?.let { booleanValue -> favorite = booleanValue }
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
@@ -104,7 +108,8 @@ data class AppData(
         dest.writeString(date)
         dest.writeString(dataSize)
         dest.writeFloat(apkSize)
-        dest.writeBooleanValue(favorites)
+        dest.writeBooleanValue(split)
+        dest.writeBooleanValue(favorite)
     }
 
     fun getUid() = this.uid
@@ -134,7 +139,9 @@ data class AppData(
 
     fun getApkDir() = this.apkDir
 
-    fun getFavorites() = this.favorites
+    fun getSplit() = this.split
+
+    fun getFavorite() = this.favorite
 
     fun setUid(uid: Int) {
         this.uid = uid
@@ -184,8 +191,12 @@ data class AppData(
         this.apkSize = apkSize
     }
 
-    fun setFavorites(favorites: Boolean) {
-        this.favorites = favorites
+    fun setSplit(split: Boolean) {
+        this.split = split
+    }
+
+    fun setFavorite(favorite: Boolean) {
+        this.favorite = favorite
     }
 
     override fun equals(other: Any?): Boolean {

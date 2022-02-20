@@ -1,16 +1,16 @@
-package com.stefan.simplebackup.viewmodel
+package com.stefan.simplebackup.viewmodels
 
 import android.os.Parcelable
 import android.util.Log
 import androidx.lifecycle.*
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.adapter.AppAdapter
-import com.stefan.simplebackup.adapter.SelectionListener
 import com.stefan.simplebackup.broadcasts.PackageListener
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.data.AppManager
 import com.stefan.simplebackup.database.AppRepository
 import com.stefan.simplebackup.database.DatabaseApplication
+import com.stefan.simplebackup.ui.adapters.AppAdapter
+import com.stefan.simplebackup.ui.adapters.SelectionListener
 import com.stefan.simplebackup.utils.backup.BackupWorkerHelper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -139,17 +139,15 @@ class AppViewModel(private val application: DatabaseApplication) :
         val context = holder.getContext
         if (selectionList.contains(item)) {
             removeSelectedItem(item)
-            holder.getCardView.toggle()
             holder.getCardView.setCardBackgroundColor(context.getColor(R.color.cardView))
         } else {
             addSelectedItem(item)
-            holder.getCardView.toggle()
             holder.getCardView.setCardBackgroundColor(context.getColor(R.color.cardViewSelected))
         }
         if (selectionList.isEmpty()) {
             setSelectionMode(false)
         }
-        println("Listener list: ${getSelectedItems().size}")
+        println("Listener list: ${getSelectedItems().size}: ${getSelectedItems().map { it.getName() }}")
     }
 
     // PackageListener methods - Used for database package updates

@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.ActivityManager
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.icu.text.SimpleDateFormat
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -42,9 +41,8 @@ import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.ActivityBackupBinding
 import com.stefan.simplebackup.utils.FileUtil
-import com.stefan.simplebackup.viewmodel.BackupViewModel
-import com.stefan.simplebackup.viewmodel.BackupViewModelFactory
-import com.topjohnwu.superuser.Shell
+import com.stefan.simplebackup.viewmodels.BackupViewModel
+import com.stefan.simplebackup.viewmodels.BackupViewModelFactory
 import kotlinx.coroutines.*
 import java.util.*
 
@@ -59,7 +57,7 @@ class BackupActivity : AppCompatActivity() {
 
     // Package name reference
     private var thisPackageName: String = ""
-    private var scope = CoroutineScope(Job() + Dispatchers.Main)
+    private var scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private lateinit var constraintLayout: ConstraintLayout
     private lateinit var toolBar: Toolbar

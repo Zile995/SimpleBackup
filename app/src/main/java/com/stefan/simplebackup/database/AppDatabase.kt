@@ -1,13 +1,12 @@
 package com.stefan.simplebackup.database
 
 import android.content.Context
-import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.stefan.simplebackup.data.AppManager
 import com.stefan.simplebackup.data.AppData
+import com.stefan.simplebackup.data.AppManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

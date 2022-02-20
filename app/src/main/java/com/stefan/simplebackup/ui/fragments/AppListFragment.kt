@@ -11,16 +11,16 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.stefan.simplebackup.adapter.AppAdapter
-import com.stefan.simplebackup.adapter.OnClickListener
+import com.stefan.simplebackup.ui.adapters.AppAdapter
+import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
 import com.stefan.simplebackup.ui.activities.BackupActivity
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.utils.FileUtil
-import com.stefan.simplebackup.viewmodel.AppViewModel
-import com.stefan.simplebackup.viewmodel.AppViewModelFactory
+import com.stefan.simplebackup.viewmodels.AppViewModel
+import com.stefan.simplebackup.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.*
 
 /**
@@ -113,12 +113,13 @@ class AppListFragment : Fragment(), MenuItemListener {
 
     private fun setAppAdapter() {
         _appAdapter = AppAdapter(appViewModel, object : OnClickListener {
-            override fun onItemViewClick(holder: AppAdapter.AppViewHolder, item: AppData) {
+            override fun onItemViewClick(holder: AppAdapter.AppViewHolder, position: Int) {
+                val item = applicationList[position]
                 if (appViewModel.hasSelectedItems()) {
                     appViewModel.doSelection(holder, item)
                 } else {
                     scope.launch {
-                        val context = holder.itemView.context
+                        val context = holder.getContext
                         FileUtil.saveBigBitmap(item, context)
                         val intent = Intent(context, BackupActivity::class.java)
                         intent.putExtra("application", item)
@@ -127,7 +128,8 @@ class AppListFragment : Fragment(), MenuItemListener {
                 }
             }
 
-            override fun onLongItemViewClick(holder: AppAdapter.AppViewHolder, item: AppData) {
+            override fun onLongItemViewClick(holder: AppAdapter.AppViewHolder, position: Int) {
+                val item = applicationList[position]
                 appViewModel.setSelectionMode(true)
                 appViewModel.doSelection(holder, item)
             }
@@ -187,7 +189,7 @@ class AppListFragment : Fragment(), MenuItemListener {
         binding.recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = appAdapter
-            setItemViewCacheSize(20)
+            setItemViewCacheSize(10)
             setHasFixedSize(true)
         }
     }

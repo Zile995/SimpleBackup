@@ -5,23 +5,21 @@ import android.util.Log
 import androidx.lifecycle.asFlow
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.stefan.simplebackup.data.AppManager
-import com.stefan.simplebackup.database.AppDatabase
-import com.stefan.simplebackup.database.AppRepository
+import com.stefan.simplebackup.database.DatabaseApplication
 import kotlinx.coroutines.*
 
 class BootPackageWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext,
     params
 ) {
-    private val scope = CoroutineScope(SupervisorJob())
-    private val appManager = AppManager(appContext)
-    private val database = AppDatabase.getDbInstance(applicationContext, scope, appManager)
-    private val repository = AppRepository(database.appDao())
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val mainApplication: DatabaseApplication = applicationContext as DatabaseApplication
+    private val repository = mainApplication.getRepository
+    private val appManager = mainApplication.getAppManager
 
     override suspend fun doWork(): Result = coroutineScope {
         try {
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 launch {
                     val newList = appManager.getApplicationList()
                     newList.forEach { newApp ->
