@@ -10,15 +10,10 @@ import android.provider.Settings
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
-import android.widget.ImageView
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
@@ -26,11 +21,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.card.MaterialCardView
-import com.google.android.material.chip.Chip
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.textview.MaterialTextView
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
@@ -56,27 +46,12 @@ class BackupActivity : AppCompatActivity() {
     }
 
     // Package name reference
-    private var thisPackageName: String = ""
-    private var scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val myPackageName: String by lazy { applicationContext.packageName }
 
-    private lateinit var constraintLayout: ConstraintLayout
-    private lateinit var toolBar: Toolbar
-    private lateinit var textItem: MaterialTextView
-    private lateinit var appImage: ImageView
-    private lateinit var chipApkSize: Chip
-    private lateinit var chipDataSize: Chip
-    private lateinit var chipTargetSdk: Chip
-    private lateinit var chipMinSdk: Chip
-    private lateinit var backupButton: MaterialButton
-    private lateinit var backupDriveButton: MaterialButton
-    private lateinit var chipVersion: Chip
-    private lateinit var chipPackage: Chip
-    private lateinit var chipDir: Chip
-    private lateinit var deleteButton: FloatingActionButton
-    private lateinit var progressBar: ProgressBar
-    private lateinit var cardView: MaterialCardView
-    private lateinit var cardViewPackage: MaterialCardView
-    private lateinit var cardViewButtons: MaterialCardView
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    private var _binding: ActivityBackupBinding? = null
+    private val binding get() = _binding!!
 
     private val backupViewModel: BackupViewModel by viewModels {
         val application = application as DatabaseApplication
@@ -88,30 +63,102 @@ class BackupActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_backup)
 
-        val binding = ActivityBackupBinding.inflate(layoutInflater)
+        _binding = ActivityBackupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         backupViewModel.selectedApp?.let {
-            bindViews(binding)
-            setCardViewSize()
+            bindViews()
             scope.launch {
                 setData()
             }
         }
     }
 
+    private fun bindViews() {
+        setToolBar()
+        setCardViewSize()
+        createMainCardView()
+        createPackageDetails()
+        createBackupButton()
+        createBackupDriveButton()
+        createDeleteButton()
+    }
+
+    private fun createBackupButton() {
+        binding.backupButton.setOnClickListener {
+            if (!checkPermission()) {
+                requestPermission()
+            } else {
+                backupViewModel.apply {
+                    createLocalBackup()
+                }
+            }
+        }
+    }
+
+    private fun createMainCardView() {
+        binding.backupCardView.setOnClickListener {
+            backupViewModel.selectedApp?.let {
+                openApplication(it.getPackageName())
+            }
+        }
+    }
+
+    private fun createPackageDetails() {
+        binding.packageDetails.setOnClickListener {
+            openPackageDetailsSettings()
+        }
+    }
+
+    private fun setCardViewSize() {
+        val constraintLayout = binding.parentView
+        val toolBar = binding.toolbarBackup
+        val cardView = binding.backupCardView
+        val cardViewPackage = binding.backupCardViewPackage
+        val cardViewButtons = binding.backupCardViewButtons
+        val height =
+            constraintLayout.height - toolBar.height - cardView.height - cardViewPackage.height
+        cardViewButtons.layoutParams.height = height
+    }
+
+    private fun createBackupDriveButton() {
+        binding.backupDriveButton.setOnClickListener {
+            requestSignIn()
+        }
+    }
+
+    private fun createDeleteButton() {
+        binding.floatingDeleteButton.setOnClickListener {
+            scope.launch {
+                backupViewModel.selectedApp?.let { app ->
+                    deleteApp(app.getPackageName())
+                }
+                delay(500)
+                onBackPressed()
+            }
+        }
+    }
+
+    private fun setToolBar() {
+        setSupportActionBar(binding.toolbarBackup)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+    }
+
     private suspend fun setData() {
-        backupViewModel.selectedApp?.apply {
-            setAppImage()
-            textItem.text = getName()
-            chipPackage.text = (getPackageName() as CharSequence).toString()
-            chipVersion.text = (getVersionName() as CharSequence).toString()
-            chipDir.text = (getDataDir() as CharSequence).toString()
-            chipApkSize.text = FileUtil.transformBytesToString(getApkSize())
-            chipTargetSdk.text = getTargetSdk().toString()
-            chipMinSdk.text = getMinSdk().toString()
-            dataPath = getDataDir()
-            chipDataSize.text = getDataSize()
+        binding.apply {
+            backupViewModel.selectedApp?.apply {
+                setAppImage()
+                textItemBackup.text = getName()
+                chipPackageBackup.text = (getPackageName() as CharSequence).toString()
+                chipVersionBackup.text = (getVersionName() as CharSequence).toString()
+                chipDirBackup.text = (getDataDir() as CharSequence).toString()
+                apkSize.text = FileUtil.transformBytesToString(getApkSize())
+                targetSdk.text = getTargetSdk().toString()
+                minSdk.text = getMinSdk().toString()
+                dataPath = getDataDir()
+                dataSize.text = FileUtil.transformBytesToString(getDataSize())
+            }
         }
     }
 
@@ -125,7 +172,7 @@ class BackupActivity : AppCompatActivity() {
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .skipMemoryCache(true)
                     .dontAnimate()
-                    .into(appImage)
+                    .into(binding.applicationImageBackup)
             }
         }
     }
@@ -149,6 +196,25 @@ class BackupActivity : AppCompatActivity() {
         }
     }
 
+    private fun openApplication(packageName: String) {
+        val intent = applicationContext.packageManager.getLaunchIntentForPackage(packageName)
+        intent?.apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(this)
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        scope.cancel()
+        _binding = null
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        scope.cancel()
+    }
+
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
@@ -164,92 +230,25 @@ class BackupActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    private fun bindViews(binding: ActivityBackupBinding) {
-        binding.apply {
-            constraintLayout = parentView
-            toolBar = toolbarBackup
-            textItem = textItemBackup
-            appImage = applicationImageBackup
-            chipApkSize = apkSize
-            chipDataSize = dataSize
-            chipTargetSdk = targetSdk
-            chipMinSdk = minSdk
-            chipPackage = chipPackageBackup
-            chipVersion = chipVersionBackup
-            chipDir = chipDirBackup
-            progressBar = backupProgressBar
-            cardView = backupCardView
-            cardViewPackage = backupCardViewPackage
-            cardViewButtons = binding.backupCardViewButtons
-            thisPackageName = this@BackupActivity.applicationContext.packageName
-        }
-        createBackupButton(binding)
-        createBackupDriveButton(binding)
-        createDeleteButton(binding)
-        setToolBar()
-    }
-
-    private fun createBackupButton(binding: ActivityBackupBinding) {
-        backupButton = binding.backupButton
-        backupButton.setOnClickListener {
-            if (!checkPermission()) {
-                requestPermission()
-            } else {
-                backupViewModel.apply {
-                    progressBar.visibility = View.VISIBLE
-                    createLocalBackup()
-                    progressBar.visibility = View.GONE
-                }
-            }
-        }
-    }
-
-    private fun createBackupDriveButton(binding: ActivityBackupBinding) {
-        backupDriveButton = binding.backupDriveButton
-        backupDriveButton.setOnClickListener {
-            requestSignIn()
-        }
-    }
-
-    private fun createDeleteButton(binding: ActivityBackupBinding) {
-        deleteButton = binding.floatingDeleteButton
-        deleteButton.setOnClickListener {
-            CoroutineScope(Dispatchers.Main).launch {
-                onBackPressed()
-                delay(150)
-                launch {
-                    backupViewModel.selectedApp?.getPackageName()
-                        ?.let { packageName -> deleteApp(packageName) }
-                }.join()
-            }
-        }
-    }
-
-    private fun setCardViewSize() {
-        CoroutineScope(Dispatchers.Default).launch {
-            val height =
-                constraintLayout.height - toolBar.height - cardView.height - cardViewPackage.height
-            cardViewButtons.layoutParams.height = height
-        }
-    }
-
-    private fun setToolBar() {
-        setSupportActionBar(toolBar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayShowHomeEnabled(true)
-    }
 
     private fun deleteApp(packageName: String) {
-        val intent = Intent(Intent.ACTION_DELETE)
-        intent.data = Uri.parse("package:${packageName}")
-        startActivity(intent)
+        startActivity(Intent(Intent.ACTION_DELETE).apply {
+            data = Uri.parse("package:${packageName}")
+        })
     }
 
     private fun forceStop(packageName: String) {
         val activityManager =
             applicationContext.getSystemService(ACTIVITY_SERVICE) as ActivityManager
         activityManager.killBackgroundProcesses(packageName)
-        Toast.makeText(this@BackupActivity, "AppData stopped!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(applicationContext, "AppData stopped!", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun openPackageDetailsSettings() {
+        startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            addCategory(Intent.CATEGORY_DEFAULT)
+            data = Uri.parse("package:" + backupViewModel.selectedApp?.getPackageName())
+        })
     }
 
     private fun checkPermission(): Boolean {
@@ -276,9 +275,7 @@ class BackupActivity : AppCompatActivity() {
             STORAGE_PERMISSION_CODE -> {
                 if (grantResults.isNotEmpty() && grantResults.first() == PackageManager.PERMISSION_GRANTED) {
                     scope.launch {
-                        progressBar.visibility = View.VISIBLE
                         backupViewModel.createLocalBackup()
-                        progressBar.visibility = View.GONE
                         Toast.makeText(
                             this@BackupActivity.applicationContext,
                             getString(R.string.storage_perm_success),
@@ -304,7 +301,7 @@ class BackupActivity : AppCompatActivity() {
                 dialog.cancel()
             }
                 .setNegativeButton(getString(R.string.set_manually)) { _, _ ->
-                    val uri = Uri.parse("package:$thisPackageName")
+                    val uri = Uri.parse("package:$myPackageName")
                     startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                         addCategory(Intent.CATEGORY_DEFAULT)
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK

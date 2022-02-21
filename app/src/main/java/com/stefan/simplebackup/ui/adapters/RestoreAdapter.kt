@@ -73,7 +73,7 @@ class RestoreAdapter(rContext: Context) :
 
         holder.textItem.text = item.getName()
         holder.chipVersion.text = charSequenceVersion.toString()
-        holder.appSize.text = item.getDataSize()
+        holder.appSize.text = item.getDataSize().toString()
         holder.dateText.text = item.getDate()
 
         holder.cardView.setOnClickListener {

@@ -29,6 +29,53 @@ class AppAdapter(
 
     private lateinit var appList: MutableList<AppData>
 
+    fun setData(list: MutableList<AppData>) {
+        appList = list
+        submitList(appList)
+    }
+
+    /**
+     * - Služi da kreiramo View preko kojeg možemo da pristupimo elementima iz list item-a
+     * - Parent parametar, je view grupa za koju će da se zakači list item view kao child view. Parent je RecyclerView.
+     * - Layout sadži referencu na child view (list_item) koji je zakačen na parent view (RecyclerView)
+     */
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
+        return AppViewHolder.getViewHolder(parent, clickListener)
+    }
+
+    override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
+        val item = currentList.getOrNull(position)
+        item?.let {
+            holder.bind(it)
+            if (selectionListener.getSelectedItems().contains(it)) {
+                holder.getCardView.apply {
+                    setCardBackgroundColor(
+                        holder.getContext.getColor(R.color.cardViewSelected)
+                    )
+                }
+            }
+        }
+    }
+
+    override fun onViewRecycled(holder: AppViewHolder) {
+        holder.getCardView.apply {
+            setCardBackgroundColor(
+                holder.getContext.getColor(R.color.cardView)
+            )
+        }
+        super.onViewRecycled(holder)
+    }
+
+    fun filter(newText: String) {
+        if (newText.length < 2) {
+            setData(appList)
+            return
+        }
+        val pattern = newText.lowercase().trim()
+        val filteredList = appList.filter { pattern in it.getName().lowercase() }
+        submitList(filteredList)
+    }
+
     class AppViewHolder constructor(private val view: View, private val clickListener: OnClickListener) :
         RecyclerView.ViewHolder(view) {
         private val cardView: MaterialCardView = view.findViewById(R.id.card_item)
@@ -94,53 +141,6 @@ class AppAdapter(
                 return AppViewHolder(layoutView, clickListener)
             }
         }
-    }
-
-    /**
-     * - Služi da kreiramo View preko kojeg možemo da pristupimo elementima iz list item-a
-     * - Parent parametar, je view grupa za koju će da se zakači list item view kao child view. Parent je RecyclerView.
-     * - Layout sadži referencu na child view (list_item) koji je zakačen na parent view (RecyclerView)
-     */
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
-        return AppViewHolder.getViewHolder(parent, clickListener)
-    }
-
-    override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
-        val item = currentList.getOrNull(position)
-        item?.let {
-            holder.bind(it)
-            if (selectionListener.getSelectedItems().contains(it)) {
-                holder.getCardView.apply {
-                    setCardBackgroundColor(
-                        holder.getContext.getColor(R.color.cardViewSelected)
-                    )
-                }
-            }
-        }
-    }
-
-    override fun onViewRecycled(holder: AppViewHolder) {
-        holder.getCardView.apply {
-            setCardBackgroundColor(
-                holder.getContext.getColor(R.color.cardView)
-            )
-        }
-        super.onViewRecycled(holder)
-    }
-
-    fun setData(list: MutableList<AppData>) {
-        appList = list
-        submitList(appList)
-    }
-
-    fun filter(newText: String) {
-        if (newText.length < 2) {
-            setData(appList)
-            return
-        }
-        val pattern = newText.lowercase().trim()
-        val filteredList = appList.filter { pattern in it.getName().lowercase() }
-        submitList(filteredList)
     }
 }
 

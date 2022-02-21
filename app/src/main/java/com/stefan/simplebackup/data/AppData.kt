@@ -55,15 +55,18 @@ data class AppData(
     @ColumnInfo(name = "split")
     private var split: Boolean = false,
 
+    @ColumnInfo(name = "data_size")
+    private var dataSize: Long = 0,
+
+    @ColumnInfo(name = "cache_size")
+    private var cacheSize: Long = 0,
+
     @ColumnInfo(name = "favorite")
     private var favorite: Boolean = false
 ) : Parcelable {
 
     @ColumnInfo(name = "date")
     private var date: String = ""
-
-    @ColumnInfo(name = "data_size")
-    private var dataSize: String = ""
 
     constructor(parcel: Parcel) : this() {
         readFromParcel(parcel)
@@ -87,11 +90,12 @@ data class AppData(
         minSdk = parcel.readInt()
         dataDir = parcel.readString() ?: ""
         apkDir = parcel.readString() ?: ""
-        date = parcel.readString() ?: ""
-        dataSize = parcel.readString() ?: ""
         apkSize = parcel.readFloat()
         parcel.readBooleanValue()?.let { booleanValue -> split = booleanValue }
+        dataSize = parcel.readLong()
+        cacheSize = parcel.readLong()
         parcel.readBooleanValue()?.let { booleanValue -> favorite = booleanValue }
+        date = parcel.readString() ?: ""
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
@@ -105,11 +109,12 @@ data class AppData(
         dest.writeInt(minSdk)
         dest.writeString(dataDir)
         dest.writeString(apkDir)
-        dest.writeString(date)
-        dest.writeString(dataSize)
         dest.writeFloat(apkSize)
         dest.writeBooleanValue(split)
+        dest.writeLong(dataSize)
+        dest.writeLong(cacheSize)
         dest.writeBooleanValue(favorite)
+        dest.writeString(date)
     }
 
     fun getUid() = this.uid
@@ -131,17 +136,19 @@ data class AppData(
 
     fun getDataDir() = this.dataDir
 
-    fun getDataSize() = this.dataSize
+    fun getApkDir() = this.apkDir
 
     fun getApkSize() = this.apkSize
 
-    fun getDate() = this.date
+    fun getDataSize() = this.dataSize
 
-    fun getApkDir() = this.apkDir
+    fun getCacheSize() = this.cacheSize
 
     fun getSplit() = this.split
 
     fun getFavorite() = this.favorite
+
+    fun getDate() = this.date
 
     fun setUid(uid: Int) {
         this.uid = uid
@@ -183,8 +190,12 @@ data class AppData(
         this.date = newDate
     }
 
-    fun setDataSize(newSize: String) {
+    fun setDataSize(newSize: Long) {
         this.dataSize = newSize
+    }
+
+    fun setCacheSize(newSize: Long) {
+        this.cacheSize = newSize
     }
 
     fun setApkSize(apkSize: Float) {

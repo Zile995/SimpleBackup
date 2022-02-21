@@ -1,10 +1,13 @@
 package com.stefan.simplebackup.data
 
+import android.app.usage.StorageStats
+import android.app.usage.StorageStatsManager
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.util.Log
 import com.stefan.simplebackup.utils.FileUtil
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -17,6 +20,8 @@ import kotlin.system.measureTimeMillis
 
 class AppManager(private val context: Context) {
 
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
     private val packageSharedPref = context.getSharedPreferences("package", Context.MODE_PRIVATE)
     private val getSavedSequenceNumber get() = packageSharedPref.getInt("sequence_number", 0)
     private val getChangedPackages get() = packageManager.getChangedPackages(getSavedSequenceNumber)
@@ -27,6 +32,9 @@ class AppManager(private val context: Context) {
     private val packageManager: PackageManager = context.packageManager
 
     private val myPackageName by lazy { context.applicationContext.packageName }
+    private val storageStatsManager by lazy {
+        context.getSystemService(Context.STORAGE_STATS_SERVICE) as StorageStatsManager
+    }
 
     /**
      * - Vrati kreiran [AppData] objekat
@@ -90,7 +98,7 @@ class AppManager(private val context: Context) {
          */
         val applicationHashMap = ConcurrentHashMap<Int, AppData>()
 
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             val size = userAppsList.size
             val quarter = (size / 4)
             val secondQuarter = size / 2
@@ -133,29 +141,35 @@ class AppManager(private val context: Context) {
      */
     private fun getAppObject(appInfo: ApplicationInfo): Flow<AppData> = flow {
         if (!(isSystemApp(appInfo) || appInfo.packageName.equals(myPackageName))) {
+            val storageStats: StorageStats = storageStatsManager.queryStatsForUid(appInfo.storageUuid, appInfo.uid)
+            val cacheSize = storageStats.cacheBytes
+            val dataSize = storageStats.dataBytes
             val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }
             val name = appInfo.loadLabel(packageManager).toString()
+            val packageName = appInfo.packageName
             val drawable = appInfo.loadIcon(packageManager)
             val versionName = packageManager.getPackageInfo(
                 appInfo.packageName,
                 PackageManager.GET_META_DATA
             ).versionName?.substringBefore(" (") ?: ""
             val apkInfo = getApkInfo(apkDir)
-
-            //Log.d("AppManager", "Apk $name libs: ${listApkLibs(File(appInfo.publicSourceDir))}")
+            val apkSize = apkInfo.first
+            val isSplit = apkInfo.second
 
             val application = AppData(
                 0,
                 name,
                 FileUtil.drawableToByteArray(drawable),
-                appInfo.packageName,
+                packageName,
                 versionName,
                 appInfo.targetSdkVersion,
                 appInfo.minSdkVersion,
                 appInfo.dataDir,
                 apkDir,
-                apkInfo.first,
-                apkInfo.second,
+                apkSize,
+                isSplit,
+                dataSize,
+                cacheSize,
                 false
             )
             emit(application)
@@ -178,7 +192,7 @@ class AppManager(private val context: Context) {
     }
 
     private suspend fun getApkInfo(apkDirPath: String): Pair<Float, Boolean> {
-        return withContext(Dispatchers.IO) {
+        return withContext(ioDispatcher) {
             var isSplit = false
             var apkSize = 0f
             val dir = File(apkDirPath)
@@ -197,7 +211,7 @@ class AppManager(private val context: Context) {
     }
 
     private suspend fun listApkLibs(apkFile: File): List<String> {
-        return withContext(Dispatchers.IO) {
+        return withContext(ioDispatcher) {
             val abiList = mutableListOf<String>()
             runCatching {
                 val zipFile = ZipFile(apkFile)

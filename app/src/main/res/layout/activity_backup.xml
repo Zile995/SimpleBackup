@@ -23,7 +23,7 @@
         android:id="@+id/backup_card_view"
         style="@style/Widget.SimpleBackup.CardView"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="160dp"
         android:layout_margin="12dp"
         android:clickable="true"
         android:focusable="true"
@@ -55,17 +55,18 @@
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_gravity="center_vertical"
-                android:layout_marginStart="25dp"
-                android:layout_marginTop="30dp"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="20dp"
                 android:contentDescription="@string/application_image"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/text_item_backup"
-                android:layout_width="110dp"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="15dp"
+                android:layout_width="wrap_content"
+                android:layout_height="20dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginBottom="40dp"
                 android:fontFamily="@font/inter"
                 android:gravity="center_horizontal|center_vertical"
                 android:maxLines="3"
@@ -73,10 +74,9 @@
                 android:textColor="@color/appNameLabel"
                 android:textSize="6.3pt"
                 android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="@+id/application_image_backup"
-                app:layout_constraintStart_toStartOf="@+id/application_image_backup"
-                app:layout_constraintTop_toBottomOf="@+id/application_image_backup" />
+                app:layout_constraintBottom_toBottomOf="@+id/application_image_backup"
+                app:layout_constraintStart_toEndOf="@+id/application_image_backup"
+                app:layout_constraintTop_toTopOf="@+id/application_image_backup" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/apk_size"
@@ -85,7 +85,7 @@
                 android:layout_height="42dp"
                 android:layout_marginTop="-5dp"
                 android:clickable="false"
-                android:fontFamily="@font/inter"
+                android:fontFamily="@font/inter_family"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:textAlignment="textStart"
@@ -120,7 +120,7 @@
                 android:layout_height="42dp"
                 android:layout_marginTop="-5dp"
                 android:clickable="false"
-                android:fontFamily="@font/inter"
+                android:fontFamily="@font/inter_family"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:textAlignment="textStart"
@@ -141,7 +141,7 @@
                 android:layout_height="42dp"
                 android:layout_marginTop="-5dp"
                 android:clickable="false"
-                android:fontFamily="@font/inter"
+                android:fontFamily="@font/inter_family"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:textAlignment="textStart"
@@ -162,7 +162,7 @@
                 android:layout_height="42dp"
                 android:layout_marginTop="-5dp"
                 android:clickable="false"
-                android:fontFamily="@font/inter"
+                android:fontFamily="@font/inter_family"
                 android:paddingStart="10dp"
                 android:paddingEnd="10dp"
                 android:textAlignment="textStart"
@@ -180,8 +180,7 @@
                 android:id="@+id/text_apk_size"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="-5dp"
+                android:layout_marginTop="10dp"
                 android:fontFamily="@font/inter"
                 android:gravity="center_horizontal"
                 android:maxLines="1"
@@ -189,8 +188,8 @@
                 android:textAppearance="?attr/textAppearanceBody1"
                 android:textColor="@color/greenChipLabel"
                 android:textSize="5pt"
-                app:layout_constraintStart_toEndOf="@+id/text_item_backup"
-                app:layout_constraintTop_toTopOf="@+id/application_image_backup" />
+                app:layout_constraintStart_toStartOf="@+id/text_item_backup"
+                app:layout_constraintTop_toBottomOf="@+id/text_item_backup" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/text_data_size"
@@ -214,7 +213,7 @@
         android:id="@+id/backup_card_view_package"
         style="@style/Widget.SimpleBackup.CardView"
         android:layout_width="match_parent"
-        android:layout_height="150dp"
+        android:layout_height="160dp"
         android:layout_margin="12dp"
         android:clickable="false"
         android:focusable="false"
@@ -325,9 +324,11 @@
                 app:layout_constraintTop_toTopOf="@id/text_view_data" />
 
             <ImageView
+                android:id="@+id/package_details"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_marginEnd="15dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginEnd="10dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"

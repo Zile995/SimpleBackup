@@ -48,8 +48,8 @@ object FileUtil {
         }
     }
 
-    fun transformBytesToString(bytes: Float): String {
-        return String.format("%3.1f %s", bytes / 1000.0.pow(2), "MB")
+    fun <T: Number> transformBytesToString(bytes: T): String {
+        return String.format("%3.1f %s", bytes.toFloat() / 1000.0.pow(2), "MB")
     }
 
     suspend fun drawableToByteArray(drawable: Drawable): ByteArray =
