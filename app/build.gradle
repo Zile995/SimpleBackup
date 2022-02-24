@@ -115,12 +115,12 @@ dependencies {
     //ViewModel
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.lifecycleVersion"
 
-    // LiveData
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$rootProject.lifecycleVersion"
+    // LifeCycle without ViewModel and LiveData
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$rootProject.lifecycleVersion"
 
     // Glide
     implementation "com.github.bumptech.glide:glide:$rootProject.glideVersion"
-    kapt 'com.github.bumptech.glide:compiler:4.13.0'
+    kapt 'com.github.bumptech.glide:compiler:4.13.1'
 
     // Leak Canary
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.8.1'

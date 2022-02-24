@@ -9,15 +9,18 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.stefan.simplebackup.ui.adapters.AppAdapter
-import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
 import com.stefan.simplebackup.ui.activities.BackupActivity
 import com.stefan.simplebackup.ui.activities.MainActivity
+import com.stefan.simplebackup.ui.adapters.AppAdapter
+import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.utils.FileUtil
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
@@ -87,13 +90,13 @@ class AppListFragment : Fragment(), MenuItemListener {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
+        binding.recyclerView.layoutManager?.onSaveInstanceState()?.let {
+            appViewModel.saveRecyclerViewState(it)
+        }
         if (binding.searchInput.hasFocus()) {
             isSearching = true
         }
         outState.putBoolean("isSearching", isSearching)
-        binding.recyclerView.layoutManager?.onSaveInstanceState()?.let {
-            appViewModel.saveRecyclerViewState(it)
-        }
     }
 
     private fun bindViews() {
@@ -269,27 +272,41 @@ class AppListFragment : Fragment(), MenuItemListener {
 
     @SuppressLint("NotifyDataSetChanged")
     private fun setAppViewModelObservers() {
-        appViewModel.spinner.observe(viewLifecycleOwner) { value ->
-            binding.progressBar.visibility =
-                if (value)
-                    View.VISIBLE
-                else
-                    View.GONE
-        }
-
-        appViewModel.getAllApps.observe(viewLifecycleOwner) { appList ->
-            appList.let {
-                applicationList = appList
-                appAdapter.setData(appList)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                appViewModel.spinner.collect { value ->
+                    binding.progressBar.visibility =
+                        if (value)
+                            View.VISIBLE
+                        else {
+                            launch {
+                                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                                    appViewModel.getAllApps.collect { appList ->
+                                        applicationList = appList
+                                        appAdapter.setData(appList)
+                                    }
+                                }
+                            }
+                            View.GONE
+                        }
+                }
             }
         }
 
-        appViewModel.isSelected.observe(viewLifecycleOwner) { isSelected ->
-            binding.batchBackup.visibility = if (isSelected) View.VISIBLE else View.GONE
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                appViewModel.isSelected.collect { isSelected ->
+                    binding.batchBackup.visibility =
+                        if (isSelected)
+                            View.VISIBLE
+                        else
+                            View.GONE
 //            binding.toolBar.menu.apply {
 //                findItem(R.id.select_all).isVisible = isSelected
 //                findItem(R.id.search).isVisible = !isSelected
 //            }
+                }
+            }
         }
     }
 

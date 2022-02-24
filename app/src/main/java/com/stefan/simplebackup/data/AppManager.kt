@@ -10,13 +10,12 @@ import com.stefan.simplebackup.utils.FileUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
-import kotlin.system.measureTimeMillis
 
 class AppManager(private val context: Context) {
 
@@ -36,10 +35,15 @@ class AppManager(private val context: Context) {
         context.getSystemService(Context.STORAGE_STATS_SERVICE) as StorageStatsManager
     }
 
+    private val getAllUserAppsInfo: List<ApplicationInfo>
+        get() {
+            return packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+        }
+
     /**
      * - Vrati kreiran [AppData] objekat
      */
-    fun build(packageName: String) = getAppObject(getPackageApplicationInfo(packageName))
+    fun build(packageName: String) = getAppObject(getAppInfoByPackageName(packageName))
 
     fun printSequence() {
         Log.d("AppManager", "Sequence number: ${packageSharedPref.getInt("sequence_number", 0)}")
@@ -82,53 +86,42 @@ class AppManager(private val context: Context) {
         return true
     }
 
-    private fun getPackageApplicationInfo(packageName: String) =
+    private fun getAppInfoByPackageName(packageName: String) =
         packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
 
     /**
      * - Koristi se kada se Database prvi put kreira.
      */
-    suspend fun getApplicationList(): MutableList<AppData> {
-        var time: Long
-        val userAppsList = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-
-        /**
-         * - Prazna application HashMap lista u koju kasnije dodajemo [AppData] objekte
-         * - Mora biti val jer ostali thread-ovi upisuju u nju
-         */
-        val applicationHashMap = ConcurrentHashMap<Int, AppData>()
-
+    suspend fun getApplicationList(): Flow<AppData> = channelFlow {
         withContext(ioDispatcher) {
-            val size = userAppsList.size
+            val userAppsInfo = getAllUserAppsInfo
+
+            val size = userAppsInfo.size
             val quarter = (size / 4)
             val secondQuarter = size / 2
             val thirdQuarter = size - quarter
 
-            time = measureTimeMillis {
-                launch {
-                    for (i in 0 until quarter) {
-                        getAppObject(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
-                    }
+            launch {
+                for (i in 0 until quarter) {
+                    getAppObject(userAppsInfo[i]).collect { app -> send(app) }
                 }
-                launch {
-                    for (i in quarter until secondQuarter) {
-                        getAppObject(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
-                    }
-                }
-                launch {
-                    for (i in secondQuarter until thirdQuarter) {
-                        getAppObject(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
-                    }
-                }
-                launch {
-                    for (i in thirdQuarter until size) {
-                        getAppObject(userAppsList[i]).collect { app -> applicationHashMap[i] = app }
-                    }
-                }.join()
             }
+            launch {
+                for (i in quarter until secondQuarter) {
+                    getAppObject(userAppsInfo[i]).collect { app -> send(app) }
+                }
+            }
+            launch {
+                for (i in secondQuarter until thirdQuarter) {
+                    getAppObject(userAppsInfo[i]).collect { app -> send(app) }
+                }
+            }
+            launch {
+                for (i in thirdQuarter until size) {
+                    getAppObject(userAppsInfo[i]).collect { app -> send(app) }
+                }
+            }.join()
         }
-        Log.d("AppManager", "Load time: $time")
-        return applicationHashMap.values.toMutableList()
     }
 
     /**
@@ -141,7 +134,8 @@ class AppManager(private val context: Context) {
      */
     private fun getAppObject(appInfo: ApplicationInfo): Flow<AppData> = flow {
         if (!(isSystemApp(appInfo) || appInfo.packageName.equals(myPackageName))) {
-            val storageStats: StorageStats = storageStatsManager.queryStatsForUid(appInfo.storageUuid, appInfo.uid)
+            val storageStats: StorageStats =
+                storageStatsManager.queryStatsForUid(appInfo.storageUuid, appInfo.uid)
             val cacheSize = storageStats.cacheBytes
             val dataSize = storageStats.dataBytes
             val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }
@@ -179,16 +173,8 @@ class AppManager(private val context: Context) {
     /**
      * - Proverava da li je prosleđena aplikacija system app
      */
-    private fun isSystemApp(pkgInfo: ApplicationInfo): Boolean {
-        return pkgInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
-    }
-
-    fun getNumberOfInstalled(): Int {
-        val installedApps =
-            packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-        return installedApps.filter { appInfo ->
-            !isSystemApp(appInfo) && !appInfo.packageName.equals(myPackageName)
-        }.size
+    private fun isSystemApp(appInfo: ApplicationInfo): Boolean {
+        return appInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
     }
 
     private suspend fun getApkInfo(apkDirPath: String): Pair<Float, Boolean> {

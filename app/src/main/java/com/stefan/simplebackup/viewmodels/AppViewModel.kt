@@ -2,7 +2,10 @@ package com.stefan.simplebackup.viewmodels
 
 import android.os.Parcelable
 import android.util.Log
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.broadcasts.PackageListener
 import com.stefan.simplebackup.data.AppData
@@ -14,6 +17,10 @@ import com.stefan.simplebackup.ui.adapters.SelectionListener
 import com.stefan.simplebackup.utils.backup.BackupWorkerHelper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class AppViewModel(private val application: DatabaseApplication) :
@@ -25,13 +32,13 @@ class AppViewModel(private val application: DatabaseApplication) :
     private val getAllAppsFromRepository get() = repository.getAllApps
 
     // Observable application properties used for list loading
-    private lateinit var allApps: LiveData<MutableList<AppData>>
-    val getAllApps: LiveData<MutableList<AppData>>
-        get() = allApps
+    private var _allApps = MutableStateFlow(mutableListOf<AppData>())
+    val getAllApps: StateFlow<MutableList<AppData>>
+        get() = _allApps
 
     // Selection properties
-    private var _isSelected = MutableLiveData(false)
-    val isSelected: LiveData<Boolean> get() = _isSelected
+    private var _isSelected = MutableStateFlow(false)
+    val isSelected: StateFlow<Boolean> get() = _isSelected
     private val selectionList = mutableListOf<AppData>()
 
     // Parcelable properties used for saving a RecyclerView layout position
@@ -40,8 +47,8 @@ class AppViewModel(private val application: DatabaseApplication) :
     val isStateInitialized: Boolean get() = this::state.isInitialized
 
     // Observable spinner properties used for progressbar observing
-    private var _spinner = MutableLiveData(true)
-    val spinner: LiveData<Boolean>
+    private var _spinner = MutableStateFlow(true)
+    val spinner: StateFlow<Boolean>
         get() = _spinner
 
     init {
@@ -51,14 +58,17 @@ class AppViewModel(private val application: DatabaseApplication) :
     }
 
     // Loading methods
-    private fun launchListLoading(block: () -> LiveData<MutableList<AppData>>) {
+    private fun launchListLoading(getAllAppsFromRepository: () -> Flow<MutableList<AppData>>) {
         viewModelScope.launch(ioDispatcher) {
             runCatching {
-                allApps = block()
-            }.onSuccess {
-                refreshPackageList()
-                checkIfLoaded()
-                _spinner.postValue(false)
+                launch {
+                    refreshPackageList()
+                }
+                getAllAppsFromRepository().collect { apps ->
+                    _allApps.value = apps
+                    delay(300)
+                    _spinner.value = false
+                }
             }.onFailure { throwable ->
                 throwable.message?.let { message -> Log.e("ViewModel", message) }
             }
@@ -94,17 +104,6 @@ class AppViewModel(private val application: DatabaseApplication) :
         }
     }
 
-    // Wait for database list
-    private fun checkIfLoaded() {
-        val numberOfInstalled = appManager.getNumberOfInstalled()
-        while (true) {
-            val numberOfStored = getAllApps.value?.size ?: 0
-            if (numberOfStored == numberOfInstalled) {
-                break
-            }
-        }
-    }
-
     // Save RecyclerView state
     fun saveRecyclerViewState(parcelable: Parcelable) {
         state = parcelable
@@ -112,10 +111,10 @@ class AppViewModel(private val application: DatabaseApplication) :
 
     // SelectionListener methods - used for RecyclerView selection
     override fun setSelectionMode(selection: Boolean) {
-        _isSelected.postValue(selection)
+        _isSelected.value = selection
     }
 
-    override fun hasSelectedItems(): Boolean = _isSelected.value ?: false
+    override fun hasSelectedItems(): Boolean = _isSelected.value
 
     override fun setSelectedItems(selectedList: MutableList<AppData>) {
         selectionList.clear()

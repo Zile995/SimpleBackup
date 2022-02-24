@@ -1,13 +1,11 @@
 package com.stefan.simplebackup.database
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.asLiveData
 import com.stefan.simplebackup.data.AppData
 import kotlinx.coroutines.flow.Flow
 
 class AppRepository(private val appDao: AppDao) {
     private val _allApps: Flow<MutableList<AppData>> = getAppList()
-    val getAllApps: LiveData<MutableList<AppData>> get() = _allApps.asLiveData()
+    val getAllApps get() = _allApps
 
     private fun getAppList() = appDao.getAppList()
 

@@ -2,7 +2,6 @@ package com.stefan.simplebackup.workers
 
 import android.content.Context
 import android.util.Log
-import androidx.lifecycle.asFlow
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.stefan.simplebackup.database.DatabaseApplication
@@ -21,17 +20,14 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) : Corouti
         try {
             withContext(ioDispatcher) {
                 launch {
-                    val newList = appManager.getApplicationList()
-                    newList.forEach { newApp ->
+                    appManager.getApplicationList().collect { newApp ->
                         repository.insert(newApp)
                     }
                 }
-                launch {
-                    repository.getAllApps.asFlow().collect { databaseList ->
-                        databaseList.forEach { app ->
-                            if (!appManager.doesPackageExists(app.getPackageName())) {
-                                repository.delete(app.getPackageName())
-                            }
+                repository.getAllApps.collect { databaseList ->
+                    databaseList.forEach { app ->
+                        if (!appManager.doesPackageExists(app.getPackageName())) {
+                            repository.delete(app.getPackageName())
                         }
                     }
                 }
