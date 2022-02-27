@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,7 +22,9 @@ import com.stefan.simplebackup.ui.activities.BackupActivity
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.OnClickListener
+import com.stefan.simplebackup.ui.notifications.BackupNotificationBuilder
 import com.stefan.simplebackup.utils.FileUtil
+import com.stefan.simplebackup.utils.backup.BACKUP_ARGUMENT
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.*
@@ -110,7 +113,32 @@ class AppListFragment : Fragment(), MenuItemListener {
 
     private fun setBackupChip() {
         binding.batchBackup.setOnClickListener {
-            appViewModel.createLocalBackup()
+            scope.launch {
+                appViewModel.createLocalBackup().observe(viewLifecycleOwner) { workInfoList ->
+                    workInfoList.forEach { workInfo ->
+
+                        if (workInfo.state.isFinished
+                            && workInfo.outputData.getBoolean(
+                                BACKUP_ARGUMENT,
+                                false
+                            )
+                        ) {
+                            Log.d(
+                                "Observer",
+                                "Got this data: ${
+                                    workInfo.outputData.getBoolean(
+                                        BACKUP_ARGUMENT,
+                                        false
+                                    )
+                                }"
+                            )
+                            val backupNotificationBuilder =
+                                BackupNotificationBuilder(requireContext(), false)
+                            backupNotificationBuilder.showBackupFinishedNotification()
+                        }
+                    }
+                }
+            }
         }
     }
 

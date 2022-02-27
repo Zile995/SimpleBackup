@@ -1,13 +1,13 @@
 package com.stefan.simplebackup.viewmodels
 
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.utils.backup.BackupWorkerHelper
+import com.stefan.simplebackup.utils.backup.REQUEST_TAG
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,6 +18,12 @@ class BackupViewModel(
 ) : AndroidViewModel(application) {
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val workManager = WorkManager.getInstance(application)
+
+    private var outputWorkInfo: LiveData<List<WorkInfo>> =
+        workManager.getWorkInfosByTagLiveData(REQUEST_TAG)
+    val getOutputWorkInfo get() = outputWorkInfo
+
     val selectedApp get() = app
 
     init {
@@ -27,7 +33,7 @@ class BackupViewModel(
     fun createLocalBackup() {
         viewModelScope.launch(ioDispatcher) {
             app?.let { backupApp ->
-                val backupWorkerHelper = BackupWorkerHelper(backupApp, application)
+                val backupWorkerHelper = BackupWorkerHelper(backupApp, workManager)
                 backupWorkerHelper.startBackupWorker()
             }
         }

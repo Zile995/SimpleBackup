@@ -1,31 +1,40 @@
 package com.stefan.simplebackup.utils.backup
 
 import android.content.Context
-import android.util.Log
 import com.stefan.simplebackup.data.AppData
-import java.text.SimpleDateFormat
-import java.util.*
 
 const val ROOT: String = "SimpleBackup/local"
 
-class BackupUtil(
+open class BackupUtil(
     appContext: Context,
-    private val appList: MutableList<AppData>
+    private val app: AppData
 ) : BackupHelper(appContext) {
 
-    private val context = appContext
+    private val zipUtil = ZipUtil(appContext, app)
+    private val tarUtil = TarUtil(appContext, app)
 
     suspend fun backup() {
-        Log.d("BackupUtil", "Got ${appList.map { it.getName() }} apps")
+        createDirs()
+        backupData()
+        zipData()
+        outputAppInfo()
+    }
+
+    private suspend fun createDirs() {
         createMainDir()
-        appList.forEach { backupApp ->
-            val tarUtil = TarUtil(context, backupApp)
-            val zipUtil = ZipUtil(context, backupApp)
-            createAppBackupDir(getBackupDirPath(backupApp))
-            tarUtil.backupData()
-            zipUtil.zipAllData()
-            setBackupTime(backupApp)
-            serializeApp(backupApp)
-        }
+        createAppBackupDir(getBackupDirPath(app))
+    }
+
+    private suspend fun backupData() {
+        tarUtil.backupData()
+    }
+
+    private suspend fun zipData() {
+        zipUtil.zipAllData()
+    }
+
+    private suspend fun outputAppInfo() {
+        setBackupTime(app)
+        serializeApp(app)
     }
 }

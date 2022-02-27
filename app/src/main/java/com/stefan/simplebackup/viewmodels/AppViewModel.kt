@@ -2,10 +2,9 @@ package com.stefan.simplebackup.viewmodels
 
 import android.os.Parcelable
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.broadcasts.PackageListener
 import com.stefan.simplebackup.data.AppData
@@ -15,6 +14,7 @@ import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.SelectionListener
 import com.stefan.simplebackup.utils.backup.BackupWorkerHelper
+import com.stefan.simplebackup.utils.backup.REQUEST_TAG
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -22,14 +22,18 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.util.*
 
-class AppViewModel(private val application: DatabaseApplication) :
+class AppViewModel(application: DatabaseApplication) :
     AndroidViewModel(application), PackageListener, SelectionListener {
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
     private val getAllAppsFromRepository get() = repository.getAllApps
+
+    private val workManager = WorkManager.getInstance(application)
+    val getWorkManager get() = workManager
 
     // Observable application properties used for list loading
     private var _allApps = MutableStateFlow(mutableListOf<AppData>())
@@ -165,11 +169,10 @@ class AppViewModel(private val application: DatabaseApplication) :
     }
 
     // Batch backup methods
-    fun createLocalBackup() {
-        viewModelScope.launch(ioDispatcher) {
-            val backupWorkerHelper = BackupWorkerHelper(selectionList, application)
-            backupWorkerHelper.startBackupWorker()
-        }
+    fun createLocalBackup(): LiveData<List<WorkInfo>> {
+        val backupWorkerHelper = BackupWorkerHelper(selectionList, workManager)
+        backupWorkerHelper.startBackupWorker()
+        return workManager.getWorkInfosByTagLiveData(REQUEST_TAG)
     }
 
     override fun onCleared() {

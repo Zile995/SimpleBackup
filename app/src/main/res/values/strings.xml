@@ -36,8 +36,6 @@
     <string name="storage_perm_success">Storage permission granted successfully</string>
     <string name="set_manually">Set Manually</string>
     <string name="filter">Filter</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="select_all">Select all</string>
     <string name="scroll_to_top">Scroll to top</string>
     <string name="applications">Applications</string>
@@ -45,4 +43,6 @@
     <string name="target_sdk">Target SDK</string>
     <string name="min_sdk">Min SDK</string>
     <string name="backup">Backup</string>
+    <string name="notification_channel_name">Backup notification</string>
+    <string name="notification_channel_description">Backup notification progress</string>
 </resources>

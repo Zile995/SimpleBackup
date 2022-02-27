@@ -1,35 +1,47 @@
 package com.stefan.simplebackup.utils.backup
 
-import androidx.work.Data
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
+import androidx.work.*
 import com.stefan.simplebackup.data.AppData
-import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.workers.BackupWorker
+import java.util.*
 
-class BackupWorkerHelper(private val appList: MutableList<AppData>, application: DatabaseApplication) {
+const val REQUEST_TAG = "BACKUP_TAG"
+const val BACKUP_ARGUMENT = "BACKUP_PACKAGES"
+const val BACKUP_WORK_NAME = "BACKUP_WORK"
 
-    constructor(app: AppData, application: DatabaseApplication) : this(
+class BackupWorkerHelper(
+    private val appList: MutableList<AppData>,
+    private val workManager: WorkManager
+) {
+
+    constructor(app: AppData, workManager: WorkManager) : this(
         mutableListOf(app),
-        application
+        workManager
     )
 
-    private val workManager = WorkManager.getInstance(application)
-
     fun startBackupWorker() {
+        val constraints = Constraints.Builder()
+            .setRequiresStorageNotLow(true)
+            .build()
+
         val backupRequest = OneTimeWorkRequestBuilder<BackupWorker>()
             .setInputData(createInputData())
+            .setConstraints(constraints)
+            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
+            .addTag(REQUEST_TAG)
             .build()
-        workManager.enqueue(backupRequest)
+
+        workManager.beginUniqueWork(BACKUP_WORK_NAME, ExistingWorkPolicy.REPLACE, backupRequest)
+            .enqueue()
     }
 
     private fun createInputData(): Data {
         val builder = Data.Builder()
-        val backupDirPaths = arrayListOf<String>()
+        val packageNames = arrayListOf<String>()
         appList.forEach { app ->
-            backupDirPaths.add(app.getPackageName())
+            packageNames.add(app.getPackageName())
         }
-        builder.putStringArray("BACKUP_PACKAGES", backupDirPaths.toTypedArray())
+        builder.putStringArray(BACKUP_ARGUMENT, packageNames.toTypedArray())
         return builder.build()
     }
 }
