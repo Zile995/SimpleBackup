@@ -11,10 +11,12 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.WorkInfo
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
@@ -25,6 +27,7 @@ import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.ui.notifications.BackupNotificationBuilder
 import com.stefan.simplebackup.utils.FileUtil
 import com.stefan.simplebackup.utils.backup.BACKUP_ARGUMENT
+import com.stefan.simplebackup.utils.backup.BACKUP_REQUEST_TAG
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.*
@@ -38,7 +41,7 @@ class AppListFragment : Fragment(), MenuItemListener {
     private val binding get() = _binding!!
 
     // Coroutine scope
-    private var scope = CoroutineScope(Job() + Dispatchers.Main)
+    private var scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     // AppData list and ViewModel
     private lateinit var applicationList: MutableList<AppData>
@@ -113,34 +116,38 @@ class AppListFragment : Fragment(), MenuItemListener {
 
     private fun setBackupChip() {
         binding.batchBackup.setOnClickListener {
-            scope.launch {
-                appViewModel.createLocalBackup().observe(viewLifecycleOwner) { workInfoList ->
-                    workInfoList.forEach { workInfo ->
+            appViewModel.createLocalBackup()
+        }
+    }
 
-                        if (workInfo.state.isFinished
-                            && workInfo.outputData.getBoolean(
+    private val workInfoObserver: Observer<List<WorkInfo>>
+        get() {
+            return Observer { workInfoList ->
+                if (workInfoList.isEmpty())
+                    return@Observer
+                val workInfo = workInfoList[0]
+                if (workInfo.state.isFinished
+                    && workInfo.outputData.getBoolean(
+                        BACKUP_ARGUMENT,
+                        false
+                    )
+                ) {
+                    Log.d(
+                        "Observer",
+                        "Got this data: ${
+                            workInfo.outputData.getBoolean(
                                 BACKUP_ARGUMENT,
                                 false
                             )
-                        ) {
-                            Log.d(
-                                "Observer",
-                                "Got this data: ${
-                                    workInfo.outputData.getBoolean(
-                                        BACKUP_ARGUMENT,
-                                        false
-                                    )
-                                }"
-                            )
-                            val backupNotificationBuilder =
-                                BackupNotificationBuilder(requireContext(), false)
-                            backupNotificationBuilder.showBackupFinishedNotification()
-                        }
-                    }
+                        }"
+                    )
+                    val backupNotificationBuilder =
+                        BackupNotificationBuilder(requireContext(), false)
+                    backupNotificationBuilder.showBackupFinishedNotification()
+                    appViewModel.getWorkManager.pruneWork()
                 }
             }
         }
-    }
 
     private fun setAppAdapter() {
         _appAdapter = AppAdapter(appViewModel, object : OnClickListener {
@@ -298,8 +305,10 @@ class AppListFragment : Fragment(), MenuItemListener {
         }
     }
 
-    @SuppressLint("NotifyDataSetChanged")
     private fun setAppViewModelObservers() {
+        appViewModel.getWorkManager.getWorkInfosByTagLiveData(BACKUP_REQUEST_TAG)
+            .observe(viewLifecycleOwner, workInfoObserver)
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 appViewModel.spinner.collect { value ->

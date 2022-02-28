@@ -43,7 +43,7 @@ class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWor
             }
         } catch (e: Throwable) {
             Log.e("BackupWorker", "Backup error + ${e.message}")
-            Result.failure()
+            Result.failure(outputData)
         }
     }
 

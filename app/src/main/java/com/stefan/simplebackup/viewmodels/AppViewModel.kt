@@ -2,8 +2,10 @@ package com.stefan.simplebackup.viewmodels
 
 import android.os.Parcelable
 import android.util.Log
-import androidx.lifecycle.*
-import androidx.work.WorkInfo
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.broadcasts.PackageListener
@@ -14,7 +16,6 @@ import com.stefan.simplebackup.database.DatabaseApplication
 import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.SelectionListener
 import com.stefan.simplebackup.utils.backup.BackupWorkerHelper
-import com.stefan.simplebackup.utils.backup.REQUEST_TAG
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -22,7 +23,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import java.util.*
 
 class AppViewModel(application: DatabaseApplication) :
     AndroidViewModel(application), PackageListener, SelectionListener {
@@ -169,10 +169,11 @@ class AppViewModel(application: DatabaseApplication) :
     }
 
     // Batch backup methods
-    fun createLocalBackup(): LiveData<List<WorkInfo>> {
-        val backupWorkerHelper = BackupWorkerHelper(selectionList, workManager)
-        backupWorkerHelper.startBackupWorker()
-        return workManager.getWorkInfosByTagLiveData(REQUEST_TAG)
+    fun createLocalBackup() {
+        viewModelScope.launch(ioDispatcher) {
+            val backupWorkerHelper = BackupWorkerHelper(selectionList, workManager)
+            backupWorkerHelper.startBackupWorker()
+        }
     }
 
     override fun onCleared() {

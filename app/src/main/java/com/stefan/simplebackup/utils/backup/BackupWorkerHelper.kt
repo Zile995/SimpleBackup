@@ -3,9 +3,8 @@ package com.stefan.simplebackup.utils.backup
 import androidx.work.*
 import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.workers.BackupWorker
-import java.util.*
 
-const val REQUEST_TAG = "BACKUP_TAG"
+const val BACKUP_REQUEST_TAG = "BACKUP_TAG"
 const val BACKUP_ARGUMENT = "BACKUP_PACKAGES"
 const val BACKUP_WORK_NAME = "BACKUP_WORK"
 
@@ -28,7 +27,7 @@ class BackupWorkerHelper(
             .setInputData(createInputData())
             .setConstraints(constraints)
             .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
-            .addTag(REQUEST_TAG)
+            .addTag(BACKUP_REQUEST_TAG)
             .build()
 
         workManager.beginUniqueWork(BACKUP_WORK_NAME, ExistingWorkPolicy.REPLACE, backupRequest)
