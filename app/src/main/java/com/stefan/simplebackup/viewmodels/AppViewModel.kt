@@ -22,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class AppViewModel(application: DatabaseApplication) :
@@ -65,12 +66,10 @@ class AppViewModel(application: DatabaseApplication) :
     private fun launchListLoading(getAllAppsFromRepository: () -> Flow<MutableList<AppData>>) {
         viewModelScope.launch(ioDispatcher) {
             runCatching {
-                launch {
-                    refreshPackageList()
-                }
-                getAllAppsFromRepository().collect { apps ->
+                getAllAppsFromRepository().collectLatest { apps ->
                     _allApps.value = apps
-                    delay(300)
+                    delay(250)
+                    refreshPackageList()
                     _spinner.value = false
                 }
             }.onFailure { throwable ->
@@ -93,7 +92,7 @@ class AppViewModel(application: DatabaseApplication) :
     // Used to check for changed packages on init
     fun refreshPackageList() {
         Log.d("ViewModel", "Refreshing the package list")
-        viewModelScope.launch {
+        viewModelScope.launch(ioDispatcher) {
             appManager.apply {
                 getChangedPackageNames().collect { packageName ->
                     if (doesPackageExists(packageName)) {
@@ -155,7 +154,7 @@ class AppViewModel(application: DatabaseApplication) :
 
     // PackageListener methods - Used for database package updates
     override suspend fun addOrUpdatePackage(packageName: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(ioDispatcher) {
             appManager.apply {
                 build(packageName).collect { app ->
                     insertApp(app)

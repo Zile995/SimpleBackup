@@ -29,10 +29,12 @@ abstract class AppDatabase : RoomDatabase() {
         private val appDao by lazy { INSTANCE?.appDao() }
 
         private suspend fun insertAll() {
-            appManager.updateSequenceNumber()
             val time = measureTimeMillis {
-                appManager.getApplicationList().collect { app ->
-                    appDao?.insert(app)
+                appManager.apply {
+                    updateSequenceNumber()
+                    getApplicationList().collect { app ->
+                        appDao?.insert(app)
+                    }
                 }
             }
             Log.d("AppDatabase", "Load time: $time")

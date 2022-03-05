@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile
@@ -22,7 +23,10 @@ class AppManager(private val context: Context) {
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     private val packageSharedPref = context.getSharedPreferences("package", Context.MODE_PRIVATE)
-    private val getSavedSequenceNumber get() = packageSharedPref.getInt("sequence_number", 0)
+    private val getSavedSequenceNumber: Int
+        get() {
+            return packageSharedPref.getInt("sequence_number", 0)
+        }
     private val getChangedPackages get() = packageManager.getChangedPackages(getSavedSequenceNumber)
 
     /**
@@ -43,7 +47,7 @@ class AppManager(private val context: Context) {
     /**
      * - Vrati kreiran [AppData] objekat
      */
-    fun build(packageName: String) = getAppObject(getAppInfoByPackageName(packageName))
+    fun build(packageName: String) = getAppData(getAppInfoByPackageName(packageName))
 
     fun printSequence() {
         Log.d("AppManager", "Sequence number: ${packageSharedPref.getInt("sequence_number", 0)}")
@@ -57,13 +61,18 @@ class AppManager(private val context: Context) {
                     .apply()
             }
         }
-        Log.d("AppManager", "Sequence number: ${packageSharedPref.getInt("sequence_number", 0)}")
+        Log.d(
+            "AppManager",
+            "Sequence number: ${packageSharedPref.getInt("sequence_number", 0)}"
+        )
     }
 
-    fun updateSequenceNumber() {
-        val changedPackages = getChangedPackages
-        changedPackages?.let { changed ->
-            saveSequenceNumber(changed.sequenceNumber)
+    suspend fun updateSequenceNumber() {
+        withContext(ioDispatcher) {
+            val changedPackages = getChangedPackages
+            changedPackages?.let { changed ->
+                saveSequenceNumber(changed.sequenceNumber)
+            }
         }
     }
 
@@ -75,7 +84,7 @@ class AppManager(private val context: Context) {
                 emit(packageName)
             }
         }
-    }
+    }.flowOn(ioDispatcher)
 
     fun doesPackageExists(packageName: String): Boolean {
         try {
@@ -103,22 +112,22 @@ class AppManager(private val context: Context) {
 
             launch {
                 for (i in 0 until quarter) {
-                    getAppObject(userAppsInfo[i]).collect { app -> send(app) }
+                    getAppData(userAppsInfo[i]).collect { app -> send(app) }
                 }
             }
             launch {
                 for (i in quarter until secondQuarter) {
-                    getAppObject(userAppsInfo[i]).collect { app -> send(app) }
+                    getAppData(userAppsInfo[i]).collect { app -> send(app) }
                 }
             }
             launch {
                 for (i in secondQuarter until thirdQuarter) {
-                    getAppObject(userAppsInfo[i]).collect { app -> send(app) }
+                    getAppData(userAppsInfo[i]).collect { app -> send(app) }
                 }
             }
             launch {
                 for (i in thirdQuarter until size) {
-                    getAppObject(userAppsInfo[i]).collect { app -> send(app) }
+                    getAppData(userAppsInfo[i]).collect { app -> send(app) }
                 }
             }.join()
         }
@@ -132,7 +141,7 @@ class AppManager(private val context: Context) {
      *   **<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
      *   tools:ignore="QueryAllPackagesPermission" />**
      */
-    private fun getAppObject(appInfo: ApplicationInfo): Flow<AppData> = flow {
+    private fun getAppData(appInfo: ApplicationInfo): Flow<AppData> = flow {
         if (!(isSystemApp(appInfo) || appInfo.packageName.equals(myPackageName))) {
             val storageStats: StorageStats =
                 storageStatsManager.queryStatsForUid(appInfo.storageUuid, appInfo.uid)

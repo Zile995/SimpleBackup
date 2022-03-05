@@ -4,13 +4,14 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class RootChecker(context: Context) {
+class RootChecker(private val rootContext: Context) {
 
-    private val rootContext = context
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 
     suspend fun isRooted(): Boolean {
         return hasSuBinary() || hasRootManagerApp(rootContext)
@@ -31,7 +32,7 @@ class RootChecker(context: Context) {
     }
 
     private suspend fun hasSuBinary(): Boolean {
-        return withContext(Dispatchers.Default) {
+        return withContext(defaultDispatcher) {
             val paths = System.getenv("PATH")
             if (!paths.isNullOrBlank()) {
                 val systemPaths: List<String> = paths.split(":")

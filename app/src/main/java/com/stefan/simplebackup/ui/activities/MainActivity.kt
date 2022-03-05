@@ -12,7 +12,6 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.broadcasts.PackageBroadcastReceiver
 import com.stefan.simplebackup.database.DatabaseApplication
@@ -29,10 +28,10 @@ class MainActivity : AppCompatActivity() {
     private var rootChecker = RootChecker(this)
 
     // Coroutine scope, on main thread
-    private var scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     // UI
-    private lateinit var bottomBar: BottomNavigationView
     private lateinit var activeFragment: Fragment
     private lateinit var homeFragment: Fragment
     private lateinit var restoreFragment: Fragment
@@ -51,6 +50,9 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private var _binding: ActivityMainBinding? = null
+    private val binding get() = _binding!!
+
     // Flags
     private var isSubmitted: Boolean = false
     private var doubleBackPressed: Boolean = false
@@ -60,17 +62,49 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        _binding = ActivityMainBinding.inflate(layoutInflater)
+        val view = binding.root
+        setContentView(view)
 
-        bindViews()
-        // Activity ne treba da kreira fragment. Ne želimo da pri configuration change-u to radi
+        binding.bindViews(savedInstanceState)
+        registerBroadcast()
+    }
+
+    private fun ActivityMainBinding.bindViews(savedInstanceState: Bundle?) {
+        createBottomBar()
         if (savedInstanceState == null) {
             setFragments()
         } else {
             restoreFragments(savedInstanceState)
+            isSubmitted = savedInstanceState.getBoolean("isSubmitted")
         }
-        prepareActivity(savedInstanceState)
-        registerBroadcast()
+        prepareActivity()
+        println("Set views")
+    }
+
+    private fun ActivityMainBinding.createBottomBar() {
+        bottomNavigation.setOnItemSelectedListener { menuItem ->
+            val currentItem = bottomNavigation.selectedItemId
+
+            menuItem.itemId.let { itemId ->
+                when (itemId) {
+                    R.id.appListFragment -> {
+                        if (checkItem(currentItem, itemId)) {
+                            showFragment(activeFragment, homeFragment)
+                        }
+                        activeFragment = homeFragment
+                    }
+                    R.id.restoreListFragment -> {
+                        if (checkItem(currentItem, itemId)) {
+                            showFragment(activeFragment, restoreFragment)
+                        }
+                        activeFragment = restoreFragment
+                    }
+                }
+            }
+            doubleBackPressed = false
+            true
+        }
     }
 
     private fun setFragments() {
@@ -111,51 +145,12 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun bindViews() {
-        // Postavi View Binding
-        val binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        createBottomBar(binding)
-        println("Created bottomBar")
-    }
-
-    private fun createBottomBar(binding: ActivityMainBinding) {
-        bottomBar = binding.bottomNavigation
-
-        bottomBar.setOnItemSelectedListener { menuItem ->
-            val currentItem = bottomBar.selectedItemId
-
-            menuItem.itemId.let { itemId ->
-                when (itemId) {
-                    R.id.appListFragment -> {
-                        if (checkItem(currentItem, itemId)) {
-                            showFragment(activeFragment, homeFragment)
-                        }
-                        activeFragment = homeFragment
-                    }
-                    R.id.restoreListFragment -> {
-                        if (checkItem(currentItem, itemId)) {
-                            showFragment(activeFragment, restoreFragment)
-                        }
-                        activeFragment = restoreFragment
-                    }
-                }
-            }
-            doubleBackPressed = false
-            true
-        }
-    }
-
     private fun checkItem(current: Int, selected: Int): Boolean {
         return current != selected
     }
 
-    private fun prepareActivity(savedInstanceState: Bundle?) {
-        if (savedInstanceState != null) {
-            // Pokupi sačuvano informaciju o tome da li je postavljen root upit.
-            isSubmitted = savedInstanceState.getBoolean("isSubmitted")
-        }
-        this.window.setBackgroundDrawableResource(R.color.background)
+    private fun prepareActivity() {
+        window.setBackgroundDrawableResource(R.color.background)
         println("Prepared activity")
     }
 
@@ -199,18 +194,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun checkForRoot(rootSharedPref: SharedPreferences) {
-        if (rootChecker.hasRootAccess()) {
-            rootSharedPref.edit().putBoolean("root_granted", true).apply()
-        } else {
-            rootSharedPref.edit().putBoolean("root_granted", false).apply()
+    private suspend fun checkForRoot(rootSharedPref: SharedPreferences) {
+        withContext(ioDispatcher) {
+            if (rootChecker.hasRootAccess()) {
+                rootSharedPref.edit().putBoolean("root_granted", true).apply()
+            } else {
+                rootSharedPref.edit().putBoolean("root_granted", false).apply()
+            }
         }
     }
 
-    private fun getRootPreferences() =
+    private suspend fun getRootPreferences() = withContext(ioDispatcher) {
         getSharedPreferences("root_access", MODE_PRIVATE)
+    }
 
-    private fun rootDialog(checked: Boolean, title: String, message: String) {
+    private suspend fun rootDialog(checked: Boolean, title: String, message: String) {
         if (!checked) {
             val builder = AlertDialog.Builder(this, R.style.DialogTheme).apply {
                 setTitle(title)
@@ -252,7 +250,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         val homeItemId = R.id.appListFragment
-        val selectedItemId = bottomBar.selectedItemId
+        val selectedItemId = binding.bottomNavigation.selectedItemId
         if (selectedItemId == homeItemId && doubleBackPressed) {
             finish()
         } else {
@@ -265,12 +263,13 @@ class MainActivity : AppCompatActivity() {
                 )
                     .show()
             } else
-                bottomBar.selectedItemId = homeItemId
+                binding.bottomNavigation.selectedItemId = homeItemId
         }
     }
 
     override fun onDestroy() {
         scope.cancel()
+        _binding = null
         unregisterReceiver(receiver)
         super.onDestroy()
     }

@@ -205,9 +205,9 @@ class BackupActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         scope.cancel()
         _binding = null
+        super.onDestroy()
     }
 
     override fun onBackPressed() {
