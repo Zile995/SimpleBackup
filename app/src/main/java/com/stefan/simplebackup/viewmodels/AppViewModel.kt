@@ -59,6 +59,7 @@ class AppViewModel(application: DatabaseApplication) :
     init {
         appManager.printSequence()
         launchListLoading { getAllAppsFromRepository }
+        refreshPackageList()
         Log.d("ViewModel", "AppViewModel created")
     }
 
@@ -69,7 +70,6 @@ class AppViewModel(application: DatabaseApplication) :
                 getAllAppsFromRepository().collectLatest { apps ->
                     _allApps.value = apps
                     delay(250)
-                    refreshPackageList()
                     _spinner.value = false
                 }
             }.onFailure { throwable ->
@@ -149,18 +149,16 @@ class AppViewModel(application: DatabaseApplication) :
         if (selectionList.isEmpty()) {
             setSelectionMode(false)
         }
-        println("Listener list: ${getSelectedItems().size}: ${getSelectedItems().map { it.getName() }}")
+        println("Listener list: ${getSelectedItems().size}: ${getSelectedItems().map { it.name }}")
     }
 
     // PackageListener methods - Used for database package updates
     override suspend fun addOrUpdatePackage(packageName: String) {
-        viewModelScope.launch(ioDispatcher) {
             appManager.apply {
                 build(packageName).collect { app ->
                     insertApp(app)
                 }
             }
-        }
     }
 
     override suspend fun deletePackage(packageName: String) {

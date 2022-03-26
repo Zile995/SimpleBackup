@@ -127,7 +127,7 @@ class RestoreListFragment : Fragment() {
                     }
                     applicationList.clear()
                     applicationList.addAll(tempApps)
-                    applicationList.sortBy { it.getName() }
+                    applicationList.sortBy { it.name }
                 } else {
                     createDirectory(path)
                     createFile("$path/.nomedia")

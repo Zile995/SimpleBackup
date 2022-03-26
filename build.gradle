@@ -24,7 +24,7 @@ ext {
     workVersion = "2.7.1"
     roomVersion = '2.4.2'
     googleAuthVersion = '20.1.0'
-    googleGsonVersion = '1.41.4'
+    googleGsonVersion = '1.41.5'
     googleApiClientVersion = '1.33.2'
     googleDriveApiVersion = 'v3-rev20220214-1.32.1'
     glideVersion = '4.13.1'

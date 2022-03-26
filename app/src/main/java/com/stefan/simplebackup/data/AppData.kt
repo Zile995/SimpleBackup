@@ -21,82 +21,75 @@ import kotlinx.serialization.Transient
 data class AppData(
     @Transient
     @PrimaryKey(autoGenerate = true)
-    private var uid: Int = 0,
+    val uid: Int = 0,
 
     @ColumnInfo(name = "name")
-    private var name: String = "",
+    val name: String,
 
     @ColumnInfo(name = "bitmap")
-    private var bitmap: ByteArray = byteArrayOf(),
+    var bitmap: ByteArray,
 
     @ColumnInfo(name = "package_name")
-    private var packageName: String = "",
+    val packageName: String,
 
     @ColumnInfo(name = "version_name")
-    private var versionName: String = "",
+    val versionName: String,
 
     @Transient
     @ColumnInfo(name = "target_sdk")
-    private var targetSdk: Int = 0,
+    val targetSdk: Int = 0,
 
     @Transient
     @ColumnInfo(name = "min_sdk")
-    private var minSdk: Int = 0,
+    val minSdk: Int = 0,
 
     @ColumnInfo(name = "data_dir")
-    private var dataDir: String = "",
+    val dataDir: String,
 
     @ColumnInfo(name = "apk_dir")
-    private var apkDir: String = "",
+    val apkDir: String,
 
     @ColumnInfo(name = "apk_size")
-    private var apkSize: Float = 0f,
+    val apkSize: Float,
 
     @ColumnInfo(name = "split")
-    private var split: Boolean = false,
+    val split: Boolean,
 
     @ColumnInfo(name = "data_size")
-    private var dataSize: Long = 0,
+    var dataSize: Long,
 
     @ColumnInfo(name = "cache_size")
-    private var cacheSize: Long = 0,
+    var cacheSize: Long,
 
     @ColumnInfo(name = "favorite")
-    private var favorite: Boolean = false
+    var favorite: Boolean
 ) : Parcelable {
 
     @ColumnInfo(name = "date")
-    private var date: String = ""
-
-    constructor(parcel: Parcel) : this() {
-        readFromParcel(parcel)
-    }
-
-    override fun describeContents(): Int = 0
+    var date: String = ""
 
     /**
      * * U parceli može postojati i null String tako da readString() može čitati i String? tip
      * * Međutim imamo definisane String varijable u AppData klasi
      * * Ukoliko je pročitan String null, upiši prazan String "" u konstruktor AppData klase
      */
-    private fun readFromParcel(parcel: Parcel) {
-        uid = parcel.readInt()
-        name = parcel.readString() ?: ""
-        bitmap = ByteArray(parcel.readInt())
-        parcel.readByteArray(bitmap)
-        packageName = parcel.readString() ?: ""
-        versionName = parcel.readString() ?: ""
-        targetSdk = parcel.readInt()
-        minSdk = parcel.readInt()
-        dataDir = parcel.readString() ?: ""
-        apkDir = parcel.readString() ?: ""
-        apkSize = parcel.readFloat()
-        parcel.readBooleanValue()?.let { booleanValue -> split = booleanValue }
-        dataSize = parcel.readLong()
-        cacheSize = parcel.readLong()
-        parcel.readBooleanValue()?.let { booleanValue -> favorite = booleanValue }
-        date = parcel.readString() ?: ""
-    }
+    constructor(parcel: Parcel) : this(
+        uid = parcel.readInt(),
+        name = parcel.readString() ?: "",
+        bitmap = ByteArray(parcel.readInt()).also { byteArrayBitmap ->
+            parcel.readByteArray(byteArrayBitmap) },
+        packageName = parcel.readString() ?: "",
+        versionName = parcel.readString() ?: "",
+        targetSdk = parcel.readInt(),
+        minSdk = parcel.readInt(),
+        dataDir = parcel.readString() ?: "",
+        apkDir = parcel.readString() ?: "",
+        apkSize = parcel.readFloat(),
+        split = parcel.readBooleanValue() ?: false,
+        dataSize = parcel.readLong(),
+        cacheSize = parcel.readLong(),
+        favorite = parcel.readBooleanValue() ?: false
+    )
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
         dest.writeInt(uid)
@@ -117,99 +110,6 @@ data class AppData(
         dest.writeString(date)
     }
 
-    fun getUid() = this.uid
-
-    fun getName() = this.name
-
-    /**
-     * Specifični getter nazivi potrebnih funkcija kako bi room prepoznao polja
-     */
-    fun getBitmap() = this.bitmap
-
-    fun getPackageName() = this.packageName
-
-    fun getVersionName() = this.versionName
-
-    fun getTargetSdk() = this.targetSdk
-
-    fun getMinSdk() = this.minSdk
-
-    fun getDataDir() = this.dataDir
-
-    fun getApkDir() = this.apkDir
-
-    fun getApkSize() = this.apkSize
-
-    fun getDataSize() = this.dataSize
-
-    fun getCacheSize() = this.cacheSize
-
-    fun getSplit() = this.split
-
-    fun getFavorite() = this.favorite
-
-    fun getDate() = this.date
-
-    fun setUid(uid: Int) {
-        this.uid = uid
-    }
-
-    fun setName(name: String) {
-        this.name = name
-    }
-
-    fun setBitmap(bitmap: ByteArray) {
-        this.bitmap = bitmap
-    }
-
-    fun setPackageName(packageName: String) {
-        this.packageName = packageName
-    }
-
-    fun setVersionName(versionName: String) {
-        this.versionName = versionName
-    }
-
-    fun setTargetSdk(targetSdk: Int) {
-        this.targetSdk = targetSdk
-    }
-
-    fun setMinSdk(minSdk: Int) {
-        this.minSdk = minSdk
-    }
-
-    fun setDataDir(newDir: String) {
-        this.dataDir = newDir
-    }
-
-    fun setApkDir(apkDir: String) {
-        this.apkDir = apkDir
-    }
-
-    fun setDate(newDate: String) {
-        this.date = newDate
-    }
-
-    fun setDataSize(newSize: Long) {
-        this.dataSize = newSize
-    }
-
-    fun setCacheSize(newSize: Long) {
-        this.cacheSize = newSize
-    }
-
-    fun setApkSize(apkSize: Float) {
-        this.apkSize = apkSize
-    }
-
-    fun setSplit(split: Boolean) {
-        this.split = split
-    }
-
-    fun setFavorite(favorite: Boolean) {
-        this.favorite = favorite
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -220,6 +120,8 @@ data class AppData(
 
         return true
     }
+
+    override fun describeContents(): Int = 0
 
     override fun hashCode(): Int {
         return bitmap.contentHashCode()

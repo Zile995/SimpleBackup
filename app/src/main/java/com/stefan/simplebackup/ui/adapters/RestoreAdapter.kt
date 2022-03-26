@@ -16,6 +16,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.AppData
+import com.stefan.simplebackup.ui.adapters.AppAdapter.Companion.AppDiffCallBack
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +30,7 @@ import kotlin.collections.component2
 import kotlin.collections.set
 
 class RestoreAdapter(rContext: Context) :
-    ListAdapter<AppData, RestoreAdapter.RestoreViewHolder>(AppDiffCallBack()), Filterable {
+    ListAdapter<AppData, RestoreAdapter.RestoreViewHolder>(AppDiffCallBack), Filterable {
 
     companion object {
         private const val ROOT: String = "SimpleBackup/local"
@@ -68,13 +69,13 @@ class RestoreAdapter(rContext: Context) :
      */
     override fun onBindViewHolder(holder: RestoreViewHolder, position: Int) {
         val item = getItem(position)
-        val bitmap = item.getBitmap()
-        val charSequenceVersion: CharSequence = "v" + item.getVersionName()
+        //val bitmap = item.bitmap
+        val charSequenceVersion: CharSequence = "v" + item.versionName
 
-        holder.textItem.text = item.getName()
+        holder.textItem.text = item.name
         holder.chipVersion.text = charSequenceVersion.toString()
-        holder.appSize.text = item.getDataSize().toString()
-        holder.dateText.text = item.getDate()
+        holder.appSize.text = item.dataSize.toString()
+        holder.dateText.text = item.date
 
         holder.cardView.setOnClickListener {
             val builder = AlertDialog.Builder(context, R.style.DialogTheme)
@@ -118,7 +119,7 @@ class RestoreAdapter(rContext: Context) :
                 filteredList.addAll(appList)
             } else {
                 appList.forEach() {
-                    if (it.getName().lowercase().contains(sequence.toString().lowercase().trim())) {
+                    if (it.name.lowercase().contains(sequence.toString().lowercase().trim())) {
                         filteredList.add(it)
                     }
                 }
@@ -145,10 +146,10 @@ class RestoreAdapter(rContext: Context) :
                 )
             }
             println(internalStoragePath)
-            val backupDir = app.getDataDir()
+            val backupDir = app.dataDir
             val tempDir = LOCAL.plus(backupDir.removePrefix(internalStoragePath))
             println(tempDir)
-            val packageName = app.getPackageName()
+            val packageName = app.packageName
             val packageDataDir = "$DATA/$packageName"
             try {
                 with(Installer) {
@@ -158,7 +159,7 @@ class RestoreAdapter(rContext: Context) :
 //                            " && $libDir/libtar.so -zxf \"\$x\" -C \"\$y\"").exec()
                     Shell.su("rm -rf $packageDataDir/*").exec()
                     //installApk(context, tempDir)
-                    Shell.su("x=$(echo -e \"$backupDir/${app.getPackageName()}.tar.gz\") && $libDir/libtar.so -zxf \"\$x\" -C $packageDataDir/ --recursive-unlink --preserve-permissions\n --preserve-permissions")
+                    Shell.su("x=$(echo -e \"$backupDir/${app.packageName}.tar.gz\") && $libDir/libtar.so -zxf \"\$x\" -C $packageDataDir/ --recursive-unlink --preserve-permissions\n --preserve-permissions")
                         .exec()
                     //Shell.su(getPermissions(packageName)).exec()
                     //Shell.su("restorecon -R $packageDataDir").exec()

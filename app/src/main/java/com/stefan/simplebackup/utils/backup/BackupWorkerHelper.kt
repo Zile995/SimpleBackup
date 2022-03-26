@@ -38,7 +38,7 @@ class BackupWorkerHelper(
         val builder = Data.Builder()
         val packageNames = arrayListOf<String>()
         appList.forEach { app ->
-            packageNames.add(app.getPackageName())
+            packageNames.add(app.packageName)
         }
         builder.putStringArray(BACKUP_ARGUMENT, packageNames.toTypedArray())
         return builder.build()

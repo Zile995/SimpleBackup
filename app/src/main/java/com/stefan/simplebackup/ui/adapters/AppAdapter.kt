@@ -25,7 +25,7 @@ class AppAdapter(
     private val selectionListener: SelectionListener,
     private val clickListener: OnClickListener
 ) :
-    ListAdapter<AppData, AppAdapter.AppViewHolder>(AppDiffCallBack()) {
+    ListAdapter<AppData, AppAdapter.AppViewHolder>(AppDiffCallBack) {
 
     private lateinit var appList: MutableList<AppData>
 
@@ -44,15 +44,13 @@ class AppAdapter(
     }
 
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
-        val item = currentList.getOrNull(position)
-        item?.let {
-            holder.bind(it)
-            if (selectionListener.getSelectedItems().contains(it)) {
-                holder.getCardView.apply {
-                    setCardBackgroundColor(
-                        holder.getContext.getColor(R.color.cardViewSelected)
-                    )
-                }
+        val item = getItem(position)
+        holder.bind(item)
+        if (selectionListener.getSelectedItems().contains(item)) {
+            holder.getCardView.apply {
+                setCardBackgroundColor(
+                    holder.getContext.getColor(R.color.cardViewSelected)
+                )
             }
         }
     }
@@ -72,11 +70,14 @@ class AppAdapter(
             return
         }
         val pattern = newText.lowercase().trim()
-        val filteredList = appList.filter { pattern in it.getName().lowercase() }
+        val filteredList = appList.filter { pattern in it.name.lowercase() }
         submitList(filteredList)
     }
 
-    class AppViewHolder constructor(private val view: View, private val clickListener: OnClickListener) :
+    class AppViewHolder constructor(
+        private val view: View,
+        private val clickListener: OnClickListener
+    ) :
         RecyclerView.ViewHolder(view) {
         private val cardView: MaterialCardView = view.findViewById(R.id.card_item)
         private val appImage: ImageView = view.findViewById(R.id.application_image)
@@ -99,11 +100,11 @@ class AppAdapter(
         }
 
         fun bind(item: AppData) {
-            loadBitmapByteArray(item.getBitmap())
-            appName.text = item.getName()
-            versionName.text = checkAndSetString(item.getVersionName())
-            packageName.text = checkAndSetString(item.getPackageName())
-            apkSize.text = FileUtil.transformBytesToString(item.getApkSize())
+            loadBitmapByteArray(item.bitmap)
+            appName.text = item.name
+            versionName.text = checkAndSetString(item.versionName)
+            packageName.text = checkAndSetString(item.packageName)
+            apkSize.text = FileUtil.transformBytesToString(item.apkSize)
         }
 
         private fun loadBitmapByteArray(byteArray: ByteArray) {
@@ -142,15 +143,19 @@ class AppAdapter(
             }
         }
     }
+
+    companion object {
+        val AppDiffCallBack = object : DiffUtil.ItemCallback<AppData>() {
+            override fun areItemsTheSame(oldItem: AppData, newItem: AppData): Boolean {
+                return oldItem.packageName == newItem.packageName &&
+                        oldItem.versionName == newItem.versionName &&
+                        oldItem.name == newItem.name
+            }
+
+            override fun areContentsTheSame(oldItem: AppData, newItem: AppData): Boolean {
+                return oldItem == newItem
+            }
+        }
+    }
 }
 
-class AppDiffCallBack : DiffUtil.ItemCallback<AppData>() {
-    override fun areItemsTheSame(oldItem: AppData, newItem: AppData): Boolean {
-        return oldItem.getPackageName() == newItem.getPackageName() &&
-                oldItem.getVersionName() == newItem.getVersionName()
-    }
-
-    override fun areContentsTheSame(oldItem: AppData, newItem: AppData): Boolean {
-        return oldItem == newItem
-    }
-}

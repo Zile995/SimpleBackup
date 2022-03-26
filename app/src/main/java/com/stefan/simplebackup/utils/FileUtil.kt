@@ -80,25 +80,25 @@ object FileUtil {
         }
 
     suspend fun saveBigBitmap(item: AppData, context: Context) {
-        val bitmapByteArray = item.getBitmap()
+        val bitmapByteArray = item.bitmap
         Log.d("Bitmap", "${bitmapByteArray.size}")
         if (bitmapByteArray.size > 200000) {
-            saveBitmapByteArray(bitmapByteArray, item.getName(), context)
-            item.setBitmap(byteArrayOf())
+            saveBitmapByteArray(bitmapByteArray, item.name, context)
+            item.bitmap = byteArrayOf()
         }
     }
 
     suspend fun setAppBitmap(app: AppData, context: Context) {
-        val bitmapArray = app.getBitmap()
+        val bitmapArray = app.bitmap
         withContext(ioDispatcher) {
             runCatching {
                 if (bitmapArray.isEmpty()) {
-                    val savedBitmapArray = context.openFileInput(app.getName()).readBytes()
-                    app.setBitmap(savedBitmapArray)
+                    val savedBitmapArray = context.openFileInput(app.name).readBytes()
+                    app.bitmap = savedBitmapArray
                 }
             }.onSuccess {
                 if (bitmapArray.isEmpty()) {
-                    context.deleteFile(app.getName())
+                    context.deleteFile(app.name)
                 }
             }.onFailure {
                 it.message?.let { message -> Log.e("BackupActivity", message) }
@@ -124,11 +124,11 @@ object FileUtil {
     }
 
     suspend fun serializeApp(app: AppData, dir: String) {
-        Log.d("Serialization", "Saving json to $dir/${app.getName()}.json")
+        Log.d("Serialization", "Saving json to $dir/${app.name}.json")
         withContext(ioDispatcher) {
             runCatching {
                 Json.encodeToString(app).let { jsonString ->
-                    val file = File(dir, app.getName() + ".json")
+                    val file = File(dir, app.name + ".json")
                     OutputStreamWriter(FileOutputStream(file)).use { outputStreamWriter ->
                         file.createNewFile()
                         outputStreamWriter.append(jsonString)

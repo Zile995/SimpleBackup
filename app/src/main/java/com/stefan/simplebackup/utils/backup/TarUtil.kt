@@ -13,14 +13,16 @@ class TarUtil(context: Context, private val app: AppData) : BackupHelper(context
         withContext(ioDispatcher) {
             runCatching {
                 if (Shell.rootAccess()) {
-                    Log.d("TarUtil", "Creating the ${app.getName()} data archive")
+                    Log.d("TarUtil", "Creating the ${app.name} data archive")
                     val tarArchivePath =
-                        getBackupDirPath(app) + "/${app.getPackageName()}.tar"
-                    Shell.su("tar -cf $tarArchivePath --exclude={\"cache\",\"lib\",\"code_cache\"} -C ${app.getDataDir()} . ")
+                        getBackupDirPath(app) + "/${app.packageName}.tar"
+                    Shell.su("tar -cf $tarArchivePath" +
+                            " --exclude={\"cache\",\"lib\",\"code_cache\"}" +
+                            " -C ${app.dataDir} . ")
                         .exec()
                 }
             }.onSuccess {
-                Log.d("TarUtil", "Successfully created ${app.getPackageName()}.tar data archive")
+                Log.d("TarUtil", "Successfully created ${app.packageName}.tar data archive")
             }.onFailure { throwable ->
                 when (throwable) {
                     is IOException -> {

@@ -31,7 +31,10 @@ class MainActivity : AppCompatActivity() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
-    // UI
+    //Preferences
+    private lateinit var rootSharedPref: SharedPreferences
+
+    // Fragments
     private lateinit var activeFragment: Fragment
     private lateinit var homeFragment: Fragment
     private lateinit var restoreFragment: Fragment
@@ -50,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    // Binding properties
     private var _binding: ActivityMainBinding? = null
     private val binding get() = _binding!!
 
@@ -62,10 +66,9 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        rootSharedPref = getSharedPreferences("root_access", MODE_PRIVATE)
         _binding = ActivityMainBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
-
+        setContentView(binding.root)
         binding.bindViews(savedInstanceState)
         registerBroadcast()
     }
@@ -79,7 +82,7 @@ class MainActivity : AppCompatActivity() {
             isSubmitted = savedInstanceState.getBoolean("isSubmitted")
         }
         prepareActivity()
-        println("Set views")
+        println("Bind View finished")
     }
 
     private fun ActivityMainBinding.createBottomBar() {
@@ -142,7 +145,6 @@ class MainActivity : AppCompatActivity() {
             show(new)
         }
         println("Hiding $active and showing $new")
-
     }
 
     private fun checkItem(current: Int, selected: Int): Boolean {
@@ -164,20 +166,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun setRootDialogs() {
-        val rootSharedPref = getRootPreferences()
         if (!isSubmitted) {
-            // Ostavićemo da Magisk prikazuje Toast kao obaveštenje da nemamo root access
-            // Prikazuj kada se svaki put pozove onCreate metoda
-            checkForRoot(rootSharedPref)
+            checkForRoot()
             isSubmitted = true
         }
         if (!rootSharedPref.getBoolean(
                 "checked",
                 false
-            ) && rootChecker.isRooted() && !rootSharedPref.getBoolean("root_granted", false)
+            ) && rootChecker.isRooted()
+            && !rootSharedPref.getBoolean("root_granted", false)
         ) {
             rootDialog(
-                false,
                 getString(R.string.root_detected),
                 getString(R.string.not_granted)
             )
@@ -187,14 +186,13 @@ class MainActivity : AppCompatActivity() {
             ) && !rootChecker.isRooted()
         ) {
             rootDialog(
-                false,
                 getString(R.string.not_rooted),
                 getString(R.string.not_rooted_info)
             )
         }
     }
 
-    private suspend fun checkForRoot(rootSharedPref: SharedPreferences) {
+    private suspend fun checkForRoot() {
         withContext(ioDispatcher) {
             if (rootChecker.hasRootAccess()) {
                 rootSharedPref.edit().putBoolean("root_granted", true).apply()
@@ -204,31 +202,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun getRootPreferences() = withContext(ioDispatcher) {
-        getSharedPreferences("root_access", MODE_PRIVATE)
-    }
-
-    private suspend fun rootDialog(checked: Boolean, title: String, message: String) {
-        if (!checked) {
-            val builder = AlertDialog.Builder(this, R.style.DialogTheme).apply {
-                setTitle(title)
-                setMessage(message)
-                setPositiveButton(getString(R.string.OK)) { dialog, _ ->
-                    dialog.cancel()
-                }
+    private fun rootDialog(title: String, message: String) {
+        val builder = AlertDialog.Builder(this, R.style.DialogTheme).apply {
+            setTitle(title)
+            setMessage(message)
+            setPositiveButton(getString(R.string.OK)) { dialog, _ ->
+                dialog.cancel()
             }
-            getRootPreferences().apply {
-                edit()
-                    .putBoolean("checked", true)
-                    .apply()
-            }
-            val alert = builder.create()
-            alert.setOnShowListener {
-                alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                    .setTextColor(ContextCompat.getColor(this, R.color.positiveDialog))
-            }
-            alert.show()
         }
+        rootSharedPref.apply {
+            edit()
+                .putBoolean("checked", true)
+                .apply()
+        }
+        val alert = builder.create()
+        alert.setOnShowListener {
+            alert.getButton(AlertDialog.BUTTON_POSITIVE)
+                .setTextColor(ContextCompat.getColor(this, R.color.positiveDialog))
+        }
+        alert.show()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

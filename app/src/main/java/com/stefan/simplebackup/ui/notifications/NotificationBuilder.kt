@@ -60,7 +60,7 @@ class BackupNotificationBuilder(private val context: Context, private val ongoin
     fun showBackupFinishedNotification() {
         getNotificationManager.notify(
             getNotificationId,
-            getProgressNotificationBuilder.apply {
+            progressNotificationBuilder.apply {
                 setContentTitle("Backup Completed")
                 setContentText("Apps successfully backed up")
                 setOnlyAlertOnce(true)
@@ -75,17 +75,17 @@ class BackupNotificationBuilder(private val context: Context, private val ongoin
 
     fun showNotification() {
         getNotificationManager
-            .notify(getNotificationId, getProgressNotificationBuilder.build())
+            .notify(getNotificationId, createNotification())
     }
 
     fun NotificationCompat.Builder.updateNotificationContent(app: AppData): NotificationCompat.Builder {
         progressNotificationBuilder.apply {
-            setContentTitle("Backing up ${app.getName()}")
+            setContentTitle("Backing up ${app.name}")
             setLargeIcon(
                 BitmapFactory.decodeByteArray(
-                    app.getBitmap(),
+                    app.bitmap,
                     0,
-                    app.getBitmap().size
+                    app.bitmap.size
                 )
             )
             return this

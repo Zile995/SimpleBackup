@@ -42,7 +42,7 @@ abstract class BackupHelper(context: Context) {
     }
 
     protected fun getBackupDirPath(app: AppData): String {
-        return mainBackupDirPath + "/" + app.getPackageName()
+        return mainBackupDirPath + "/" + app.packageName
     }
 
     protected suspend fun serializeApp(app: AppData) {
@@ -54,6 +54,6 @@ abstract class BackupHelper(context: Context) {
         val time = SimpleDateFormat(
             "dd.MM.yy-HH:mm", locale
         )
-        app.setDate(time.format(Date()))
+        app.date = time.format(Date())
     }
 }

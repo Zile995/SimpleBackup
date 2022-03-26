@@ -42,7 +42,6 @@ class BackupActivity : AppCompatActivity() {
         private const val TAG: String = "BackupActivity"
         private const val REQUEST_CODE_SIGN_IN: Int = 400
         private const val STORAGE_PERMISSION_CODE: Int = 500
-        private lateinit var dataPath: String
     }
 
     // Package name reference
@@ -99,7 +98,7 @@ class BackupActivity : AppCompatActivity() {
     private fun createMainCardView() {
         binding.backupCardView.setOnClickListener {
             backupViewModel.selectedApp?.let {
-                openApplication(it.getPackageName())
+                openApplication(it.packageName)
             }
         }
     }
@@ -131,7 +130,7 @@ class BackupActivity : AppCompatActivity() {
         binding.floatingDeleteButton.setOnClickListener {
             scope.launch {
                 backupViewModel.selectedApp?.let { app ->
-                    deleteApp(app.getPackageName())
+                    deleteApp(app.packageName)
                 }
                 delay(500)
                 onBackPressed()
@@ -146,19 +145,16 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private suspend fun setData() {
-        binding.apply {
-            backupViewModel.selectedApp?.apply {
-                setAppImage()
-                textItemBackup.text = getName()
-                chipPackageBackup.text = (getPackageName() as CharSequence).toString()
-                chipVersionBackup.text = (getVersionName() as CharSequence).toString()
-                chipDirBackup.text = (getDataDir() as CharSequence).toString()
-                apkSize.text = FileUtil.transformBytesToString(getApkSize())
-                targetSdk.text = getTargetSdk().toString()
-                minSdk.text = getMinSdk().toString()
-                dataPath = getDataDir()
-                dataSize.text = FileUtil.transformBytesToString(getDataSize())
-            }
+        backupViewModel.selectedApp?.apply {
+            setAppImage()
+            binding.textItemBackup.text = name
+            binding.chipPackageBackup.text = (packageName as CharSequence).toString()
+            binding.chipVersionBackup.text = (versionName as CharSequence).toString()
+            binding.chipDirBackup.text = (dataDir as CharSequence).toString()
+            binding.apkSize.text = FileUtil.transformBytesToString(apkSize)
+            binding.targetSdk.text = targetSdk.toString()
+            binding.minSdk.text = minSdk.toString()
+            binding.dataSize.text = FileUtil.transformBytesToString(dataSize)
         }
     }
 
@@ -167,7 +163,7 @@ class BackupActivity : AppCompatActivity() {
             FileUtil.setAppBitmap(app, applicationContext)
             Glide.with(applicationContext).apply {
                 asBitmap()
-                    .load(app.getBitmap())
+                    .load(app.bitmap)
                     .placeholder(R.drawable.glide_placeholder)
                     .diskCacheStrategy(DiskCacheStrategy.NONE)
                     .skipMemoryCache(true)
@@ -186,7 +182,7 @@ class BackupActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.force_stop -> {
                 backupViewModel.selectedApp?.let { app ->
-                    forceStop(app.getPackageName())
+                    forceStop(app.packageName)
                 }
                 true
             }
@@ -247,7 +243,7 @@ class BackupActivity : AppCompatActivity() {
     private fun openPackageDetailsSettings() {
         startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             addCategory(Intent.CATEGORY_DEFAULT)
-            data = Uri.parse("package:" + backupViewModel.selectedApp?.getPackageName())
+            data = Uri.parse("package:" + backupViewModel.selectedApp?.packageName)
         })
     }
 

@@ -30,18 +30,21 @@ class ZipUtil(
 
     private fun zipTarArchive() {
         runCatching {
-            val zipParameters = getZipParameters(false)
-            getTarArchive(app)?.let { tarArchive ->
+            val zipParameters = getZipParameters(isApk = false)
+            findTarArchive()?.let { tarArchive ->
                 val zipFile = ZipFile(
-                    "${backupDirPath}/${app.getPackageName()}.zip",
+                    "${backupDirPath}/${app.packageName}.zip",
                     "pass123".toCharArray()
                 )
-                Log.d("ZipUtil", "Zipping the ${app.getPackageName()} tar archive to $backupDirPath")
+                Log.d(
+                    "ZipUtil",
+                    "Zipping the ${app.packageName} tar archive to $backupDirPath"
+                )
                 zipFile.addFile(tarArchive, zipParameters)
                 tarArchive.delete()
             }
         }.onSuccess {
-            Log.d("ZipUtil", "Successfully zipped ${app.getName()} data")
+            Log.d("ZipUtil", "Successfully zipped ${app.name} data")
         }.onFailure { throwable ->
             when (throwable) {
                 is ZipException -> {
@@ -58,15 +61,15 @@ class ZipUtil(
 
     private fun zipApks() {
         runCatching {
-            val zipParameters = getZipParameters(true)
-            val zipFile = ZipFile(backupDirPath + "/${app.getName()}.zip")
+            val zipParameters = getZipParameters(isApk = true)
+            val zipFile = ZipFile(backupDirPath + "/${app.name}.zip")
             if (zipFile.file.exists()) {
                 zipFile.file.delete()
             }
-            Log.d("ZipUtil", "Zipping the ${app.getName()} apks to $backupDirPath")
+            Log.d("ZipUtil", "Zipping the ${app.name} apks to $backupDirPath")
             zipFile.addFiles(getApkList(app), zipParameters)
         }.onSuccess {
-            Log.d("ZipUtil", "Successfully zipped ${app.getName()} apks")
+            Log.d("ZipUtil", "Successfully zipped ${app.name} apks")
         }.onFailure { throwable ->
             when (throwable) {
                 is ZipException -> {
@@ -81,27 +84,26 @@ class ZipUtil(
         }
     }
 
-    private fun getTarArchive(app: AppData): File? {
-        var containerFile: File? = null
-        val backupDir = File(getBackupDirPath(app))
-        backupDir.listFiles()?.filter {
-            it.isFile && it.extension == "tar"
-        }?.map {
-            containerFile = it
-        }
-        return containerFile
+    private fun findTarArchive(): File? {
+        val tarArchive = File(
+            backupDirPath +
+                    "/" +
+                    app.packageName +
+                    ".tar"
+        )
+        return if (tarArchive.exists()) tarArchive else null
     }
 
     private fun getApkList(app: AppData): MutableList<File> {
         val apkList = mutableListOf<File>()
-        Log.d("ZipUtil", "Found the ${app.getName()} apk dir: ${app.getApkDir()}")
-        val dir = File(app.getApkDir())
+        Log.d("ZipUtil", "Found the ${app.name} apk dir: ${app.apkDir}")
+        val dir = File(app.apkDir)
         dir.walkTopDown().filter {
             it.extension == "apk"
         }.forEach { apk ->
             apkList.add(apk)
         }
-        Log.d("ZipUtil", "Got the apk list for ${app.getName()}: ${apkList.map { it.name }}")
+        Log.d("ZipUtil", "Got the apk list for ${app.name}: ${apkList.map { it.name }}")
         return apkList
     }
 

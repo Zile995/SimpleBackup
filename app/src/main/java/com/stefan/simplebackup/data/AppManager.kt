@@ -20,29 +20,24 @@ import java.io.File
 
 class AppManager(private val context: Context) {
 
+    /**
+     * - IO Dispatcher
+     */
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
+    /**
+     * - Saved shared preference
+     */
     private val packageSharedPref = context.getSharedPreferences("package", Context.MODE_PRIVATE)
-    private val getSavedSequenceNumber: Int
-        get() {
-            return packageSharedPref.getInt("sequence_number", 0)
-        }
-    private val getChangedPackages get() = packageManager.getChangedPackages(getSavedSequenceNumber)
 
     /**
      * - Sadrži [PackageManager]
      */
     private val packageManager: PackageManager = context.packageManager
-
     private val myPackageName by lazy { context.applicationContext.packageName }
     private val storageStatsManager by lazy {
         context.getSystemService(Context.STORAGE_STATS_SERVICE) as StorageStatsManager
     }
-
-    private val getAllUserAppsInfo: List<ApplicationInfo>
-        get() {
-            return packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
-        }
 
     /**
      * - Vrati kreiran [AppData] objekat
@@ -50,11 +45,18 @@ class AppManager(private val context: Context) {
     fun build(packageName: String) = getAppData(getAppInfoByPackageName(packageName))
 
     fun printSequence() {
-        Log.d("AppManager", "Sequence number: ${packageSharedPref.getInt("sequence_number", 0)}")
+        Log.d(
+            "AppManager", "Sequence number:" +
+                    " ${packageSharedPref.getInt("sequence_number", 0)}"
+        )
     }
 
+    private fun getSavedSequenceNumber(): Int = packageSharedPref.getInt("sequence_number", 0)
+
+    private fun getChangedPackages() = packageManager.getChangedPackages(getSavedSequenceNumber())
+
     private fun saveSequenceNumber(newSequenceNumber: Int) {
-        if (newSequenceNumber != getSavedSequenceNumber) {
+        if (newSequenceNumber != getSavedSequenceNumber()) {
             packageSharedPref.apply {
                 edit()
                     .putInt("sequence_number", newSequenceNumber)
@@ -69,7 +71,7 @@ class AppManager(private val context: Context) {
 
     suspend fun updateSequenceNumber() {
         withContext(ioDispatcher) {
-            val changedPackages = getChangedPackages
+            val changedPackages = getChangedPackages()
             changedPackages?.let { changed ->
                 saveSequenceNumber(changed.sequenceNumber)
             }
@@ -77,7 +79,7 @@ class AppManager(private val context: Context) {
     }
 
     fun getChangedPackageNames(): Flow<String> = flow {
-        val changedPackages = getChangedPackages
+        val changedPackages = getChangedPackages()
         changedPackages?.let { changed ->
             saveSequenceNumber(changed.sequenceNumber)
             changed.packageNames.forEach { packageName ->
@@ -103,7 +105,7 @@ class AppManager(private val context: Context) {
      */
     suspend fun getApplicationList(): Flow<AppData> = channelFlow {
         withContext(ioDispatcher) {
-            val userAppsInfo = getAllUserAppsInfo
+            val userAppsInfo = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
 
             val size = userAppsInfo.size
             val quarter = (size / 4)
