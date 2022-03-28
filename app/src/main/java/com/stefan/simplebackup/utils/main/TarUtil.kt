@@ -1,8 +1,9 @@
-package com.stefan.simplebackup.utils.backup
+package com.stefan.simplebackup.utils.main
 
 import android.content.Context
 import android.util.Log
-import com.stefan.simplebackup.data.AppData
+import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.utils.backup.BackupHelper
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -37,4 +38,12 @@ class TarUtil(context: Context, private val app: AppData) : BackupHelper(context
             }
         }
     }
+
+
+    suspend fun restoreData() {
+        withContext(ioDispatcher) {
+
+        }
+    }
+
 }

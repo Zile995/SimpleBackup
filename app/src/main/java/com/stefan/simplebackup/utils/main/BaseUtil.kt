@@ -1,11 +1,11 @@
-package com.stefan.simplebackup.utils
+package com.stefan.simplebackup.utils.main
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.Log
-import com.stefan.simplebackup.data.AppData
+import com.stefan.simplebackup.domain.model.AppData
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.flow
@@ -19,20 +19,23 @@ import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import kotlin.math.pow
 
+private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
+fun Number.transformBytesToString(): String {
+    return String.format("%3.1f %s", this.toFloat() / 1000.0.pow(2), "MB")
+}
+
 object FileUtil {
-
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-
     suspend fun createDirectory(path: String) {
         withContext(ioDispatcher) {
             runCatching {
                 val dir = File(path)
                 if (!dir.exists()) {
-                    Log.d("FileUtil", "Creating the $path dir")
+                    Log.d("BaseUtil", "Creating the $path dir")
                     dir.mkdirs()
                 }
             }.onFailure { throwable ->
-                throwable.message?.let { message -> Log.e("FileUtil", "$path: $message") }
+                throwable.message?.let { message -> Log.e("BaseUtil", "$path: $message") }
             }
         }
     }
@@ -43,15 +46,14 @@ object FileUtil {
                 val file = File(path)
                 file.createNewFile()
             }.onFailure { throwable ->
-                throwable.message?.let { message -> Log.e("FileUtil", "$path: $message") }
+                throwable.message?.let { message -> Log.e("BaseUtil", "$path: $message") }
             }
         }
     }
 
-    fun <T: Number> transformBytesToString(bytes: T): String {
-        return String.format("%3.1f %s", bytes.toFloat() / 1000.0.pow(2), "MB")
-    }
+}
 
+object BitmapUtil {
     suspend fun drawableToByteArray(drawable: Drawable): ByteArray =
         withContext(ioDispatcher) {
             val bitmap: Bitmap =
@@ -96,7 +98,7 @@ object FileUtil {
                     val savedBitmapArray = context.openFileInput(app.name).readBytes()
                     app.bitmap = savedBitmapArray
                 }
-            }.onSuccess {
+            }.also {
                 if (bitmapArray.isEmpty()) {
                     context.deleteFile(app.name)
                 }
@@ -122,7 +124,9 @@ object FileUtil {
             }
         }
     }
+}
 
+object JsonUtil {
     suspend fun serializeApp(app: AppData, dir: String) {
         Log.d("Serialization", "Saving json to $dir/${app.name}.json")
         withContext(ioDispatcher) {

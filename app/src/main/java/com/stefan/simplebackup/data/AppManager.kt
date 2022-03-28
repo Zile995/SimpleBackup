@@ -6,7 +6,8 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.util.Log
-import com.stefan.simplebackup.utils.FileUtil
+import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.utils.main.BitmapUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -164,7 +165,7 @@ class AppManager(private val context: Context) {
             val application = AppData(
                 0,
                 name,
-                FileUtil.drawableToByteArray(drawable),
+                BitmapUtil.drawableToByteArray(drawable),
                 packageName,
                 versionName,
                 appInfo.targetSdkVersion,

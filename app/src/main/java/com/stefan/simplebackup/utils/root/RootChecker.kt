@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.utils
+package com.stefan.simplebackup.utils.root
 
 import android.content.Context
 import android.content.pm.PackageManager

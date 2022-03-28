@@ -1,9 +1,11 @@
-package com.stefan.simplebackup.database
+package com.stefan.simplebackup
 
 import android.app.Application
+import android.util.Log
 import com.stefan.simplebackup.data.AppManager
-import com.stefan.simplebackup.data.AppData
-import com.stefan.simplebackup.utils.backup.ROOT
+import com.stefan.simplebackup.domain.database.AppDatabase
+import com.stefan.simplebackup.domain.repository.AppRepository
+import com.stefan.simplebackup.domain.model.AppData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 
@@ -12,7 +14,7 @@ import kotlinx.coroutines.SupervisorJob
  * - Contains read-only properties
  * - Mainly, objects will be created when they are called
  */
-class DatabaseApplication : Application() {
+class MainApplication : Application() {
     /**
      * - Main database scope using the [SupervisorJob].
      * - All other child scopes will be canceled if this scope is canceled
@@ -59,6 +61,7 @@ class DatabaseApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        Log.d("MainApplication", "Started creating database")
         database
     }
 }

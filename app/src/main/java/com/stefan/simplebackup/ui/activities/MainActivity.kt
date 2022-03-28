@@ -14,11 +14,11 @@ import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.broadcasts.PackageBroadcastReceiver
-import com.stefan.simplebackup.database.DatabaseApplication
+import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.fragments.AppListFragment
 import com.stefan.simplebackup.ui.fragments.RestoreListFragment
-import com.stefan.simplebackup.utils.RootChecker
+import com.stefan.simplebackup.utils.root.RootChecker
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.*
@@ -41,7 +41,7 @@ class MainActivity : AppCompatActivity() {
 
     // ViewModel
     private val appViewModel: AppViewModel by viewModels {
-        val mainApplication = application as DatabaseApplication
+        val mainApplication = application as MainApplication
         AppViewModelFactory(mainApplication)
     }
 

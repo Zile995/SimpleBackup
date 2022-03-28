@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.stefan.simplebackup.database.DatabaseApplication
+import com.stefan.simplebackup.MainApplication
 import kotlinx.coroutines.*
 
 class BootPackageWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
@@ -12,7 +12,7 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) : Corouti
     params
 ) {
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-    private val mainApplication: DatabaseApplication = applicationContext as DatabaseApplication
+    private val mainApplication: MainApplication = applicationContext as MainApplication
     private val repository = mainApplication.getRepository
     private val appManager = mainApplication.getAppManager
 

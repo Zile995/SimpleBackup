@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.data
+package com.stefan.simplebackup.domain.model
 
 
 import android.os.Parcel
@@ -110,13 +110,19 @@ data class AppData(
         dest.writeString(date)
     }
 
+    /**
+     * - Equals method is really important for us.
+     * - The compare logic is also useful for DiffUtil used in ListAdapter.
+     */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
         other as AppData
 
-        if (!bitmap.contentEquals(other.bitmap)) return false
+        if (!bitmap.contentEquals(other.bitmap) ||
+            !packageName.contentEquals(other.packageName) ||
+                !versionName.contentEquals(other.versionName)) return false
 
         return true
     }

@@ -1,7 +1,7 @@
 package com.stefan.simplebackup.utils.backup
 
 import androidx.work.*
-import com.stefan.simplebackup.data.AppData
+import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.workers.BackupWorker
 
 const val BACKUP_REQUEST_TAG = "BACKUP_TAG"

@@ -17,17 +17,17 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
-import com.stefan.simplebackup.data.AppData
-import com.stefan.simplebackup.database.DatabaseApplication
+import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
 import com.stefan.simplebackup.ui.activities.BackupActivity
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.ui.notifications.BackupNotificationBuilder
-import com.stefan.simplebackup.utils.FileUtil
 import com.stefan.simplebackup.utils.backup.BACKUP_ARGUMENT
 import com.stefan.simplebackup.utils.backup.BACKUP_REQUEST_TAG
+import com.stefan.simplebackup.utils.main.BitmapUtil
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.*
@@ -55,7 +55,7 @@ class AppListFragment : Fragment(), MenuItemListener {
 
     // ViewModel
     private val appViewModel: AppViewModel by activityViewModels {
-        val mainApplication = activity.application as DatabaseApplication
+        val mainApplication = activity.application as MainApplication
         AppViewModelFactory(mainApplication)
     }
 
@@ -82,7 +82,8 @@ class AppListFragment : Fragment(), MenuItemListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        scope.launch {
+        viewLifecycleOwner
+            .lifecycleScope.launch {
             setAppViewModelObservers()
             restoreRecyclerViewState()
             if (savedInstanceState != null) {
@@ -156,9 +157,10 @@ class AppListFragment : Fragment(), MenuItemListener {
                 if (appViewModel.hasSelectedItems()) {
                     appViewModel.doSelection(holder, item)
                 } else {
-                    scope.launch {
+                    viewLifecycleOwner
+                        .lifecycleScope.launch {
                         val context = holder.getContext
-                        FileUtil.saveBigBitmap(item, context)
+                        BitmapUtil.saveBigBitmap(item, context)
                         val intent = Intent(context, BackupActivity::class.java)
                         intent.putExtra("application", item)
                         context.startActivity(intent)

@@ -3,8 +3,8 @@ package com.stefan.simplebackup.workers
 import android.content.Context
 import android.util.Log
 import androidx.work.*
-import com.stefan.simplebackup.data.AppData
-import com.stefan.simplebackup.database.DatabaseApplication
+import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.ui.notifications.BackupNotificationBuilder
 import com.stefan.simplebackup.utils.backup.BACKUP_ARGUMENT
 import com.stefan.simplebackup.utils.backup.BackupUtil
@@ -28,7 +28,7 @@ class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWor
     private lateinit var outputData: Data
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val notificationBuilder = BackupNotificationBuilder(appContext, true)
-    private val mainApplication: DatabaseApplication = applicationContext as DatabaseApplication
+    private val mainApplication: MainApplication = applicationContext as MainApplication
     private val repository = mainApplication.getRepository
 
     override suspend fun doWork(): Result = coroutineScope {

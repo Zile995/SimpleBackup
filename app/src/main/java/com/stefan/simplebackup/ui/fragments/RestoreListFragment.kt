@@ -14,13 +14,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.adapters.RestoreAdapter
-import com.stefan.simplebackup.data.AppData
+import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
-import com.stefan.simplebackup.utils.FileUtil.createDirectory
-import com.stefan.simplebackup.utils.FileUtil.createFile
-import com.stefan.simplebackup.utils.FileUtil.deserializeApp
 import com.stefan.simplebackup.utils.backup.ROOT
+import com.stefan.simplebackup.utils.main.FileUtil
+import com.stefan.simplebackup.utils.main.JsonUtil
 import kotlinx.coroutines.*
 import java.io.File
 
@@ -120,7 +119,7 @@ class RestoreListFragment : Fragment() {
                         appDirList.listFiles()?.filter { appDirFile ->
                             appDirFile.isFile && appDirFile.extension == "json"
                         }?.map { jsonFile ->
-                            deserializeApp(jsonFile).collect { app ->
+                            JsonUtil.deserializeApp(jsonFile).collect { app ->
                                 tempApps.add(app)
                             }
                         }
@@ -129,8 +128,8 @@ class RestoreListFragment : Fragment() {
                     applicationList.addAll(tempApps)
                     applicationList.sortBy { it.name }
                 } else {
-                    createDirectory(path)
-                    createFile("$path/.nomedia")
+                    FileUtil.createDirectory(path)
+                    FileUtil.createFile("$path/.nomedia")
                 }
             }
         }

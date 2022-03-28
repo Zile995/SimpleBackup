@@ -8,7 +8,7 @@ import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.AppData
+import com.stefan.simplebackup.domain.model.AppData
 
 const val NOTIFICATION_ID = 42
 const val CHANNEL_ID = "BACKUP_NOTIFICATION"

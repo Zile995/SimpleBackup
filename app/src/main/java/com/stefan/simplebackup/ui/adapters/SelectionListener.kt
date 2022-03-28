@@ -1,6 +1,6 @@
 package com.stefan.simplebackup.ui.adapters
 
-import com.stefan.simplebackup.data.AppData
+import com.stefan.simplebackup.domain.model.AppData
 
 interface SelectionListener {
     fun setSelectionMode(selection: Boolean)

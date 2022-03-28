@@ -1,7 +1,9 @@
 package com.stefan.simplebackup.utils.backup
 
 import android.content.Context
-import com.stefan.simplebackup.data.AppData
+import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.utils.main.TarUtil
+import com.stefan.simplebackup.utils.main.ZipUtil
 
 const val ROOT: String = "SimpleBackup/local"
 

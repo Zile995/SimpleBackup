@@ -18,8 +18,8 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.AppData
-import com.stefan.simplebackup.utils.FileUtil
+import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.utils.main.transformBytesToString
 
 class AppAdapter(
     private val selectionListener: SelectionListener,
@@ -104,7 +104,7 @@ class AppAdapter(
             appName.text = item.name
             versionName.text = checkAndSetString(item.versionName)
             packageName.text = checkAndSetString(item.packageName)
-            apkSize.text = FileUtil.transformBytesToString(item.apkSize)
+            apkSize.text = item.apkSize.transformBytesToString()
         }
 
         private fun loadBitmapByteArray(byteArray: ByteArray) {

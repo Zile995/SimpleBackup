@@ -16,6 +16,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -27,13 +28,16 @@ import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.AppData
-import com.stefan.simplebackup.database.DatabaseApplication
+import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.databinding.ActivityBackupBinding
-import com.stefan.simplebackup.utils.FileUtil
+import com.stefan.simplebackup.utils.main.BitmapUtil
+import com.stefan.simplebackup.utils.main.showToast
+import com.stefan.simplebackup.utils.main.transformBytesToString
 import com.stefan.simplebackup.viewmodels.BackupViewModel
 import com.stefan.simplebackup.viewmodels.BackupViewModelFactory
-import kotlinx.coroutines.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.*
 
 class BackupActivity : AppCompatActivity() {
@@ -47,13 +51,11 @@ class BackupActivity : AppCompatActivity() {
     // Package name reference
     private val myPackageName: String by lazy { applicationContext.packageName }
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-
     private var _binding: ActivityBackupBinding? = null
     private val binding get() = _binding!!
 
     private val backupViewModel: BackupViewModel by viewModels {
-        val application = application as DatabaseApplication
+        val application = application as MainApplication
         val selectedApp: AppData? = intent?.extras?.getParcelable("application")
         BackupViewModelFactory(selectedApp, application)
     }
@@ -65,9 +67,9 @@ class BackupActivity : AppCompatActivity() {
         _binding = ActivityBackupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        backupViewModel.selectedApp?.let {
-            bindViews()
-            scope.launch {
+        lifecycleScope.launch {
+            backupViewModel.selectedApp?.let {
+                bindViews()
                 setData()
             }
         }
@@ -110,14 +112,13 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private fun setCardViewSize() {
-        val constraintLayout = binding.parentView
-        val toolBar = binding.toolbarBackup
-        val cardView = binding.backupCardView
-        val cardViewPackage = binding.backupCardViewPackage
-        val cardViewButtons = binding.backupCardViewButtons
-        val height =
-            constraintLayout.height - toolBar.height - cardView.height - cardViewPackage.height
-        cardViewButtons.layoutParams.height = height
+        binding.apply {
+            backupCardViewButtons.layoutParams
+                .height = parentView.height -
+                    toolbarBackup.height -
+                    backupCardView.height -
+                    backupCardViewPackage.height
+        }
     }
 
     private fun createBackupDriveButton() {
@@ -128,7 +129,7 @@ class BackupActivity : AppCompatActivity() {
 
     private fun createDeleteButton() {
         binding.floatingDeleteButton.setOnClickListener {
-            scope.launch {
+            lifecycleScope.launch {
                 backupViewModel.selectedApp?.let { app ->
                     deleteApp(app.packageName)
                 }
@@ -145,22 +146,24 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private suspend fun setData() {
-        backupViewModel.selectedApp?.apply {
-            setAppImage()
-            binding.textItemBackup.text = name
-            binding.chipPackageBackup.text = (packageName as CharSequence).toString()
-            binding.chipVersionBackup.text = (versionName as CharSequence).toString()
-            binding.chipDirBackup.text = (dataDir as CharSequence).toString()
-            binding.apkSize.text = FileUtil.transformBytesToString(apkSize)
-            binding.targetSdk.text = targetSdk.toString()
-            binding.minSdk.text = minSdk.toString()
-            binding.dataSize.text = FileUtil.transformBytesToString(dataSize)
+        backupViewModel.selectedApp?.let { app ->
+            binding.apply {
+                setAppImage()
+                textItemBackup.text = app.name
+                chipPackageBackup.text = (app.packageName as CharSequence).toString()
+                chipVersionBackup.text = (app.versionName as CharSequence).toString()
+                chipDirBackup.text = (app.dataDir as CharSequence).toString()
+                apkSize.text = app.apkSize.transformBytesToString()
+                targetSdk.text = app.targetSdk.toString()
+                minSdk.text = app.minSdk.toString()
+                dataSize.text = app.dataSize.transformBytesToString()
+            }
         }
     }
 
     private suspend fun setAppImage() {
         backupViewModel.selectedApp?.let { app ->
-            FileUtil.setAppBitmap(app, applicationContext)
+            BitmapUtil.setAppBitmap(app, applicationContext)
             Glide.with(applicationContext).apply {
                 asBitmap()
                     .load(app.bitmap)
@@ -201,14 +204,8 @@ class BackupActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        scope.cancel()
         _binding = null
         super.onDestroy()
-    }
-
-    override fun onBackPressed() {
-        super.onBackPressed()
-        scope.cancel()
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -237,7 +234,7 @@ class BackupActivity : AppCompatActivity() {
         val activityManager =
             applicationContext.getSystemService(ACTIVITY_SERVICE) as ActivityManager
         activityManager.killBackgroundProcesses(packageName)
-        Toast.makeText(applicationContext, "AppData stopped!", Toast.LENGTH_SHORT).show()
+        showToast("Application stopped!")
     }
 
     private fun openPackageDetailsSettings() {
@@ -270,7 +267,7 @@ class BackupActivity : AppCompatActivity() {
         when (requestCode) {
             STORAGE_PERMISSION_CODE -> {
                 if (grantResults.isNotEmpty() && grantResults.first() == PackageManager.PERMISSION_GRANTED) {
-                    scope.launch {
+                    lifecycleScope.launch {
                         backupViewModel.createLocalBackup()
                         Toast.makeText(
                             this@BackupActivity.applicationContext,
@@ -285,6 +282,7 @@ class BackupActivity : AppCompatActivity() {
             }
             else -> {
                 // Ignore all other requests.
+                return
             }
         }
     }

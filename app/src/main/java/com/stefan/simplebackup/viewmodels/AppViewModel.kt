@@ -7,12 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
+import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.broadcasts.PackageListener
-import com.stefan.simplebackup.data.AppData
 import com.stefan.simplebackup.data.AppManager
-import com.stefan.simplebackup.database.AppRepository
-import com.stefan.simplebackup.database.DatabaseApplication
+import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.domain.repository.AppRepository
 import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.SelectionListener
 import com.stefan.simplebackup.utils.backup.BackupWorkerHelper
@@ -25,15 +25,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class AppViewModel(application: DatabaseApplication) :
+class AppViewModel(application: MainApplication) :
     AndroidViewModel(application), PackageListener, SelectionListener {
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
-    private val getAllAppsFromRepository get() = repository.getAllApps
 
-    private val workManager = WorkManager.getInstance(application)
+    private val workManager by lazy { WorkManager.getInstance(application) }
     val getWorkManager get() = workManager
 
     // Observable application properties used for list loading
@@ -58,16 +57,22 @@ class AppViewModel(application: DatabaseApplication) :
 
     init {
         appManager.printSequence()
-        launchListLoading { getAllAppsFromRepository }
+        launchDataLoading {
+            getAllAppsFromDatabase()
+        }
         refreshPackageList()
         Log.d("ViewModel", "AppViewModel created")
     }
 
+    private fun getAllAppsFromDatabase() = repository.getAllApps
+
     // Loading methods
-    private fun launchListLoading(getAllAppsFromRepository: () -> Flow<MutableList<AppData>>) {
+    private inline fun launchDataLoading(
+        crossinline allAppsFromDatabase: () -> Flow<MutableList<AppData>>,
+    ) {
         viewModelScope.launch(ioDispatcher) {
             runCatching {
-                getAllAppsFromRepository().collectLatest { apps ->
+                allAppsFromDatabase().collectLatest { apps ->
                     _allApps.value = apps
                     delay(250)
                     _spinner.value = false
@@ -154,11 +159,11 @@ class AppViewModel(application: DatabaseApplication) :
 
     // PackageListener methods - Used for database package updates
     override suspend fun addOrUpdatePackage(packageName: String) {
-            appManager.apply {
-                build(packageName).collect { app ->
-                    insertApp(app)
-                }
+        appManager.apply {
+            build(packageName).collect { app ->
+                insertApp(app)
             }
+        }
     }
 
     override suspend fun deletePackage(packageName: String) {
@@ -180,7 +185,7 @@ class AppViewModel(application: DatabaseApplication) :
 }
 
 class AppViewModelFactory(
-    private val application: DatabaseApplication
+    private val application: MainApplication
 ) :
     ViewModelProvider.AndroidViewModelFactory(application) {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

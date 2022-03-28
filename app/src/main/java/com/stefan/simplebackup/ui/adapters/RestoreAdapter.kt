@@ -15,7 +15,7 @@ import com.google.android.material.card.MaterialCardView
 import com.google.android.material.chip.Chip
 import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.AppData
+import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.ui.adapters.AppAdapter.Companion.AppDiffCallBack
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineScope
@@ -59,8 +59,6 @@ class RestoreAdapter(rContext: Context) :
         val layout = LayoutInflater
             .from(parent.context)
             .inflate(R.layout.restore_item, parent, false)
-
-        // Vrati ViewHolder
         return RestoreViewHolder(layout)
     }
 

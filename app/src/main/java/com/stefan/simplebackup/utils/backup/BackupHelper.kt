@@ -1,8 +1,9 @@
 package com.stefan.simplebackup.utils.backup
 
 import android.content.Context
-import com.stefan.simplebackup.data.AppData
-import com.stefan.simplebackup.utils.FileUtil
+import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.utils.main.FileUtil
+import com.stefan.simplebackup.utils.main.JsonUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import java.text.SimpleDateFormat
@@ -46,7 +47,7 @@ abstract class BackupHelper(context: Context) {
     }
 
     protected suspend fun serializeApp(app: AppData) {
-        FileUtil.serializeApp(app, getBackupDirPath(app))
+        JsonUtil.serializeApp(app, getBackupDirPath(app))
     }
 
     protected fun setBackupTime(app: AppData) {
