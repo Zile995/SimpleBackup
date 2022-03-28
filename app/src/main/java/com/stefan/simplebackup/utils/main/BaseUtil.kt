@@ -19,7 +19,7 @@ import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import kotlin.math.pow
 
-private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
 fun Number.transformBytesToString(): String {
     return String.format("%3.1f %s", this.toFloat() / 1000.0.pow(2), "MB")
