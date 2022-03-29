@@ -74,7 +74,7 @@ class AppAdapter(
         submitList(filteredList)
     }
 
-    class AppViewHolder constructor(
+    class AppViewHolder private constructor(
         private val view: View,
         private val clickListener: OnClickListener
     ) :

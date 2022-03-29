@@ -2,12 +2,14 @@ package com.stefan.simplebackup.utils.installer
 
 import android.content.Context
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import com.stefan.simplebackup.utils.main.ioDispatcher
 
 class RootApkInstaller(context: Context) {
 
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val packageInstaller = context.packageManager.packageInstaller
 
     suspend fun installApk(apkFolderPath: String) {

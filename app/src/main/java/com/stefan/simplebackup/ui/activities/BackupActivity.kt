@@ -27,10 +27,10 @@ import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
-import com.stefan.simplebackup.R
-import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.ActivityBackupBinding
+import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.utils.main.BitmapUtil
 import com.stefan.simplebackup.utils.main.showToast
 import com.stefan.simplebackup.utils.main.transformBytesToString
@@ -40,13 +40,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.*
 
-class BackupActivity : AppCompatActivity() {
+private const val TAG: String = "BackupActivity"
+private const val REQUEST_CODE_SIGN_IN: Int = 400
+private const val STORAGE_PERMISSION_CODE: Int = 500
 
-    companion object {
-        private const val TAG: String = "BackupActivity"
-        private const val REQUEST_CODE_SIGN_IN: Int = 400
-        private const val STORAGE_PERMISSION_CODE: Int = 500
-    }
+class BackupActivity : AppCompatActivity() {
 
     // Package name reference
     private val myPackageName: String by lazy { applicationContext.packageName }
@@ -208,6 +206,7 @@ class BackupActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+
     override fun onSupportNavigateUp(): Boolean {
         onBackPressed()
         return true
@@ -222,7 +221,6 @@ class BackupActivity : AppCompatActivity() {
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
-
 
     private fun deleteApp(packageName: String) {
         startActivity(Intent(Intent.ACTION_DELETE).apply {
@@ -314,11 +312,11 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private fun requestSignIn() {
-        val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).apply {
-            requestEmail()
-            requestScopes(Scope(DriveScopes.DRIVE_FILE))
-        }.build()
-
+        val signInOptions = GoogleSignInOptions
+            .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).apply {
+                requestEmail()
+                requestScopes(Scope(DriveScopes.DRIVE_FILE))
+            }.build()
         val client = GoogleSignIn.getClient(this, signInOptions)
         startActivityForResult(client.signInIntent, REQUEST_CODE_SIGN_IN)
     }

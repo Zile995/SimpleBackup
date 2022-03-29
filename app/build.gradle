@@ -2,7 +2,7 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'kotlin-kapt'
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.6.10-RC'
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlinSerializationPlugin"
 }
 
 android {
@@ -29,7 +29,14 @@ android {
     }
     packagingOptions {
         resources {
-            excludes += ['META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt', 'META-INF/license.txt', 'META-INF/NOTICE', 'META-INF/NOTICE.txt', 'META-INF/notice.txt', 'META-INF/ASL2.0']
+            excludes += ['META-INF/DEPENDENCIES',
+                         'META-INF/LICENSE',
+                         'META-INF/LICENSE.txt',
+                         'META-INF/license.txt',
+                         'META-INF/NOTICE',
+                         'META-INF/NOTICE.txt',
+                         'META-INF/notice.txt',
+                         'META-INF/ASL2.0']
         }
     }
 
@@ -62,67 +69,66 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
     // UI
-    implementation "androidx.core:core-ktx:$rootProject.ktxVersion"
-    implementation "androidx.appcompat:appcompat:$rootProject.appCompatVersion"
-    implementation "com.google.android.material:material:$rootProject.materialVersion"
-    implementation "androidx.constraintlayout:constraintlayout:$rootProject.constraintVersion"
-    implementation "androidx.swiperefreshlayout:swiperefreshlayout:$rootProject.swipeRefreshVersion"
+    implementation "androidx.core:core-ktx:$ktx"
+    implementation "androidx.appcompat:appcompat:$appCompat"
+    implementation "com.google.android.material:material:$material"
+    implementation "androidx.constraintlayout:constraintlayout:$constraint"
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:$swipeRefresh"
 
     // Fragment Kotlin support
-    implementation "androidx.fragment:fragment-ktx:$rootProject.fragmentVersion"
+    implementation "androidx.fragment:fragment-ktx:$fragment"
 
     // Test
-    testImplementation "junit:junit:$rootProject.junitVersion"
-    androidTestImplementation "androidx.test.ext:junit:$rootProject.androidxJunitVersion"
-    androidTestImplementation "androidx.test.espresso:espresso-core:$rootProject.espressoVersion"
+    testImplementation "junit:junit:$junit"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunit"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$espresso"
 
     // Kotlin Coroutines
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$rootProject.coroutinesVersion"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$rootProject.coroutinesVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines"
 
     // Kotlin serialization
-    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$rootProject.kotlinSerializationVersiom"
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinSerialization"
 
     // WorkManager kotlin + coroutines
-    implementation "androidx.work:work-runtime-ktx:$rootProject.workVersion"
+    implementation "androidx.work:work-runtime-ktx:$work"
 
     // Kotlin Room
-    implementation "androidx.room:room-runtime:$rootProject.roomVersion"
-    annotationProcessor "androidx.room:room-compiler:$rootProject.roomVersion"
-    implementation "androidx.room:room-ktx:$rootProject.roomVersion"
-
+    implementation "androidx.room:room-runtime:$room"
+    annotationProcessor "androidx.room:room-compiler:$room"
+    implementation "androidx.room:room-ktx:$room"
     // To use Kotlin annotation processing tool (kapt)
-    kapt "androidx.room:room-compiler:$rootProject.roomVersion"
+    kapt "androidx.room:room-compiler:$room"
 
     // Google Auth
-    implementation "com.google.android.gms:play-services-auth:$rootProject.googleAuthVersion"
-    implementation "com.google.http-client:google-http-client-gson:$rootProject.googleGsonVersion"
-    implementation ("com.google.api-client:google-api-client-android:$rootProject.googleApiClientVersion") {
+    implementation "com.google.android.gms:play-services-auth:$googleAuth"
+    implementation "com.google.http-client:google-http-client-gson:$googleGson"
+    implementation("com.google.api-client:google-api-client-android:$googleApiClient") {
         exclude group: 'org.apache.httpcomponents'
     }
 
     // Google Drive Api
-    implementation("com.google.apis:google-api-services-drive:$rootProject.googleDriveApiVersion") {
+    implementation("com.google.apis:google-api-services-drive:$googleDriveApi") {
         exclude group: 'org.apache.httpcomponents'
     }
 
     // libsu core
-    implementation "com.github.topjohnwu.libsu:core:$rootProject.libsuVersion"
+    implementation "com.github.topjohnwu.libsu:core:$libsu"
 
     // Zip4j
-    implementation "net.lingala.zip4j:zip4j:$rootProject.zip4jVersion"
+    implementation "net.lingala.zip4j:zip4j:$zip4j"
 
     //ViewModel
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle"
 
     // LifeCycle without ViewModel and LiveData
-    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$rootProject.lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycle"
 
     // Glide
-    implementation "com.github.bumptech.glide:glide:$rootProject.glideVersion"
-    kapt 'com.github.bumptech.glide:compiler:4.13.1'
+    implementation "com.github.bumptech.glide:glide:$glide"
+    kapt "com.github.bumptech.glide:compiler:$glide"
 
     // Leak Canary
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.8.1'
+    debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"
 
 }

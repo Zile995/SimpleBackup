@@ -5,22 +5,23 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.widget.ProgressBar
-import androidx.appcompat.widget.SearchView
-import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.ui.adapters.RestoreAdapter
-import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
+import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.ui.activities.MainActivity
+import com.stefan.simplebackup.ui.adapters.RestoreAdapter
 import com.stefan.simplebackup.utils.backup.ROOT
 import com.stefan.simplebackup.utils.main.FileUtil
 import com.stefan.simplebackup.utils.main.JsonUtil
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
@@ -32,14 +33,10 @@ class RestoreListFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var activity: MainActivity
-    private lateinit var toolbar: Toolbar
 
     // Restore List Adapter
     private var _restoreAdapter: RestoreAdapter? = null
     private val restoreAdapter get() = _restoreAdapter!!
-
-    // Coroutine scope
-    private var scope = CoroutineScope(Job() + Dispatchers.Main)
 
     private var applicationList = mutableListOf<AppData>()
 
@@ -48,31 +45,35 @@ class RestoreListFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         super.onCreateView(inflater, container, savedInstanceState)
-        // Inflate the layout for this fragment
-        _binding = FragmentRestoreListBinding.inflate(inflater, container, false)
+        _binding = FragmentRestoreListBinding
+            .inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        activity = requireActivity() as MainActivity
+        val currentActivity = requireActivity()
+        if (currentActivity is MainActivity) {
+            activity = currentActivity
+        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        _restoreAdapter = RestoreAdapter(requireContext())
-        scope.launch {
-            if (isAdded) {
-                bindViews()
-                launch {
-                    getStoredPackages()
-                }.join()
-                launch {
-                    binding.progressBar.visibility = ProgressBar.INVISIBLE
-                    restoreAdapter.setData(applicationList)
+        _restoreAdapter = RestoreAdapter()
+        viewLifecycleOwner
+            .lifecycleScope.launch {
+                if (isAdded) {
+                    bindViews()
+                    launch {
+                        getStoredPackages()
+                    }.join()
+                    launch {
+                        binding.progressBar.visibility = ProgressBar.INVISIBLE
+                        restoreAdapter.setData(applicationList)
+                    }
                 }
             }
-        }
     }
 
     private fun bindViews() {
@@ -84,17 +85,18 @@ class RestoreListFragment : Fragment() {
 
     private fun createSwipeContainer() {
         binding.swipeRefresh.setOnRefreshListener {
-            scope.launch {
-                val refresh = launch {
-                    getStoredPackages()
+            viewLifecycleOwner
+                .lifecycleScope.launch {
+                    val refresh = launch {
+                        getStoredPackages()
+                    }
+                    refresh.join()
+                    launch {
+                        binding.swipeRefresh.isRefreshing = false
+                        delay(250)
+                        restoreAdapter.setData(applicationList)
+                    }
                 }
-                refresh.join()
-                launch {
-                    binding.swipeRefresh.isRefreshing = false
-                    delay(250)
-                    restoreAdapter.setData(applicationList)
-                }
-            }
         }
     }
 
@@ -139,23 +141,12 @@ class RestoreListFragment : Fragment() {
         binding.toolBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.search -> {
-                    val searchView = menuItem.actionView as SearchView
-                    searchView.imeOptions = EditorInfo.IME_ACTION_DONE
-                    searchView.queryHint = "Search for apps"
-
-                    searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-                        override fun onQueryTextSubmit(query: String?): Boolean {
-                            return false
-                        }
-
-                        override fun onQueryTextChange(newText: String?): Boolean {
-                            restoreAdapter.filter.filter(newText)
-                            return true
-                        }
-                    })
+                    true
+                }
+                else -> {
+                    true
                 }
             }
-            true
         }
     }
 
@@ -199,7 +190,6 @@ class RestoreListFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        scope.cancel()
         _binding = null
         _restoreAdapter = null
     }

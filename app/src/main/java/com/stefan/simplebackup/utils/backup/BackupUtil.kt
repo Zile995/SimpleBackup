@@ -7,7 +7,7 @@ import com.stefan.simplebackup.utils.main.ZipUtil
 
 const val ROOT: String = "SimpleBackup/local"
 
-open class BackupUtil(
+class BackupUtil(
     appContext: Context,
     private val app: AppData
 ) : BackupHelper(appContext) {

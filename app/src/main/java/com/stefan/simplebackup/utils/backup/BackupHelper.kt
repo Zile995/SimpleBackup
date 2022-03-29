@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import java.text.SimpleDateFormat
 import java.util.*
 
-abstract class BackupHelper(context: Context) {
+open class BackupHelper(context: Context) {
 
     protected val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
