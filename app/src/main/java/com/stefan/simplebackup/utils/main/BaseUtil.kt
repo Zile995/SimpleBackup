@@ -80,10 +80,10 @@ object BitmapUtil {
             bytes.toByteArray()
         }
 
-    suspend fun saveBigBitmap(item: AppData, context: Context) {
+    suspend fun saveIfBigBitmap(item: AppData, context: Context) {
         val bitmapByteArray = item.bitmap
         Log.d("Bitmap", "${bitmapByteArray.size}")
-        if (bitmapByteArray.size > 200000) {
+        if (bitmapByteArray.size > 200_000) {
             saveBitmapByteArray(bitmapByteArray, item.name, context)
             item.bitmap = byteArrayOf()
         }

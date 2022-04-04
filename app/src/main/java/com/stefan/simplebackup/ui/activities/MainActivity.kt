@@ -12,9 +12,12 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
+import androidx.lifecycle.lifecycleScope
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.broadcasts.PackageBroadcastReceiver
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.broadcasts.ACTION_WORK_FINISHED
+import com.stefan.simplebackup.broadcasts.NotificationBroadcastReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.fragments.AppListFragment
 import com.stefan.simplebackup.ui.fragments.RestoreListFragment
@@ -27,8 +30,6 @@ class MainActivity : AppCompatActivity() {
     // Create RootChecker Class instance and reference
     private var rootChecker = RootChecker(this)
 
-    // Coroutine scope, on main thread
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     //Preferences
@@ -49,8 +50,12 @@ class MainActivity : AppCompatActivity() {
     private val receiver: PackageBroadcastReceiver by lazy {
         PackageBroadcastReceiver(
             appViewModel,
-            scope
+            lifecycleScope
         )
+    }
+
+    private val notificationReceiver: NotificationBroadcastReceiver by lazy {
+        NotificationBroadcastReceiver()
     }
 
     // Binding properties
@@ -163,6 +168,9 @@ class MainActivity : AppCompatActivity() {
             addAction(Intent.ACTION_PACKAGE_REPLACED)
             addDataScheme("package")
         })
+        registerReceiver(notificationReceiver, IntentFilter().apply {
+            addAction(ACTION_WORK_FINISHED)
+        })
     }
 
     private suspend fun setRootDialogs() {
@@ -234,7 +242,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onResume() {
-        scope.launch {
+        lifecycleScope.launch {
             setRootDialogs()
         }
         super.onResume()
@@ -260,9 +268,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        scope.cancel()
         _binding = null
         unregisterReceiver(receiver)
+        unregisterReceiver(notificationReceiver)
         super.onDestroy()
     }
 }

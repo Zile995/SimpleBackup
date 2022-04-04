@@ -15,7 +15,7 @@
     <!-- Chips -->
     <color name="redChip">#FF7878</color>
     <color name="textInRedChip">#531F1F</color>>
-    <color name="blueChip">#0444B3</color>
+    <color name="blueChip">#7C9CD6</color>
     <color name="textInBlueChip">#192231</color>
     <color name="greenChip">#79B4B7</color>
     <color name="textInGreenChip">#FF07433A</color>
@@ -40,7 +40,7 @@
     <color name="cardViewRipple">#223E69</color>
 
     <!-- Tab Layouts -->
-    <color name="selectedTab">#758FD1</color>
+    <color name="selectedTab">#9FB8F6</color>
 
     <!-- Bars -->
     <color name="bottomView">@color/colorAccent</color>

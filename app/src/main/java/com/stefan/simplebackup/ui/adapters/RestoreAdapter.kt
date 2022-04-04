@@ -6,6 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -31,20 +32,21 @@ class RestoreAdapter :
 
     class RestoreViewHolder private constructor(private val view: View) :
         RecyclerView.ViewHolder(view) {
-        private val textItem: MaterialTextView = view.findViewById(R.id.stored_application_name)
-        private val appSize: MaterialTextView = view.findViewById(R.id.app_size_text)
-        private val dateText: MaterialTextView = view.findViewById(R.id.date_text)
-        private val appImage: ImageView = view.findViewById(R.id.application_image)
-        private val chipVersion: Chip = view.findViewById(R.id.chip_version)
+        private val appImage: ImageView = view.findViewById(R.id.restore_application_image)
+        private val appVersionName: MaterialTextView = view.findViewById(R.id.restore_version_name)
+        private val appName: MaterialTextView = view.findViewById(R.id.restore_application_name)
+        private val appPackageName: MaterialTextView = view.findViewById(R.id.restore_package_name)
+        private val appDataSize: Chip = view.findViewById(R.id.restore_data_size)
+        private val appBackupDate: Chip = view.findViewById(R.id.backup_date)
+
 
         fun bind(item: AppData) {
             loadBitmapByteArray(item.bitmap)
-            val charSequenceVersion: CharSequence = "v" + item.versionName
-
-            textItem.text = item.name
-            chipVersion.text = charSequenceVersion.toString()
-            appSize.text = item.dataSize.transformBytesToString()
-            dateText.text = item.date
+            appVersionName.text = item.versionName
+            appName.text = item.name
+            appPackageName.text = item.packageName
+            appDataSize.text = item.dataSize.transformBytesToString()
+            appBackupDate.text = item.date
         }
 
         private fun loadBitmapByteArray(byteArray: ByteArray) {

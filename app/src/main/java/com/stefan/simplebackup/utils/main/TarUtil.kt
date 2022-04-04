@@ -8,20 +8,22 @@ import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-class TarUtil(context: Context, private val app: AppData) : BackupHelper(context) {
+class TarUtil(context: Context, var app: AppData) : BackupHelper(context) {
 
     suspend fun backupData() {
         withContext(ioDispatcher) {
             runCatching {
-                if (Shell.rootAccess()) {
-                    Log.d("TarUtil", "Creating the ${app.name} data archive")
-                    val tarArchivePath =
-                        getBackupDirPath(app) + "/${app.packageName}.tar"
-                    Shell.su("tar -cf $tarArchivePath" +
-                            " --exclude={\"cache\",\"lib\",\"code_cache\"}" +
-                            " -C ${app.dataDir} . ")
-                        .exec()
+                if (!Shell.rootAccess()) {
+                    return@withContext
                 }
+                Log.d("TarUtil", "Creating the ${app.packageName} data archive")
+                val tarArchivePath =
+                    getBackupDirPath(app) + "/${app.packageName}.tar"
+                Shell.su(
+                    "tar -cf $tarArchivePath" +
+                            " --exclude={\"cache\",\"lib\",\"code_cache\"}" +
+                            " -C ${app.dataDir} . "
+                ).exec()
             }.onSuccess {
                 Log.d("TarUtil", "Successfully created ${app.packageName}.tar data archive")
             }.onFailure { throwable ->
@@ -38,7 +40,6 @@ class TarUtil(context: Context, private val app: AppData) : BackupHelper(context
             }
         }
     }
-
 
     suspend fun restoreData() {
         withContext(ioDispatcher) {

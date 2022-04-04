@@ -17,15 +17,40 @@ import java.io.File
 
 class ZipUtil(
     context: Context,
-    private val app: AppData
+    var app: AppData
 ) : BackupHelper(context) {
 
-    private val backupDirPath = getBackupDirPath(app)
+    private val backupDirPath get() = getBackupDirPath(app)
 
     suspend fun zipAllData() {
         withContext(ioDispatcher) {
             launch { zipApks() }
             launch { zipTarArchive() }
+        }
+    }
+
+    private fun zipApks() {
+        runCatching {
+            val zipParameters = getZipParameters(isApk = true)
+            val zipFile = ZipFile(backupDirPath + "/${app.name}.zip")
+            if (zipFile.file.exists()) {
+                zipFile.file.delete()
+            }
+            Log.d("ZipUtil", "Zipping the ${app.name} apks to $backupDirPath")
+            zipFile.addFiles(getApkList(app), zipParameters)
+        }.onSuccess {
+            Log.d("ZipUtil", "Successfully zipped ${app.name} apks")
+        }.onFailure { throwable ->
+            when (throwable) {
+                is ZipException -> {
+                    throwable.message?.let { message ->
+                        Log.e("ZipUtil", message)
+                    }
+                }
+                else -> {
+                    throw throwable
+                }
+            }
         }
     }
 
@@ -46,31 +71,6 @@ class ZipUtil(
             }
         }.onSuccess {
             Log.d("ZipUtil", "Successfully zipped ${app.name} data")
-        }.onFailure { throwable ->
-            when (throwable) {
-                is ZipException -> {
-                    throwable.message?.let { message ->
-                        Log.e("ZipUtil", message)
-                    }
-                }
-                else -> {
-                    throw throwable
-                }
-            }
-        }
-    }
-
-    private fun zipApks() {
-        runCatching {
-            val zipParameters = getZipParameters(isApk = true)
-            val zipFile = ZipFile(backupDirPath + "/${app.name}.zip")
-            if (zipFile.file.exists()) {
-                zipFile.file.delete()
-            }
-            Log.d("ZipUtil", "Zipping the ${app.name} apks to $backupDirPath")
-            zipFile.addFiles(getApkList(app), zipParameters)
-        }.onSuccess {
-            Log.d("ZipUtil", "Successfully zipped ${app.name} apks")
         }.onFailure { throwable ->
             when (throwable) {
                 is ZipException -> {

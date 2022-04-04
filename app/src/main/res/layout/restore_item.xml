@@ -4,23 +4,25 @@
     style="@style/Widget.SimpleBackup.CardView"
     android:id="@+id/card_item"
     android:layout_width="match_parent"
-    android:layout_height="125dp"
-    android:layout_margin="8dp"
+    android:layout_height="100dp"
+    android:layout_marginStart="10dp"
+    android:layout_marginTop="10dp"
+    android:layout_marginEnd="10dp"
     android:layout_marginBottom="0dp"
-    android:clickable="true"
-    android:focusable="true"
     android:checkable="true"
-    app:cardCornerRadius="8dp">
+    android:clickable="true"
+    android:focusable="true">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:outlineProvider="none">
 
         <ImageView
-            android:id="@+id/application_image"
+            android:id="@+id/restore_application_image"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_marginStart="25dp"
+            android:layout_marginStart="15dp"
             android:layout_marginBottom="30dp"
             android:contentDescription="@string/application_image"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -28,93 +30,93 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/stored_application_name"
-            android:layout_width="70dp"
+            android:id="@+id/restore_version_name"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginStart="14dp"
+            android:fontFamily="@font/inter_family"
+            android:textColor="@color/textView"
+            android:textSize="6pt"
+            app:layout_constraintBottom_toTopOf="@+id/restore_application_name"
+            app:layout_constraintStart_toEndOf="@+id/restore_application_image"
+            app:layout_constraintTop_toTopOf="@+id/restore_application_image" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/restore_application_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:fontFamily="@font/inter"
-            android:gravity="center_horizontal"
-            android:maxLines="2"
+            android:maxLines="1"
+            android:textAlignment="textStart"
             android:textAppearance="?attr/textAppearanceBody1"
             android:textColor="@color/appNameLabel"
+            android:textSize="7pt"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/restore_package_name"
+            app:layout_constraintStart_toStartOf="@+id/restore_version_name"
+            app:layout_constraintTop_toTopOf="@+id/restore_version_name" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/restore_package_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/inter_family"
+            android:textColor="@color/textView"
             android:textSize="6pt"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/application_image"
-            app:layout_constraintStart_toStartOf="@+id/application_image"
-            app:layout_constraintTop_toBottomOf="@id/application_image" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/created_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/inter_family"
-            android:text="@string/created_on"
-            android:textAppearance="?attr/textAppearanceBody1"
-            android:textColor="@color/textColorPrimary"
-            android:textSize="5.5pt"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/stored_application_name"
-            app:layout_constraintStart_toStartOf="@+id/chip_version"
-            app:layout_constraintTop_toBottomOf="@+id/chip_version" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/date_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/inter_family"
-            android:textAppearance="?attr/textAppearanceBody1"
-            android:textColor="@color/textColorPrimary"
-            android:textSize="5.5pt"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="@+id/created_text"
-            app:layout_constraintTop_toBottomOf="@+id/created_text" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/apk_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="2dp"
-            android:fontFamily="@font/inter_family"
-            android:text="@string/data"
-            android:textAppearance="?attr/textAppearanceBody1"
-            android:textColor="@color/textColorPrimary"
-            android:textSize="5.7pt"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/app_size_text"
-            app:layout_constraintEnd_toStartOf="@id/app_size_text"
-            app:layout_constraintTop_toTopOf="@+id/app_size_text" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/app_size_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="10dp"
-            android:fontFamily="@font/inter_family"
-            android:textColor="@color/textColorPrimary"
-            android:textSize="5.7pt"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
-        </com.google.android.material.textview.MaterialTextView>
+            app:layout_constraintBottom_toBottomOf="@+id/restore_application_image"
+            app:layout_constraintStart_toStartOf="@+id/restore_application_name"
+            app:layout_constraintTop_toBottomOf="@+id/restore_application_name" />
 
         <com.google.android.material.chip.Chip
-            android:id="@+id/chip_version"
+            android:id="@+id/restore_data_size"
             style="@style/Widget.SimpleBackup.Chip"
             android:layout_width="wrap_content"
-            android:layout_height="45dp"
-            android:layout_marginStart="20dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
             android:clickable="false"
+            android:fontFamily="@font/inter"
             android:textAlignment="center"
-            android:textColor="@color/textInRedChip"
-            android:textSize="5pt"
+            android:textColor="@color/textInGreenChip"
+            android:textSize="11sp"
             android:textStyle="bold"
-            app:chipBackgroundColor="@color/redChip"
-            app:layout_constraintBottom_toBottomOf="@+id/application_image"
-            app:layout_constraintStart_toEndOf="@+id/application_image"
-            app:layout_constraintTop_toTopOf="@+id/application_image" />
+            app:chipBackgroundColor="@color/greenChip"
+            app:chipEndPadding="2dp"
+            app:chipStartPadding="2dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/date_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:fontFamily="@font/inter_family"
+            android:text="@string/date"
+            android:textColor="@color/textView"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="@+id/backup_date"
+            app:layout_constraintStart_toStartOf="@+id/restore_application_image"
+            app:layout_constraintTop_toTopOf="@id/backup_date"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/backup_date"
+            style="@style/Widget.SimpleBackup.Chip"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:clickable="false"
+            android:fontFamily="@font/inter"
+            android:textAlignment="center"
+            android:textColor="@color/textInBlueChip"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            app:chipBackgroundColor="@color/blueChip"
+            app:chipEndPadding="2dp"
+            app:chipStartPadding="2dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/date_label" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 
 </com.google.android.material.card.MaterialCardView>

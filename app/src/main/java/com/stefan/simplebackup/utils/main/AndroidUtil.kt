@@ -1,10 +1,27 @@
 package com.stefan.simplebackup.utils.main
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
+import android.widget.ImageView
 import android.widget.Toast
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.request.target.CustomTarget
+import com.bumptech.glide.request.transition.Transition
+import com.stefan.simplebackup.R
 
 fun Context.showToast(message: String) {
     Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
+}
+
+fun Context.loadBitmapToImageView(byteArray: ByteArray, image: ImageView) {
+    Glide.with(this).apply {
+        asBitmap()
+            .load(byteArray)
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .into(image)
+    }
 }
 
 //holder.cardView.setOnClickListener {

@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.ui.fragments
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -21,11 +20,13 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
 import com.stefan.simplebackup.ui.activities.BackupActivity
 import com.stefan.simplebackup.ui.activities.MainActivity
+import com.stefan.simplebackup.ui.activities.ProgressActivity
 import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.OnClickListener
-import com.stefan.simplebackup.ui.notifications.BackupNotificationBuilder
+import com.stefan.simplebackup.ui.notifications.NotificationBuilder
 import com.stefan.simplebackup.utils.backup.BACKUP_ARGUMENT
 import com.stefan.simplebackup.utils.backup.BACKUP_REQUEST_TAG
+import com.stefan.simplebackup.utils.backup.BACKUP_SIZE
 import com.stefan.simplebackup.utils.main.BitmapUtil
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
@@ -35,7 +36,7 @@ import kotlinx.coroutines.launch
 /**
  * A simple [AppListFragment] class.
  */
-class AppListFragment : Fragment(), MenuItemListener {
+class AppListFragment : Fragment() {
     // Binding
     private var _binding: FragmentAppListBinding? = null
     private val binding get() = _binding!!
@@ -79,7 +80,7 @@ class AppListFragment : Fragment(), MenuItemListener {
         super.onViewCreated(view, savedInstanceState)
         viewLifecycleOwner
             .lifecycleScope.launch {
-                setAppViewModelObservers()
+                setViewModelObservers()
                 restoreRecyclerViewState()
                 if (savedInstanceState != null) {
                     isSearching = savedInstanceState.getBoolean("isSearching")
@@ -110,34 +111,10 @@ class AppListFragment : Fragment(), MenuItemListener {
 
     private fun setBackupChip() {
         binding.batchBackup.setOnClickListener {
-            appViewModel.createLocalBackup()
-        }
-    }
-
-    private fun workInfoObserver(): Observer<List<WorkInfo>> {
-        return Observer { workInfoList ->
-            if (workInfoList.isEmpty())
-                return@Observer
-            val workInfo = workInfoList[0]
-            if (workInfo.state.isFinished
-                && workInfo.outputData.getBoolean(
-                    BACKUP_ARGUMENT,
-                    false
-                )
-            ) {
-                Log.d(
-                    "Observer",
-                    "Got this data: ${
-                        workInfo.outputData.getBoolean(
-                            BACKUP_ARGUMENT,
-                            false
-                        )
-                    }"
-                )
-                val backupNotificationBuilder =
-                    BackupNotificationBuilder(requireContext(), false)
-                backupNotificationBuilder.showBackupFinishedNotification()
-                appViewModel.getWorkManager.pruneWork()
+            requireContext().apply {
+                startActivity(Intent(this, ProgressActivity::class.java).apply {
+                    putExtra("selection_list", appViewModel.selectionList.toTypedArray())
+                })
             }
         }
     }
@@ -152,7 +129,7 @@ class AppListFragment : Fragment(), MenuItemListener {
                     viewLifecycleOwner
                         .lifecycleScope.launch {
                             val context = holder.getContext
-                            BitmapUtil.saveBigBitmap(item, context)
+                            BitmapUtil.saveIfBigBitmap(item, context)
                             val intent = Intent(context, BackupActivity::class.java)
                             intent.putExtra("application", item)
                             context.startActivity(intent)
@@ -166,17 +143,6 @@ class AppListFragment : Fragment(), MenuItemListener {
                 appViewModel.doSelection(holder, item)
             }
         })
-    }
-
-    override fun searchQuery(text: String) {
-        println("processing search $text")
-        appAdapter.filter(text)
-    }
-
-    @SuppressLint("NotifyDataSetChanged")
-    override fun selectAll() {
-        appViewModel.setSelectedItems(appAdapter.currentList)
-        appAdapter.notifyDataSetChanged()
     }
 
     /**
@@ -263,35 +229,27 @@ class AppListFragment : Fragment(), MenuItemListener {
         }
     }
 
-    private fun setAppViewModelObservers() {
-        appViewModel.getWorkManager.getWorkInfosByTagLiveData(BACKUP_REQUEST_TAG)
-            .observe(viewLifecycleOwner, workInfoObserver())
-
+    private fun setViewModelObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    appViewModel.isSelected.collect { isSelected ->
+                        binding.batchBackup.visibility =
+                            if (isSelected)
+                                View.VISIBLE
+                            else
+                                View.GONE
+                    }
+                }
                 appViewModel.spinner.collect { value ->
                     if (value)
                         binding.progressBar.visibility = View.VISIBLE
                     else {
                         binding.progressBar.visibility = View.GONE
-                        viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                            appViewModel.getAllApps.collect { appList ->
-                                appAdapter.setData(appList)
-                            }
+                        appViewModel.getAllApps.collect { appList ->
+                            appAdapter.submitList(appList)
                         }
                     }
-                }
-            }
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                appViewModel.isSelected.collect { isSelected ->
-                    binding.batchBackup.visibility =
-                        if (isSelected)
-                            View.VISIBLE
-                        else
-                            View.GONE
                 }
             }
         }

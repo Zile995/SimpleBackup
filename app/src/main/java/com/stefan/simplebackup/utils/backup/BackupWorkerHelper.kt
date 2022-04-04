@@ -1,20 +1,20 @@
 package com.stefan.simplebackup.utils.backup
 
 import androidx.work.*
-import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.workers.BackupWorker
 
 const val BACKUP_REQUEST_TAG = "BACKUP_TAG"
 const val BACKUP_ARGUMENT = "BACKUP_PACKAGES"
 const val BACKUP_WORK_NAME = "BACKUP_WORK"
+const val BACKUP_SIZE = "NUMBER_OF_BACKED_UP"
 
 class BackupWorkerHelper(
-    private val appList: MutableList<AppData>,
+    private val appList: Array<String>,
     private val workManager: WorkManager
 ) {
 
-    constructor(app: AppData, workManager: WorkManager) : this(
-        mutableListOf(app),
+    constructor(packageName: String, workManager: WorkManager) : this(
+        arrayOf(packageName),
         workManager
     )
 
@@ -26,7 +26,6 @@ class BackupWorkerHelper(
         val backupRequest = OneTimeWorkRequestBuilder<BackupWorker>()
             .setInputData(createInputData())
             .setConstraints(constraints)
-            .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
             .addTag(BACKUP_REQUEST_TAG)
             .build()
 
@@ -36,11 +35,7 @@ class BackupWorkerHelper(
 
     private fun createInputData(): Data {
         val builder = Data.Builder()
-        val packageNames = arrayListOf<String>()
-        appList.forEach { app ->
-            packageNames.add(app.packageName)
-        }
-        builder.putStringArray(BACKUP_ARGUMENT, packageNames.toTypedArray())
+        builder.putStringArray(BACKUP_ARGUMENT, appList)
         return builder.build()
     }
 }

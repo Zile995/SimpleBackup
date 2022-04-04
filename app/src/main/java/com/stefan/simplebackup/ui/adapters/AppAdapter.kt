@@ -27,13 +27,6 @@ class AppAdapter(
 ) :
     ListAdapter<AppData, AppAdapter.AppViewHolder>(AppDiffCallBack) {
 
-    private lateinit var appList: MutableList<AppData>
-
-    fun setData(list: MutableList<AppData>) {
-        appList = list
-        submitList(appList)
-    }
-
     /**
      * - Služi da kreiramo View preko kojeg možemo da pristupimo elementima iz list item-a
      * - Parent parametar, je view grupa za koju će da se zakači list item view kao child view. Parent je RecyclerView.
@@ -46,7 +39,7 @@ class AppAdapter(
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val item = getItem(position)
         holder.bind(item)
-        if (selectionListener.getSelectedItems().contains(item)) {
+        if (selectionListener.getSelectedItems().contains(item.packageName)) {
             holder.getCardView.apply {
                 setCardBackgroundColor(
                     holder.getContext.getColor(R.color.cardViewSelected)
@@ -64,16 +57,6 @@ class AppAdapter(
         super.onViewRecycled(holder)
     }
 
-    fun filter(newText: String) {
-        if (newText.length < 2) {
-            setData(appList)
-            return
-        }
-        val pattern = newText.lowercase().trim()
-        val filteredList = appList.filter { pattern in it.name.lowercase() }
-        submitList(filteredList)
-    }
-
     class AppViewHolder private constructor(
         private val view: View,
         private val clickListener: OnClickListener
@@ -85,6 +68,7 @@ class AppAdapter(
         private val versionName: MaterialTextView = view.findViewById(R.id.version_name)
         private val packageName: MaterialTextView = view.findViewById(R.id.package_name)
         private val apkSize: Chip = view.findViewById(R.id.apk_size)
+        private val splitApk: Chip = view.findViewById(R.id.split_apk)
         val getCardView get() = cardView
         val getContext: Context get() = view.context
 
@@ -105,6 +89,9 @@ class AppAdapter(
             versionName.text = checkAndSetString(item.versionName)
             packageName.text = checkAndSetString(item.packageName)
             apkSize.text = item.apkSize.transformBytesToString()
+            splitApk.text = if (item.split)
+                view.resources.getString(R.string.split) else
+                view.resources.getString(R.string.non_split)
         }
 
         private fun loadBitmapByteArray(byteArray: ByteArray) {

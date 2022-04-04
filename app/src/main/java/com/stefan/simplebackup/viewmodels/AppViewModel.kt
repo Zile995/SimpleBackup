@@ -6,7 +6,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.broadcasts.PackageListener
@@ -15,7 +14,6 @@ import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.domain.repository.AppRepository
 import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.SelectionListener
-import com.stefan.simplebackup.utils.backup.BackupWorkerHelper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -32,9 +30,6 @@ class AppViewModel(application: MainApplication) :
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
 
-    private val workManager by lazy { WorkManager.getInstance(application) }
-    val getWorkManager get() = workManager
-
     // Observable application properties used for list loading
     private var _allApps = MutableStateFlow(mutableListOf<AppData>())
     val getAllApps: StateFlow<MutableList<AppData>>
@@ -43,7 +38,7 @@ class AppViewModel(application: MainApplication) :
     // Selection properties
     private var _isSelected = MutableStateFlow(false)
     val isSelected: StateFlow<Boolean> get() = _isSelected
-    private val selectionList = mutableListOf<AppData>()
+    val selectionList = mutableListOf<String>()
 
     // Parcelable properties used for saving a RecyclerView layout position
     private lateinit var state: Parcelable
@@ -124,37 +119,37 @@ class AppViewModel(application: MainApplication) :
 
     override fun hasSelectedItems(): Boolean = _isSelected.value
 
-    override fun setSelectedItems(selectedList: MutableList<AppData>) {
+    override fun setSelectedItems(selectedPackageNames: List<String>) {
         selectionList.clear()
-        selectionList.addAll(selectedList)
+        selectionList.addAll(selectedPackageNames)
     }
 
-    override fun getSelectedItems(): MutableList<AppData> {
+    override fun getSelectedItems(): List<String> {
         return selectionList
     }
 
-    override fun addSelectedItem(app: AppData) {
-        selectionList.add(app)
+    override fun addSelectedItem(packageName: String) {
+        selectionList.add(packageName)
     }
 
-    override fun removeSelectedItem(app: AppData) {
-        selectionList.remove(app)
+    override fun removeSelectedItem(packageName: String) {
+        selectionList.remove(packageName)
     }
 
     override fun doSelection(holder: AppAdapter.AppViewHolder, item: AppData) {
         val selectionList = getSelectedItems()
         val context = holder.getContext
-        if (selectionList.contains(item)) {
-            removeSelectedItem(item)
+        if (selectionList.contains(item.packageName)) {
+            removeSelectedItem(item.packageName)
             holder.getCardView.setCardBackgroundColor(context.getColor(R.color.cardView))
         } else {
-            addSelectedItem(item)
+            addSelectedItem(item.packageName)
             holder.getCardView.setCardBackgroundColor(context.getColor(R.color.cardViewSelected))
         }
         if (selectionList.isEmpty()) {
             setSelectionMode(false)
         }
-        println("Listener list: ${getSelectedItems().size}: ${getSelectedItems().map { it.name }}")
+        println("Listener list: ${getSelectedItems().size}: ${getSelectedItems()}")
     }
 
     // PackageListener methods - Used for database package updates
@@ -168,14 +163,6 @@ class AppViewModel(application: MainApplication) :
 
     override suspend fun deletePackage(packageName: String) {
         deleteApp(packageName)
-    }
-
-    // Batch backup methods
-    fun createLocalBackup() {
-        viewModelScope.launch(ioDispatcher) {
-            val backupWorkerHelper = BackupWorkerHelper(selectionList, workManager)
-            backupWorkerHelper.startBackupWorker()
-        }
     }
 
     override fun onCleared() {

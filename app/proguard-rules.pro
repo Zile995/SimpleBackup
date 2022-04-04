@@ -24,21 +24,17 @@
 # objects. The companions are looked up reflectively so we need to explicitly keep these functions.
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.SerializationKt
--keep,includedescriptorclasses class com.stefan.simplebackup.data.**$$serializer { *; }
--keepclassmembers class com.stefan.simplebackup.data.* {
+-keep,includedescriptorclasses class com.stefan.simplebackup.domain.model.**$$serializer { *; }
+-keepclassmembers class com.stefan.simplebackup.domain.model.* {
     *** Companion;
 }
--keepclasseswithmembers class com.stefan.simplebackup.data.* {
+-keepclasseswithmembers class com.stefan.simplebackup.domain.model.* {
      kotlinx.serialization.KSerializer serializer(...);
 }
+
 -keep public class * implements com.bumptech.glide.module.GlideModule
--keep class * extends com.bumptech.glide.module.AppGlideModule {
- <init>(...);
-}
+-keep public class * extends com.bumptech.glide.module.AppGlideModule
 -keep public enum com.bumptech.glide.load.ImageHeaderParser$** {
   **[] $VALUES;
   public *;
-}
--keep class com.bumptech.glide.load.data.ParcelFileDescriptorRewinder$InternalRewinder {
-  *** rewind();
 }

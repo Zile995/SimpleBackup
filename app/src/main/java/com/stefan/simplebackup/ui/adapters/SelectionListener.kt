@@ -7,13 +7,13 @@ interface SelectionListener {
 
     fun hasSelectedItems(): Boolean
 
-    fun setSelectedItems(selectedList: MutableList<AppData>)
+    fun setSelectedItems(selectedPackageNames: List<String>)
 
-    fun getSelectedItems(): MutableList<AppData>
+    fun getSelectedItems(): List<String>
 
-    fun addSelectedItem(app: AppData)
+    fun addSelectedItem(packageName: String)
 
-    fun removeSelectedItem(app: AppData)
+    fun removeSelectedItem(packageName: String)
 
     fun doSelection(holder: AppAdapter.AppViewHolder, item: AppData)
 }

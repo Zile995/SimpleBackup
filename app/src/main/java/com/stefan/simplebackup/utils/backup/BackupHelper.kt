@@ -43,7 +43,7 @@ open class BackupHelper(context: Context) {
     }
 
     protected fun getBackupDirPath(app: AppData): String {
-        return mainBackupDirPath + "/" + app.packageName
+        return "$mainBackupDirPath/${app.packageName}"
     }
 
     protected suspend fun serializeApp(app: AppData) {

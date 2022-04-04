@@ -34,24 +34,18 @@
         <item name="android:fontFamily">@font/inter_family</item>
     </style>
 
-    <style name="TextAppearance.SimpleBackup.BottomNavigationView.Active" parent="TextAppearance.Material3.LabelLarge">
-        <item name="android:textSize">13sp</item>
-        <item name="fontFamily">@font/inter_family</item>
-        <item name="android:fontFamily">@font/inter_family</item>
-    </style>
-
-    <style name="TextAppearance.SimpleBackup.BottomNavigationView.Inactive" parent="TextAppearance.Material3.LabelLarge">
-        <item name="android:textSize">13sp</item>
+    <style name="TextAppearance.SimpleBackup.BottomNavigationView" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">14sp</item>
         <item name="fontFamily">@font/inter_family</item>
         <item name="android:fontFamily">@font/inter_family</item>
     </style>
 
     <style name="Widget.SimpleBackup.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
         <item name="itemTextAppearanceInactive">
-            @style/TextAppearance.SimpleBackup.BottomNavigationView.Inactive
+            @style/TextAppearance.SimpleBackup.BottomNavigationView
         </item>
         <item name="itemTextAppearanceActive">
-            @style/TextAppearance.SimpleBackup.BottomNavigationView.Active
+            @style/TextAppearance.SimpleBackup.BottomNavigationView
         </item>
     </style>
 
@@ -74,7 +68,6 @@
     <style name="Widget.SimpleBackup.BottomCardView" parent="Widget.Material3.CardView.Elevated">
         <item name="cardCornerRadius">10dp</item>
         <item name="cardElevation">2dp</item>
-        <item name="backgroundColor">@color/cardView</item>
         <item name="strokeWidth">0dp</item>
     </style>
 

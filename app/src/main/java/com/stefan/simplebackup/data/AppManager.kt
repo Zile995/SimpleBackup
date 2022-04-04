@@ -35,7 +35,6 @@ class AppManager(private val context: Context) {
      * - Sadrži [PackageManager]
      */
     private val packageManager: PackageManager = context.packageManager
-    private val myPackageName by lazy { context.applicationContext.packageName }
     private val storageStatsManager by lazy {
         context.getSystemService(Context.STORAGE_STATS_SERVICE) as StorageStatsManager
     }
@@ -145,6 +144,7 @@ class AppManager(private val context: Context) {
      *   tools:ignore="QueryAllPackagesPermission" />**
      */
     private fun getAppData(appInfo: ApplicationInfo): Flow<AppData> = flow {
+        val myPackageName = context.applicationContext.packageName
         if (!(isSystemApp(appInfo) || appInfo.packageName.equals(myPackageName))) {
             val storageStats: StorageStats =
                 storageStatsManager.queryStatsForUid(appInfo.storageUuid, appInfo.uid)
@@ -159,28 +159,28 @@ class AppManager(private val context: Context) {
                 PackageManager.GET_META_DATA
             ).versionName?.substringBefore(" (") ?: ""
             val apkInfo = getApkInfo(apkDir)
-            val apkSize = apkInfo.first
-            val isSplit = apkInfo.second
+            val apkSize = apkInfo?.first
+            val isSplit = apkInfo?.second
 
             val application = AppData(
-                0,
-                name,
-                BitmapUtil.drawableToByteArray(drawable),
-                packageName,
-                versionName,
-                appInfo.targetSdkVersion,
-                appInfo.minSdkVersion,
-                appInfo.dataDir,
-                apkDir,
-                apkSize,
-                isSplit,
-                dataSize,
-                cacheSize,
-                false
+                uid = 0,
+                name = name,
+                bitmap = BitmapUtil.drawableToByteArray(drawable),
+                packageName = packageName,
+                versionName = versionName,
+                targetSdk = appInfo.targetSdkVersion,
+                minSdk = appInfo.minSdkVersion,
+                dataDir = appInfo.dataDir,
+                apkDir = apkDir,
+                apkSize = apkSize ?: 0f,
+                split = isSplit ?: false,
+                dataSize = dataSize,
+                cacheSize = cacheSize,
+                favorite = false
             )
             emit(application)
         }
-    }
+    }.flowOn(ioDispatcher)
 
     /**
      * - Proverava da li je prosleđena aplikacija system app
@@ -189,22 +189,18 @@ class AppManager(private val context: Context) {
         return appInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
     }
 
-    private suspend fun getApkInfo(apkDirPath: String): Pair<Float, Boolean> {
+    private suspend fun getApkInfo(apkDirPath: String): Pair<Float, Boolean>? {
         return withContext(ioDispatcher) {
-            var isSplit = false
-            var apkSize = 0f
-            val dir = File(apkDirPath)
-            val listFiles = dir.listFiles()
-            if (!listFiles.isNullOrEmpty()) {
-                apkSize = listFiles.filter {
-                    it.isFile && it.name.endsWith(".apk")
-                }.apply {
-                    if (this.size > 1) isSplit = true
-                }.sumOf {
-                    it.length()
-                }.toFloat()
+            val isSplit: Boolean
+            File(apkDirPath).listFiles()?.let { apkDirFiles ->
+                apkDirFiles.filter { dirFile ->
+                    dirFile.isFile && dirFile.name.endsWith(".apk")
+                }.also { apkFiles ->
+                    isSplit = apkFiles.size > 1
+                }.sumOf { apkFile ->
+                    apkFile.length()
+                }.toFloat() to isSplit
             }
-            Pair(apkSize, isSplit)
         }
     }
 

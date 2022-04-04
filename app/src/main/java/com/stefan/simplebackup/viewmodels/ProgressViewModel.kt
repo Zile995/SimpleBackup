@@ -1,57 +1,51 @@
 package com.stefan.simplebackup.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
-import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.domain.repository.AppRepository
 import com.stefan.simplebackup.utils.backup.BackupWorkerHelper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class BackupViewModel(
-    private val app: AppData?,
+class ProgressViewModel(
+    private val selectedApps: Array<String>?,
     application: MainApplication
 ) : AndroidViewModel(application) {
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-    private val workManager = WorkManager.getInstance(application)
 
-    val selectedApp get() = app
-
-    init {
-        Log.d("ViewModel", "BackupViewModel created")
-    }
+    private val repository: AppRepository = application.getRepository
+    private val workManager by lazy { WorkManager.getInstance(application) }
+    val getWorkManager get() = workManager
 
     fun createLocalBackup() {
         viewModelScope.launch(ioDispatcher) {
-            app?.packageName?.let { packageName ->
-                val backupWorkerHelper = BackupWorkerHelper(packageName, workManager)
+            selectedApps?.let {
+                val backupWorkerHelper = BackupWorkerHelper(selectedApps, workManager)
                 backupWorkerHelper.startBackupWorker()
             }
         }
     }
 
-    override fun onCleared() {
-        super.onCleared()
-        Log.d("ViewModel", "BackupViewModel cleared")
-    }
+    suspend fun getCurrentApp(packageName: String) =
+        repository.getAppByPackageName(packageName)
 }
 
-class BackupViewModelFactory(
-    private val app: AppData?,
+@Suppress("UNCHECKED_CAST")
+class ProgressViewModelFactory(
+    private val selectedApps: Array<String>?,
     private val application: MainApplication
-) :
-    ViewModelProvider.AndroidViewModelFactory(application) {
+) : ViewModelProvider.AndroidViewModelFactory(application) {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(BackupViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return BackupViewModel(app, application) as T
+        if (modelClass.isAssignableFrom(ProgressViewModel::class.java)) {
+            return ProgressViewModel(selectedApps, application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
+
 }

@@ -43,6 +43,7 @@
         <entry key="app/src/main/res/font/sailec_font.xml" value="0.215625" />
         <entry key="app/src/main/res/layout/activity_backup.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.15217391304347827" />
+        <entry key="app/src/main/res/layout/activity_progress.xml" value="0.21789617486338797" />
         <entry key="app/src/main/res/layout/activity_restore.xml" value="0.22" />
         <entry key="app/src/main/res/layout/activity_search.xml" value="0.3375" />
         <entry key="app/src/main/res/layout/fragment_app_list.xml" value="0.15555555555555556" />
