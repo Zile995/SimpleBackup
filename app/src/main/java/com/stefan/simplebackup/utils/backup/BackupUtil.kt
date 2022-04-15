@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.utils.backup
 
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.utils.main.TarUtil
@@ -44,7 +45,7 @@ class BackupUtil(
 
     private suspend fun Context.savePackageNameToPreferences(packageName: String) {
         withContext(ioDispatcher) {
-            getSharedPreferences("package", Context.MODE_PRIVATE)
+            getSharedPreferences("package", MODE_PRIVATE)
                 .edit()
                 .putString("package_name", packageName)
                 .apply()

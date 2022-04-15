@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -10,6 +11,8 @@ import com.stefan.simplebackup.domain.repository.AppRepository
 import com.stefan.simplebackup.utils.backup.BackupWorkerHelper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ProgressViewModel(
@@ -23,6 +26,10 @@ class ProgressViewModel(
     private val workManager by lazy { WorkManager.getInstance(application) }
     val getWorkManager get() = workManager
 
+    init {
+        Log.d("ProgressViewModel", "ProgressViewModel cleared")
+    }
+
     fun createLocalBackup() {
         viewModelScope.launch(ioDispatcher) {
             selectedApps?.let {
@@ -34,6 +41,11 @@ class ProgressViewModel(
 
     suspend fun getCurrentApp(packageName: String) =
         repository.getAppByPackageName(packageName)
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d("ProgressViewModel", "ProgressViewModel cleared")
+    }
 }
 
 @Suppress("UNCHECKED_CAST")

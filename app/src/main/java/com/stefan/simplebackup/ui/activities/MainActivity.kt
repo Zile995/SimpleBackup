@@ -84,7 +84,6 @@ class MainActivity : AppCompatActivity() {
             setFragments()
         } else {
             restoreFragments(savedInstanceState)
-            isSubmitted = savedInstanceState.getBoolean("isSubmitted")
         }
         prepareActivity()
         println("Bind View finished")
@@ -229,6 +228,11 @@ class MainActivity : AppCompatActivity() {
                 .setTextColor(ContextCompat.getColor(this, R.color.positiveDialog))
         }
         alert.show()
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        isSubmitted = savedInstanceState.getBoolean("isSubmitted")
+        super.onRestoreInstanceState(savedInstanceState)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

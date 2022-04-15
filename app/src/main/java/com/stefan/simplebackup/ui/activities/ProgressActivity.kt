@@ -8,6 +8,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkInfo
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
 import com.stefan.simplebackup.utils.backup.BACKUP_REQUEST_TAG
 import com.stefan.simplebackup.utils.main.loadBitmapToImageView
@@ -23,6 +24,8 @@ class ProgressActivity : AppCompatActivity() {
     private var _binding: ActivityProgressBinding? = null
     private val binding get() = _binding!!
 
+    private var isInProgress: Boolean = false
+
     private val preferences: SharedPreferences by lazy {
         getSharedPreferences("package", MODE_PRIVATE)
     }
@@ -31,13 +34,12 @@ class ProgressActivity : AppCompatActivity() {
         SharedPreferences.OnSharedPreferenceChangeListener { preference, _ ->
             lifecycleScope.launch {
                 preference.getString("package_name", null)?.let { packageName ->
-                    val app = progressViewModel.getCurrentApp(packageName)
-                    binding.applicationNameProgress.text = app.name
-                    loadBitmapToImageView(app.bitmap, binding.applicationImageProgress)
+                    setTheAppInfo(packageName)
                 }
             }
         }
     }
+
     private val progressViewModel: ProgressViewModel by viewModels {
         val selection = intent?.extras?.getStringArray("selection_list")
         val application = application as MainApplication
@@ -49,10 +51,15 @@ class ProgressActivity : AppCompatActivity() {
         _binding = ActivityProgressBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.bindViews()
-        preferences.registerOnSharedPreferenceChangeListener(preferencesListener)
-        setViewModelObservers()
-        progressViewModel.createLocalBackup()
+        savedInstanceState?.let {
+            isInProgress = savedInstanceState.getBoolean("isInProgress")
+        }
+
+        binding.apply {
+            bindViews()
+            setViewModelObservers()
+        }
+        createLocalBackup()
     }
 
     override fun onResume() {
@@ -60,40 +67,75 @@ class ProgressActivity : AppCompatActivity() {
         preferences.registerOnSharedPreferenceChangeListener(preferencesListener)
     }
 
-    override fun onPause() {
-        super.onPause()
-        preferences.unregisterOnSharedPreferenceChangeListener(preferencesListener)
+    override fun onBackPressed() {
+        if (isInProgress) {
+            return
+        } else super.onBackPressed()
     }
 
-    private fun setViewModelObservers() {
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean("isInProgress", isInProgress)
+        super.onSaveInstanceState(outState)
+    }
+
+    private fun ActivityProgressBinding.setViewModelObservers() {
         progressViewModel.getWorkManager.getWorkInfosByTagLiveData(BACKUP_REQUEST_TAG)
-            .observe(this, workInfoObserver())
+            .observe(this@ProgressActivity, workInfoObserver())
+
     }
 
-    private fun workInfoObserver(): Observer<List<WorkInfo>> {
+    private fun ActivityProgressBinding.workInfoObserver(): Observer<List<WorkInfo>> {
         return Observer { workInfoList ->
             if (workInfoList.isEmpty())
                 return@Observer
             workInfoList[0]
                 .progress
                 .getInt(Progress, 0).apply {
-                    binding.progressIndicator.setProgress(this, true)
+                    progressIndicator.setProgress(this, true)
                 }
             if (workInfoList[0].state.isFinished) {
                 progressViewModel.getWorkManager.pruneWork()
-                binding.progressIndicator.setProgress(PROGRESS_MAX, true)
+                isInProgress = false
+                backButton.isEnabled = true
+                progressIndicator.setProgress(PROGRESS_MAX, true)
             }
         }
     }
 
-    private fun ActivityProgressBinding.bindViews() {
-        lifecycleScope.launchWhenCreated {
-
+    private fun createLocalBackup() {
+        if (isInProgress) {
+            return
+        } else {
+            isInProgress = true
+            progressViewModel.createLocalBackup()
         }
+    }
+
+    private fun ActivityProgressBinding.bindViews() {
+        lifecycleScope.launch {
+            window.setBackgroundDrawableResource(R.color.background)
+            bindBackButton()
+            preferences.getString("package_name", null)?.let { packageName ->
+                    setTheAppInfo(packageName)
+                }
+        }
+    }
+
+    private fun ActivityProgressBinding.bindBackButton() {
+        backButton.setOnClickListener {
+            onBackPressed()
+        }
+    }
+
+    private suspend fun setTheAppInfo(packageName: String) {
+        val app = progressViewModel.getCurrentApp(packageName)
+        binding.applicationNameProgress.text = app.name
+        loadBitmapToImageView(app.bitmap, binding.applicationImageProgress)
     }
 
     override fun onDestroy() {
         _binding = null
+        preferences.unregisterOnSharedPreferenceChangeListener(preferencesListener)
         super.onDestroy()
     }
 }
