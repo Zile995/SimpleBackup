@@ -4,14 +4,10 @@ import android.content.Context
 import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.utils.main.FileUtil
 import com.stefan.simplebackup.utils.main.JsonUtil
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import java.text.SimpleDateFormat
 import java.util.*
 
 open class BackupHelper(context: Context) {
-
-    protected val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     /**
      * - Used to get external file dir path

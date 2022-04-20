@@ -11,11 +11,6 @@ class BootBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val packageSharedPref = context.getSharedPreferences("package", Context.MODE_PRIVATE)
         if ("android.intent.action.BOOT_COMPLETED" == intent.action) {
-            packageSharedPref.apply {
-                edit()
-                    .putInt("sequence_number", 0)
-                    .apply()
-            }
             val workManager = WorkManager.getInstance(context)
             workManager.enqueue(OneTimeWorkRequest.from(BootPackageWorker::class.java))
         }

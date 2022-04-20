@@ -9,6 +9,7 @@ import androidx.work.WorkManager
 import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.utils.backup.BackupWorkerHelper
+import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,7 +19,6 @@ class BackupViewModel(
     application: MainApplication
 ) : AndroidViewModel(application) {
 
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val workManager = WorkManager.getInstance(application)
 
     val selectedApp get() = app

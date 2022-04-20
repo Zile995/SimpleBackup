@@ -2,7 +2,6 @@ package com.stefan.simplebackup.ui.activities
 
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -13,27 +12,23 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
-import com.stefan.simplebackup.R
-import com.stefan.simplebackup.broadcasts.PackageBroadcastReceiver
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.R
 import com.stefan.simplebackup.broadcasts.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.broadcasts.NotificationBroadcastReceiver
+import com.stefan.simplebackup.broadcasts.PackageBroadcastReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.fragments.AppListFragment
 import com.stefan.simplebackup.ui.fragments.RestoreListFragment
+import com.stefan.simplebackup.utils.main.PreferenceHelper
 import com.stefan.simplebackup.utils.root.RootChecker
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
-import kotlinx.coroutines.*
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     // Create RootChecker Class instance and reference
-    private var rootChecker = RootChecker(this)
-
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-
-    //Preferences
-    private lateinit var rootSharedPref: SharedPreferences
+    private val rootChecker by lazy { RootChecker(applicationContext) }
 
     // Fragments
     private lateinit var activeFragment: Fragment
@@ -71,9 +66,9 @@ class MainActivity : AppCompatActivity() {
      */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        rootSharedPref = getSharedPreferences("root_access", MODE_PRIVATE)
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         binding.bindViews(savedInstanceState)
         registerBroadcast()
     }
@@ -86,7 +81,6 @@ class MainActivity : AppCompatActivity() {
             restoreFragments(savedInstanceState)
         }
         prepareActivity()
-        println("Bind View finished")
     }
 
     private fun ActivityMainBinding.createBottomBar() {
@@ -174,23 +168,17 @@ class MainActivity : AppCompatActivity() {
 
     private suspend fun setRootDialogs() {
         if (!isSubmitted) {
-            checkForRoot()
+            hasRootAccess()
             isSubmitted = true
         }
-        if (!rootSharedPref.getBoolean(
-                "checked",
-                false
-            ) && rootChecker.isRooted()
-            && !rootSharedPref.getBoolean("root_granted", false)
+        if (!PreferenceHelper.isRootChecked && rootChecker.isRooted()
+            && !PreferenceHelper.isRootGranted
         ) {
             rootDialog(
                 getString(R.string.root_detected),
                 getString(R.string.not_granted)
             )
-        } else if (!rootSharedPref.getBoolean(
-                "checked",
-                false
-            ) && !rootChecker.isRooted()
+        } else if (!PreferenceHelper.isRootChecked && !rootChecker.isRooted()
         ) {
             rootDialog(
                 getString(R.string.not_rooted),
@@ -199,17 +187,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun checkForRoot() {
-        withContext(ioDispatcher) {
-            if (rootChecker.hasRootAccess()) {
-                rootSharedPref.edit().putBoolean("root_granted", true).apply()
-            } else {
-                rootSharedPref.edit().putBoolean("root_granted", false).apply()
-            }
+    private suspend fun hasRootAccess() {
+        if (rootChecker.hasRootAccess()) {
+            PreferenceHelper.setRootGranted(true)
+        } else {
+            PreferenceHelper.setRootGranted(false)
         }
     }
 
-    private fun rootDialog(title: String, message: String) {
+    private suspend fun rootDialog(title: String, message: String) {
         val builder = AlertDialog.Builder(this, R.style.DialogTheme).apply {
             setTitle(title)
             setMessage(message)
@@ -217,11 +203,7 @@ class MainActivity : AppCompatActivity() {
                 dialog.cancel()
             }
         }
-        rootSharedPref.apply {
-            edit()
-                .putBoolean("checked", true)
-                .apply()
-        }
+        PreferenceHelper.setRootChecked(true)
         val alert = builder.create()
         alert.setOnShowListener {
             alert.getButton(AlertDialog.BUTTON_POSITIVE)

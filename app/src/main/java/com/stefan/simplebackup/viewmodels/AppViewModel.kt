@@ -14,8 +14,7 @@ import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.domain.repository.AppRepository
 import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.SelectionListener
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
+import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,7 +25,6 @@ import kotlinx.coroutines.launch
 class AppViewModel(application: MainApplication) :
     AndroidViewModel(application), PackageListener, SelectionListener {
 
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
 
@@ -52,29 +50,29 @@ class AppViewModel(application: MainApplication) :
 
     init {
         appManager.printSequence()
-        launchDataLoading {
-            getAllAppsFromDatabase()
+        viewModelScope.launch(ioDispatcher) {
+            launchDataLoading {
+                getAllAppsFromDatabase()
+            }
+            refreshPackageList()
         }
-        refreshPackageList()
         Log.d("ViewModel", "AppViewModel created")
     }
 
     private fun getAllAppsFromDatabase() = repository.getAllApps
 
     // Loading methods
-    private inline fun launchDataLoading(
+    private suspend inline fun launchDataLoading(
         crossinline allAppsFromDatabase: () -> Flow<MutableList<AppData>>,
     ) {
-        viewModelScope.launch(ioDispatcher) {
-            runCatching {
-                allAppsFromDatabase().collectLatest { apps ->
-                    _allApps.value = apps
-                    delay(250)
-                    _spinner.value = false
-                }
-            }.onFailure { throwable ->
-                throwable.message?.let { message -> Log.e("ViewModel", message) }
+        runCatching {
+            allAppsFromDatabase().collectLatest { apps ->
+                _allApps.value = apps
+                delay(150)
+                _spinner.value = false
             }
+        }.onFailure { throwable ->
+            throwable.message?.let { message -> Log.e("ViewModel", message) }
         }
     }
 

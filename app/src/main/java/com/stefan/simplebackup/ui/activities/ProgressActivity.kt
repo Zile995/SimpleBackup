@@ -11,6 +11,8 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
 import com.stefan.simplebackup.utils.backup.BACKUP_REQUEST_TAG
+import com.stefan.simplebackup.utils.main.PreferenceHelper
+import com.stefan.simplebackup.utils.main.PreferenceHelper.getPackageName
 import com.stefan.simplebackup.utils.main.loadBitmapToImageView
 import com.stefan.simplebackup.viewmodels.ProgressViewModel
 import com.stefan.simplebackup.viewmodels.ProgressViewModelFactory
@@ -24,17 +26,13 @@ class ProgressActivity : AppCompatActivity() {
     private var _binding: ActivityProgressBinding? = null
     private val binding get() = _binding!!
 
-    private var isInProgress: Boolean = false
-
-    private val preferences: SharedPreferences by lazy {
-        getSharedPreferences("package", MODE_PRIVATE)
-    }
+    private var isInProgress: Boolean = true
 
     private val preferencesListener by lazy {
         SharedPreferences.OnSharedPreferenceChangeListener { preference, _ ->
             lifecycleScope.launch {
-                preference.getString("package_name", null)?.let { packageName ->
-                    setTheAppInfo(packageName)
+                preference.getPackageName()?.let { packageName ->
+                    binding.setViewData(packageName)
                 }
             }
         }
@@ -55,22 +53,23 @@ class ProgressActivity : AppCompatActivity() {
             isInProgress = savedInstanceState.getBoolean("isInProgress")
         }
 
+        println("Saved progress onCreate: $isInProgress")
+
         binding.apply {
             bindViews()
             setViewModelObservers()
         }
-        createLocalBackup()
     }
 
     override fun onResume() {
         super.onResume()
-        preferences.registerOnSharedPreferenceChangeListener(preferencesListener)
+        PreferenceHelper.registerPreferenceListener(preferencesListener)
     }
 
     override fun onBackPressed() {
-        if (isInProgress) {
-            return
-        } else super.onBackPressed()
+        println("Saved progress back button: $isInProgress")
+        if (!isInProgress)
+            super.onBackPressed()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -81,7 +80,6 @@ class ProgressActivity : AppCompatActivity() {
     private fun ActivityProgressBinding.setViewModelObservers() {
         progressViewModel.getWorkManager.getWorkInfosByTagLiveData(BACKUP_REQUEST_TAG)
             .observe(this@ProgressActivity, workInfoObserver())
-
     }
 
     private fun ActivityProgressBinding.workInfoObserver(): Observer<List<WorkInfo>> {
@@ -94,48 +92,46 @@ class ProgressActivity : AppCompatActivity() {
                     progressIndicator.setProgress(this, true)
                 }
             if (workInfoList[0].state.isFinished) {
-                progressViewModel.getWorkManager.pruneWork()
-                isInProgress = false
                 backButton.isEnabled = true
+                isInProgress = false
                 progressIndicator.setProgress(PROGRESS_MAX, true)
+                progressViewModel.getWorkManager.pruneWork()
             }
-        }
-    }
-
-    private fun createLocalBackup() {
-        if (isInProgress) {
-            return
-        } else {
-            isInProgress = true
-            progressViewModel.createLocalBackup()
         }
     }
 
     private fun ActivityProgressBinding.bindViews() {
         lifecycleScope.launch {
             window.setBackgroundDrawableResource(R.color.background)
+            bindData()
             bindBackButton()
-            preferences.getString("package_name", null)?.let { packageName ->
-                    setTheAppInfo(packageName)
-                }
+        }
+    }
+
+    private suspend fun ActivityProgressBinding.bindData() {
+        PreferenceHelper.packageName?.let { packageName ->
+            this.setViewData(packageName)
         }
     }
 
     private fun ActivityProgressBinding.bindBackButton() {
-        backButton.setOnClickListener {
-            onBackPressed()
+        backButton.isEnabled = !isInProgress
+        backButton.apply {
+            setOnClickListener {
+                onBackPressed()
+            }
         }
     }
 
-    private suspend fun setTheAppInfo(packageName: String) {
+    private suspend fun ActivityProgressBinding.setViewData(packageName: String) {
         val app = progressViewModel.getCurrentApp(packageName)
-        binding.applicationNameProgress.text = app.name
+        applicationNameProgress.text = app.name
         loadBitmapToImageView(app.bitmap, binding.applicationImageProgress)
     }
 
     override fun onDestroy() {
         _binding = null
-        preferences.unregisterOnSharedPreferenceChangeListener(preferencesListener)
+        PreferenceHelper.unregisterPreferenceListener(preferencesListener)
         super.onDestroy()
     }
 }

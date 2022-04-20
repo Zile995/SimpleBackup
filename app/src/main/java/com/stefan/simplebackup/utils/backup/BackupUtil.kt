@@ -1,11 +1,12 @@
 package com.stefan.simplebackup.utils.backup
 
 import android.content.Context
-import android.content.Context.MODE_PRIVATE
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.domain.model.AppData
-import com.stefan.simplebackup.utils.main.TarUtil
-import com.stefan.simplebackup.utils.main.ZipUtil
+import com.stefan.simplebackup.utils.archive.TarUtil
+import com.stefan.simplebackup.utils.archive.ZipUtil
+import com.stefan.simplebackup.utils.main.PreferenceHelper
+import com.stefan.simplebackup.utils.main.ioDispatcher
 import com.stefan.simplebackup.workers.PROGRESS_MAX
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
@@ -34,7 +35,7 @@ class BackupUtil(
         prepareUtils()
         packageNames.forEach { packageName ->
             repository.getAppByPackageName(packageName).also { app ->
-                appContext.savePackageNameToPreferences(packageName)
+                savePackageNameToPreferences(packageName)
                 emitProgressData(createDirs(app))
                 emitProgressData(backupData(app))
                 emitProgressData(zipData(app))
@@ -43,12 +44,9 @@ class BackupUtil(
         }
     }
 
-    private suspend fun Context.savePackageNameToPreferences(packageName: String) {
+    private suspend fun savePackageNameToPreferences(packageName: String) {
         withContext(ioDispatcher) {
-            getSharedPreferences("package", MODE_PRIVATE)
-                .edit()
-                .putString("package_name", packageName)
-                .apply()
+            PreferenceHelper.savePackageName(packageName)
         }
     }
 

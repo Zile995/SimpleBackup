@@ -3,8 +3,8 @@ package com.stefan.simplebackup.utils.restore
 import com.stefan.simplebackup.utils.backup.BackupHelper
 import android.content.Context
 import com.stefan.simplebackup.domain.model.AppData
-import com.stefan.simplebackup.utils.main.TarUtil
-import com.stefan.simplebackup.utils.main.ZipUtil
+import com.stefan.simplebackup.utils.archive.TarUtil
+import com.stefan.simplebackup.utils.archive.ZipUtil
 
 private const val TMP: String = "/data/local/tmp"
 private const val DATA: String = "/data/data"

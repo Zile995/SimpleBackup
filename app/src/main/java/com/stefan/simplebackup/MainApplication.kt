@@ -6,6 +6,7 @@ import com.stefan.simplebackup.data.AppManager
 import com.stefan.simplebackup.domain.database.AppDatabase
 import com.stefan.simplebackup.domain.repository.AppRepository
 import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.utils.main.PreferenceHelper.initPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 
@@ -61,6 +62,7 @@ class MainApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        initPreferences()
         Log.d("MainApplication", "Started creating database")
         database
     }

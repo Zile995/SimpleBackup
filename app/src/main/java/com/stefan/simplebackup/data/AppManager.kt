@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.utils.main.BitmapUtil
+import com.stefan.simplebackup.utils.main.PreferenceHelper
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -27,11 +28,6 @@ class AppManager(private val context: Context) {
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     /**
-     * - Saved shared preference
-     */
-    private val packageSharedPref = context.getSharedPreferences("package", Context.MODE_PRIVATE)
-
-    /**
      * - Sadrži [PackageManager]
      */
     private val packageManager: PackageManager = context.packageManager
@@ -47,25 +43,20 @@ class AppManager(private val context: Context) {
     fun printSequence() {
         Log.d(
             "AppManager", "Sequence number:" +
-                    " ${packageSharedPref.getInt("sequence_number", 0)}"
+                    " ${PreferenceHelper.getSequenceNumber}"
         )
     }
 
-    private fun getSavedSequenceNumber(): Int = packageSharedPref.getInt("sequence_number", 0)
-
-    private fun getChangedPackages() = packageManager.getChangedPackages(getSavedSequenceNumber())
+    private fun getChangedPackages() =
+        packageManager.getChangedPackages(PreferenceHelper.getSequenceNumber)
 
     private fun saveSequenceNumber(newSequenceNumber: Int) {
-        if (newSequenceNumber != getSavedSequenceNumber()) {
-            packageSharedPref.apply {
-                edit()
-                    .putInt("sequence_number", newSequenceNumber)
-                    .apply()
-            }
+        if (newSequenceNumber != PreferenceHelper.getSequenceNumber) {
+            PreferenceHelper.updateSequenceNumber(newSequenceNumber)
         }
         Log.d(
             "AppManager",
-            "Sequence number: ${packageSharedPref.getInt("sequence_number", 0)}"
+            "Sequence number: ${PreferenceHelper.getSequenceNumber}"
         )
     }
 

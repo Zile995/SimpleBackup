@@ -6,9 +6,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.data.AppManager
+import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.utils.main.PreferenceHelper
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.system.measureTimeMillis
 
@@ -26,6 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
     ) :
         RoomDatabase.Callback() {
 
+        private var mainJob: Job? = null
         private val appDao by lazy { INSTANCE?.appDao() }
 
         private suspend fun insertAll() {
@@ -36,14 +39,28 @@ abstract class AppDatabase : RoomDatabase() {
                         appDao?.insert(app)
                     }
                 }
+                PreferenceHelper.setDatabaseCreated(true)
             }
             Log.d("AppDatabase", "Load time: $time")
         }
 
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
-            scope.launch {
+            mainJob = scope.launch {
+                Log.d("AppDatabase", "Creating database")
                 insertAll()
+            }
+        }
+
+        override fun onOpen(db: SupportSQLiteDatabase) {
+            super.onOpen(db)
+            scope.launch {
+                mainJob?.join()
+                if (!PreferenceHelper.isDatabaseCreated) {
+                    Log.d("AppDatabase", "Updating database again")
+                    insertAll()
+                    mainJob = null
+                }
             }
         }
     }
