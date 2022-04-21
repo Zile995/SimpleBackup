@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.broadcasts
+package com.stefan.simplebackup.data.broadcasts
 
 interface PackageListener {
     suspend fun addOrUpdatePackage(packageName: String)

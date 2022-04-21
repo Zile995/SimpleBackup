@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.domain.model
+package com.stefan.simplebackup.data.model
 
 
 import android.os.Parcel

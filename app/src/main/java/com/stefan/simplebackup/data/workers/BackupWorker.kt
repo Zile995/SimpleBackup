@@ -1,16 +1,16 @@
-package com.stefan.simplebackup.workers
+package com.stefan.simplebackup.data.workers
 
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.work.*
-import com.stefan.simplebackup.broadcasts.ACTION_WORK_FINISHED
-import com.stefan.simplebackup.broadcasts.NotificationBroadcastReceiver
-import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.data.broadcasts.ACTION_WORK_FINISHED
+import com.stefan.simplebackup.data.broadcasts.NotificationBroadcastReceiver
+import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.ui.notifications.EXTRA_NOTIFICATION
 import com.stefan.simplebackup.ui.notifications.NotificationBuilder
-import com.stefan.simplebackup.utils.backup.BACKUP_ARGUMENT
-import com.stefan.simplebackup.utils.backup.BACKUP_SIZE
+import com.stefan.simplebackup.utils.backup.ARGUMENT
+import com.stefan.simplebackup.utils.backup.WORK_ITEMS
 import com.stefan.simplebackup.utils.backup.BackupUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -30,11 +30,11 @@ class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWor
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val notificationBuilder = NotificationBuilder(appContext, true)
     private val packageNames: Array<String>?
-        get() = inputData.getStringArray(BACKUP_ARGUMENT)
+        get() = inputData.getStringArray(ARGUMENT)
 
     override suspend fun doWork(): Result = coroutineScope {
         try {
-            outputData = workDataOf(BACKUP_ARGUMENT to false)
+            outputData = workDataOf(ARGUMENT to false)
             withContext(ioDispatcher) {
                 val time = measureTimeMillis {
                     backup()
@@ -58,8 +58,8 @@ class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWor
             }
         }
         outputData = workDataOf(
-            BACKUP_ARGUMENT to true,
-            BACKUP_SIZE to (packageNames?.size ?: 0)
+            ARGUMENT to true,
+            WORK_ITEMS to (packageNames?.size ?: 0)
         )
     }
 
@@ -70,7 +70,7 @@ class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWor
                 NotificationBroadcastReceiver::class.java
             ).apply {
                 action = ACTION_WORK_FINISHED
-                putExtra(BACKUP_SIZE, packageNames?.size ?: 0)
+                putExtra(WORK_ITEMS, packageNames?.size ?: 0)
                 putExtra(
                     EXTRA_NOTIFICATION,
                     notificationBuilder

@@ -1,15 +1,21 @@
 package com.stefan.simplebackup.utils.main
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
 import com.stefan.simplebackup.R
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlin.math.pow
+
+val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
+fun Number.transformBytesToString(): String {
+    return String.format("%3.1f %s", this.toFloat() / 1000.0.pow(2), "MB")
+}
 
 fun Context.showToast(message: String) {
     Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
@@ -24,31 +30,24 @@ fun Context.loadBitmapToImageView(byteArray: ByteArray, image: ImageView) {
     }
 }
 
-//holder.cardView.setOnClickListener {
-//        TODO: To be fixed later
-//    val builder = AlertDialog.Builder(context, R.style.DialogTheme)
-//    builder.setTitle(context.getString(R.string.confirm_restore))
-//    builder.setMessage(context.getString(R.string.restore_confirmation_message))
-//    builder.setPositiveButton(context.getString(R.string.yes)) { dialog, _ ->
-//        dialog.cancel()
-//        CoroutineScope(Dispatchers.Main).launch {
-//            launch { installApp(context, item) }.join()
-//            launch {
-//                Toast.makeText(context, "Successfully restored!", Toast.LENGTH_SHORT)
-//                    .show()
-//            }
-//        }
-//    }
-//    builder.setNegativeButton(context.getString(R.string.no)) { dialog, _ -> dialog.cancel() }
-//    val alert = builder.create()
-//    alert.setOnShowListener {
-//        alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-//            .setTextColor(context.getColor(R.color.negativeDialog))
-//        alert.getButton(AlertDialog.BUTTON_POSITIVE)
-//            .setTextColor(context.getColor(R.color.positiveDialog))
-//    }
-//    alert.show()
-//}
+fun Context.showRestoreDialog(restore: () -> Unit) {
+    val builder = AlertDialog.Builder(this, R.style.DialogTheme)
+    builder.setTitle(this.getString(R.string.confirm_restore))
+    builder.setMessage(this.getString(R.string.restore_confirmation_message))
+    builder.setPositiveButton(this.getString(R.string.yes)) { dialog, _ ->
+        dialog.cancel()
+        restore()
+    }
+    builder.setNegativeButton(this.getString(R.string.no)) { dialog, _ -> dialog.cancel() }
+    val alert = builder.create()
+    alert.setOnShowListener {
+        alert.getButton(AlertDialog.BUTTON_NEGATIVE)
+            .setTextColor(this.getColor(R.color.negativeDialog))
+        alert.getButton(AlertDialog.BUTTON_POSITIVE)
+            .setTextColor(this.getColor(R.color.positiveDialog))
+    }
+    alert.show()
+}
 
 //    private fun createToolBar() {
 //        TODO: To be fixed later

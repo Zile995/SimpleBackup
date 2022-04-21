@@ -6,12 +6,13 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.broadcasts.PackageListener
-import com.stefan.simplebackup.data.AppManager
-import com.stefan.simplebackup.domain.model.AppData
-import com.stefan.simplebackup.domain.repository.AppRepository
+import com.stefan.simplebackup.data.broadcasts.PackageListener
+import com.stefan.simplebackup.data.manager.AppManager
+import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.data.repository.AppRepository
 import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.SelectionListener
 import com.stefan.simplebackup.utils.main.ioDispatcher
@@ -50,7 +51,7 @@ class AppViewModel(application: MainApplication) :
 
     init {
         appManager.printSequence()
-        viewModelScope.launch(ioDispatcher) {
+        viewModelScope.launch {
             launchDataLoading {
                 getAllAppsFromDatabase()
             }
@@ -134,9 +135,9 @@ class AppViewModel(application: MainApplication) :
         selectionList.remove(packageName)
     }
 
-    override fun doSelection(holder: AppAdapter.AppViewHolder, item: AppData) {
+    override fun doSelection(holder: RecyclerView.ViewHolder, item: AppData) {
         val selectionList = getSelectedItems()
-        val context = holder.getContext
+        val context = (holder as AppAdapter.AppViewHolder).getContext
         if (selectionList.contains(item.packageName)) {
             removeSelectedItem(item.packageName)
             holder.getCardView.setCardBackgroundColor(context.getColor(R.color.cardView))

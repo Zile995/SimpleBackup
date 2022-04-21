@@ -24,11 +24,11 @@
 # objects. The companions are looked up reflectively so we need to explicitly keep these functions.
 -keepattributes *Annotation*, InnerClasses
 -dontnote kotlinx.serialization.SerializationKt
--keep,includedescriptorclasses class com.stefan.simplebackup.domain.model.**$$serializer { *; }
--keepclassmembers class com.stefan.simplebackup.domain.model.* {
+-keep,includedescriptorclasses class com.stefan.simplebackup.data.model.**$$serializer { *; }
+-keepclassmembers class com.stefan.simplebackup.data.model.* {
     *** Companion;
 }
--keepclasseswithmembers class com.stefan.simplebackup.domain.model.* {
+-keepclasseswithmembers class com.stefan.simplebackup.data.model.* {
      kotlinx.serialization.KSerializer serializer(...);
 }
 

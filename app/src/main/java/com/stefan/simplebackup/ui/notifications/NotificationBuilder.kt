@@ -9,13 +9,16 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
 import androidx.core.app.NotificationManagerCompat
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.data.model.AppData
 
 const val NOTIFICATION_ID = 42
 const val EXTRA_NOTIFICATION = "NOTIFICATION_PARCEL"
 const val CHANNEL_ID = "MAIN_NOTIFICATION"
 
-class NotificationBuilder(private val context: Context, private val ongoing: Boolean) {
+class NotificationBuilder(
+    private val context: Context,
+    private val ongoing: Boolean
+) {
 
     init {
         createNotificationChannel()

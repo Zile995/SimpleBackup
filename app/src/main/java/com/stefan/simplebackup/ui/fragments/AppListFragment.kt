@@ -15,7 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
-import com.stefan.simplebackup.ui.activities.BackupActivity
+import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.activities.ProgressActivity
 import com.stefan.simplebackup.ui.adapters.AppAdapter
@@ -41,8 +41,7 @@ class AppListFragment : Fragment() {
 
     // ViewModel
     private val appViewModel: AppViewModel by activityViewModels {
-        val mainApplication = activity.application as MainApplication
-        AppViewModelFactory(mainApplication)
+        AppViewModelFactory(activity.application as MainApplication)
     }
 
     private var isSearching = false
@@ -120,23 +119,23 @@ class AppListFragment : Fragment() {
 
     private fun setAppAdapter() {
         _appAdapter = AppAdapter(appViewModel, object : OnClickListener {
-            override fun onItemViewClick(holder: AppAdapter.AppViewHolder, position: Int) {
+            override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
                 val item = appAdapter.currentList[position]
                 if (appViewModel.hasSelectedItems()) {
                     appViewModel.doSelection(holder, item)
                 } else {
                     viewLifecycleOwner
                         .lifecycleScope.launch {
-                            val context = holder.getContext
+                            val context = (holder as AppAdapter.AppViewHolder).getContext
                             BitmapUtil.saveIfBigBitmap(item, context)
-                            val intent = Intent(context, BackupActivity::class.java)
+                            val intent = Intent(context, AppDetailActivity::class.java)
                             intent.putExtra("application", item)
                             context.startActivity(intent)
                         }
                 }
             }
 
-            override fun onLongItemViewClick(holder: AppAdapter.AppViewHolder, position: Int) {
+            override fun onLongItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
                 val item = appAdapter.currentList[position]
                 appViewModel.setSelectionMode(true)
                 appViewModel.doSelection(holder, item)

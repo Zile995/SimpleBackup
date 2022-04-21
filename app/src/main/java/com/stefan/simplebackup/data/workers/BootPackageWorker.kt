@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.workers
+package com.stefan.simplebackup.data.workers
 
 import android.content.Context
 import android.util.Log

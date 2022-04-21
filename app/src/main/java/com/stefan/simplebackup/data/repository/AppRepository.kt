@@ -1,7 +1,7 @@
-package com.stefan.simplebackup.domain.repository
+package com.stefan.simplebackup.data.repository
 
-import com.stefan.simplebackup.domain.database.AppDao
-import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.data.database.AppDao
+import com.stefan.simplebackup.data.model.AppData
 import kotlinx.coroutines.flow.Flow
 
 class AppRepository(private val appDao: AppDao) {

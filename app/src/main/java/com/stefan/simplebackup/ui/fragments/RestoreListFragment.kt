@@ -7,17 +7,24 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
-import com.stefan.simplebackup.domain.model.AppData
 import com.stefan.simplebackup.ui.activities.MainActivity
+import com.stefan.simplebackup.ui.adapters.AppAdapter
+import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.ui.adapters.RestoreAdapter
 import com.stefan.simplebackup.utils.backup.ROOT
 import com.stefan.simplebackup.utils.main.FileUtil
 import com.stefan.simplebackup.utils.main.JsonUtil
+import com.stefan.simplebackup.utils.main.showRestoreDialog
+import com.stefan.simplebackup.viewmodels.RestoreViewModel
+import com.stefan.simplebackup.viewmodels.RestoreViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -38,7 +45,20 @@ class RestoreListFragment : Fragment() {
     private var _restoreAdapter: RestoreAdapter? = null
     private val restoreAdapter get() = _restoreAdapter!!
 
+    private val restoreViewModel: RestoreViewModel by viewModels {
+        RestoreViewModelFactory(activity.application as MainApplication)
+    }
+
     private var applicationList = mutableListOf<AppData>()
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        val currentActivity = requireActivity()
+        if (currentActivity is MainActivity) {
+            activity = currentActivity
+        }
+        restoreViewModel
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,61 +70,68 @@ class RestoreListFragment : Fragment() {
         return binding.root
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        val currentActivity = requireActivity()
-        if (currentActivity is MainActivity) {
-            activity = currentActivity
-        }
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        _restoreAdapter = RestoreAdapter()
-        viewLifecycleOwner
-            .lifecycleScope.launch {
-                if (isAdded) {
-                    bindViews()
-                    launch {
-                        getStoredPackages()
-                    }.join()
-                    launch {
-                        binding.progressBar.visibility = ProgressBar.INVISIBLE
-                        restoreAdapter.setData(applicationList)
+        _restoreAdapter = RestoreAdapter(object : OnClickListener {
+            override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
+                val item = restoreAdapter.currentList[position]
+                if (restoreViewModel.hasSelectedItems()) {
+                    restoreViewModel.doSelection(holder, item)
+                } else {
+                    restoreViewModel.addSelectedItem(item.packageName)
+                    requireContext().showRestoreDialog {
+                        restoreViewModel.startRestoreWorker()
                     }
+                    restoreViewModel.selectionList.clear()
                 }
             }
-    }
 
-    private fun bindViews() {
-        createToolBar()
-        createRecyclerView()
-        createSwipeContainer()
-        createFloatingButton()
-    }
-
-    private fun createSwipeContainer() {
-        binding.swipeRefresh.setOnRefreshListener {
-            viewLifecycleOwner
-                .lifecycleScope.launch {
-                    val refresh = launch {
-                        getStoredPackages()
-                    }
-                    refresh.join()
-                    launch {
-                        binding.swipeRefresh.isRefreshing = false
-                        delay(250)
-                        restoreAdapter.setData(applicationList)
-                    }
-                }
+            override fun onLongItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
+                val item = restoreAdapter.currentList[position]
+                restoreViewModel.setSelectionMode(true)
+                restoreViewModel.doSelection(holder, item)
+            }
+        })
+        viewLifecycleOwner.lifecycleScope.launch {
+            if (isAdded) {
+                launch {
+                    binding.bindViews()
+                    getStoredPackages()
+                }.join()
+                binding.progressBar.visibility = ProgressBar.INVISIBLE
+                restoreAdapter.submitList(applicationList)
+            }
         }
     }
 
-    private fun createRecyclerView() {
-        binding.restoreRecyclerView.apply {
+    private fun FragmentRestoreListBinding.bindViews() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            bindToolBar()
+            bindRecyclerView()
+            bindSwipeContainer()
+            bindFloatingButton()
+        }
+    }
+
+    private fun FragmentRestoreListBinding.bindSwipeContainer() {
+        swipeRefresh.setOnRefreshListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                val refresh = launch {
+                    getStoredPackages()
+                }
+                refresh.join()
+                swipeRefresh.isRefreshing = false
+                delay(250)
+                restoreAdapter.submitList(applicationList)
+            }
+        }
+    }
+
+    private fun FragmentRestoreListBinding.bindRecyclerView() {
+        restoreRecyclerView.apply {
             adapter = restoreAdapter
             setHasFixedSize(true)
-            setItemViewCacheSize(20)
+            setItemViewCacheSize(5)
             layoutManager = LinearLayoutManager(requireContext())
         }
     }
@@ -137,8 +164,8 @@ class RestoreListFragment : Fragment() {
         }
     }
 
-    private fun createToolBar() {
-        binding.toolBar.setOnMenuItemClickListener { menuItem ->
+    private fun FragmentRestoreListBinding.bindToolBar() {
+        toolBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.search -> {
                     true
@@ -150,25 +177,25 @@ class RestoreListFragment : Fragment() {
         }
     }
 
-    private fun createFloatingButton() {
-        binding.floatingButton.hide()
+    private fun FragmentRestoreListBinding.bindFloatingButton() {
+        floatingButton.hide()
         hideButton()
 
-        binding.floatingButton.setOnClickListener {
-            binding.restoreRecyclerView.smoothScrollToPosition(0)
+        floatingButton.setOnClickListener {
+            restoreRecyclerView.smoothScrollToPosition(0)
         }
     }
 
-    private fun hideButton() {
-        binding.restoreRecyclerView.addOnScrollListener(object :
+    private fun FragmentRestoreListBinding.hideButton() {
+        restoreRecyclerView.addOnScrollListener(object :
             RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                if (dy > 0 && binding.floatingButton.isShown) {
-                    binding.floatingButton.hide()
-                } else if (dy < 0 && !binding.floatingButton.isShown) {
-                    binding.floatingButton.show()
+                if (dy > 0 && floatingButton.isShown) {
+                    floatingButton.hide()
+                } else if (dy < 0 && !floatingButton.isShown) {
+                    floatingButton.show()
                 }
             }
 
@@ -177,12 +204,12 @@ class RestoreListFragment : Fragment() {
 
                 // Ako ne može da skroluje više na dole (1 je down direction) i ako može ma gore (-1 up direction)
                 if (!recyclerView.canScrollVertically(1) && recyclerView.canScrollVertically(-1) && newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    binding.floatingButton.show()
+                    floatingButton.show()
                 } else if (recyclerView.canScrollVertically(1) && !recyclerView.canScrollVertically(
                         -1
                     )
                 ) {
-                    binding.floatingButton.hide()
+                    floatingButton.hide()
                 }
             }
         })

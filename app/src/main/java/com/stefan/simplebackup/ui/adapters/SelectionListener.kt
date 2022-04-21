@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.ui.adapters
 
-import com.stefan.simplebackup.domain.model.AppData
+import androidx.recyclerview.widget.RecyclerView
+import com.stefan.simplebackup.data.model.AppData
 
 interface SelectionListener {
     fun setSelectionMode(selection: Boolean)
@@ -15,5 +16,5 @@ interface SelectionListener {
 
     fun removeSelectedItem(packageName: String)
 
-    fun doSelection(holder: AppAdapter.AppViewHolder, item: AppData)
+    fun doSelection(holder: RecyclerView.ViewHolder, item: AppData)
 }

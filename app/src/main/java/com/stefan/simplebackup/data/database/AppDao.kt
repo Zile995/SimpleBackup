@@ -1,7 +1,7 @@
-package com.stefan.simplebackup.domain.database
+package com.stefan.simplebackup.data.database
 
 import androidx.room.*
-import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.data.model.AppData
 import kotlinx.coroutines.flow.Flow
 
 @Dao

@@ -29,44 +29,43 @@ import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.databinding.ActivityBackupBinding
-import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.databinding.ActivityDetailBinding
 import com.stefan.simplebackup.utils.main.BitmapUtil
 import com.stefan.simplebackup.utils.main.showToast
 import com.stefan.simplebackup.utils.main.transformBytesToString
-import com.stefan.simplebackup.viewmodels.BackupViewModel
-import com.stefan.simplebackup.viewmodels.BackupViewModelFactory
+import com.stefan.simplebackup.viewmodels.AppDetailViewModel
+import com.stefan.simplebackup.viewmodels.AppDetailViewModelFactory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.*
 
-private const val TAG: String = "BackupActivity"
+private const val TAG: String = "AppDetailActivity"
 private const val REQUEST_CODE_SIGN_IN: Int = 400
 private const val STORAGE_PERMISSION_CODE: Int = 500
 
-class BackupActivity : AppCompatActivity() {
+class AppDetailActivity : AppCompatActivity() {
 
     // Package name reference
     private val myPackageName: String by lazy { applicationContext.packageName }
 
-    private var _binding: ActivityBackupBinding? = null
+    private var _binding: ActivityDetailBinding? = null
     private val binding get() = _binding!!
 
-    private val backupViewModel: BackupViewModel by viewModels {
-        val application = application as MainApplication
+    private val appDetailViewModel: AppDetailViewModel by viewModels {
         val selectedApp: AppData? = intent?.extras?.getParcelable("application")
-        BackupViewModelFactory(selectedApp, application)
+        AppDetailViewModelFactory(selectedApp, application as MainApplication)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_backup)
+        setContentView(R.layout.activity_detail)
 
-        _binding = ActivityBackupBinding.inflate(layoutInflater)
+        _binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         lifecycleScope.launch {
-            backupViewModel.selectedApp?.let {
+            appDetailViewModel.selectedApp?.let {
                 bindViews()
                 setData()
             }
@@ -88,7 +87,7 @@ class BackupActivity : AppCompatActivity() {
             if (!checkPermission()) {
                 requestPermission()
             } else {
-                backupViewModel.apply {
+                appDetailViewModel.apply {
                     createLocalBackup()
                 }
             }
@@ -97,7 +96,7 @@ class BackupActivity : AppCompatActivity() {
 
     private fun createMainCardView() {
         binding.backupCardView.setOnClickListener {
-            backupViewModel.selectedApp?.let {
+            appDetailViewModel.selectedApp?.let {
                 openApplication(it.packageName)
             }
         }
@@ -128,7 +127,7 @@ class BackupActivity : AppCompatActivity() {
     private fun createDeleteButton() {
         binding.floatingDeleteButton.setOnClickListener {
             lifecycleScope.launch {
-                backupViewModel.selectedApp?.let { app ->
+                appDetailViewModel.selectedApp?.let { app ->
                     deleteApp(app.packageName)
                 }
                 delay(500)
@@ -144,7 +143,7 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private suspend fun setData() {
-        backupViewModel.selectedApp?.let { app ->
+        appDetailViewModel.selectedApp?.let { app ->
             binding.apply {
                 setAppImage()
                 textItemBackup.text = app.name
@@ -160,7 +159,7 @@ class BackupActivity : AppCompatActivity() {
     }
 
     private suspend fun setAppImage() {
-        backupViewModel.selectedApp?.let { app ->
+        appDetailViewModel.selectedApp?.let { app ->
             BitmapUtil.setAppBitmap(app, applicationContext)
             Glide.with(applicationContext).apply {
                 asBitmap()
@@ -182,7 +181,7 @@ class BackupActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.force_stop -> {
-                backupViewModel.selectedApp?.let { app ->
+                appDetailViewModel.selectedApp?.let { app ->
                     forceStop(app.packageName)
                 }
                 true
@@ -238,7 +237,7 @@ class BackupActivity : AppCompatActivity() {
     private fun openPackageDetailsSettings() {
         startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             addCategory(Intent.CATEGORY_DEFAULT)
-            data = Uri.parse("package:" + backupViewModel.selectedApp?.packageName)
+            data = Uri.parse("package:" + appDetailViewModel.selectedApp?.packageName)
         })
     }
 
@@ -266,9 +265,9 @@ class BackupActivity : AppCompatActivity() {
             STORAGE_PERMISSION_CODE -> {
                 if (grantResults.isNotEmpty() && grantResults.first() == PackageManager.PERMISSION_GRANTED) {
                     lifecycleScope.launch {
-                        backupViewModel.createLocalBackup()
+                        appDetailViewModel.createLocalBackup()
                         Toast.makeText(
-                            this@BackupActivity.applicationContext,
+                            this@AppDetailActivity.applicationContext,
                             getString(R.string.storage_perm_success),
                             Toast.LENGTH_SHORT
                         ).show()

@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.domain.database
+package com.stefan.simplebackup.data.database
 
 import android.content.Context
 import android.util.Log
@@ -6,8 +6,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.stefan.simplebackup.data.AppManager
-import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.data.manager.AppManager
+import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.main.PreferenceHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

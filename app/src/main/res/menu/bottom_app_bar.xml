@@ -3,21 +3,27 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/appListFragment"
+        android:id="@+id/homeFragment"
         android:title="@string/home"
         android:icon="@drawable/baseline_home_white_24dp"
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/restoreListFragment"
+        android:id="@+id/restoreFragment"
         android:title="@string/restore"
-        android:icon="@drawable/baseline_settings_backup_restore_white_24dp"
+        android:icon="@drawable/restore_24dp"
         app:showAsAction="always" />
 
     <item
-        android:id="@+id/batch_restore"
-        android:title="@string/batch_restore"
-        android:icon="@drawable/round_playlist_add_check_white_24dp"
+        android:id="@+id/cloudFragment"
+        android:title="@string/cloud"
+        android:icon="@drawable/cloud_24dp"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/settingsFragment"
+        android:title="@string/settings"
+        android:icon="@drawable/settings_24dp"
         app:showAsAction="ifRoom" />
 
 </menu>

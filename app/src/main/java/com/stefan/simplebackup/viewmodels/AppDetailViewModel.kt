@@ -6,51 +6,48 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
-import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.MainApplication
-import com.stefan.simplebackup.utils.backup.BackupWorkerHelper
+import com.stefan.simplebackup.utils.backup.WorkerHelper
 import com.stefan.simplebackup.utils.main.ioDispatcher
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class BackupViewModel(
+class AppDetailViewModel(
     private val app: AppData?,
     application: MainApplication
 ) : AndroidViewModel(application) {
 
     private val workManager = WorkManager.getInstance(application)
-
     val selectedApp get() = app
 
     init {
-        Log.d("ViewModel", "BackupViewModel created")
+        Log.d("ViewModel", "AppDetailViewModel created")
     }
 
     fun createLocalBackup() {
         viewModelScope.launch(ioDispatcher) {
             app?.packageName?.let { packageName ->
-                val backupWorkerHelper = BackupWorkerHelper(packageName, workManager)
-                backupWorkerHelper.startBackupWorker()
+                val backupWorkerHelper = WorkerHelper(packageName, workManager)
+                backupWorkerHelper.startWorker(true)
             }
         }
     }
 
     override fun onCleared() {
         super.onCleared()
-        Log.d("ViewModel", "BackupViewModel cleared")
+        Log.d("ViewModel", "AppDetailViewModel cleared")
     }
 }
 
-class BackupViewModelFactory(
+class AppDetailViewModelFactory(
     private val app: AppData?,
     private val application: MainApplication
 ) :
     ViewModelProvider.AndroidViewModelFactory(application) {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(BackupViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(AppDetailViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return BackupViewModel(app, application) as T
+            return AppDetailViewModel(app, application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

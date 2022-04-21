@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.data
+package com.stefan.simplebackup.data.manager
 
 import android.app.usage.StorageStats
 import android.app.usage.StorageStatsManager
@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.util.Log
-import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.main.BitmapUtil
 import com.stefan.simplebackup.utils.main.PreferenceHelper
 import kotlinx.coroutines.CoroutineDispatcher

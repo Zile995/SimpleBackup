@@ -14,9 +14,9 @@ import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.broadcasts.ACTION_WORK_FINISHED
-import com.stefan.simplebackup.broadcasts.NotificationBroadcastReceiver
-import com.stefan.simplebackup.broadcasts.PackageBroadcastReceiver
+import com.stefan.simplebackup.data.broadcasts.ACTION_WORK_FINISHED
+import com.stefan.simplebackup.data.broadcasts.NotificationBroadcastReceiver
+import com.stefan.simplebackup.data.broadcasts.PackageBroadcastReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.fragments.AppListFragment
 import com.stefan.simplebackup.ui.fragments.RestoreListFragment
@@ -37,8 +37,7 @@ class MainActivity : AppCompatActivity() {
 
     // ViewModel
     private val appViewModel: AppViewModel by viewModels {
-        val mainApplication = application as MainApplication
-        AppViewModelFactory(mainApplication)
+        AppViewModelFactory(application as MainApplication)
     }
 
     // Broadcast Receiver
@@ -69,33 +68,37 @@ class MainActivity : AppCompatActivity() {
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.bindViews(savedInstanceState)
+        savedInstanceState.restoreSavedInstances()
+        binding.bindViews()
         registerBroadcast()
     }
 
-    private fun ActivityMainBinding.bindViews(savedInstanceState: Bundle?) {
-        createBottomBar()
-        if (savedInstanceState == null) {
-            setFragments()
-        } else {
-            restoreFragments(savedInstanceState)
-        }
-        prepareActivity()
+    private fun ActivityMainBinding.bindViews() {
+        window.setBackgroundDrawableResource(R.color.background)
+        bindBottomBar()
     }
 
-    private fun ActivityMainBinding.createBottomBar() {
+    private fun Bundle?.restoreSavedInstances() {
+        if (this == null) {
+            setFragments()
+        } else {
+            restoreFragments()
+        }
+    }
+
+    private fun ActivityMainBinding.bindBottomBar() {
         bottomNavigation.setOnItemSelectedListener { menuItem ->
             val currentItem = bottomNavigation.selectedItemId
 
             menuItem.itemId.let { itemId ->
                 when (itemId) {
-                    R.id.appListFragment -> {
+                    R.id.homeFragment -> {
                         if (checkItem(currentItem, itemId)) {
                             showFragment(activeFragment, homeFragment)
                         }
                         activeFragment = homeFragment
                     }
-                    R.id.restoreListFragment -> {
+                    R.id.restoreFragment -> {
                         if (checkItem(currentItem, itemId)) {
                             showFragment(activeFragment, restoreFragment)
                         }
@@ -122,15 +125,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun restoreFragments(savedInstanceState: Bundle) {
+    private fun Bundle.restoreFragments() {
         supportFragmentManager.apply {
-            getFragment(savedInstanceState, "homeFragment")?.let {
+            getFragment(this@restoreFragments, "homeFragment")?.let {
                 homeFragment = it
             }
-            getFragment(savedInstanceState, "restoreFragment")?.let {
+            getFragment(this@restoreFragments, "restoreFragment")?.let {
                 restoreFragment = it
             }
-            getFragment(savedInstanceState, "activeFragment")?.let {
+            getFragment(this@restoreFragments, "activeFragment")?.let {
                 activeFragment = it
             }
         }
@@ -139,19 +142,13 @@ class MainActivity : AppCompatActivity() {
     private fun showFragment(active: Fragment, new: Fragment) {
         supportFragmentManager.commit {
             hide(active)
-            setTransition(FragmentTransaction.TRANSIT_NONE)
+            setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
             show(new)
         }
-        println("Hiding $active and showing $new")
     }
 
     private fun checkItem(current: Int, selected: Int): Boolean {
         return current != selected
-    }
-
-    private fun prepareActivity() {
-        window.setBackgroundDrawableResource(R.color.background)
-        println("Prepared activity")
     }
 
     private fun registerBroadcast() {
@@ -235,7 +232,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        val homeItemId = R.id.appListFragment
+        val homeItemId = R.id.homeFragment
         val selectedItemId = binding.bottomNavigation.selectedItemId
         if (selectedItemId == homeItemId && doubleBackPressed) {
             finish()

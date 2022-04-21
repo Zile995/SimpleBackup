@@ -2,7 +2,7 @@ package com.stefan.simplebackup.utils.archive
 
 import android.content.Context
 import android.util.Log
-import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.backup.BackupHelper
 import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.launch

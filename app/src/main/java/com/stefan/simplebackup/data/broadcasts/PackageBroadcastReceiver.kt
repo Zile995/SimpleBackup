@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.broadcasts
+package com.stefan.simplebackup.data.broadcasts
 
 import android.content.BroadcastReceiver
 import android.content.Context

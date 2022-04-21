@@ -9,15 +9,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkInfo
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.workers.PROGRESS_MAX
+import com.stefan.simplebackup.data.workers.Progress
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
-import com.stefan.simplebackup.utils.backup.BACKUP_REQUEST_TAG
+import com.stefan.simplebackup.utils.backup.REQUEST_TAG
 import com.stefan.simplebackup.utils.main.PreferenceHelper
 import com.stefan.simplebackup.utils.main.PreferenceHelper.getPackageName
 import com.stefan.simplebackup.utils.main.loadBitmapToImageView
 import com.stefan.simplebackup.viewmodels.ProgressViewModel
 import com.stefan.simplebackup.viewmodels.ProgressViewModelFactory
-import com.stefan.simplebackup.workers.PROGRESS_MAX
-import com.stefan.simplebackup.workers.Progress
 import kotlinx.coroutines.launch
 
 class ProgressActivity : AppCompatActivity() {
@@ -40,8 +40,7 @@ class ProgressActivity : AppCompatActivity() {
 
     private val progressViewModel: ProgressViewModel by viewModels {
         val selection = intent?.extras?.getStringArray("selection_list")
-        val application = application as MainApplication
-        ProgressViewModelFactory(selection, application)
+        ProgressViewModelFactory(selection, application as MainApplication)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,7 +77,7 @@ class ProgressActivity : AppCompatActivity() {
     }
 
     private fun ActivityProgressBinding.setViewModelObservers() {
-        progressViewModel.getWorkManager.getWorkInfosByTagLiveData(BACKUP_REQUEST_TAG)
+        progressViewModel.getWorkManager.getWorkInfosByTagLiveData(REQUEST_TAG)
             .observe(this@ProgressActivity, workInfoObserver())
     }
 
@@ -126,7 +125,7 @@ class ProgressActivity : AppCompatActivity() {
     private suspend fun ActivityProgressBinding.setViewData(packageName: String) {
         val app = progressViewModel.getCurrentApp(packageName)
         applicationNameProgress.text = app.name
-        loadBitmapToImageView(app.bitmap, binding.applicationImageProgress)
+        loadBitmapToImageView(app.bitmap, applicationImageProgress)
     }
 
     override fun onDestroy() {

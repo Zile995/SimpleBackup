@@ -2,10 +2,10 @@ package com.stefan.simplebackup
 
 import android.app.Application
 import android.util.Log
-import com.stefan.simplebackup.data.AppManager
-import com.stefan.simplebackup.domain.database.AppDatabase
-import com.stefan.simplebackup.domain.repository.AppRepository
-import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.data.manager.AppManager
+import com.stefan.simplebackup.data.database.AppDatabase
+import com.stefan.simplebackup.data.repository.AppRepository
+import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.main.PreferenceHelper.initPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob

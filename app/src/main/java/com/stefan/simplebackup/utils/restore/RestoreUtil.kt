@@ -1,24 +1,50 @@
 package com.stefan.simplebackup.utils.restore
 
-import com.stefan.simplebackup.utils.backup.BackupHelper
 import android.content.Context
-import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.archive.TarUtil
 import com.stefan.simplebackup.utils.archive.ZipUtil
+import com.stefan.simplebackup.utils.backup.BackupHelper
+import com.stefan.simplebackup.utils.main.PreferenceHelper
+import com.stefan.simplebackup.utils.main.ioDispatcher
+import kotlinx.coroutines.withContext
 
 private const val TMP: String = "/data/local/tmp"
 private const val DATA: String = "/data/data"
 
-class RestoreUtil (
+@SuppressWarnings("unused")
+class RestoreUtil(
     appContext: Context,
-    app: AppData
-): BackupHelper(appContext) {
+    private val packageNames: Array<String>
+) : BackupHelper(appContext) {
 
-    private val zipUtil = ZipUtil(appContext, app)
-    private val tarUtil = TarUtil(appContext, app)
+    private var zipUtil: ZipUtil? = null
+    private var tarUtil: TarUtil? = null
+
+    private var currentProgress = 0
+    private val updatedProgress: Int
+        get() {
+            currentProgress += (PROGRESS_MAX / packageNames.size) / 3
+            return currentProgress
+        }
+
 
     suspend fun restore() {
+        savePackageNameToPreferences(TMP + DATA)
+        restoreData()
+    }
 
+
+    private suspend fun restoreData() {
+        withContext(ioDispatcher) {
+
+        }
+    }
+
+    private suspend fun savePackageNameToPreferences(packageName: String) {
+        withContext(ioDispatcher) {
+            PreferenceHelper.savePackageName(packageName)
+        }
     }
 
 }

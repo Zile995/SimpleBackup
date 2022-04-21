@@ -36,11 +36,11 @@
         android:testOnly="false"
         android:theme="@style/Theme.SimpleBackup">
         <receiver
-            android:name=".broadcasts.NotificationBroadcastReceiver"
+            android:name="com.stefan.simplebackup.data.broadcasts.NotificationBroadcastReceiver"
             android:enabled="true"
             android:exported="false" />
         <receiver
-            android:name=".broadcasts.BootBroadcastReceiver"
+            android:name="com.stefan.simplebackup.data.broadcasts.BootBroadcastReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter android:priority="1000">
@@ -64,7 +64,7 @@
             android:imeOptions="flagNoFullscreen"
             android:windowSoftInputMode="stateUnchanged|adjustPan" />
         <activity
-            android:name=".ui.activities.BackupActivity"
+            android:name=".ui.activities.AppDetailActivity"
             android:exported="true"
             android:parentActivityName=".ui.activities.MainActivity"
             android:screenOrientation="portrait"

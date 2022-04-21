@@ -1,7 +1,9 @@
 package com.stefan.simplebackup.ui.adapters
 
-interface OnClickListener {
-    fun onItemViewClick(holder: AppAdapter.AppViewHolder, position: Int)
+import androidx.recyclerview.widget.RecyclerView
 
-    fun onLongItemViewClick(holder: AppAdapter.AppViewHolder, position: Int)
+interface OnClickListener {
+    fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int)
+
+    fun onLongItemViewClick(holder: RecyclerView.ViewHolder, position: Int)
 }

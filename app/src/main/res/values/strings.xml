@@ -9,6 +9,8 @@
     <string name="home">Home</string>
     <string name="restore">Restore</string>
     <string name="batch_restore">Batch Restore</string>
+    <string name="cloud">Cloud</string>
+    <string name="settings">Settings</string>
     <string name="local">LOCAL</string>
     <string name="drive">DRIVE</string>
     <string name="data_in">Data in</string>
@@ -19,7 +21,7 @@
     <string name="yes">YES</string>
     <string name="no">NO</string>
     <string name="apk">APK </string>
-    <string name="search_for_application">Search for Application</string>
+    <string name="search_for_application">Search for Applications</string>
     <string name="force_stop">Force Stop</string>
     <string name="data">Data </string>
     <string name="date">Date: </string>

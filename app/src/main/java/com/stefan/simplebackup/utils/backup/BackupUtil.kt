@@ -2,14 +2,12 @@ package com.stefan.simplebackup.utils.backup
 
 import android.content.Context
 import com.stefan.simplebackup.MainApplication
-import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.archive.TarUtil
 import com.stefan.simplebackup.utils.archive.ZipUtil
 import com.stefan.simplebackup.utils.main.PreferenceHelper
-import com.stefan.simplebackup.utils.main.ioDispatcher
-import com.stefan.simplebackup.workers.PROGRESS_MAX
+import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.withContext
 
 const val ROOT: String = "SimpleBackup/local"
 
@@ -44,10 +42,8 @@ class BackupUtil(
         }
     }
 
-    private suspend fun savePackageNameToPreferences(packageName: String) {
-        withContext(ioDispatcher) {
+    private fun savePackageNameToPreferences(packageName: String) {
             PreferenceHelper.savePackageName(packageName)
-        }
     }
 
     private suspend fun prepareUtils() {

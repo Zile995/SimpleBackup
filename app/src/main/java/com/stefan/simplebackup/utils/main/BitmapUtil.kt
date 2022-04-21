@@ -5,52 +5,9 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.Log
-import com.stefan.simplebackup.domain.model.AppData
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flow
+import com.stefan.simplebackup.data.model.AppData
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStreamWriter
-import kotlin.math.pow
-
-val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-
-fun Number.transformBytesToString(): String {
-    return String.format("%3.1f %s", this.toFloat() / 1000.0.pow(2), "MB")
-}
-
-object FileUtil {
-    suspend fun createDirectory(path: String) {
-        withContext(ioDispatcher) {
-            runCatching {
-                val dir = File(path)
-                if (!dir.exists()) {
-                    Log.d("BaseUtil", "Creating the $path dir")
-                    dir.mkdirs()
-                }
-            }.onFailure { throwable ->
-                throwable.message?.let { message -> Log.e("BaseUtil", "$path: $message") }
-            }
-        }
-    }
-
-    suspend fun createFile(path: String) {
-        withContext(ioDispatcher) {
-            runCatching {
-                val file = File(path)
-                file.createNewFile()
-            }.onFailure { throwable ->
-                throwable.message?.let { message -> Log.e("BaseUtil", "$path: $message") }
-            }
-        }
-    }
-}
 
 object BitmapUtil {
     suspend fun drawableToByteArray(drawable: Drawable): ByteArray =
@@ -102,7 +59,7 @@ object BitmapUtil {
                     context.deleteFile(app.name)
                 }
             }.onFailure {
-                it.message?.let { message -> Log.e("BackupActivity", message) }
+                it.message?.let { message -> Log.e("AppDetailActivity", message) }
             }
         }
     }
@@ -120,40 +77,6 @@ object BitmapUtil {
                 }
             }.onFailure { throwable ->
                 throwable.message?.let { message -> Log.e("Serialization", message) }
-            }
-        }
-    }
-}
-
-object JsonUtil {
-    suspend fun serializeApp(app: AppData, dir: String) {
-        Log.d("Serialization", "Saving json to $dir/${app.name}.json")
-        withContext(ioDispatcher) {
-            runCatching {
-                Json.encodeToString(app).let { jsonString ->
-                    val file = File(dir, app.name + ".json")
-                    OutputStreamWriter(FileOutputStream(file)).use { outputStreamWriter ->
-                        file.createNewFile()
-                        outputStreamWriter.append(jsonString)
-                    }
-                }
-            }.onFailure { throwable ->
-                throwable.message?.let { message -> Log.e("Serialization", message) }
-            }
-        }
-    }
-
-    suspend fun deserializeApp(jsonFile: File) = flow<AppData> {
-        Log.d("Serialization", "Creating the app from ${jsonFile.absolutePath}")
-        runCatching {
-            jsonFile.inputStream()
-                .bufferedReader()
-                .use { reader ->
-                    emit(Json.decodeFromString(reader.readLine()))
-                }
-        }.onFailure { throwable ->
-            throwable.message?.let { message ->
-                Log.e("Serialization", message)
             }
         }
     }

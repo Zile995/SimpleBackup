@@ -1,7 +1,7 @@
 package com.stefan.simplebackup.utils.backup
 
 import android.content.Context
-import com.stefan.simplebackup.domain.model.AppData
+import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.main.FileUtil
 import com.stefan.simplebackup.utils.main.JsonUtil
 import java.text.SimpleDateFormat
@@ -45,6 +45,17 @@ open class BackupHelper(context: Context) {
     protected suspend fun serializeApp(app: AppData) {
         JsonUtil.serializeApp(app, getBackupDirPath(app))
     }
+
+//    protected suspend fun getSerializedApp(packageName: String): Flow<AppData?> = flow {
+//        FileUtil.findJsonFile("$mainBackupDirPath/$packageName")
+//            .collectLatest { jsonFile ->
+//                jsonFile?.let {
+//                    JsonUtil.deserializeApp(it).collect { app ->
+//                        emit(app)
+//                    }
+//                }
+//            }
+//    }
 
     protected fun setBackupTime(app: AppData) {
         val locale = Locale.getDefault()
