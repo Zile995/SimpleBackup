@@ -1,31 +1,19 @@
 package com.stefan.simplebackup.ui.adapters
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.request.target.CustomTarget
-import com.bumptech.glide.request.transition.Transition
-import com.google.android.material.card.MaterialCardView
-import com.google.android.material.chip.Chip
-import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.main.transformBytesToString
 
 class AppAdapter(
-    private val selectionListener: SelectionListener,
-    private val clickListener: OnClickListener
+    private val selectedPackageNames: MutableList<String>,
+    private val clickListener: OnClickListener,
+    private val onSelectionModeCallback: (Boolean) -> Unit
 ) :
-    ListAdapter<AppData, AppAdapter.AppViewHolder>(AppDiffCallBack) {
+    ListAdapter<AppData, AppViewHolder>(AppDiffCallBack),
+    SelectionListener {
 
     /**
      * - Služi da kreiramo View preko kojeg možemo da pristupimo elementima iz list item-a
@@ -39,96 +27,59 @@ class AppAdapter(
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val item = getItem(position)
         holder.bind(item)
-        if (selectionListener.getSelectedItems().contains(item.packageName)) {
-            holder.getCardView.apply {
+        if (selectedPackageNames.contains(item.packageName)) {
+            holder.cardView.apply {
                 setCardBackgroundColor(
-                    holder.getContext.getColor(R.color.cardViewSelected)
+                    holder.context.getColor(R.color.cardViewSelected)
                 )
             }
         }
     }
 
     override fun onViewRecycled(holder: AppViewHolder) {
-        holder.getCardView.apply {
+        holder.cardView.apply {
             setCardBackgroundColor(
-                holder.getContext.getColor(R.color.cardView)
+                context.getColor(R.color.cardView)
             )
         }
         super.onViewRecycled(holder)
     }
 
-    class AppViewHolder private constructor(
-        private val view: View,
-        private val clickListener: OnClickListener
-    ) :
-        RecyclerView.ViewHolder(view) {
-        private val cardView: MaterialCardView = view.findViewById(R.id.card_item)
-        private val appImage: ImageView = view.findViewById(R.id.application_image)
-        private val appName: MaterialTextView = view.findViewById(R.id.application_name)
-        private val versionName: MaterialTextView = view.findViewById(R.id.version_name)
-        private val packageName: MaterialTextView = view.findViewById(R.id.package_name)
-        private val apkSize: Chip = view.findViewById(R.id.apk_size)
-        private val splitApk: Chip = view.findViewById(R.id.split_apk)
-        val getCardView get() = cardView
-        val getContext: Context get() = view.context
+    override fun hasSelectedItems(): Boolean {
+        return selectedPackageNames.isNotEmpty()
+    }
 
-        init {
-            view.setOnLongClickListener {
-                clickListener.onLongItemViewClick(this, adapterPosition)
-                true
-            }
+    // SelectionListener methods - used for RecyclerView selection
+    override fun setSelectedItems(selectedPackageNames: List<String>) {
+        this.selectedPackageNames.clear()
+        this.selectedPackageNames.addAll(selectedPackageNames)
+    }
 
-            view.setOnClickListener {
-                clickListener.onItemViewClick(this, adapterPosition)
-            }
+    override fun getSelectedItems(): List<String> {
+        return selectedPackageNames
+    }
+
+    override fun addSelectedItem(packageName: String) {
+        selectedPackageNames.add(packageName)
+    }
+
+    override fun removeSelectedItem(packageName: String) {
+        selectedPackageNames.remove(packageName)
+    }
+
+    override fun doSelection(holder: RecyclerView.ViewHolder, item: AppData) {
+        val context = (holder as AppViewHolder).context
+        if (selectedPackageNames.contains(item.packageName)) {
+            removeSelectedItem(item.packageName)
+            holder.cardView.setCardBackgroundColor(context.getColor(R.color.cardView))
+        } else {
+            addSelectedItem(item.packageName)
+            holder.cardView.setCardBackgroundColor(context.getColor(R.color.cardViewSelected))
         }
-
-        fun bind(item: AppData) {
-            loadBitmapByteArray(item.bitmap)
-            appName.text = item.name
-            versionName.text = checkAndSetString(item.versionName)
-            packageName.text = checkAndSetString(item.packageName)
-            apkSize.text = item.apkSize.transformBytesToString()
-            splitApk.text = if (item.split)
-                view.resources.getString(R.string.split) else
-                view.resources.getString(R.string.non_split)
+        if (selectedPackageNames.isEmpty()) {
+            onSelectionModeCallback(false)
         }
-
-        private fun loadBitmapByteArray(byteArray: ByteArray) {
-            Glide.with(getContext).apply {
-                asBitmap()
-                    .load(byteArray)
-                    .placeholder(R.drawable.glide_placeholder)
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .skipMemoryCache(true)
-                    .dontAnimate()
-                    .into(object : CustomTarget<Bitmap?>() {
-                        override fun onResourceReady(
-                            resource: Bitmap,
-                            transition: Transition<in Bitmap?>?
-                        ) {
-                            appImage.setImageBitmap(resource)
-                        }
-
-                        override fun onLoadCleared(placeholder: Drawable?) {
-                            appImage.setImageDrawable(placeholder)
-                        }
-                    })
-            }
-        }
-
-        private fun checkAndSetString(string: String): String {
-            return if (string.length > 36) string.substring(0, 36).plus("...") else string
-        }
-
-        companion object {
-            fun getViewHolder(parent: ViewGroup, clickListener: OnClickListener): AppViewHolder {
-                val layoutView = LayoutInflater
-                    .from(parent.context)
-                    .inflate(R.layout.list_item, parent, false)
-                return AppViewHolder(layoutView, clickListener)
-            }
-        }
+        println("Listener list: ${getSelectedItems().size}: ${getSelectedItems()}")
     }
 
     companion object {

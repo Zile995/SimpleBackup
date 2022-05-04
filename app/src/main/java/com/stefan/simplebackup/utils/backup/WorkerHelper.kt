@@ -24,11 +24,10 @@ class WorkerHelper(
         .build()
 
     fun startWorker(shouldBackup: Boolean) {
-        if (shouldBackup) {
+        if (shouldBackup)
             beginUniqueWork<BackupWorker>()
-        } else {
+        else
             beginUniqueWork<RestoreWorker>()
-        }
     }
 
     private inline fun <reified W : ListenableWorker> beginUniqueWork() {
@@ -37,7 +36,8 @@ class WorkerHelper(
             .setConstraints(constraints)
             .addTag(REQUEST_TAG)
             .build().also { buildRequest ->
-                workManager.beginUniqueWork(WORK_NAME, ExistingWorkPolicy.REPLACE, buildRequest)
+                workManager
+                    .beginUniqueWork(WORK_NAME, ExistingWorkPolicy.REPLACE, buildRequest)
                     .enqueue()
             }
     }

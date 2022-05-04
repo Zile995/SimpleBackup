@@ -14,9 +14,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.databinding.FragmentAppListBinding
 import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
-import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.ui.adapters.RestoreAdapter
 import com.stefan.simplebackup.utils.backup.ROOT
@@ -67,41 +67,44 @@ class RestoreListFragment : Fragment() {
         super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentRestoreListBinding
             .inflate(inflater, container, false)
+        setRestoreAdapter()
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewLifecycleOwner.lifecycleScope.launch {
+            launch {
+                binding.apply {
+                    bindViews()
+                    getStoredPackages()
+                    restoreRecyclerViewState()
+                }
+            }.join()
+            binding.progressBar.visibility = ProgressBar.INVISIBLE
+            restoreAdapter.submitList(applicationList)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        binding.saveRecyclerViewState()
+    }
+
+    private fun setRestoreAdapter() {
         _restoreAdapter = RestoreAdapter(object : OnClickListener {
             override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
                 val item = restoreAdapter.currentList[position]
-                if (restoreViewModel.hasSelectedItems()) {
-                    restoreViewModel.doSelection(holder, item)
-                } else {
-                    restoreViewModel.addSelectedItem(item.packageName)
-                    requireContext().showRestoreDialog {
-                        restoreViewModel.startRestoreWorker()
-                    }
-                    restoreViewModel.selectionList.clear()
+                requireContext().showRestoreDialog {
+                    restoreViewModel.startRestoreWorker()
                 }
+                restoreViewModel.selectionList.clear()
             }
 
             override fun onLongItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
                 val item = restoreAdapter.currentList[position]
-                restoreViewModel.setSelectionMode(true)
-                restoreViewModel.doSelection(holder, item)
             }
         })
-        viewLifecycleOwner.lifecycleScope.launch {
-            if (isAdded) {
-                launch {
-                    binding.bindViews()
-                    getStoredPackages()
-                }.join()
-                binding.progressBar.visibility = ProgressBar.INVISIBLE
-                restoreAdapter.submitList(applicationList)
-            }
-        }
     }
 
     private fun FragmentRestoreListBinding.bindViews() {
@@ -136,6 +139,40 @@ class RestoreListFragment : Fragment() {
         }
     }
 
+    private fun FragmentRestoreListBinding.bindToolBar() {
+        toolBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.search -> {
+                    true
+                }
+                else -> {
+                    true
+                }
+            }
+        }
+    }
+
+    private fun FragmentRestoreListBinding.bindFloatingButton() {
+        floatingButton.hide()
+        hideButton()
+
+        floatingButton.setOnClickListener {
+            restoreRecyclerView.smoothScrollToPosition(0)
+        }
+    }
+
+    private fun FragmentRestoreListBinding.saveRecyclerViewState() {
+        restoreRecyclerView.layoutManager?.onSaveInstanceState()?.let {
+            restoreViewModel.saveRecyclerViewState(it)
+        }
+    }
+
+    private fun FragmentRestoreListBinding.restoreRecyclerViewState() {
+        if (restoreViewModel.isStateInitialized) {
+            restoreRecyclerView.layoutManager?.onRestoreInstanceState(restoreViewModel.restoreRecyclerViewState)
+        }
+    }
+
     private suspend fun getStoredPackages() {
         withContext(Dispatchers.IO) {
             val tempApps = mutableListOf<AppData>()
@@ -164,28 +201,6 @@ class RestoreListFragment : Fragment() {
         }
     }
 
-    private fun FragmentRestoreListBinding.bindToolBar() {
-        toolBar.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.search -> {
-                    true
-                }
-                else -> {
-                    true
-                }
-            }
-        }
-    }
-
-    private fun FragmentRestoreListBinding.bindFloatingButton() {
-        floatingButton.hide()
-        hideButton()
-
-        floatingButton.setOnClickListener {
-            restoreRecyclerView.smoothScrollToPosition(0)
-        }
-    }
-
     private fun FragmentRestoreListBinding.hideButton() {
         restoreRecyclerView.addOnScrollListener(object :
             RecyclerView.OnScrollListener() {
@@ -201,11 +216,8 @@ class RestoreListFragment : Fragment() {
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
-
                 // Ako ne može da skroluje više na dole (1 je down direction) i ako može ma gore (-1 up direction)
-                if (!recyclerView.canScrollVertically(1) && recyclerView.canScrollVertically(-1) && newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    floatingButton.show()
-                } else if (recyclerView.canScrollVertically(1) && !recyclerView.canScrollVertically(
+                if (recyclerView.canScrollVertically(1) && !recyclerView.canScrollVertically(
                         -1
                     )
                 ) {

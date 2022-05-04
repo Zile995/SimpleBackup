@@ -65,34 +65,30 @@ class AppListFragment : Fragment() {
         _binding = FragmentAppListBinding
             .inflate(inflater, container, false)
         setAppAdapter()
-        binding.bindViews()
-
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewLifecycleOwner
-            .lifecycleScope.launch {
-                binding.apply {
-                    setViewModelObservers()
-                    restoreRecyclerViewState()
-                    if (savedInstanceState != null) {
-                        isSearching = savedInstanceState.getBoolean("isSearching")
-                    }
-                    if (isSearching) {
-                        searchInput.requestFocus()
-                    }
+        viewLifecycleOwner.lifecycleScope.launch {
+            binding.apply {
+                bindViews()
+                setViewModelObservers()
+                restoreRecyclerViewState()
+                if (savedInstanceState != null) {
+                    isSearching = savedInstanceState.getBoolean("isSearching")
+                }
+                if (isSearching) {
+                    searchInput.requestFocus()
                 }
             }
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         binding.apply {
-            recyclerView.layoutManager?.onSaveInstanceState()?.let {
-                appViewModel.saveRecyclerViewState(it)
-            }
+            saveRecyclerViewState()
             if (searchInput.hasFocus()) {
                 isSearching = true
             }
@@ -110,7 +106,7 @@ class AppListFragment : Fragment() {
     private fun FragmentAppListBinding.bindBackupChip() {
         batchBackup.setOnClickListener {
             requireContext().apply {
-                startActivity(Intent(this, ProgressActivity::class.java).apply {
+                startActivity(Intent(requireContext(), ProgressActivity::class.java).apply {
                     putExtra("selection_list", appViewModel.selectionList.toTypedArray())
                 })
             }
@@ -118,29 +114,34 @@ class AppListFragment : Fragment() {
     }
 
     private fun setAppAdapter() {
-        _appAdapter = AppAdapter(appViewModel, object : OnClickListener {
-            override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
-                val item = appAdapter.currentList[position]
-                if (appViewModel.hasSelectedItems()) {
-                    appViewModel.doSelection(holder, item)
-                } else {
-                    viewLifecycleOwner
-                        .lifecycleScope.launch {
-                            val context = (holder as AppAdapter.AppViewHolder).getContext
-                            BitmapUtil.saveIfBigBitmap(item, context)
-                            val intent = Intent(context, AppDetailActivity::class.java)
-                            intent.putExtra("application", item)
-                            context.startActivity(intent)
-                        }
+        val clickListener: OnClickListener =
+            object : OnClickListener {
+                override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
+                    val item = appAdapter.currentList[position]
+                    if (appAdapter.hasSelectedItems()) {
+                        appAdapter.doSelection(holder, item)
+                    } else {
+                        viewLifecycleOwner
+                            .lifecycleScope.launch {
+                                BitmapUtil.saveIfBigBitmap(
+                                    item,
+                                    requireContext().applicationContext
+                                )
+                                val intent = Intent(context, AppDetailActivity::class.java)
+                                intent.putExtra("application", item)
+                                context?.startActivity(intent)
+                            }
+                    }
+                }
+
+                override fun onLongItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
+                    val item = appAdapter.currentList[position]
+                    appViewModel.setSelectionMode(true)
+                    appAdapter.doSelection(holder, item)
                 }
             }
-
-            override fun onLongItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
-                val item = appAdapter.currentList[position]
-                appViewModel.setSelectionMode(true)
-                appViewModel.doSelection(holder, item)
-            }
-        })
+        _appAdapter =
+            AppAdapter(appViewModel.selectionList, clickListener, appViewModel.setSelectionMode)
     }
 
     /**
@@ -150,7 +151,6 @@ class AppListFragment : Fragment() {
         recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = appAdapter
-            setItemViewCacheSize(5)
             setHasFixedSize(true)
         }
     }
@@ -161,10 +161,8 @@ class AppListFragment : Fragment() {
                 launch {
                     appViewModel.refreshPackageList()
                 }.join()
-                launch {
-                    swipeRefresh.isRefreshing = false
-                    delay(200)
-                }
+                delay(250)
+                swipeRefresh.isRefreshing = false
             }
         }
     }
@@ -191,31 +189,28 @@ class AppListFragment : Fragment() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                if (dy > 0 && binding.floatingButton.isShown) {
+                if (dy > 0 && floatingButton.isShown) {
                     floatingButton.hide()
 
-                } else if (dy < 0 && !binding.floatingButton.isShown) {
+                } else if (dy < 0 && !floatingButton.isShown) {
                     floatingButton.show()
                 }
             }
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
-                // Ako ne može da skroluje više na dole (1 je down direction) i ako može ma gore (-1 up direction)
-                if (!recyclerView.canScrollVertically(1)
-                    && recyclerView.canScrollVertically(-1)
-                    && newState == RecyclerView.SCROLL_STATE_IDLE
-                ) {
-                    floatingButton.show()
-                } else if (recyclerView.canScrollVertically(1)
-                    && !recyclerView.canScrollVertically(
-                        -1
-                    )
-                ) {
+                // Ako ne može da skroluje na dole (1 je down direction) i ako može ka gore (-1 up direction)
+                if (!recyclerView.canScrollVertically(-1)) {
                     floatingButton.hide()
                 }
             }
         })
+    }
+
+    private fun FragmentAppListBinding.saveRecyclerViewState() {
+        recyclerView.layoutManager?.onSaveInstanceState()?.let {
+            appViewModel.saveRecyclerViewState(it)
+        }
     }
 
     private fun FragmentAppListBinding.restoreRecyclerViewState() {

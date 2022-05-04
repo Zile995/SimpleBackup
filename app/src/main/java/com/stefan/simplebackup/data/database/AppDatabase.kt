@@ -14,6 +14,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.system.measureTimeMillis
 
+private const val DATABASE_NAME = "app_database"
+
 /**
  * Singleton AppData Database class
  */
@@ -77,7 +79,7 @@ abstract class AppDatabase : RoomDatabase() {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    AppDatabase::class.java, "app_database"
+                    AppDatabase::class.java, DATABASE_NAME
                 )
                     .addCallback(AppDatabaseCallback(scope, appManager))
                     .build()

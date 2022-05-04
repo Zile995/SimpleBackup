@@ -4,8 +4,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.data.model.AppData
 
 interface SelectionListener {
-    fun setSelectionMode(selection: Boolean)
-
     fun hasSelectedItems(): Boolean
 
     fun setSelectedItems(selectedPackageNames: List<String>)

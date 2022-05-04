@@ -21,8 +21,6 @@ class ProgressViewModel(
     private val workManager by lazy { WorkManager.getInstance(application) }
     val getWorkManager get() = workManager
 
-    private var shouldBackup = true
-
     init {
         Log.d("ProgressViewModel", "ProgressViewModel created")
         viewModelScope.launch(ioDispatcher) {
@@ -31,12 +29,9 @@ class ProgressViewModel(
     }
 
     private fun startBackupWorker() {
-        if (shouldBackup) {
-            selectedApps?.let {
-                val workerHelper = WorkerHelper(selectedApps, workManager)
-                workerHelper.startWorker(true)
-            }
-            shouldBackup = false
+        selectedApps?.let {
+            val workerHelper = WorkerHelper(selectedApps, workManager)
+            workerHelper.startWorker(true)
         }
     }
 

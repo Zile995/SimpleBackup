@@ -1,7 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     ext.gradleVersion = '7.1.3'
-    ext.kotlinVersion = '1.6.20'
+    ext.kotlinVersion = '1.6.21'
     repositories {
         google()
         mavenCentral()
@@ -25,10 +25,10 @@ ext {
     coroutines = '1.6.1-native-mt'
     work = "2.7.1"
     room = '2.4.2'
-    googleAuth = '20.1.0'
-    googleGson = '1.41.7'
+    googleAuth = '20.2.0'
+    googleGson = '1.41.8'
     googleApiClient = '1.34.0'
-    googleDriveApi = 'v3-rev20220214-1.32.1'
+    googleDriveApi = 'v3-rev20220417-1.32.1'
     glide = '4.13.1'
     libsu = '3.1.2'
     zip4j = '2.10.0'
@@ -36,7 +36,7 @@ ext {
     junit = '4.13.2'
     espresso = '3.4.0'
     androidxJunit = '1.1.3'
-    leakCanary = '2.8.1'
+    leakCanary = '2.9.1'
 }
 
 task clean(type: Delete) {
