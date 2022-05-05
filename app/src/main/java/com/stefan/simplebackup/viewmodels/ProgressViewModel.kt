@@ -31,7 +31,7 @@ class ProgressViewModel(
     private fun startBackupWorker() {
         selectedApps?.let {
             val workerHelper = WorkerHelper(selectedApps, workManager)
-            workerHelper.startWorker(true)
+            workerHelper.startWorker(shouldBackup = true)
         }
     }
 

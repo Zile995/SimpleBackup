@@ -14,15 +14,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.databinding.FragmentAppListBinding
 import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
-import com.stefan.simplebackup.ui.adapters.OnClickListener
-import com.stefan.simplebackup.ui.adapters.RestoreAdapter
+import com.stefan.simplebackup.ui.adapters.*
 import com.stefan.simplebackup.utils.backup.ROOT
 import com.stefan.simplebackup.utils.main.FileUtil
 import com.stefan.simplebackup.utils.main.JsonUtil
-import com.stefan.simplebackup.utils.main.showRestoreDialog
+import com.stefan.simplebackup.utils.main.workerDialog
 import com.stefan.simplebackup.viewmodels.RestoreViewModel
 import com.stefan.simplebackup.viewmodels.RestoreViewModelFactory
 import kotlinx.coroutines.Dispatchers
@@ -92,19 +90,39 @@ class RestoreListFragment : Fragment() {
     }
 
     private fun setRestoreAdapter() {
-        _restoreAdapter = RestoreAdapter(object : OnClickListener {
+        val context = requireContext()
+        val clickListener = object : OnClickListener {
             override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
                 val item = restoreAdapter.currentList[position]
-                requireContext().showRestoreDialog {
-                    restoreViewModel.startRestoreWorker()
+                if (restoreAdapter.hasSelectedItems()) {
+                    restoreAdapter.doSelection(holder as RestoreViewHolder, item)
+                } else {
+                    context.apply {
+                        workerDialog(
+                            title = getString(R.string.confirm_restore),
+                            message = getString(R.string.restore_confirmation_message),
+                            positiveButtonText = getString(R.string.yes),
+                            negativeButtonText = getString(R.string.no)
+                        ) {
+                            restoreViewModel.startRestoreWorker()
+                        }
+                    }
+                    restoreViewModel.selectionList.clear()
                 }
-                restoreViewModel.selectionList.clear()
             }
 
             override fun onLongItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
                 val item = restoreAdapter.currentList[position]
+                restoreViewModel.setSelectionMode(true)
+                restoreAdapter.doSelection(holder as RestoreViewHolder, item)
             }
-        })
+        }
+
+        _restoreAdapter = RestoreAdapter(
+            restoreViewModel.selectionList,
+            clickListener,
+            restoreViewModel.setSelectionMode
+        )
     }
 
     private fun FragmentRestoreListBinding.bindViews() {
@@ -173,6 +191,7 @@ class RestoreListFragment : Fragment() {
         }
     }
 
+    // TODO: Observe folder changes in RestoreViewModel
     private suspend fun getStoredPackages() {
         withContext(Dispatchers.IO) {
             val tempApps = mutableListOf<AppData>()

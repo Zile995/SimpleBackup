@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.target.CustomTarget
@@ -22,9 +21,8 @@ import com.stefan.simplebackup.utils.main.transformBytesToString
 class AppViewHolder private constructor(
     private val view: View,
     private val clickListener: OnClickListener
-) :
-    RecyclerView.ViewHolder(view) {
-    val cardView: MaterialCardView = view.findViewById(R.id.card_item)
+) : SharedViewHolder(view, clickListener) {
+    override val cardView: MaterialCardView = view.findViewById(R.id.card_item)
     val appImage: ImageView = view.findViewById(R.id.application_image)
     val appName: MaterialTextView = view.findViewById(R.id.application_name)
     val versionName: MaterialTextView = view.findViewById(R.id.version_name)
@@ -53,6 +51,22 @@ class AppViewHolder private constructor(
         splitApk.text = if (item.split)
             view.resources.getString(R.string.split) else
             view.resources.getString(R.string.non_split)
+    }
+
+    fun setSelected() {
+        cardView.apply {
+            setCardBackgroundColor(
+                context.getColor(R.color.cardViewSelected)
+            )
+        }
+    }
+
+    fun unsetSelected() {
+        cardView.apply {
+            setCardBackgroundColor(
+                context.getColor(R.color.cardView)
+            )
+        }
     }
 
     private fun loadBitmapByteArray(byteArray: ByteArray) {

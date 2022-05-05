@@ -19,7 +19,9 @@ import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.activities.ProgressActivity
 import com.stefan.simplebackup.ui.adapters.AppAdapter
+import com.stefan.simplebackup.ui.adapters.AppViewHolder
 import com.stefan.simplebackup.ui.adapters.OnClickListener
+import com.stefan.simplebackup.ui.adapters.RestoreViewHolder
 import com.stefan.simplebackup.utils.main.BitmapUtil
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
@@ -114,12 +116,12 @@ class AppListFragment : Fragment() {
     }
 
     private fun setAppAdapter() {
-        val clickListener: OnClickListener =
+        val clickListener =
             object : OnClickListener {
                 override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
                     val item = appAdapter.currentList[position]
                     if (appAdapter.hasSelectedItems()) {
-                        appAdapter.doSelection(holder, item)
+                        appAdapter.doSelection(holder as AppViewHolder, item)
                     } else {
                         viewLifecycleOwner
                             .lifecycleScope.launch {
@@ -137,7 +139,7 @@ class AppListFragment : Fragment() {
                 override fun onLongItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
                     val item = appAdapter.currentList[position]
                     appViewModel.setSelectionMode(true)
-                    appAdapter.doSelection(holder, item)
+                    appAdapter.doSelection(holder as AppViewHolder, item)
                 }
             }
         _appAdapter =

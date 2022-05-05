@@ -3,10 +3,12 @@ package com.stefan.simplebackup.ui.adapters
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.data.model.AppData
 
-interface SelectionListener {
+interface SelectionListener<VH: RecyclerView.ViewHolder> {
+    val selectedPackageNames: MutableList<String>
+
     fun hasSelectedItems(): Boolean
 
-    fun setSelectedItems(selectedPackageNames: List<String>)
+    fun selectMultipleItems(selectedPackageNames: List<String>)
 
     fun getSelectedItems(): List<String>
 
@@ -14,5 +16,5 @@ interface SelectionListener {
 
     fun removeSelectedItem(packageName: String)
 
-    fun doSelection(holder: RecyclerView.ViewHolder, item: AppData)
+    fun doSelection(holder: VH, item: AppData)
 }

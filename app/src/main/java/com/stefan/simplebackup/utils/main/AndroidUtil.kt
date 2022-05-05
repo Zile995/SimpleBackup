@@ -30,15 +30,21 @@ fun Context.loadBitmapToImageView(byteArray: ByteArray, image: ImageView) {
     }
 }
 
-fun Context.showRestoreDialog(restore: () -> Unit) {
+fun Context.workerDialog(
+    title: String,
+    message: String,
+    positiveButtonText: String,
+    negativeButtonText: String,
+    doWork: () -> Unit
+) {
     val builder = AlertDialog.Builder(this, R.style.DialogTheme)
-    builder.setTitle(this.getString(R.string.confirm_restore))
-    builder.setMessage(this.getString(R.string.restore_confirmation_message))
-    builder.setPositiveButton(this.getString(R.string.yes)) { dialog, _ ->
+    builder.setTitle(title)
+    builder.setMessage(message)
+    builder.setPositiveButton(positiveButtonText) { dialog, _ ->
         dialog.cancel()
-        restore()
+        doWork()
     }
-    builder.setNegativeButton(this.getString(R.string.no)) { dialog, _ -> dialog.cancel() }
+    builder.setNegativeButton(negativeButtonText) { dialog, _ -> dialog.cancel() }
     val alert = builder.create()
     alert.setOnShowListener {
         alert.getButton(AlertDialog.BUTTON_NEGATIVE)
