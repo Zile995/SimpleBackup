@@ -77,7 +77,7 @@ class AppManager(private val context: Context) {
                 emit(packageName)
             }
         }
-    }.flowOn(ioDispatcher)
+    }
 
     fun doesPackageExists(packageName: String): Boolean {
         try {
@@ -164,7 +164,7 @@ class AppManager(private val context: Context) {
                 dataDir = appInfo.dataDir,
                 apkDir = apkDir,
                 apkSize = apkSize ?: 0f,
-                split = isSplit ?: false,
+                isSplit = isSplit ?: false,
                 dataSize = dataSize,
                 cacheSize = cacheSize,
                 favorite = false

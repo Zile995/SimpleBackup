@@ -20,7 +20,7 @@ import com.stefan.simplebackup.utils.main.transformBytesToString
 
 class AppViewHolder private constructor(
     private val view: View,
-    private val clickListener: OnClickListener
+    clickListener: OnClickListener
 ) : SharedViewHolder(view, clickListener) {
     override val cardView: MaterialCardView = view.findViewById(R.id.card_item)
     val appImage: ImageView = view.findViewById(R.id.application_image)
@@ -31,42 +31,15 @@ class AppViewHolder private constructor(
     val splitApk: Chip = view.findViewById(R.id.split_apk)
     val context: Context = view.context
 
-    init {
-        view.setOnLongClickListener {
-            clickListener.onLongItemViewClick(this, adapterPosition)
-            true
-        }
-
-        view.setOnClickListener {
-            clickListener.onItemViewClick(this, adapterPosition)
-        }
-    }
-
     fun bind(item: AppData) {
         loadBitmapByteArray(item.bitmap)
         appName.text = item.name
         versionName.text = checkAndSetString(item.versionName)
         packageName.text = checkAndSetString(item.packageName)
         apkSize.text = item.apkSize.transformBytesToString()
-        splitApk.text = if (item.split)
+        splitApk.text = if (item.isSplit)
             view.resources.getString(R.string.split) else
             view.resources.getString(R.string.non_split)
-    }
-
-    fun setSelected() {
-        cardView.apply {
-            setCardBackgroundColor(
-                context.getColor(R.color.cardViewSelected)
-            )
-        }
-    }
-
-    fun unsetSelected() {
-        cardView.apply {
-            setCardBackgroundColor(
-                context.getColor(R.color.cardView)
-            )
-        }
     }
 
     private fun loadBitmapByteArray(byteArray: ByteArray) {

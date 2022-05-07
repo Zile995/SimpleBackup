@@ -1,7 +1,9 @@
 package com.stefan.simplebackup.data.broadcasts
 
-interface PackageListener {
-    suspend fun addOrUpdatePackage(packageName: String)
+import kotlinx.coroutines.CoroutineScope
 
-    suspend fun deletePackage(packageName: String)
+interface PackageListener {
+    fun CoroutineScope.addOrUpdatePackage(packageName: String)
+
+    fun CoroutineScope.deletePackage(packageName: String)
 }

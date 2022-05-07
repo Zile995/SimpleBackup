@@ -12,6 +12,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentTransaction
 import androidx.fragment.app.commit
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.broadcasts.ACTION_WORK_FINISHED
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity() {
     private val receiver: PackageBroadcastReceiver by lazy {
         PackageBroadcastReceiver(
             appViewModel,
-            lifecycleScope
+            appViewModel.viewModelScope
         )
     }
 

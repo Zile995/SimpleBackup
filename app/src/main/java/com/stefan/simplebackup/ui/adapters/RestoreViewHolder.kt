@@ -31,17 +31,6 @@ class RestoreViewHolder private constructor(
     val appBackupDate: Chip = view.findViewById(R.id.backup_date)
     val context: Context get() = view.context
 
-    init {
-        view.setOnLongClickListener {
-            clickListener.onLongItemViewClick(this, adapterPosition)
-            true
-        }
-
-        view.setOnClickListener {
-            clickListener.onItemViewClick(this, adapterPosition)
-        }
-    }
-
     fun bind(item: AppData) {
         loadBitmapByteArray(item.bitmap)
         appVersionName.text = item.versionName
@@ -49,22 +38,6 @@ class RestoreViewHolder private constructor(
         appPackageName.text = item.packageName
         appDataSize.text = item.dataSize.transformBytesToString()
         appBackupDate.text = item.date
-    }
-
-    fun setSelected() {
-        cardView.apply {
-            setCardBackgroundColor(
-                context.getColor(R.color.cardViewSelected)
-            )
-        }
-    }
-
-    fun unsetSelected() {
-        cardView.apply {
-            setCardBackgroundColor(
-                context.getColor(R.color.cardView)
-            )
-        }
     }
 
     private fun loadBitmapByteArray(byteArray: ByteArray) {

@@ -18,7 +18,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlin.system.measureTimeMillis
 
-const val Progress = "BackupProgress"
+const val BACKUP_PROGRESS = "BackupProgress"
 const val PROGRESS_MAX = 10_000
 
 class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
@@ -85,7 +85,7 @@ class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWor
         app: AppData
     ) {
         notificationBuilder.apply {
-            setProgress(workDataOf(Progress to currentProgress))
+            setProgress(workDataOf(BACKUP_PROGRESS to currentProgress))
             setForeground(
                 ForegroundInfo(
                     getNotificationId,

@@ -12,6 +12,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlin.system.measureTimeMillis
 
+const val RESTORE_PROGRESS = "RestoreProgress"
+
 class RestoreWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext,
     params

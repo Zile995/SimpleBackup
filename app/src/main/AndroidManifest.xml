@@ -36,11 +36,11 @@
         android:testOnly="false"
         android:theme="@style/Theme.SimpleBackup">
         <receiver
-            android:name="com.stefan.simplebackup.data.broadcasts.NotificationBroadcastReceiver"
+            android:name=".data.broadcasts.NotificationBroadcastReceiver"
             android:enabled="true"
             android:exported="false" />
         <receiver
-            android:name="com.stefan.simplebackup.data.broadcasts.BootBroadcastReceiver"
+            android:name=".data.broadcasts.BootBroadcastReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter android:priority="1000">
@@ -48,6 +48,7 @@
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
+
         <activity
             android:name=".ui.activities.SplashActivity"
             android:exported="true">

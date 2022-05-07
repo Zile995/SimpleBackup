@@ -21,7 +21,6 @@ import com.stefan.simplebackup.ui.activities.ProgressActivity
 import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.AppViewHolder
 import com.stefan.simplebackup.ui.adapters.OnClickListener
-import com.stefan.simplebackup.ui.adapters.RestoreViewHolder
 import com.stefan.simplebackup.utils.main.BitmapUtil
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
@@ -146,9 +145,6 @@ class AppListFragment : Fragment() {
             AppAdapter(appViewModel.selectionList, clickListener, appViewModel.setSelectionMode)
     }
 
-    /**
-     * - Inicijalizuj recycler view
-     */
     private fun FragmentAppListBinding.bindRecyclerView() {
         recyclerView.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -160,18 +156,15 @@ class AppListFragment : Fragment() {
     private fun FragmentAppListBinding.bindSwipeContainer() {
         swipeRefresh.setOnRefreshListener {
             lifecycleScope.launch {
-                launch {
-                    appViewModel.refreshPackageList()
-                }.join()
-                delay(250)
-                swipeRefresh.isRefreshing = false
+                appViewModel.apply {
+                    refreshPackageList()
+                    delay(250)
+                    swipeRefresh.isRefreshing = false
+                }
             }
         }
     }
 
-    /**
-     * - Inicijalizuj Floating dugme
-     */
     private fun FragmentAppListBinding.bindFloatingButton() {
         floatingButton.hide()
         hideButton()

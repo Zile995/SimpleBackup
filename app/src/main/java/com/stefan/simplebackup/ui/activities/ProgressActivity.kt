@@ -9,8 +9,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkInfo
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.workers.BACKUP_PROGRESS
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
-import com.stefan.simplebackup.data.workers.Progress
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
 import com.stefan.simplebackup.utils.backup.REQUEST_TAG
 import com.stefan.simplebackup.utils.main.PreferenceHelper
@@ -87,7 +87,7 @@ class ProgressActivity : AppCompatActivity() {
                 return@Observer
             workInfoList[0]
                 .progress
-                .getInt(Progress, 0).apply {
+                .getInt(BACKUP_PROGRESS, 0).apply {
                     progressIndicator.setProgress(this, true)
                 }
             if (workInfoList[0].state.isFinished) {
@@ -109,7 +109,7 @@ class ProgressActivity : AppCompatActivity() {
 
     private suspend fun ActivityProgressBinding.bindData() {
         PreferenceHelper.packageName?.let { packageName ->
-            this.setViewData(packageName)
+            setViewData(packageName)
         }
     }
 

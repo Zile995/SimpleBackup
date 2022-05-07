@@ -12,6 +12,8 @@ import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.repository.AppRepository
 import com.stefan.simplebackup.utils.main.ioDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,48 +49,43 @@ class AppViewModel(application: MainApplication) :
         get() = _spinner
 
     init {
-        appManager.printSequence()
-        viewModelScope.launch {
-            launchDataLoading {
-                getAllAppsFromDatabase()
+        viewModelScope.apply {
+            try {
+                appManager.printSequence()
+                launchDataLoading {
+                    getAllAppsFromDatabase()
+                }.also {
+                    refreshPackageList()
+                }
+            } catch (e: Exception) {
+                e.localizedMessage?.let { Log.e("ViewModel", it) }
+            } finally {
+                Log.d("ViewModel", "AppViewModel created")
             }
-            refreshPackageList()
         }
-        Log.d("ViewModel", "AppViewModel created")
     }
 
     private fun getAllAppsFromDatabase() = repository.getAllApps
 
     // Loading methods
-    private suspend inline fun launchDataLoading(
+    private inline fun CoroutineScope.launchDataLoading(
         crossinline allAppsFromDatabase: () -> Flow<MutableList<AppData>>,
     ) {
-        runCatching {
+        launch {
             allAppsFromDatabase().collectLatest { apps ->
                 _allApps.value = apps
                 delay(150)
                 _spinner.value = false
             }
-        }.onFailure { throwable ->
-            throwable.message?.let { message -> Log.e("ViewModel", message) }
         }
     }
 
-    // Repository methods
-    private fun insertApp(app: AppData) = viewModelScope.launch {
-        repository.insert(app)
-        appManager.updateSequenceNumber()
-    }
-
-    private fun deleteApp(packageName: String) = viewModelScope.launch {
-        repository.delete(packageName)
-        appManager.updateSequenceNumber()
-    }
-
     // Used to check for changed packages on init
-    fun refreshPackageList() {
+    // TODO: Fix package refreshing on init
+    fun CoroutineScope.refreshPackageList() {
         Log.d("ViewModel", "Refreshing the package list")
-        viewModelScope.launch(ioDispatcher) {
+        launch(ioDispatcher) {
+            delay(1_000L)
             appManager.apply {
                 getChangedPackageNames().collect { packageName ->
                     if (doesPackageExists(packageName)) {
@@ -109,16 +106,22 @@ class AppViewModel(application: MainApplication) :
     }
 
     // PackageListener methods - Used for database package updates
-    override suspend fun addOrUpdatePackage(packageName: String) {
-        appManager.apply {
-            build(packageName).collect { app ->
-                insertApp(app)
+    override fun CoroutineScope.addOrUpdatePackage(packageName: String) {
+        launch {
+            appManager.apply {
+                build(packageName).collect { app ->
+                    repository.insert(app)
+                    appManager.updateSequenceNumber()
+                }
             }
         }
     }
 
-    override suspend fun deletePackage(packageName: String) {
-        deleteApp(packageName)
+    override fun CoroutineScope.deletePackage(packageName: String) {
+        launch {
+            repository.delete(packageName)
+            appManager.updateSequenceNumber()
+        }
     }
 
     override fun onCleared() {

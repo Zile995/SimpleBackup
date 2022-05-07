@@ -52,8 +52,8 @@ data class AppData(
     @ColumnInfo(name = "apk_size")
     val apkSize: Float,
 
-    @ColumnInfo(name = "split")
-    val split: Boolean,
+    @ColumnInfo(name = "is_split")
+    val isSplit: Boolean,
 
     @ColumnInfo(name = "data_size")
     var dataSize: Long,
@@ -67,6 +67,13 @@ data class AppData(
 
     @ColumnInfo(name = "date")
     var date: String = ""
+
+    @ColumnInfo(name = "is_local")
+    var isLocal: Boolean = false
+
+    @ColumnInfo(name = "is_cloud")
+    var isCloud: Boolean = false
+
 
     /**
      * * U parceli može postojati i null String tako da readString() može čitati i String? tip
@@ -85,7 +92,7 @@ data class AppData(
         dataDir = parcel.readString() ?: "",
         apkDir = parcel.readString() ?: "",
         apkSize = parcel.readFloat(),
-        split = parcel.readBooleanValue() ?: false,
+        isSplit = parcel.readBooleanValue() ?: false,
         dataSize = parcel.readLong(),
         cacheSize = parcel.readLong(),
         favorite = parcel.readBooleanValue() ?: false
@@ -103,7 +110,7 @@ data class AppData(
         dest.writeString(dataDir)
         dest.writeString(apkDir)
         dest.writeFloat(apkSize)
-        dest.writeBooleanValue(split)
+        dest.writeBooleanValue(isSplit)
         dest.writeLong(dataSize)
         dest.writeLong(cacheSize)
         dest.writeBooleanValue(favorite)
