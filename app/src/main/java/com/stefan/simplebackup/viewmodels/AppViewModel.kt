@@ -81,7 +81,6 @@ class AppViewModel(application: MainApplication) :
     }
 
     // Used to check for changed packages on init
-    // TODO: Fix package refreshing on init
     fun CoroutineScope.refreshPackageList() {
         Log.d("ViewModel", "Refreshing the package list")
         launch(ioDispatcher) {

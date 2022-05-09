@@ -62,6 +62,7 @@ android {
 
     ndkVersion '23.1.7779620'
     compileSdkVersion 32
+    namespace 'com.stefan.simplebackup'
 }
 
 dependencies {

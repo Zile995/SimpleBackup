@@ -10,6 +10,17 @@ import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
 object BitmapUtil {
+
+    suspend fun appWithCheckedBitmap(app: AppData, context: Context): AppData {
+        return if (app.bitmap.size > 200_000) {
+            Log.d("Bitmap", "${app.bitmap.size}")
+            saveBitmapByteArray(app.bitmap, app.name, context)
+            app.copy(bitmap = byteArrayOf())
+        } else {
+            app
+        }
+    }
+
     suspend fun drawableToByteArray(drawable: Drawable): ByteArray =
         withContext(ioDispatcher) {
             val bitmap: Bitmap =
@@ -36,15 +47,6 @@ object BitmapUtil {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
             bytes.toByteArray()
         }
-
-    suspend fun saveIfBigBitmap(item: AppData, context: Context) {
-        val bitmapByteArray = item.bitmap
-        Log.d("Bitmap", "${bitmapByteArray.size}")
-        if (bitmapByteArray.size > 200_000) {
-            saveBitmapByteArray(bitmapByteArray, item.name, context)
-            item.bitmap = byteArrayOf()
-        }
-    }
 
     suspend fun setAppBitmap(app: AppData, context: Context) {
         val bitmapArray = app.bitmap

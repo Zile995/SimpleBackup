@@ -1,20 +1,39 @@
 package com.stefan.simplebackup.utils.main
 
 import android.content.Context
+import android.content.Intent
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.model.AppData
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlin.math.pow
 
+const val PARCELABLE_EXTRA = "application"
 val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
 fun Number.transformBytesToString(): String {
-    return String.format("%3.1f %s", this.toFloat() / 1000.0.pow(2), "MB")
+    return String.format("%3.1f %s", this.toFloat() / 1_000.0.pow(2), "MB")
+}
+
+inline fun <reified T : AppCompatActivity> Context?.passParcelableToActivity(
+    app: AppData,
+    scope: CoroutineScope
+) {
+    this?.let { context ->
+        scope.launch {
+            val intent = Intent(context, T::class.java)
+                .putExtra(PARCELABLE_EXTRA, BitmapUtil.appWithCheckedBitmap(app, context))
+            context.startActivity(intent)
+        }
+    }
 }
 
 fun Context.showToast(message: String) {

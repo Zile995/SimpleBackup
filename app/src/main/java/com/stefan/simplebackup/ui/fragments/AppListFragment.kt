@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -21,7 +22,7 @@ import com.stefan.simplebackup.ui.activities.ProgressActivity
 import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.AppViewHolder
 import com.stefan.simplebackup.ui.adapters.OnClickListener
-import com.stefan.simplebackup.utils.main.BitmapUtil
+import com.stefan.simplebackup.utils.main.passParcelableToActivity
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.delay
@@ -56,6 +57,11 @@ class AppListFragment : Fragment() {
         appViewModel
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setAppAdapter()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -65,7 +71,6 @@ class AppListFragment : Fragment() {
 
         _binding = FragmentAppListBinding
             .inflate(inflater, container, false)
-        setAppAdapter()
         return binding.root
     }
 
@@ -76,12 +81,7 @@ class AppListFragment : Fragment() {
                 bindViews()
                 setViewModelObservers()
                 restoreRecyclerViewState()
-                if (savedInstanceState != null) {
-                    isSearching = savedInstanceState.getBoolean("isSearching")
-                }
-                if (isSearching) {
-                    searchInput.requestFocus()
-                }
+                restoreInstanceState(savedInstanceState)
             }
         }
     }
@@ -122,16 +122,10 @@ class AppListFragment : Fragment() {
                     if (appAdapter.hasSelectedItems()) {
                         appAdapter.doSelection(holder as AppViewHolder, item)
                     } else {
-                        viewLifecycleOwner
-                            .lifecycleScope.launch {
-                                BitmapUtil.saveIfBigBitmap(
-                                    item,
-                                    requireContext().applicationContext
-                                )
-                                val intent = Intent(context, AppDetailActivity::class.java)
-                                intent.putExtra("application", item)
-                                context?.startActivity(intent)
-                            }
+                        context?.passParcelableToActivity<AppDetailActivity>(
+                            item,
+                            viewLifecycleOwner.lifecycleScope
+                    )
                     }
                 }
 
@@ -202,6 +196,15 @@ class AppListFragment : Fragment() {
         })
     }
 
+    private fun FragmentAppListBinding.restoreInstanceState(savedInstanceState: Bundle?) {
+        if (savedInstanceState != null) {
+            isSearching = savedInstanceState.getBoolean("isSearching")
+        }
+        if (isSearching) {
+            searchInput.requestFocus()
+        }
+    }
+
     private fun FragmentAppListBinding.saveRecyclerViewState() {
         recyclerView.layoutManager?.onSaveInstanceState()?.let {
             appViewModel.saveRecyclerViewState(it)
@@ -216,7 +219,7 @@ class AppListFragment : Fragment() {
 
     private fun FragmentAppListBinding.setViewModelObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 launch {
                     appViewModel.isSelected.collect { isSelected ->
                         batchBackup.visibility =
