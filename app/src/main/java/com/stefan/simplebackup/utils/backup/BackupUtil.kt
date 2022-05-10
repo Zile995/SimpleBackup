@@ -19,8 +19,7 @@ class BackupUtil(
     private var zipUtil: ZipUtil? = null
     private var tarUtil: TarUtil? = null
 
-    private val mainApplication: MainApplication = appContext as MainApplication
-    private val repository = mainApplication.getRepository
+    private val repository = (appContext as MainApplication).getRepository
 
     private var currentProgress = 0
     private val updatedProgress: Int

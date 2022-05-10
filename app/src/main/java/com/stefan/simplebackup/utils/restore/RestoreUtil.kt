@@ -28,7 +28,6 @@ class RestoreUtil(
             return currentProgress
         }
 
-
     suspend fun restore() {
         savePackageNameToPreferences(TMP + DATA)
         restoreData()

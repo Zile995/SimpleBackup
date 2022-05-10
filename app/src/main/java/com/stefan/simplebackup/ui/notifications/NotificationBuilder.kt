@@ -4,11 +4,13 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
 import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
-import androidx.core.app.NotificationManagerCompat
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.broadcasts.ACTION_WORK_FINISHED
+import com.stefan.simplebackup.data.broadcasts.NotificationBroadcastReceiver
 import com.stefan.simplebackup.data.model.AppData
 
 const val NOTIFICATION_ID = 42
@@ -17,24 +19,19 @@ const val CHANNEL_ID = "MAIN_NOTIFICATION"
 
 class NotificationBuilder(
     private val context: Context,
-    private val ongoing: Boolean
-) {
+    private val ongoing: Boolean = false
+) : NotificationHelper {
 
     init {
         createNotificationChannel()
     }
 
-    private val builder: NotificationCompat.Builder by lazy {
+    override val notificationId: Int
+        get() = NOTIFICATION_ID
+
+    override val notificationBuilder: NotificationCompat.Builder by lazy {
         setNotificationBuilder()
     }
-    val getBuilder get() = builder
-
-    private val getNotificationManager: NotificationManagerCompat
-        get() {
-            return NotificationManagerCompat.from(context)
-        }
-
-    val getNotificationId get() = NOTIFICATION_ID
 
     private fun createNotificationChannel() {
         val name = context.getString(R.string.notification_channel_name)
@@ -51,8 +48,8 @@ class NotificationBuilder(
 
     private fun setNotificationBuilder(): NotificationCompat.Builder {
         return NotificationCompat.Builder(context, CHANNEL_ID).apply {
-            setContentTitle("Backup")
-            setContentText("Backup in progress")
+            setContentTitle("Work")
+            setContentText("Work in progress")
             setSmallIcon(R.drawable.ic_launcher_foreground)
             setOnlyAlertOnce(true)
             setAutoCancel(false)
@@ -61,17 +58,35 @@ class NotificationBuilder(
         }
     }
 
-    fun showBackupFinishedNotification(size: Int) {
-        getNotificationManager.notify(
-            NOTIFICATION_ID,
-            getBackupFinishedNotification(size)
-        )
+    override fun Context.sendNotificationBroadcast(
+        notification: Notification
+    ) {
+        applicationContext.sendBroadcast(
+            Intent(
+                applicationContext,
+                NotificationBroadcastReceiver::class.java
+            ).apply {
+                action = ACTION_WORK_FINISHED
+                putExtra(
+                    EXTRA_NOTIFICATION,
+                    notification
+                )
+                setPackage(applicationContext.packageName)
+            })
     }
 
-    fun getBackupFinishedNotification(size: Int): Notification {
-        return builder.apply {
-            setContentTitle("Backup Completed")
-            setContentText("$size apps successfully backed up")
+    override fun getFinishedNotification(
+        numberOfPackages: Int,
+        isBackup: Boolean
+    ): Notification {
+        return notificationBuilder.apply {
+            if (isBackup) {
+                setContentTitle("Backup Completed")
+                setContentText("$numberOfPackages apps successfully backed up")
+            } else {
+                setContentTitle("Restore Completed")
+                setContentText("$numberOfPackages apps successfully restored")
+            }
             setOnlyAlertOnce(true)
             setAutoCancel(false)
             foregroundServiceBehavior = FOREGROUND_SERVICE_IMMEDIATE
@@ -82,13 +97,8 @@ class NotificationBuilder(
         }.build()
     }
 
-    fun showMainNotification() {
-        getNotificationManager
-            .notify(getNotificationId, builder.build())
-    }
-
-    fun NotificationCompat.Builder.updateNotificationContent(app: AppData): NotificationCompat.Builder {
-        return this.apply {
+    override fun NotificationCompat.Builder.updateNotificationContent(app: AppData): NotificationCompat.Builder {
+        return apply {
             setContentTitle("Backing up ${app.name}")
             setLargeIcon(
                 BitmapFactory.decodeByteArray(

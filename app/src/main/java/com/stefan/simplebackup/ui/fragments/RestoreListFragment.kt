@@ -18,8 +18,8 @@ import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.adapters.*
 import com.stefan.simplebackup.utils.backup.ROOT
-import com.stefan.simplebackup.utils.main.FileUtil
-import com.stefan.simplebackup.utils.main.JsonUtil
+import com.stefan.simplebackup.utils.file.FileUtil
+import com.stefan.simplebackup.utils.file.JsonUtil
 import com.stefan.simplebackup.utils.main.workerDialog
 import com.stefan.simplebackup.viewmodels.RestoreViewModel
 import com.stefan.simplebackup.viewmodels.RestoreViewModelFactory

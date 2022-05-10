@@ -13,7 +13,6 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.repository.AppRepository
 import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow

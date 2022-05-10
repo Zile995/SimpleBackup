@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.repository.AppRepository
-import com.stefan.simplebackup.utils.backup.WorkerHelper
+import com.stefan.simplebackup.data.workers.WorkerHelper
 import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.launch
 
@@ -31,7 +31,7 @@ class ProgressViewModel(
     private fun startBackupWorker() {
         selectedApps?.let {
             val workerHelper = WorkerHelper(selectedApps, workManager)
-            workerHelper.startWorker(shouldBackup = true)
+            workerHelper.startWorker()
         }
     }
 

@@ -2,8 +2,8 @@ package com.stefan.simplebackup.utils.backup
 
 import android.content.Context
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.main.FileUtil
-import com.stefan.simplebackup.utils.main.JsonUtil
+import com.stefan.simplebackup.utils.file.FileUtil
+import com.stefan.simplebackup.utils.file.JsonUtil
 import java.text.SimpleDateFormat
 import java.util.*
 

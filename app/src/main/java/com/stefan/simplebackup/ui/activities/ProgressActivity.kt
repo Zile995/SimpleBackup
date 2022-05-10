@@ -11,8 +11,8 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.workers.BACKUP_PROGRESS
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
+import com.stefan.simplebackup.data.workers.REQUEST_TAG
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
-import com.stefan.simplebackup.utils.backup.REQUEST_TAG
 import com.stefan.simplebackup.utils.main.PreferenceHelper
 import com.stefan.simplebackup.utils.main.PreferenceHelper.getPackageName
 import com.stefan.simplebackup.utils.main.loadBitmapToImageView

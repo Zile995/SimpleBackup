@@ -1,8 +1,6 @@
-package com.stefan.simplebackup.utils.backup
+package com.stefan.simplebackup.data.workers
 
 import androidx.work.*
-import com.stefan.simplebackup.data.workers.BackupWorker
-import com.stefan.simplebackup.data.workers.RestoreWorker
 
 const val REQUEST_TAG = "WORKER_TAG"
 const val ARGUMENT = "PACKAGES"
@@ -23,7 +21,7 @@ class WorkerHelper(
         .setRequiresStorageNotLow(true)
         .build()
 
-    fun startWorker(shouldBackup: Boolean) {
+    fun startWorker(shouldBackup: Boolean = true) {
         if (shouldBackup)
             beginUniqueWork<BackupWorker>()
         else

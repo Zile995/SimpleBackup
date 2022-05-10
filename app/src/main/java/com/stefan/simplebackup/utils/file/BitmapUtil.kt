@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.utils.main
+package com.stefan.simplebackup.utils.file
 
 import android.content.Context
 import android.graphics.Bitmap
@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
