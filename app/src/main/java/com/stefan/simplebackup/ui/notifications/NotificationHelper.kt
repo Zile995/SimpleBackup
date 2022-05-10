@@ -14,5 +14,5 @@ interface NotificationHelper {
 
     fun Context.sendNotificationBroadcast(notification: Notification)
 
-    fun NotificationCompat.Builder.updateNotificationContent(app: AppData): NotificationCompat.Builder
+    suspend fun NotificationCompat.Builder.updateNotificationContent(app: AppData): NotificationCompat.Builder
 }

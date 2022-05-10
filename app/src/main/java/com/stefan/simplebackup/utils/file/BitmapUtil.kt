@@ -2,6 +2,7 @@ package com.stefan.simplebackup.utils.file
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.Log
@@ -48,6 +49,12 @@ object BitmapUtil {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
             bytes.toByteArray()
         }
+
+    suspend fun byteArrayToBitmap(app: AppData): Bitmap {
+        return withContext(ioDispatcher) {
+            BitmapFactory.decodeByteArray(app.bitmap, 0, app.bitmap.size)
+        }
+    }
 
     suspend fun setAppBitmap(app: AppData, context: Context) {
         val bitmapArray = app.bitmap

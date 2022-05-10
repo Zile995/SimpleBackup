@@ -12,6 +12,8 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.broadcasts.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.broadcasts.NotificationBroadcastReceiver
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.utils.file.BitmapUtil
+import kotlinx.coroutines.withContext
 
 const val NOTIFICATION_ID = 42
 const val EXTRA_NOTIFICATION = "NOTIFICATION_PARCEL"
@@ -19,7 +21,7 @@ const val CHANNEL_ID = "MAIN_NOTIFICATION"
 
 class NotificationBuilder(
     private val context: Context,
-    private val ongoing: Boolean = false
+    private val ongoing: Boolean = true
 ) : NotificationHelper {
 
     init {
@@ -97,16 +99,10 @@ class NotificationBuilder(
         }.build()
     }
 
-    override fun NotificationCompat.Builder.updateNotificationContent(app: AppData): NotificationCompat.Builder {
+    override suspend fun NotificationCompat.Builder.updateNotificationContent(app: AppData): NotificationCompat.Builder {
         return apply {
             setContentTitle("Backing up ${app.name}")
-            setLargeIcon(
-                BitmapFactory.decodeByteArray(
-                    app.bitmap,
-                    0,
-                    app.bitmap.size
-                )
-            )
+            setLargeIcon(BitmapUtil.byteArrayToBitmap(app))
         }
     }
 }

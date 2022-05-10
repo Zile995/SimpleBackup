@@ -58,6 +58,11 @@ class RestoreListFragment : Fragment() {
         restoreViewModel
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setRestoreAdapter()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -65,7 +70,6 @@ class RestoreListFragment : Fragment() {
         super.onCreateView(inflater, container, savedInstanceState)
         _binding = FragmentRestoreListBinding
             .inflate(inflater, container, false)
-        setRestoreAdapter()
         return binding.root
     }
 
