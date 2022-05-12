@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
+import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
 import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +43,7 @@ class RestoreViewModel(application: Application) : AndroidViewModel(application)
     fun startRestoreWorker() {
         viewModelScope.launch(ioDispatcher) {
             val workerHelper = WorkerHelper(selectionList.toTypedArray(), workManager)
-            workerHelper.startWorker(shouldBackup = false)
+            workerHelper.beginUniqueWork<MainWorker>(shouldBackup = false)
         }
     }
 

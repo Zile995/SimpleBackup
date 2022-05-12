@@ -3,13 +3,15 @@ package com.stefan.simplebackup.data.workers
 import androidx.work.*
 
 const val REQUEST_TAG = "WORKER_TAG"
-const val ARGUMENT = "PACKAGES"
+const val INPUT_LIST = "PACKAGES"
+const val SHOULD_BACKUP = "WORKER_TYPE"
 const val WORK_NAME = "SIMPLE_WORK"
 const val WORK_ITEMS = "NUMBER_OF_PACKAGES"
 
 class WorkerHelper(
     private val appList: Array<String>,
-    private val workManager: WorkManager
+    @PublishedApi
+    internal val workManager: WorkManager
 ) {
 
     constructor(packageName: String, workManager: WorkManager) : this(
@@ -17,32 +19,29 @@ class WorkerHelper(
         workManager
     )
 
-    private val constraints = Constraints.Builder()
+    @PublishedApi
+    internal val constraints = Constraints.Builder()
         .setRequiresStorageNotLow(true)
         .build()
 
-    fun startWorker(shouldBackup: Boolean = true) {
-        if (shouldBackup)
-            beginUniqueWork<BackupWorker>()
-        else
-            beginUniqueWork<RestoreWorker>()
-    }
-
-    private inline fun <reified W : ListenableWorker> beginUniqueWork() {
+    inline fun <reified W : ListenableWorker> beginUniqueWork(shouldBackup: Boolean = true) {
         OneTimeWorkRequestBuilder<W>()
-            .setInputData(createInputData())
+            .setInputData(createInputData(shouldBackup))
             .setConstraints(constraints)
             .addTag(REQUEST_TAG)
             .build().also { buildRequest ->
                 workManager
-                    .beginUniqueWork(WORK_NAME, ExistingWorkPolicy.REPLACE, buildRequest)
+                    .beginUniqueWork(WORK_NAME, ExistingWorkPolicy.KEEP, buildRequest)
                     .enqueue()
             }
     }
 
-    private fun createInputData(): Data {
+    @PublishedApi
+    internal fun createInputData(shouldBackup: Boolean): Data {
         val builder = Data.Builder()
-        builder.putStringArray(ARGUMENT, appList)
-        return builder.build()
+        return builder
+            .putStringArray(INPUT_LIST, appList)
+            .putBoolean(SHOULD_BACKUP, shouldBackup)
+            .build()
     }
 }

@@ -7,13 +7,14 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.ui.notifications.NotificationBuilder
 import com.stefan.simplebackup.ui.notifications.NotificationHelper
 import com.stefan.simplebackup.utils.backup.BackupUtil
+import com.stefan.simplebackup.utils.restore.RestoreUtil
 import kotlinx.coroutines.*
 import kotlin.system.measureTimeMillis
 
-const val BACKUP_PROGRESS = "BackupProgress"
+const val WORK_PROGRESS = "BackupProgress"
 const val PROGRESS_MAX = 10_000
 
-class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
+class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext,
     params
 ), NotificationHelper by NotificationBuilder(appContext) {
@@ -21,27 +22,32 @@ class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWor
     private lateinit var outputData: Data
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val packageNames: Array<String>?
-        get() = inputData.getStringArray(ARGUMENT)
+        get() = inputData.getStringArray(INPUT_LIST)
+    private val shouldBackup: Boolean
+        get() = inputData.getBoolean(SHOULD_BACKUP, true)
 
     override suspend fun doWork(): Result = coroutineScope {
         try {
             withContext(ioDispatcher) {
-                outputData = workDataOf(ARGUMENT to false)
+                outputData = workDataOf(INPUT_LIST to false)
                 val time = measureTimeMillis {
-                    backup()
+                    if (shouldBackup) backup() else restore()
                 }
-                Log.d("BackupWorker", "Backup successful, completed in: ${time / 1000.0} seconds")
                 Result.success(outputData).also {
+                    Log.d("MainWorker", "Work successful, completed in: ${time / 1_000.0} seconds")
                     delay(1_000L)
                     packageNames?.apply {
                         applicationContext.sendNotificationBroadcast(
-                            notification = getFinishedNotification(numberOfPackages = size),
+                            notification = getFinishedNotification(
+                                numberOfPackages = size,
+                                isBackup = shouldBackup
+                            ),
                         )
                     }
                 }
             }
         } catch (e: Throwable) {
-            Log.e("BackupWorker", "Backup error: ${e.message}")
+            Log.e("MainWorker", "Work error: ${e.message}")
             Result.failure(outputData)
         }
     }
@@ -54,9 +60,16 @@ class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWor
             }
         }
         outputData = workDataOf(
-            ARGUMENT to true,
+            INPUT_LIST to true,
             WORK_ITEMS to (packageNames?.size ?: 0)
         )
+    }
+
+    private suspend fun restore() {
+        packageNames?.let { packageNames ->
+            val restoreUtil = RestoreUtil(applicationContext, packageNames)
+            restoreUtil.restore()
+        }
     }
 
     private suspend fun updateForegroundInfo(
@@ -64,7 +77,7 @@ class BackupWorker(appContext: Context, params: WorkerParameters) : CoroutineWor
         app: AppData
     ) {
         notificationBuilder.apply {
-            setProgress(workDataOf(BACKUP_PROGRESS to currentProgress))
+            setProgress(workDataOf(WORK_PROGRESS to currentProgress))
             setForeground(
                 ForegroundInfo(
                     notificationId,

@@ -36,7 +36,7 @@ object BitmapUtil {
                     )
                 }
 
-            Log.d("Bitmap", "Bytes bitmap: ${bitmap.allocationByteCount}")
+            //Log.d("Bitmap", "Bytes bitmap: ${bitmap.allocationByteCount}")
             val canvas = Canvas(bitmap)
             drawable.setBounds(0, 0, canvas.width, canvas.height)
             drawable.draw(canvas)

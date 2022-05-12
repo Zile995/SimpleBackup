@@ -17,7 +17,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class AppViewModel(application: MainApplication) :
@@ -52,7 +51,7 @@ class AppViewModel(application: MainApplication) :
             try {
                 appManager.printSequence()
                 launchDataLoading {
-                    getAllAppsFromDatabase()
+                    repository.getAllApps
                 }.also {
                     refreshPackageList()
                 }
@@ -64,16 +63,14 @@ class AppViewModel(application: MainApplication) :
         }
     }
 
-    private fun getAllAppsFromDatabase() = repository.getAllApps
-
     // Loading methods
     private inline fun CoroutineScope.launchDataLoading(
         crossinline allAppsFromDatabase: () -> Flow<MutableList<AppData>>,
     ) {
         launch {
-            allAppsFromDatabase().collectLatest { apps ->
+            allAppsFromDatabase().collect { apps ->
                 _allApps.value = apps
-                delay(150)
+                delay(200)
                 _spinner.value = false
             }
         }
@@ -107,10 +104,8 @@ class AppViewModel(application: MainApplication) :
     override fun CoroutineScope.addOrUpdatePackage(packageName: String) {
         launch {
             appManager.apply {
-                build(packageName).collect { app ->
-                    repository.insert(app)
-                    appManager.updateSequenceNumber()
-                }
+                repository.insert(build(packageName))
+                appManager.updateSequenceNumber()
             }
         }
     }

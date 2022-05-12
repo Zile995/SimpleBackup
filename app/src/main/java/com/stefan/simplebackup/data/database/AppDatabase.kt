@@ -34,16 +34,25 @@ abstract class AppDatabase : RoomDatabase() {
         private val appDao by lazy { INSTANCE?.appDao() }
 
         private suspend fun insertAll() {
-            val time = measureTimeMillis {
-                appManager.apply {
-                    updateSequenceNumber()
-                    getApplicationList().collect { app ->
-                        appDao?.insert(app)
+            try {
+                val time = measureTimeMillis {
+                    appManager.apply {
+                        updateSequenceNumber()
+                        dataBuilder().collect { app ->
+                            println("Inserting: ${app.name}")
+                            appDao?.insert(app)
+                        }
+                        dataBuilder(true).collect { app ->
+                            println("Inserting: ${app.name}")
+                            appDao?.insert(app)
+                        }
                     }
                 }
                 PreferenceHelper.setDatabaseCreated(true)
+                Log.d("AppDatabase", "Load time: $time")
+            } catch (e: Exception) {
+                Log.d("AppDatabase", "Error: ${e.localizedMessage}")
             }
-            Log.d("AppDatabase", "Load time: $time")
         }
 
         override fun onCreate(db: SupportSQLiteDatabase) {

@@ -29,23 +29,20 @@ class RestoreUtil(
         }
 
     suspend fun restore() {
-        savePackageNameToPreferences(TMP + DATA)
-        restoreData()
-    }
-
-
-    private suspend fun restoreData() {
         withContext(ioDispatcher) {
-
+            PreferenceHelper.savePackageName(TMP + DATA)
+            unzipData()
+            restoreData()
         }
     }
 
-    private suspend fun savePackageNameToPreferences(packageName: String) {
-        withContext(ioDispatcher) {
-            PreferenceHelper.savePackageName(packageName)
-        }
+    private fun unzipData() {
+
     }
 
+    private fun restoreData() {
+
+    }
 }
 
 //private suspend fun installApp(context: Context, app: AppData) {

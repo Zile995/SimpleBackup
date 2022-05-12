@@ -7,6 +7,7 @@ import androidx.work.WorkerParameters
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.utils.main.PreferenceHelper
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
 
 class BootPackageWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext,
@@ -22,8 +23,10 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) : Corouti
             withContext(ioDispatcher) {
                 launch {
                     PreferenceHelper.resetSequenceNumber()
-                    appManager.getApplicationList().collect { newApp ->
-                        repository.insert(newApp)
+                    appManager.apply {
+                        dataBuilder().collect { app ->
+                            repository.insert(app)
+                        }
                     }
                 }
                 repository.getAllApps.collect { databaseList ->

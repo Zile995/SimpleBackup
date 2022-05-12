@@ -5,7 +5,6 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
 import com.stefan.simplebackup.R
@@ -13,7 +12,6 @@ import com.stefan.simplebackup.data.broadcasts.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.broadcasts.NotificationBroadcastReceiver
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.file.BitmapUtil
-import kotlinx.coroutines.withContext
 
 const val NOTIFICATION_ID = 42
 const val EXTRA_NOTIFICATION = "NOTIFICATION_PARCEL"
@@ -82,13 +80,14 @@ class NotificationBuilder(
         isBackup: Boolean
     ): Notification {
         return notificationBuilder.apply {
-            if (isBackup) {
-                setContentTitle("Backup Completed")
-                setContentText("$numberOfPackages apps successfully backed up")
-            } else {
-                setContentTitle("Restore Completed")
-                setContentText("$numberOfPackages apps successfully restored")
-            }
+            val appString = if (numberOfPackages > 1) "apps" else "app"
+                if (isBackup) {
+                    setContentTitle("Backup Completed")
+                    setContentText("$numberOfPackages $appString successfully backed up")
+                } else {
+                    setContentTitle("Restore Completed")
+                    setContentText("$numberOfPackages $appString successfully restored")
+                }
             setOnlyAlertOnce(true)
             setAutoCancel(false)
             foregroundServiceBehavior = FOREGROUND_SERVICE_IMMEDIATE

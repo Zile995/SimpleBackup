@@ -61,6 +61,9 @@ data class AppData(
     @ColumnInfo(name = "cache_size")
     var cacheSize: Long,
 
+    @ColumnInfo(name = "is_user_app")
+    var isUserApp: Boolean,
+
     @ColumnInfo(name = "favorite")
     var favorite: Boolean
 ) : Parcelable {
@@ -95,6 +98,7 @@ data class AppData(
         isSplit = parcel.readBooleanValue() ?: false,
         dataSize = parcel.readLong(),
         cacheSize = parcel.readLong(),
+        isUserApp = parcel.readBooleanValue() ?: false,
         favorite = parcel.readBooleanValue() ?: false
     )
 

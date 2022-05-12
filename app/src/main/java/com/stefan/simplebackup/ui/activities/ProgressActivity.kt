@@ -9,9 +9,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkInfo
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.workers.BACKUP_PROGRESS
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.data.workers.REQUEST_TAG
+import com.stefan.simplebackup.data.workers.WORK_PROGRESS
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
 import com.stefan.simplebackup.utils.main.PreferenceHelper
 import com.stefan.simplebackup.utils.main.PreferenceHelper.getPackageName
@@ -87,7 +87,7 @@ class ProgressActivity : AppCompatActivity() {
                 return@Observer
             workInfoList[0]
                 .progress
-                .getInt(BACKUP_PROGRESS, 0).apply {
+                .getInt(WORK_PROGRESS, 0).apply {
                     progressIndicator.setProgress(this, true)
                 }
             if (workInfoList[0].state.isFinished) {

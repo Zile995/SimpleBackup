@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
 import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.launch
@@ -27,8 +28,8 @@ class AppDetailViewModel(
     fun createLocalBackup() {
         viewModelScope.launch(ioDispatcher) {
             app?.packageName?.let { packageName ->
-                val backupWorkerHelper = WorkerHelper(packageName, workManager)
-                backupWorkerHelper.startWorker()
+                val workerHelper = WorkerHelper(packageName, workManager)
+                workerHelper.beginUniqueWork<MainWorker>()
             }
         }
     }

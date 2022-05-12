@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AppDao {
-    @Query("SELECT * FROM app_table ORDER BY name ASC")
+    @Query("SELECT * FROM app_table WHERE is_user_app = 1 ORDER BY name ASC")
     @Transaction
     fun getAppList(): Flow<MutableList<AppData>>
 

@@ -9,13 +9,10 @@ import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.file.BitmapUtil
 import com.stefan.simplebackup.utils.main.PreferenceHelper
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
+import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile
 import java.io.File
@@ -23,22 +20,14 @@ import java.io.File
 class AppManager(private val context: Context) {
 
     /**
-     * - IO Dispatcher
-     */
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-
-    /**
-     * - Sadrži [PackageManager]
+     * - [PackageManager]
      */
     private val packageManager: PackageManager = context.packageManager
     private val storageStatsManager by lazy {
         context.getSystemService(Context.STORAGE_STATS_SERVICE) as StorageStatsManager
     }
 
-    /**
-     * - Vrati kreiran [AppData] objekat
-     */
-    fun build(packageName: String) = getAppData(getAppInfoByPackageName(packageName))
+    suspend fun build(packageName: String) = getAppData(appInfo = getAppInfo(packageName))
 
     fun printSequence() {
         Log.d(
@@ -73,7 +62,9 @@ class AppManager(private val context: Context) {
         val changedPackages = getChangedPackages()
         changedPackages?.let { changed ->
             saveSequenceNumber(changed.sequenceNumber)
-            changed.packageNames.forEach { packageName ->
+            changed.packageNames.filter { packageName ->
+                packageName != context.packageName
+            }.forEach { packageName ->
                 emit(packageName)
             }
         }
@@ -88,96 +79,70 @@ class AppManager(private val context: Context) {
         return true
     }
 
-    private fun getAppInfoByPackageName(packageName: String) =
+    private fun getAppInfo(packageName: String) =
         packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
 
-    /**
-     * - Koristi se kada se Database prvi put kreira.
-     */
-    suspend fun getApplicationList(): Flow<AppData> = channelFlow {
-        withContext(ioDispatcher) {
-            val userAppsInfo = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+    private fun ApplicationInfo.isUserApp() =
+        flags and ApplicationInfo.FLAG_SYSTEM == 0
 
-            val size = userAppsInfo.size
-            val quarter = (size / 4)
-            val secondQuarter = size / 2
-            val thirdQuarter = size - quarter
-
-            launch {
-                for (i in 0 until quarter) {
-                    getAppData(userAppsInfo[i]).collect { app -> send(app) }
-                }
+    // Simple flow which sends data
+    fun dataBuilder(includeSystemApps: Boolean = false) = flow {
+        val completeAppsInfo = getCompleteAppsInfo()
+        completeAppsInfo.apply {
+            getFilteredInfo(includeSystemApps).forEach { userAppsInfo ->
+                emit(getAppData(userAppsInfo))
             }
-            launch {
-                for (i in quarter until secondQuarter) {
-                    getAppData(userAppsInfo[i]).collect { app -> send(app) }
-                }
-            }
-            launch {
-                for (i in secondQuarter until thirdQuarter) {
-                    getAppData(userAppsInfo[i]).collect { app -> send(app) }
-                }
-            }
-            launch {
-                for (i in thirdQuarter until size) {
-                    getAppData(userAppsInfo[i]).collect { app -> send(app) }
-                }
-            }.join()
-        }
-    }
-
-    /**
-     * - Kreira objekte [AppData] klase
-     *
-     * - Android 11 po defaultu ne prikazuje sve informacije instaliranih aplikacija.
-     *   To se može zaobići u AndroidManifest.xml fajlu dodavanjem
-     *   **<uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
-     *   tools:ignore="QueryAllPackagesPermission" />**
-     */
-    private fun getAppData(appInfo: ApplicationInfo): Flow<AppData> = flow {
-        val myPackageName = context.applicationContext.packageName
-        if (!(isSystemApp(appInfo) || appInfo.packageName.equals(myPackageName))) {
-            val storageStats: StorageStats =
-                storageStatsManager.queryStatsForUid(appInfo.storageUuid, appInfo.uid)
-            val cacheSize = storageStats.cacheBytes
-            val dataSize = storageStats.dataBytes
-            val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }
-            val name = appInfo.loadLabel(packageManager).toString()
-            val packageName = appInfo.packageName
-            val drawable = appInfo.loadIcon(packageManager)
-            val versionName = packageManager.getPackageInfo(
-                appInfo.packageName,
-                PackageManager.GET_META_DATA
-            ).versionName?.substringBefore(" (") ?: ""
-            val apkInfo = getApkInfo(apkDir)
-            val apkSize = apkInfo?.first
-            val isSplit = apkInfo?.second
-
-            val application = AppData(
-                uid = 0,
-                name = name,
-                bitmap = BitmapUtil.drawableToByteArray(drawable),
-                packageName = packageName,
-                versionName = versionName,
-                targetSdk = appInfo.targetSdkVersion,
-                minSdk = appInfo.minSdkVersion,
-                dataDir = appInfo.dataDir,
-                apkDir = apkDir,
-                apkSize = apkSize ?: 0f,
-                isSplit = isSplit ?: false,
-                dataSize = dataSize,
-                cacheSize = cacheSize,
-                favorite = false
-            )
-            emit(application)
         }
     }.flowOn(ioDispatcher)
 
-    /**
-     * - Proverava da li je prosleđena aplikacija system app
-     */
-    private fun isSystemApp(appInfo: ApplicationInfo): Boolean {
-        return appInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
+    private fun getCompleteAppsInfo(): List<ApplicationInfo> {
+        return packageManager
+            .getInstalledApplications(PackageManager.GET_META_DATA)
+            .filter { appInfo ->
+                appInfo.packageName != context.packageName
+            }.sortedBy { appInfo ->
+                appInfo.loadLabel()
+            }
+    }
+
+    private fun List<ApplicationInfo>.getFilteredInfo(filterSystemApps: Boolean = false) =
+        filter { appInfo ->
+            if (filterSystemApps) !appInfo.isUserApp() else appInfo.isUserApp()
+        }
+
+    private fun ApplicationInfo.loadLabel() = loadLabel(packageManager).toString()
+
+    private suspend fun getAppData(appInfo: ApplicationInfo): AppData {
+        val storageStats: StorageStats =
+            storageStatsManager.queryStatsForUid(appInfo.storageUuid, appInfo.uid)
+        val cacheSize = storageStats.cacheBytes
+        val dataSize = storageStats.dataBytes
+        val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }
+        val name = appInfo.loadLabel(packageManager).toString()
+        val packageName = appInfo.packageName
+        val drawable = appInfo.loadIcon(packageManager)
+        val versionName = packageManager.getPackageInfo(
+            appInfo.packageName,
+            PackageManager.GET_META_DATA
+        ).versionName?.substringBefore(" (") ?: ""
+        val apkInfo = getApkInfo(apkDir)
+
+        return AppData(
+            name = name,
+            bitmap = BitmapUtil.drawableToByteArray(drawable),
+            packageName = packageName,
+            versionName = versionName,
+            targetSdk = appInfo.targetSdkVersion,
+            minSdk = appInfo.minSdkVersion,
+            dataDir = appInfo.dataDir,
+            apkDir = apkDir,
+            apkSize = apkInfo!!.first,
+            isSplit = apkInfo.second,
+            dataSize = dataSize,
+            cacheSize = cacheSize,
+            isUserApp = appInfo.isUserApp(),
+            favorite = false
+        )
     }
 
     private suspend fun getApkInfo(apkDirPath: String): Pair<Float, Boolean>? {
