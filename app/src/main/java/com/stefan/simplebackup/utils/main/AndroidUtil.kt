@@ -12,10 +12,12 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import com.bumptech.glide.Glide
+import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.utils.backup.ROOT
 import com.stefan.simplebackup.utils.file.BitmapUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -97,21 +99,12 @@ fun Context.showToast(message: String) {
     Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
 }
 
-fun Context.loadBitmapToImageView(byteArray: ByteArray, image: ImageView) {
-    Glide.with(this).apply {
-        asBitmap()
-            .load(byteArray)
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .into(image)
-    }
-}
-
-inline fun Context.workerDialog(
+fun Context.workerDialog(
     title: String,
     message: String,
     positiveButtonText: String,
     negativeButtonText: String,
-    crossinline doWork: () -> Unit
+    doWork: () -> Unit
 ) {
     val builder = AlertDialog.Builder(this, R.style.DialogTheme)
     builder.setTitle(title)
@@ -162,34 +155,35 @@ fun Context.permissionDialog(
     alert.show()
 }
 
-//    private fun createToolBar() {
-//        TODO: To be fixed later
-//        binding.toolBar.setOnMenuItemClickListener { menuItem ->
-//            Log.d("Search", "toolbar item clicked")
-//            when (menuItem.itemId) {
-//                R.id.search -> {
-//                    val searchView = menuItem?.actionView as SearchView
-//                    searchView.imeOptions = EditorInfo.IME_ACTION_DONE
-//                    searchView.queryHint = "Search for apps"
-//
-//                    searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-//                        override fun onQueryTextSubmit(query: String?): Boolean {
-//                            return false
-//                        }
-//
-//                        override fun onQueryTextChange(newText: String?): Boolean {
-//                            newText?.let { text ->
-//                                appAdapter.filter(text)
-//                            }
-//                            return true
-//                        }
-//                    })
-//                }
-//                R.id.select_all -> {
-//                    appViewModel.setSelectedItems(applicationList)
-//                    appAdapter.notifyDataSetChanged()
-//                }
-//            }
-//            true
-//        }
-//    }
+fun ImageView.loadBitmap(byteArray: ByteArray) {
+    val image = this
+    GlideApp.with(image).apply {
+        asBitmap()
+            .load(byteArray)
+            .diskCacheStrategy(DiskCacheStrategy.NONE)
+            .into(image)
+    }
+}
+
+fun RecyclerView.hideAttachedButton(floatingButton: FloatingActionButton) {
+    addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+            super.onScrolled(recyclerView, dx, dy)
+
+            if (dy > 0 && floatingButton.isShown) {
+                floatingButton.hide()
+
+            } else if (dy < 0 && !floatingButton.isShown) {
+                floatingButton.show()
+            }
+        }
+
+        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+            super.onScrollStateChanged(recyclerView, newState)
+            // Ako ne može da skroluje na dole (1 je down direction) i ako može ka gore (-1 up direction)
+            if (!recyclerView.canScrollVertically(-1)) {
+                floatingButton.hide()
+            }
+        }
+    })
+}

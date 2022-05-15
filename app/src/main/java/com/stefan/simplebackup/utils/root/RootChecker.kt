@@ -36,10 +36,8 @@ class RootChecker(private val rootContext: Context) {
             val paths = System.getenv("PATH")
             if (!paths.isNullOrBlank()) {
                 val systemPaths: List<String> = paths.split(":")
-                Log.d("path", systemPaths.toString())
                 systemPaths.firstOrNull { File(it, "su").exists() } != null
             } else {
-                // Postavi standardne su binary putanje ako System PATH environment putanje nisu dostupne
                 val binaryPath = arrayOf(
                     "/sbin/",
                     "/system/bin/",

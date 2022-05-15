@@ -5,6 +5,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
     dependencies {
         classpath "com.android.tools.build:gradle:$gradleVersion"
@@ -20,17 +21,18 @@ ext {
     swipeRefresh = '1.1.0'
     androidxLegacy = '1.0.0'
     fragment = '1.4.1'
-    kotlinSerialization = '1.3.2'
+    kotlinSerialization = '1.3.3'
     navigation = '2.3.5'
     coroutines = '1.6.1-native-mt'
     work = "2.7.1"
     room = '2.4.2'
+    navigation = '2.4.2'
     googleAuth = '20.2.0'
     googleGson = '1.41.8'
     googleApiClient = '1.34.1'
-    googleDriveApi = 'v3-rev20220417-1.32.1'
+    googleDriveApi = 'v3-rev20220508-1.32.1'
     glide = '4.13.2'
-    libsu = '3.1.2'
+    libsu = '5.0.1'
     zip4j = '2.10.0'
     lifecycle = '2.4.1'
     junit = '4.13.2'

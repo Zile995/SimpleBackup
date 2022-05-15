@@ -14,79 +14,84 @@ import java.io.ByteArrayOutputStream
 object BitmapUtil {
 
     suspend fun appWithCheckedBitmap(app: AppData, context: Context): AppData {
-        return if (app.bitmap.size > 200_000) {
-            Log.d("Bitmap", "${app.bitmap.size}")
-            saveBitmapByteArray(app.bitmap, app.name, context)
-            app.copy(bitmap = byteArrayOf())
-        } else {
-            app
+        return app.run {
+            if (bitmap.size > 200_000) {
+                Log.d("Bitmap", "${bitmap.size}")
+                bitmap.saveByteArray(name, context)
+                copy(bitmap = byteArrayOf())
+            } else {
+                app
+            }
         }
     }
 
-    suspend fun drawableToByteArray(drawable: Drawable): ByteArray =
+    suspend fun Drawable.toByteArray(): ByteArray =
         withContext(ioDispatcher) {
             val bitmap: Bitmap =
-                if (drawable.intrinsicWidth <= 0 || drawable.intrinsicHeight <= 0) {
+                if (intrinsicWidth <= 0 || intrinsicHeight <= 0) {
                     Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
                 } else {
                     Bitmap.createBitmap(
-                        drawable.intrinsicWidth,
-                        drawable.intrinsicHeight,
+                        intrinsicWidth,
+                        intrinsicHeight,
                         Bitmap.Config.ARGB_8888
                     )
                 }
 
             //Log.d("Bitmap", "Bytes bitmap: ${bitmap.allocationByteCount}")
             val canvas = Canvas(bitmap)
-            drawable.setBounds(0, 0, canvas.width, canvas.height)
-            drawable.draw(canvas)
-            bitmapToByteArray(bitmap)
+            setBounds(0, 0, canvas.width, canvas.height)
+            draw(canvas)
+            bitmap.toByteArray()
         }
 
-    private suspend fun bitmapToByteArray(bitmap: Bitmap): ByteArray =
-        withContext(ioDispatcher) {
-            val bytes = ByteArrayOutputStream()
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes)
-            bytes.toByteArray()
-        }
-
-    suspend fun byteArrayToBitmap(app: AppData): Bitmap {
-        return withContext(ioDispatcher) {
-            BitmapFactory.decodeByteArray(app.bitmap, 0, app.bitmap.size)
-        }
-    }
-
-    suspend fun setAppBitmap(app: AppData, context: Context) {
-        val bitmapArray = app.bitmap
-        withContext(ioDispatcher) {
-            runCatching {
-                if (bitmapArray.isEmpty()) {
-                    val savedBitmapArray = context.openFileInput(app.name).readBytes()
-                    app.bitmap = savedBitmapArray
-                }
-            }.also {
-                if (bitmapArray.isEmpty()) {
-                    context.deleteFile(app.name)
-                }
-            }.onFailure {
-                it.message?.let { message -> Log.e("AppDetailActivity", message) }
-            }
-        }
-    }
-
-    private suspend fun saveBitmapByteArray(
-        byteArray: ByteArray,
+    private suspend fun ByteArray.saveByteArray(
         fileName: String,
         context: Context
     ) {
+        val byteArray = this
         withContext(ioDispatcher) {
             runCatching {
                 context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
                     output.write(byteArray)
+                    Log.d("Bitmap", "Saved bytearray")
                     output.close()
                 }
             }.onFailure { throwable ->
                 throwable.message?.let { message -> Log.e("Serialization", message) }
+            }
+        }
+    }
+
+    suspend fun ByteArray.toBitmap(): Bitmap {
+        val byteArray = this
+        return withContext(ioDispatcher) {
+            BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+        }
+    }
+
+    private suspend fun Bitmap.toByteArray(): ByteArray =
+        withContext(ioDispatcher) {
+            val bytes = ByteArrayOutputStream()
+            compress(Bitmap.CompressFormat.PNG, 100, bytes)
+            bytes.toByteArray()
+        }
+
+    suspend fun AppData.setBitmap(context: Context) {
+        val bitmapArray = bitmap
+        withContext(ioDispatcher) {
+            runCatching {
+                if (bitmapArray.isEmpty()) {
+                    context.openFileInput(name).use { stream ->
+                        bitmap = stream.readBytes()
+                    }
+                }
+            }.also {
+                if (bitmapArray.isEmpty()) {
+                    context.deleteFile(name)
+                }
+            }.onFailure {
+                it.message?.let { message -> Log.e("AppDetailActivity", message) }
             }
         }
     }

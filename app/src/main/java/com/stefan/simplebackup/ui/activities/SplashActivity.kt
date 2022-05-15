@@ -5,15 +5,14 @@ import android.content.Intent
 import android.os.Bundle
 import com.stefan.simplebackup.BuildConfig
 import com.topjohnwu.superuser.Shell
-import kotlinx.coroutines.*
 
 class SplashActivity : Activity() {
 
     companion object {
         init {
             // Set settings before the main shell can be created
+            val builder = Shell.Builder.create()
             Shell.enableVerboseLogging = BuildConfig.DEBUG
-            val builder: Shell.Builder = Shell.Builder.create()
             Shell.setDefaultBuilder(
                 builder
                     .setFlags(Shell.FLAG_MOUNT_MASTER)

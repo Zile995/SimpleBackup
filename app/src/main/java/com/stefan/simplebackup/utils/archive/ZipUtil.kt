@@ -1,9 +1,8 @@
 package com.stefan.simplebackup.utils.archive
 
-import android.content.Context
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.backup.BackupHelper
+import com.stefan.simplebackup.utils.file.FileHelper
 import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -16,51 +15,42 @@ import net.lingala.zip4j.model.enums.CompressionMethod
 import net.lingala.zip4j.model.enums.EncryptionMethod
 import java.io.File
 
-class ZipUtil(
-    context: Context,
-    var app: AppData
-) : BackupHelper(context) {
+object ZipUtil : FileHelper {
 
-    private val backupDirPath get() = getBackupDirPath(app)
-
-    suspend fun zipAllData() {
+    suspend fun zipAllData(app: AppData) {
         withContext(ioDispatcher) {
-            launch { zipApks() }
-            launch { zipTarArchive() }
+            launch {
+                zipApks(app)
+            }
+            zipTarArchive(app)
         }
     }
 
-    private fun zipApks() {
-        runCatching {
-            val zipParameters = getZipParameters(isApk = true)
-            val zipFile = ZipFile(backupDirPath + "/${app.name}.zip")
+    private fun zipApks(app: AppData) {
+        try {
+            val backupDirPath = getBackupDirPath(app)
+            val zipParameters = getZipParameters()
+            val zipFile = ZipFile("$backupDirPath/${app.name}.zip")
             if (zipFile.file.exists()) {
                 zipFile.file.delete()
             }
             Log.d("ZipUtil", "Zipping the ${app.name} apks to $backupDirPath")
             zipFile.addFiles(getApkList(app), zipParameters)
-        }.onSuccess {
             Log.d("ZipUtil", "Successfully zipped ${app.name} apks")
-        }.onFailure { throwable ->
-            when (throwable) {
-                is ZipException -> {
-                    throwable.message?.let { message ->
-                        Log.e("ZipUtil", message)
-                    }
-                }
-                else -> {
-                    throw throwable
-                }
+        } catch (exception: ZipException) {
+            exception.message?.let { message ->
+                Log.e("ZipUtil", message)
             }
         }
     }
 
-    private fun zipTarArchive() {
-        runCatching {
+    private fun zipTarArchive(app: AppData) {
+        try {
+            val backupDirPath = getBackupDirPath(app)
             val zipParameters = getZipParameters(isApk = false)
-            findTarArchive()?.let { tarArchive ->
+            backupDirPath.findTarArchive(app)?.let { tarArchive ->
                 val zipFile = ZipFile(
-                    "${backupDirPath}/${app.packageName}.zip",
+                    "${getBackupDirPath(app)}/${app.packageName}.zip",
                     "pass123".toCharArray()
                 )
                 Log.d(
@@ -69,30 +59,17 @@ class ZipUtil(
                 )
                 zipFile.addFile(tarArchive, zipParameters)
                 tarArchive.delete()
+                Log.d("ZipUtil", "Successfully zipped ${app.name} data")
             }
-        }.onSuccess {
-            Log.d("ZipUtil", "Successfully zipped ${app.name} data")
-        }.onFailure { throwable ->
-            when (throwable) {
-                is ZipException -> {
-                    throwable.message?.let { message ->
-                        Log.e("ZipUtil", message)
-                    }
-                }
-                else -> {
-                    throw throwable
-                }
+        } catch (exception: ZipException) {
+            exception.message?.let { message ->
+                Log.e("ZipUtil", message)
             }
         }
     }
 
-    private fun findTarArchive(): File? {
-        val tarArchive = File(
-            backupDirPath +
-                    "/" +
-                    app.packageName +
-                    ".tar"
-        )
+    private fun String.findTarArchive(app: AppData): File? {
+        val tarArchive = File("$this/${app.packageName}.tar")
         return if (tarArchive.exists()) tarArchive else null
     }
 
@@ -109,7 +86,7 @@ class ZipUtil(
         return apkList
     }
 
-    private fun getZipParameters(isApk: Boolean): ZipParameters {
+    private fun getZipParameters(isApk: Boolean = true): ZipParameters {
         return if (isApk) {
             ZipParameters().apply {
                 compressionMethod = CompressionMethod.STORE

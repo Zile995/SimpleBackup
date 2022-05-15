@@ -3,19 +3,19 @@ package com.stefan.simplebackup.data.workers
 import androidx.work.*
 
 const val REQUEST_TAG = "WORKER_TAG"
-const val INPUT_LIST = "PACKAGES"
+const val INPUT_LIST = "UID_LIST"
 const val SHOULD_BACKUP = "WORKER_TYPE"
 const val WORK_NAME = "SIMPLE_WORK"
 const val WORK_ITEMS = "NUMBER_OF_PACKAGES"
 
 class WorkerHelper(
-    private val appList: Array<String>,
+    private val appList: IntArray,
     @PublishedApi
     internal val workManager: WorkManager
 ) {
 
-    constructor(packageName: String, workManager: WorkManager) : this(
-        arrayOf(packageName),
+    constructor(uid: Int, workManager: WorkManager) : this(
+        intArrayOf(uid),
         workManager
     )
 
@@ -39,8 +39,7 @@ class WorkerHelper(
     @PublishedApi
     internal fun createInputData(shouldBackup: Boolean): Data {
         val builder = Data.Builder()
-        return builder
-            .putStringArray(INPUT_LIST, appList)
+        return builder.putIntArray(INPUT_LIST, appList)
             .putBoolean(SHOULD_BACKUP, shouldBackup)
             .build()
     }

@@ -8,139 +8,52 @@
     android:background="?attr/colorPrimaryVariant"
     tools:context=".ui.fragments.AppListFragment">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar_layout"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/app_bar_height"
-        app:elevation="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/tab_layout"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="?attr/colorPrimary">
+            android:background="?attr/colorPrimaryVariant"
+            android:clipToPadding="false"
+            android:paddingBottom="8dp"
+            android:scrollbarThumbVertical="@drawable/scrollbar_style"
+            android:scrollbars="vertical"
+            app:layoutManager="LinearLayoutManager" />
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/tool_bar"
-                style="@style/Widget.SimpleBackup.BottomCardView"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/search_bar_height"
-                android:layout_marginStart="18dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginEnd="18dp"
-                app:cardBackgroundColor="@color/searchBar"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:titleTextAppearance="@style/ToolBarFont">
-
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="16dp"
-                    android:src="@drawable/baseline_search_white_24dp" />
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/search_input"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="40dp"
-                    android:layout_marginEnd="20dp"
-                    android:background="@color/searchBar"
-                    android:hint="@string/search_app" />
-
-            </com.google.android.material.card.MaterialCardView>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tab_layout"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/tab_layout_height"
-        android:background="@drawable/curved_tab_layout"
-        app:layout_constraintBottom_toTopOf="@+id/linear_layout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/app_bar_layout"
-        app:tabIndicatorColor="@color/selectedTab"
-        app:tabIndicatorFullWidth="false"
-        app:tabMode="fixed"
-        app:tabRippleColor="@color/cardViewRipple"
-        app:tabSelectedTextColor="@color/selectedTab">
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/applications" />
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/favorites" />
-
-    </com.google.android.material.tabs.TabLayout>
-
-    <LinearLayout
-        android:id="@+id/linear_layout"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tab_layout">
-
-        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-            android:id="@+id/swipe_refresh"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/colorPrimaryVariant"
-                android:clipToPadding="false"
-                android:paddingBottom="8dp"
-                android:scrollbarThumbVertical="@drawable/scrollbar_style"
-                android:scrollbars="vertical"
-                app:layoutManager="LinearLayoutManager" />
-
-        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
-
-    </LinearLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <ProgressBar
         android:id="@+id/progress_bar"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         android:indeterminateTint="@color/floatingButton"
         android:scaleX="0.12"
         android:scaleY="0.12"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tab_layout" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.chip.Chip
         android:id="@+id/batch_backup"
         style="@style/Widget.SimpleBackup.Chip"
         android:layout_width="80dp"
         android:layout_height="46dp"
+        android:layout_marginBottom="5dp"
         android:clickable="true"
         android:focusable="true"
-        android:layout_marginBottom="5dp"
+        android:text="@string/backup"
         android:textAlignment="center"
         android:textColor="@color/textInBlueChip"
-        android:text="@string/backup"
         android:textSize="14sp"
         android:textStyle="bold"
         android:visibility="invisible"

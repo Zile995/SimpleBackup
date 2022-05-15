@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.data.database
 
 import android.content.Context
+import android.database.sqlite.SQLiteException
 import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
@@ -9,6 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.main.PreferenceHelper
+import com.stefan.simplebackup.utils.main.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -25,6 +27,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun appDao(): AppDao
 
     private class AppDatabaseCallback(
+        private val context: Context,
         private val scope: CoroutineScope,
         private val appManager: AppManager
     ) :
@@ -50,8 +53,9 @@ abstract class AppDatabase : RoomDatabase() {
                 }
                 PreferenceHelper.setDatabaseCreated(true)
                 Log.d("AppDatabase", "Load time: $time")
-            } catch (e: Exception) {
-                Log.d("AppDatabase", "Error: ${e.localizedMessage}")
+            } catch (e: SQLiteException) {
+                Log.e("AppDatabase", "Error: ${e.localizedMessage}")
+                context.applicationContext.showToast("Database error, can't insert new items: ${e.localizedMessage}")
             }
         }
 
@@ -80,21 +84,27 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        fun getDbInstance(
+        fun getInstance(
             context: Context,
             scope: CoroutineScope,
             appManager: AppManager
-        ): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java, DATABASE_NAME
-                )
-                    .addCallback(AppDatabaseCallback(scope, appManager))
-                    .build()
-                INSTANCE = instance
-                instance
+        ): AppDatabase =
+            INSTANCE ?: synchronized(this) {
+                INSTANCE ?: buildDatabase(context, scope, appManager).also { appDatabase ->
+                    INSTANCE = appDatabase
+                }
             }
-        }
+
+        private fun buildDatabase(
+            context: Context,
+            scope: CoroutineScope,
+            appManager: AppManager
+        ) =
+            Room.databaseBuilder(
+                context.applicationContext,
+                AppDatabase::class.java, DATABASE_NAME
+            )
+                .addCallback(AppDatabaseCallback(context, scope, appManager))
+                .build()
     }
 }

@@ -32,14 +32,17 @@
         android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:testOnly="false"
         android:theme="@style/Theme.SimpleBackup">
+        <profileable
+            android:shell="true"
+            tools:targetApi="q" />
+
         <receiver
-            android:name=".data.broadcasts.NotificationBroadcastReceiver"
+            android:name=".data.receivers.NotificationReceiver"
             android:enabled="true"
             android:exported="false" />
         <receiver
-            android:name=".data.broadcasts.BootBroadcastReceiver"
+            android:name=".data.receivers.BootReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter android:priority="1000">

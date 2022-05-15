@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/home"
+        android:icon="@drawable/home_24dp"
+        android:title="@string/home" />
+    <item
+        android:id="@+id/local"
+        android:icon="@drawable/local_24dp"
+        android:title="@string/local" />
+    <item
+        android:id="@+id/cloud"
+        android:icon="@drawable/cloud_24dp"
+        android:title="@string/cloud" />
+    <item
+        android:id="@+id/settings"
+        android:icon="@drawable/settings_24dp"
+        android:title="@string/settings" />
+</menu>

@@ -35,7 +35,7 @@ object FileUtil {
         }
     }
 
-    suspend fun findJsonFile(path: String): Flow<AppData?> = flow {
+    suspend fun findJsonFile(path: String) = flow {
         File(path).listFiles()?.filter { appDirFile ->
             appDirFile.isFile && appDirFile.extension == "json"
         }?.map { jsonFile ->

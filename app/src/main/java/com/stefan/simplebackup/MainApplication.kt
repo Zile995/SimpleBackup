@@ -1,14 +1,19 @@
 package com.stefan.simplebackup
 
 import android.app.Application
+import android.content.Context
+import android.os.StrictMode
+import android.os.StrictMode.VmPolicy
 import android.util.Log
-import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.database.AppDatabase
-import com.stefan.simplebackup.data.repository.AppRepository
+import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.data.repository.AppRepository
+import com.stefan.simplebackup.utils.backup.ROOT
 import com.stefan.simplebackup.utils.main.PreferenceHelper.initPreferences
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+
 
 /**
  * - Our main [Application] based class
@@ -30,7 +35,7 @@ class MainApplication : Application() {
      * - It will be initialised lazily, on the first call
      */
     private val database by lazy {
-        AppDatabase.getDbInstance(
+        AppDatabase.getInstance(
             this,
             applicationScope,
             getAppManager
@@ -62,8 +67,29 @@ class MainApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        StrictMode.setVmPolicy(
+            VmPolicy.Builder()
+                .detectLeakedClosableObjects()
+                .penaltyLog()
+                .build()
+        )
         initPreferences()
+        setMainBackupDir()
         Log.d("MainApplication", "Started creating database")
         database
     }
+
+    companion object {
+        /**
+         * - Used to get our main backup dir path
+         */
+        lateinit var mainBackupDirPath: String
+
+        private fun Context.setMainBackupDir() {
+            val externalFilesDir = this.getExternalFilesDir(null)?.absolutePath ?: ""
+            mainBackupDirPath =
+                externalFilesDir.substring(0, externalFilesDir.indexOf("Android")) + ROOT
+        }
+    }
+
 }

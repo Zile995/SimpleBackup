@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.data.broadcasts
+package com.stefan.simplebackup.data.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -7,7 +7,7 @@ import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
-class PackageBroadcastReceiver(
+class PackageReceiver(
     private val packageListener: PackageListener,
     private val scope: CoroutineScope
 ) : BroadcastReceiver() {

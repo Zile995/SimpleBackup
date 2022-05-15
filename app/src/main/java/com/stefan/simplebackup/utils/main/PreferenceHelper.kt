@@ -26,30 +26,40 @@ object PreferenceHelper {
 
     fun SharedPreferences.getPackageName() = this.getString(SHARED_PACKAGE_NAME, null)
 
-    private suspend fun SharedPreferences.editBooleanPreference(preferenceName: String, value: Boolean) {
+    private suspend fun <T> SharedPreferences.editPreference(preferenceName: String, value: T) {
         withContext(ioDispatcher) {
-            this.apply {
-                edit()
-                    .putBoolean(preferenceName, value)
-                    .apply()
+            edit().apply {
+                when (value) {
+                    is Boolean -> {
+                        putBoolean(preferenceName, value)
+                    }
+                    is String -> {
+                        putString(preferenceName, value)
+                    }
+                    is String? -> {
+                        putString(preferenceName, value)
+                    }
+                    is Int -> {
+                        putInt(preferenceName, value)
+                    }
+                    is Float -> {
+                        putFloat(preferenceName, value)
+                    }
+                    else -> {
+                        throw IllegalArgumentException("Unsupported type")
+                    }
+                }
+                apply()
             }
         }
     }
 
-    fun resetSequenceNumber() {
-        sharedPreferences.apply {
-            edit()
-                .putInt(SEQUENCE_NUMBER, 0)
-                .apply()
-        }
+    suspend fun resetSequenceNumber() {
+        sharedPreferences.editPreference(SEQUENCE_NUMBER, 0)
     }
 
-    fun updateSequenceNumber(newSequenceNumber: Int) {
-        sharedPreferences.apply {
-            edit()
-                .putInt(SEQUENCE_NUMBER, newSequenceNumber)
-                .apply()
-        }
+    suspend fun updateSequenceNumber(newSequenceNumber: Int) {
+        sharedPreferences.editPreference(SEQUENCE_NUMBER, newSequenceNumber)
     }
 
     fun registerPreferenceListener(
@@ -66,23 +76,19 @@ object PreferenceHelper {
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
     }
 
-    fun savePackageName(packageName: String) {
-        sharedPreferences.apply {
-            edit()
-                .putString(SHARED_PACKAGE_NAME, packageName)
-                .apply()
-        }
+    suspend fun savePackageName(packageName: String?) {
+        sharedPreferences.editPreference(SHARED_PACKAGE_NAME, packageName)
     }
 
     suspend fun setDatabaseCreated(isCreated: Boolean) {
-        sharedPreferences.editBooleanPreference(DATABASE_CREATED, isCreated)
+        sharedPreferences.editPreference(DATABASE_CREATED, isCreated)
     }
 
     suspend fun setRootGranted(isGranted: Boolean) {
-        sharedPreferences.editBooleanPreference(ROOT_GRANTED, isGranted)
+        sharedPreferences.editPreference(ROOT_GRANTED, isGranted)
     }
 
     suspend fun setRootChecked(isChecked: Boolean) {
-        sharedPreferences.editBooleanPreference(ROOT_CHECKED, isChecked)
+        sharedPreferences.editPreference(ROOT_CHECKED, isChecked)
     }
 }

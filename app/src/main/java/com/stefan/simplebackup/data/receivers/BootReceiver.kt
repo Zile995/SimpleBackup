@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.data.broadcasts
+package com.stefan.simplebackup.data.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -7,7 +7,7 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import com.stefan.simplebackup.data.workers.BootPackageWorker
 
-class BootBroadcastReceiver : BroadcastReceiver() {
+class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if ("android.intent.action.BOOT_COMPLETED" == intent.action) {
             val workManager = WorkManager.getInstance(context)

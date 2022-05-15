@@ -29,7 +29,7 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) : Corouti
                         }
                     }
                 }
-                repository.getAllApps.collect { databaseList ->
+                repository.installedApps.collect { databaseList ->
                     databaseList.forEach { app ->
                         if (!appManager.doesPackageExists(app.packageName)) {
                             repository.delete(app.packageName)

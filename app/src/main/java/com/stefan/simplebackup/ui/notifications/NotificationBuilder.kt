@@ -6,12 +6,11 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.broadcasts.ACTION_WORK_FINISHED
-import com.stefan.simplebackup.data.broadcasts.NotificationBroadcastReceiver
-import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.file.BitmapUtil
+import com.stefan.simplebackup.data.model.NotificationData
+import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
+import com.stefan.simplebackup.data.receivers.NotificationReceiver
+import com.stefan.simplebackup.utils.file.BitmapUtil.toBitmap
 
 const val NOTIFICATION_ID = 42
 const val EXTRA_NOTIFICATION = "NOTIFICATION_PARCEL"
@@ -64,7 +63,7 @@ class NotificationBuilder(
         applicationContext.sendBroadcast(
             Intent(
                 applicationContext,
-                NotificationBroadcastReceiver::class.java
+                NotificationReceiver::class.java
             ).apply {
                 action = ACTION_WORK_FINISHED
                 putExtra(
@@ -81,16 +80,15 @@ class NotificationBuilder(
     ): Notification {
         return notificationBuilder.apply {
             val appString = if (numberOfPackages > 1) "apps" else "app"
-                if (isBackup) {
-                    setContentTitle("Backup Completed")
-                    setContentText("$numberOfPackages $appString successfully backed up")
-                } else {
-                    setContentTitle("Restore Completed")
-                    setContentText("$numberOfPackages $appString successfully restored")
-                }
+            if (isBackup) {
+                setContentTitle("Backup Completed")
+                setContentText("$numberOfPackages $appString successfully backed up")
+            } else {
+                setContentTitle("Restore Completed")
+                setContentText("$numberOfPackages $appString successfully restored")
+            }
             setOnlyAlertOnce(true)
             setAutoCancel(false)
-            foregroundServiceBehavior = FOREGROUND_SERVICE_IMMEDIATE
             setLargeIcon(null)
             setOngoing(false)
             setProgress(0, 0, false)
@@ -98,10 +96,13 @@ class NotificationBuilder(
         }.build()
     }
 
-    override suspend fun NotificationCompat.Builder.updateNotificationContent(app: AppData): NotificationCompat.Builder {
+    override suspend fun NotificationCompat.Builder.updateNotificationContent(notificationData: NotificationData): NotificationCompat.Builder {
         return apply {
-            setContentTitle("Backing up ${app.name}")
-            setLargeIcon(BitmapUtil.byteArrayToBitmap(app))
+            notificationData.apply {
+                setContentTitle("Backing up $name")
+                setLargeIcon(image.toBitmap())
+                setContentText(text)
+            }
         }
     }
 }

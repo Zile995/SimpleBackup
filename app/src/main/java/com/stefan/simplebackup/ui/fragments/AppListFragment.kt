@@ -1,76 +1,48 @@
 package com.stefan.simplebackup.ui.fragments
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.databinding.FragmentAppListBinding
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
-import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.activities.ProgressActivity
 import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.AppViewHolder
 import com.stefan.simplebackup.ui.adapters.OnClickListener
+import com.stefan.simplebackup.utils.main.hideAttachedButton
 import com.stefan.simplebackup.utils.main.passParcelableToActivity
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-/**
- * A simple [AppListFragment] class.
- */
 class AppListFragment : Fragment() {
     // Binding
     private var _binding: FragmentAppListBinding? = null
     private val binding get() = _binding!!
-
-    private lateinit var activity: MainActivity
-
     private var _appAdapter: AppAdapter? = null
     private val appAdapter get() = _appAdapter!!
 
     // ViewModel
     private val appViewModel: AppViewModel by activityViewModels {
-        AppViewModelFactory(activity.application as MainApplication)
-    }
-
-    private var isSearching = false
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        val currentActivity = requireActivity()
-        if (currentActivity is MainActivity) {
-            activity = currentActivity
-        }
-        appViewModel
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setAppAdapter()
+        AppViewModelFactory(requireActivity().application as MainApplication)
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        super.onCreateView(inflater, container, savedInstanceState)
-        println("Creating AppListFragment")
-
+        Log.d("AppListFragment", "Creating AppListFragment")
         _binding = FragmentAppListBinding
             .inflate(inflater, container, false)
         return binding.root
@@ -81,38 +53,16 @@ class AppListFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             binding.apply {
                 bindViews()
-                setViewModelObservers()
+                initObservers()
                 restoreRecyclerViewState()
-                restoreInstanceState(savedInstanceState)
             }
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        binding.apply {
+        _binding?.apply {
             saveRecyclerViewState()
-            if (searchInput.hasFocus()) {
-                isSearching = true
-            }
-        }
-        outState.putBoolean("isSearching", isSearching)
-    }
-
-    private fun FragmentAppListBinding.bindViews() {
-        bindRecyclerView()
-        bindSwipeContainer()
-        bindFloatingButton()
-        bindBackupChip()
-    }
-
-    private fun FragmentAppListBinding.bindBackupChip() {
-        batchBackup.setOnClickListener {
-            requireContext().apply {
-                startActivity(Intent(requireContext(), ProgressActivity::class.java).apply {
-                    putExtra("selection_list", appViewModel.selectionList.toTypedArray())
-                })
-            }
         }
     }
 
@@ -127,7 +77,7 @@ class AppListFragment : Fragment() {
                         context?.passParcelableToActivity<AppDetailActivity>(
                             item,
                             viewLifecycleOwner.lifecycleScope
-                    )
+                        )
                     }
                 }
 
@@ -141,9 +91,16 @@ class AppListFragment : Fragment() {
             AppAdapter(appViewModel.selectionList, clickListener, appViewModel.setSelectionMode)
     }
 
+    private fun FragmentAppListBinding.bindViews() {
+        bindRecyclerView()
+        bindSwipeContainer()
+        bindFloatingButton()
+        bindBackupChip()
+    }
+
     private fun FragmentAppListBinding.bindRecyclerView() {
+        setAppAdapter()
         recyclerView.apply {
-            layoutManager = LinearLayoutManager(requireContext())
             adapter = appAdapter
             setHasFixedSize(true)
         }
@@ -151,59 +108,30 @@ class AppListFragment : Fragment() {
 
     private fun FragmentAppListBinding.bindSwipeContainer() {
         swipeRefresh.setOnRefreshListener {
-            lifecycleScope.launch {
-                appViewModel.apply {
-                    refreshPackageList()
-                    delay(250)
-                    swipeRefresh.isRefreshing = false
-                }
+            viewLifecycleOwner.lifecycleScope.launch {
+                appViewModel.refreshPackageList()
+                delay(250)
+                swipeRefresh.isRefreshing = false
             }
         }
     }
 
     private fun FragmentAppListBinding.bindFloatingButton() {
         floatingButton.hide()
-        hideButton()
+        recyclerView.hideAttachedButton(floatingButton)
 
         floatingButton.setOnClickListener {
             recyclerView.smoothScrollToPosition(0)
         }
     }
 
-    /**
-     * - Sakriva FloatingButton kada se skroluje na gore
-     * - Ako je dy > 0, odnosno kada skrolujemo prstom na gore i ako je prikazano dugme, sakrij ga
-     * - Ako je dy < 0, odnosno kada skrolujemo prstom na dole i ako je sakriveno dugme, prikaži ga
-     */
-    private fun FragmentAppListBinding.hideButton() {
-        recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                super.onScrolled(recyclerView, dx, dy)
-
-                if (dy > 0 && floatingButton.isShown) {
-                    floatingButton.hide()
-
-                } else if (dy < 0 && !floatingButton.isShown) {
-                    floatingButton.show()
-                }
+    private fun FragmentAppListBinding.bindBackupChip() {
+        batchBackup.setOnClickListener {
+            requireContext().apply {
+                startActivity(Intent(requireContext(), ProgressActivity::class.java).apply {
+                    putExtra("selection_list", appViewModel.selectionList.toIntArray())
+                })
             }
-
-            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                super.onScrollStateChanged(recyclerView, newState)
-                // Ako ne može da skroluje na dole (1 je down direction) i ako može ka gore (-1 up direction)
-                if (!recyclerView.canScrollVertically(-1)) {
-                    floatingButton.hide()
-                }
-            }
-        })
-    }
-
-    private fun FragmentAppListBinding.restoreInstanceState(savedInstanceState: Bundle?) {
-        if (savedInstanceState != null) {
-            isSearching = savedInstanceState.getBoolean("isSearching")
-        }
-        if (isSearching) {
-            searchInput.requestFocus()
         }
     }
 
@@ -219,7 +147,7 @@ class AppListFragment : Fragment() {
         }
     }
 
-    private fun FragmentAppListBinding.setViewModelObservers() {
+    private fun FragmentAppListBinding.initObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 launch {
@@ -249,5 +177,6 @@ class AppListFragment : Fragment() {
         super.onDestroyView()
         _binding = null
         _appAdapter = null
+        Log.d("AppListFragment", "Destroying AppListFragment")
     }
 }

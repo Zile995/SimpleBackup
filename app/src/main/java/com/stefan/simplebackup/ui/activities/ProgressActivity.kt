@@ -14,8 +14,7 @@ import com.stefan.simplebackup.data.workers.REQUEST_TAG
 import com.stefan.simplebackup.data.workers.WORK_PROGRESS
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
 import com.stefan.simplebackup.utils.main.PreferenceHelper
-import com.stefan.simplebackup.utils.main.PreferenceHelper.getPackageName
-import com.stefan.simplebackup.utils.main.loadBitmapToImageView
+import com.stefan.simplebackup.utils.main.loadBitmap
 import com.stefan.simplebackup.viewmodels.ProgressViewModel
 import com.stefan.simplebackup.viewmodels.ProgressViewModelFactory
 import kotlinx.coroutines.launch
@@ -29,9 +28,9 @@ class ProgressActivity : AppCompatActivity() {
     private var isInProgress: Boolean = true
 
     private val preferencesListener by lazy {
-        SharedPreferences.OnSharedPreferenceChangeListener { preference, _ ->
+        SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
             lifecycleScope.launch {
-                preference.getPackageName()?.let { packageName ->
+                PreferenceHelper.packageName?.let { packageName ->
                     binding.setViewData(packageName)
                 }
             }
@@ -39,7 +38,7 @@ class ProgressActivity : AppCompatActivity() {
     }
 
     private val progressViewModel: ProgressViewModel by viewModels {
-        val selection = intent?.extras?.getStringArray("selection_list")
+        val selection = intent?.extras?.getIntArray("selection_list")
         ProgressViewModelFactory(selection, application as MainApplication)
     }
 
@@ -123,9 +122,10 @@ class ProgressActivity : AppCompatActivity() {
     }
 
     private suspend fun ActivityProgressBinding.setViewData(packageName: String) {
-        val app = progressViewModel.getCurrentApp(packageName)
-        applicationNameProgress.text = app.name
-        loadBitmapToImageView(app.bitmap, applicationImageProgress)
+        progressViewModel.getCurrentApp(packageName).apply {
+            applicationImageProgress.loadBitmap(bitmap)
+            applicationNameProgress.text = name
+        }
     }
 
     override fun onDestroy() {

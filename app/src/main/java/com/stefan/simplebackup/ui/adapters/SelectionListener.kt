@@ -4,17 +4,19 @@ import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.data.model.AppData
 
 interface SelectionListener<VH: RecyclerView.ViewHolder> {
-    val selectedPackageNames: MutableList<String>
+    val selectedItems: MutableList<Int>
 
     fun hasSelectedItems(): Boolean
 
-    fun selectMultipleItems(selectedPackageNames: List<String>)
+    fun selectMultipleItems(selectedItems: MutableList<Int>)
 
-    fun getSelectedItems(): List<String>
+    fun getSelected(): MutableList<Int>
 
-    fun addSelectedItem(packageName: String)
+    fun addSelected(item: Int)
 
-    fun removeSelectedItem(packageName: String)
+    fun removeSelected(item: Int)
 
     fun doSelection(holder: VH, item: AppData)
+
+    fun removeSelectedItems() = selectedItems.clear()
 }

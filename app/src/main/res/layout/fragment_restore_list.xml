@@ -6,82 +6,19 @@
     android:layout_height="match_parent"
     tools:context=".ui.fragments.RestoreListFragment">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar_layout"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/app_bar_height"
-        app:elevation="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/tab_layout"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="?attr/colorPrimary">
-
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/tool_bar"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/search_bar_height"
-                android:layout_marginStart="18dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginEnd="18dp"
-                android:background="@drawable/search_bar"
-                android:elevation="2dp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:menu="@menu/top_app_bar"
-                app:title="@string/restore"
-                app:titleTextAppearance="@style/ToolBarFont" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tab_layout"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/tab_layout_height"
-        android:background="@drawable/curved_tab_layout"
-        app:layout_constraintBottom_toTopOf="@+id/swipe_refresh"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/app_bar_layout"
-        app:tabIndicatorColor="@color/selectedTab"
-        app:tabIndicatorFullWidth="false"
-        app:tabMode="fixed"
-        app:tabRippleColor="@color/cardViewRipple"
-        app:tabSelectedTextColor="@color/selectedTab">
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/applications" />
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/favorites" />
-
-    </com.google.android.material.tabs.TabLayout>
-
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_refresh"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@+id/tab_layout"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/restore_recycler_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:background="?attr/colorPrimaryVariant"
             android:clipToPadding="false"
             android:paddingBottom="8dp"
@@ -99,19 +36,17 @@
         android:indeterminateTint="@color/floatingButton"
         android:scaleX="0.12"
         android:scaleY="0.12"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tab_layout" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floating_button"
         style="@style/Widget.SimpleBackup.FloatingActionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignEnd="@+id/swipe_refresh"
-        android:layout_alignBottom="@+id/swipe_refresh"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="25dp"
         android:contentDescription="@string/scroll_to_top"
@@ -122,5 +57,26 @@
         app:fabCustomSize="54dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/batch_restore"
+        style="@style/Widget.SimpleBackup.Chip"
+        android:layout_width="80dp"
+        android:layout_height="46dp"
+        android:layout_marginBottom="5dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:text="@string/restore"
+        android:textAlignment="center"
+        android:textColor="@color/textInBlueChip"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:chipBackgroundColor="@color/blueChip"
+        app:chipEndPadding="2dp"
+        app:chipStartPadding="2dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

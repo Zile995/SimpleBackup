@@ -23,6 +23,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.databinding.ActivityDetailBinding
 import com.stefan.simplebackup.utils.file.BitmapUtil
+import com.stefan.simplebackup.utils.file.BitmapUtil.setBitmap
 import com.stefan.simplebackup.utils.main.*
 import com.stefan.simplebackup.viewmodels.AppDetailViewModel
 import com.stefan.simplebackup.viewmodels.AppDetailViewModelFactory
@@ -119,8 +120,8 @@ class AppDetailActivity : AppCompatActivity() {
 
     private fun ActivityDetailBinding.bindPackageDetails() {
         packageDetails.setOnClickListener {
-            appDetailViewModel.selectedApp?.let { app ->
-                openPackageSettingsInfo(app.packageName)
+            appDetailViewModel.selectedApp?.apply {
+                openPackageSettingsInfo(packageName)
             }
         }
     }
@@ -134,9 +135,9 @@ class AppDetailActivity : AppCompatActivity() {
     private fun ActivityDetailBinding.bindDeleteButton() {
         floatingDeleteButton.setOnClickListener {
             lifecycleScope.launch {
-                appDetailViewModel.selectedApp?.let { app ->
+                appDetailViewModel.selectedApp?.apply {
                     onBackPressed()
-                    deletePackage(app.packageName)
+                    deletePackage(packageName)
                 }
             }
         }
@@ -144,8 +145,8 @@ class AppDetailActivity : AppCompatActivity() {
 
     private suspend fun ActivityDetailBinding.setData() {
         appDetailViewModel.selectedApp?.let { app ->
-            BitmapUtil.setAppBitmap(app, applicationContext)
-            loadBitmapToImageView(app.bitmap, applicationImageBackup)
+            app.setBitmap(applicationContext)
+            applicationImageBackup.loadBitmap(app.bitmap)
             textItemBackup.text = app.name
             chipPackageBackup.text = (app.packageName as CharSequence).toString()
             chipVersionBackup.text = (app.versionName as CharSequence).toString()
@@ -165,8 +166,8 @@ class AppDetailActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.force_stop -> {
-                appDetailViewModel.selectedApp?.let { app ->
-                    forceStopPackage(app.packageName)
+                appDetailViewModel.selectedApp?.apply {
+                    forceStopPackage(packageName)
                 }
                 true
             }

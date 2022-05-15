@@ -82,6 +82,11 @@ dependencies {
     // Fragment Kotlin support
     implementation "androidx.fragment:fragment-ktx:$fragment"
 
+    // Navigation component
+    implementation "androidx.navigation:navigation-fragment-ktx:$navigation"
+    implementation "androidx.navigation:navigation-ui-ktx:$navigation"
+
+
     // Test
     testImplementation "junit:junit:$junit"
     androidTestImplementation "androidx.test.ext:junit:$androidxJunit"
@@ -130,5 +135,5 @@ dependencies {
     kapt "com.github.bumptech.glide:compiler:$glide"
 
     // Leak Canary
-    debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"
+   // debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"
 }

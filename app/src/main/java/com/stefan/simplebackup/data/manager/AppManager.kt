@@ -7,12 +7,14 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.file.BitmapUtil
+import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
 import com.stefan.simplebackup.utils.main.PreferenceHelper
 import com.stefan.simplebackup.utils.main.ioDispatcher
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile
 import java.io.File
@@ -27,7 +29,10 @@ class AppManager(private val context: Context) {
         context.getSystemService(Context.STORAGE_STATS_SERVICE) as StorageStatsManager
     }
 
-    suspend fun build(packageName: String) = getAppData(appInfo = getAppInfo(packageName))
+    suspend fun build(packageName: String) =
+        withContext(ioDispatcher) {
+            getAppData(appInfo = getAppInfo(packageName))
+        }
 
     fun printSequence() {
         Log.d(
@@ -39,7 +44,7 @@ class AppManager(private val context: Context) {
     private fun getChangedPackages() =
         packageManager.getChangedPackages(PreferenceHelper.getSequenceNumber)
 
-    private fun saveSequenceNumber(newSequenceNumber: Int) {
+    private suspend fun saveSequenceNumber(newSequenceNumber: Int) {
         if (newSequenceNumber != PreferenceHelper.getSequenceNumber) {
             PreferenceHelper.updateSequenceNumber(newSequenceNumber)
         }
@@ -86,14 +91,19 @@ class AppManager(private val context: Context) {
         flags and ApplicationInfo.FLAG_SYSTEM == 0
 
     // Simple flow which sends data
-    fun dataBuilder(includeSystemApps: Boolean = false) = flow {
+    fun dataBuilder(includeSystemApps: Boolean = false) = channelFlow {
+        val semaphore = Semaphore(2)
         val completeAppsInfo = getCompleteAppsInfo()
         completeAppsInfo.apply {
             getFilteredInfo(includeSystemApps).forEach { userAppsInfo ->
-                emit(getAppData(userAppsInfo))
+                semaphore.withPermit {
+                    launch {
+                        send(getAppData(userAppsInfo))
+                    }
+                }
             }
         }
-    }.flowOn(ioDispatcher)
+    }.flowOn(Dispatchers.Default)
 
     private fun getCompleteAppsInfo(): List<ApplicationInfo> {
         return packageManager
@@ -129,7 +139,7 @@ class AppManager(private val context: Context) {
 
         return AppData(
             name = name,
-            bitmap = BitmapUtil.drawableToByteArray(drawable),
+            bitmap = drawable.toByteArray(),
             packageName = packageName,
             versionName = versionName,
             targetSdk = appInfo.targetSdkVersion,

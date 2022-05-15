@@ -3,16 +3,19 @@ package com.stefan.simplebackup.data.workers
 import android.content.Context
 import android.util.Log
 import androidx.work.*
-import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.data.model.NotificationData
 import com.stefan.simplebackup.ui.notifications.NotificationBuilder
 import com.stefan.simplebackup.ui.notifications.NotificationHelper
 import com.stefan.simplebackup.utils.backup.BackupUtil
+import com.stefan.simplebackup.utils.main.ioDispatcher
 import com.stefan.simplebackup.utils.restore.RestoreUtil
-import kotlinx.coroutines.*
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlin.system.measureTimeMillis
 
-const val WORK_PROGRESS = "BackupProgress"
 const val PROGRESS_MAX = 10_000
+const val WORK_PROGRESS = "BackupProgress"
 
 class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext,
@@ -20,9 +23,8 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 ), NotificationHelper by NotificationBuilder(appContext) {
 
     private lateinit var outputData: Data
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-    private val packageNames: Array<String>?
-        get() = inputData.getStringArray(INPUT_LIST)
+    private val items: IntArray?
+        get() = inputData.getIntArray(INPUT_LIST)
     private val shouldBackup: Boolean
         get() = inputData.getBoolean(SHOULD_BACKUP, true)
 
@@ -35,8 +37,11 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                 }
                 Result.success(outputData).also {
                     Log.d("MainWorker", "Work successful, completed in: ${time / 1_000.0} seconds")
-                    delay(1_000L)
-                    packageNames?.apply {
+                    /**
+                     *  Delay and send new notification sound only for fast works
+                     */
+                    if (time < 1_000L) delay(1_000L)
+                    items?.apply {
                         applicationContext.sendNotificationBroadcast(
                             notification = getFinishedNotification(
                                 numberOfPackages = size,
@@ -53,40 +58,40 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     }
 
     private suspend fun backup() {
-        packageNames?.let { packageNames ->
-            val backupUtil = BackupUtil(applicationContext, packageNames)
-            backupUtil.backup().collect { progressInfo ->
-                updateForegroundInfo(progressInfo.first, progressInfo.second)
+        items?.let { items ->
+            val backupUtil = BackupUtil(applicationContext, items)
+            backupUtil.backup().collect { notificationData ->
+                updateForegroundInfo(notificationData)
             }
         }
         outputData = workDataOf(
             INPUT_LIST to true,
-            WORK_ITEMS to (packageNames?.size ?: 0)
+            WORK_ITEMS to (items?.size ?: 0)
         )
     }
 
     private suspend fun restore() {
-        packageNames?.let { packageNames ->
-            val restoreUtil = RestoreUtil(applicationContext, packageNames)
+        items?.let { items ->
+            val restoreUtil = RestoreUtil(items)
             restoreUtil.restore()
         }
     }
 
     private suspend fun updateForegroundInfo(
-        currentProgress: Int,
-        app: AppData
+        notificationData: NotificationData,
     ) {
         notificationBuilder.apply {
-            setProgress(workDataOf(WORK_PROGRESS to currentProgress))
+            setProgress(workDataOf(WORK_PROGRESS to notificationData.progress))
             setForeground(
                 ForegroundInfo(
                     notificationId,
                     notificationBuilder
-                        .updateNotificationContent(app)
-                        .setProgress(PROGRESS_MAX, currentProgress, false)
+                        .updateNotificationContent(notificationData)
+                        .setProgress(PROGRESS_MAX, notificationData.progress, false)
                         .build()
                 )
             )
         }
     }
+
 }

@@ -15,11 +15,12 @@ import kotlinx.serialization.Transient
  * Klasa koja će sadržati sve podatke o aplikaciji
  */
 @Suppress("unused")
-@Entity(tableName = "app_table", indices = [Index(value = ["package_name"], unique = true)])
+@Entity(tableName = "app_table", indices = [Index(value = ["package_name", "is_local", "is_cloud"], unique = true)])
 @Keep
 @Serializable
 data class AppData(
     @Transient
+    @ColumnInfo(name = "uid")
     @PrimaryKey(autoGenerate = true)
     val uid: Int = 0,
 
@@ -77,6 +78,11 @@ data class AppData(
     @ColumnInfo(name = "is_cloud")
     var isCloud: Boolean = false
 
+    @ColumnInfo(name = "should_backup_data")
+    var shouldBackupData = false
+
+    @ColumnInfo(name = "should_backup_cache")
+    var shouldBackupCache = false
 
     /**
      * * U parceli može postojati i null String tako da readString() može čitati i String? tip
@@ -122,8 +128,8 @@ data class AppData(
     }
 
     /**
-     * - Equals method is really important for us.
-     * - The compare logic is also useful for DiffUtil used in ListAdapter.
+     * - Equals method is really important.
+     * - For example: equals method is useful for DiffUtil used in ListAdapter.
      */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -131,9 +137,24 @@ data class AppData(
 
         other as AppData
 
-        if (!bitmap.contentEquals(other.bitmap) ||
-            !packageName.contentEquals(other.packageName) ||
-                !versionName.contentEquals(other.versionName)) return false
+        if (uid != other.uid) return false
+        if (name != other.name) return false
+        if (!bitmap.contentEquals(other.bitmap)) return false
+        if (packageName != other.packageName) return false
+        if (versionName != other.versionName) return false
+        if (targetSdk != other.targetSdk) return false
+        if (minSdk != other.minSdk) return false
+        if (dataDir != other.dataDir) return false
+        if (apkDir != other.apkDir) return false
+        if (apkSize != other.apkSize) return false
+        if (isSplit != other.isSplit) return false
+        if (dataSize != other.dataSize) return false
+        if (cacheSize != other.cacheSize) return false
+        if (isUserApp != other.isUserApp) return false
+        if (favorite != other.favorite) return false
+        if (date != other.date) return false
+        if (isLocal != other.isLocal) return false
+        if (isCloud != other.isCloud) return false
 
         return true
     }
@@ -141,8 +162,27 @@ data class AppData(
     override fun describeContents(): Int = 0
 
     override fun hashCode(): Int {
-        return bitmap.contentHashCode()
+        var result = uid
+        result = 31 * result + name.hashCode()
+        result = 31 * result + bitmap.contentHashCode()
+        result = 31 * result + packageName.hashCode()
+        result = 31 * result + versionName.hashCode()
+        result = 31 * result + targetSdk
+        result = 31 * result + minSdk
+        result = 31 * result + dataDir.hashCode()
+        result = 31 * result + apkDir.hashCode()
+        result = 31 * result + apkSize.hashCode()
+        result = 31 * result + isSplit.hashCode()
+        result = 31 * result + dataSize.hashCode()
+        result = 31 * result + cacheSize.hashCode()
+        result = 31 * result + isUserApp.hashCode()
+        result = 31 * result + favorite.hashCode()
+        result = 31 * result + date.hashCode()
+        result = 31 * result + isLocal.hashCode()
+        result = 31 * result + isCloud.hashCode()
+        return result
     }
+
 
     companion object CREATOR : Parcelable.Creator<AppData> {
         override fun createFromParcel(parcel: Parcel): AppData {

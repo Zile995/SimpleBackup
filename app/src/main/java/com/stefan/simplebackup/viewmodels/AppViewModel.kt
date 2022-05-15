@@ -7,17 +7,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
-import com.stefan.simplebackup.data.broadcasts.PackageListener
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.repository.AppRepository
 import com.stefan.simplebackup.utils.main.ioDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
+import com.stefan.simplebackup.utils.main.launchWithLogging
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 
 class AppViewModel(application: MainApplication) :
     AndroidViewModel(application), PackageListener {
@@ -25,13 +24,18 @@ class AppViewModel(application: MainApplication) :
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
 
-    // Observable application properties used for list loading
+    // Observable spinner properties used for progressbar observing
+    private var _spinner = MutableStateFlow(true)
+    val spinner: StateFlow<Boolean>
+        get() = _spinner
+
+    //     Observable application properties used for list loading
     private var _allApps = MutableStateFlow(mutableListOf<AppData>())
     val getAllApps: StateFlow<MutableList<AppData>>
         get() = _allApps
 
     // Selection properties
-    val selectionList = mutableListOf<String>()
+    val selectionList = mutableListOf<Int>()
     val setSelectionMode: (Boolean) -> Unit = { isSelected -> _isSelected.value = isSelected }
     private var _isSelected = MutableStateFlow(false)
     val isSelected: StateFlow<Boolean> get() = _isSelected
@@ -41,46 +45,31 @@ class AppViewModel(application: MainApplication) :
     val restoreRecyclerViewState: Parcelable get() = state
     val isStateInitialized: Boolean get() = this::state.isInitialized
 
-    // Observable spinner properties used for progressbar observing
-    private var _spinner = MutableStateFlow(true)
-    val spinner: StateFlow<Boolean>
-        get() = _spinner
-
     init {
-        viewModelScope.apply {
-            try {
-                appManager.printSequence()
-                launchDataLoading {
-                    repository.getAllApps
-                }.also {
-                    refreshPackageList()
-                }
-            } catch (e: Exception) {
-                e.localizedMessage?.let { Log.e("ViewModel", it) }
-            } finally {
-                Log.d("ViewModel", "AppViewModel created")
-            }
+        viewModelScope.launchDataLoading {
+            repository.installedApps
         }
     }
 
     // Loading methods
     private inline fun CoroutineScope.launchDataLoading(
-        crossinline allAppsFromDatabase: () -> Flow<MutableList<AppData>>,
+        crossinline databaseCallBack: () -> Flow<MutableList<AppData>>,
     ) {
         launch {
-            allAppsFromDatabase().collect { apps ->
+            appManager.printSequence()
+            databaseCallBack().collect { apps ->
                 _allApps.value = apps
                 delay(200)
-                _spinner.value = false
+                _spinner.emit(false)
+                refreshPackageList()
             }
         }
     }
 
     // Used to check for changed packages on init
-    fun CoroutineScope.refreshPackageList() {
+    suspend fun refreshPackageList() {
         Log.d("ViewModel", "Refreshing the package list")
-        launch(ioDispatcher) {
-            delay(1_000L)
+        withContext(ioDispatcher) {
             appManager.apply {
                 getChangedPackageNames().collect { packageName ->
                     if (doesPackageExists(packageName)) {
@@ -101,20 +90,16 @@ class AppViewModel(application: MainApplication) :
     }
 
     // PackageListener methods - Used for database package updates
-    override fun CoroutineScope.addOrUpdatePackage(packageName: String) {
-        launch {
-            appManager.apply {
-                repository.insert(build(packageName))
-                appManager.updateSequenceNumber()
-            }
+    override suspend fun addOrUpdatePackage(packageName: String) {
+        appManager.apply {
+            repository.insert(build(packageName))
+            updateSequenceNumber()
         }
     }
 
-    override fun CoroutineScope.deletePackage(packageName: String) {
-        launch {
-            repository.delete(packageName)
-            appManager.updateSequenceNumber()
-        }
+    override suspend fun deletePackage(packageName: String) {
+        repository.delete(packageName)
+        appManager.updateSequenceNumber()
     }
 
     override fun onCleared() {

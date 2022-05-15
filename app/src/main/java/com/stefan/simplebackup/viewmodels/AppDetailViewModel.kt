@@ -27,8 +27,8 @@ class AppDetailViewModel(
 
     fun createLocalBackup() {
         viewModelScope.launch(ioDispatcher) {
-            app?.packageName?.let { packageName ->
-                val workerHelper = WorkerHelper(packageName, workManager)
+            app?.uid?.let { uid ->
+                val workerHelper = WorkerHelper(uid, workManager)
                 workerHelper.beginUniqueWork<MainWorker>()
             }
         }

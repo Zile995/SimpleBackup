@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.data.broadcasts
+package com.stefan.simplebackup.data.receivers
 
 import android.app.Notification
 import android.content.BroadcastReceiver
@@ -10,7 +10,7 @@ import com.stefan.simplebackup.ui.notifications.NOTIFICATION_ID
 
 const val ACTION_WORK_FINISHED = "com.stefan.simplebackup.WORK_FINISHED"
 
-class NotificationBroadcastReceiver : BroadcastReceiver() {
+class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             ACTION_WORK_FINISHED -> {

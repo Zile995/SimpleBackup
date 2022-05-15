@@ -3,34 +3,40 @@ package com.stefan.simplebackup.ui.adapters
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
+import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 
 class AppAdapter(
-    override val selectedPackageNames: MutableList<String>,
+    override val selectedItems: MutableList<Int>,
     private val clickListener: OnClickListener,
     private val onSelectionModeCallback: (Boolean) -> Unit
 ) :
     ListAdapter<AppData, AppViewHolder>(AppDiffCallBack),
-    SelectionListener<AppViewHolder> by SharedSelectionListenerImpl(
-        selectedPackageNames,
+    SelectionListener<AppViewHolder> by BaseSelectionListenerImpl(
+        selectedItems,
         onSelectionModeCallback
     ) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AppViewHolder {
-        return AppViewHolder.getViewHolder(parent, clickListener)
+        return BaseViewHolder.getViewHolder(
+            parent,
+            R.layout.list_item,
+            clickListener,
+            ::AppViewHolder
+        )
     }
 
     override fun onBindViewHolder(holder: AppViewHolder, position: Int) {
         val item = getItem(position)
         holder.bind(item)
-        if (selectedPackageNames.contains(item.packageName)) {
+        if (selectedItems.contains(item.uid)) {
             holder.setSelected()
         }
     }
 
     override fun onViewRecycled(holder: AppViewHolder) {
-        holder.unsetSelected()
         super.onViewRecycled(holder)
+        holder.unsetSelected()
     }
 
     companion object {

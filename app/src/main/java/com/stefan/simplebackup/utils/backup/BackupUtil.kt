@@ -3,76 +3,64 @@ package com.stefan.simplebackup.utils.backup
 import android.content.Context
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.data.model.NotificationData
+import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.archive.TarUtil
 import com.stefan.simplebackup.utils.archive.ZipUtil
+import com.stefan.simplebackup.utils.file.FileHelper
 import com.stefan.simplebackup.utils.main.PreferenceHelper
-import com.stefan.simplebackup.data.workers.PROGRESS_MAX
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.flow
 
 const val ROOT: String = "SimpleBackup/local"
 
 class BackupUtil(
-    private val appContext: Context,
-    private val packageNames: Array<String>
-) : BackupHelper(appContext) {
+    appContext: Context,
+    private val items: IntArray
+) : FileHelper {
 
-    private var zipUtil: ZipUtil? = null
-    private var tarUtil: TarUtil? = null
-
+    private val notificationData = NotificationData()
     private val repository = (appContext as MainApplication).getRepository
 
     private var currentProgress = 0
-    private val updatedProgress: Int
-        get() {
-            currentProgress += (PROGRESS_MAX / packageNames.size) / 3
-            return currentProgress
-        }
+    private val updateProgress: () -> Unit = {
+        currentProgress += (PROGRESS_MAX / items.size) / 3
+    }
 
     suspend fun backup() = flow {
-        prepareUtils()
-        packageNames.forEach { packageName ->
-            repository.getAppByPackageName(packageName).also { app ->
-                savePackageNameToPreferences(packageName)
-                emitProgressData(createDirs(app))
-                emitProgressData(backupData(app))
-                emitProgressData(zipData(app))
+        items.forEach { item ->
+            repository.getAppData(item).also { app ->
+                PreferenceHelper.savePackageName(app.packageName)
+                emitProgress(
+                    app,
+                    ::createDirs,
+                    ::backupData,
+                    ::zipData
+                )
                 outputAppInfo(app)
             }
         }
     }
 
-    private fun savePackageNameToPreferences(packageName: String) {
-            PreferenceHelper.savePackageName(packageName)
-    }
-
-    private suspend fun prepareUtils() {
-        if (zipUtil == null && tarUtil == null) {
-            val app = repository.getAppByPackageName(packageNames.first())
-            zipUtil = ZipUtil(appContext, app)
-            tarUtil = TarUtil(appContext, app)
-        }
-    }
-
-    private suspend fun createDirs(app: AppData): Flow<Pair<Int, AppData>> {
+    private suspend fun createDirs(app: AppData) = flow {
+        emit(currentProgress to "Creating app dirs")
         createMainDir()
         createAppBackupDir(getBackupDirPath(app))
-        return flowOf(updatedProgress to app)
+        updateProgress()
     }
 
-    private suspend fun backupData(app: AppData): Flow<Pair<Int, AppData>> {
-        if (tarUtil?.app != app) {
-            tarUtil?.app = app
-        }
-        tarUtil?.backupData()
-        return flowOf(updatedProgress to app)
+    private suspend fun backupData(app: AppData) = flow {
+        emit(currentProgress to "Backing up app data")
+        TarUtil.backupData(app)
+        updateProgress()
     }
 
-    private suspend fun zipData(app: AppData): Flow<Pair<Int, AppData>> {
-        if (zipUtil?.app != app) {
-            zipUtil?.app = app
-        }
-        zipUtil?.zipAllData()
-        return flowOf(updatedProgress to app)
+    private suspend fun zipData(app: AppData) = flow {
+        emit(currentProgress to "Backing up apk's and zipping all data")
+        ZipUtil.zipAllData(app)
+        updateProgress()
+        emit(currentProgress to "Successfully backed up ${app.name}")
     }
 
     private suspend fun outputAppInfo(app: AppData) {
@@ -80,7 +68,22 @@ class BackupUtil(
         serializeApp(app)
     }
 
-    private suspend fun <T> FlowCollector<T>.emitProgressData(flow: Flow<T>) {
-        this.emitAll(flow)
+    private suspend inline fun FlowCollector<NotificationData>.emitProgress(
+        workData: AppData,
+        vararg actions: suspend (workData: AppData) -> Flow<Pair<Int, String?>>
+    ) {
+        actions.forEach { action ->
+            emit(notificationData.apply {
+                action(workData).collect { status ->
+                    name = workData.name
+                    image = workData.bitmap
+                    progress = status.first
+                    status.second?.let {
+                        text = it
+                    }
+
+                }
+            })
+        }
     }
 }

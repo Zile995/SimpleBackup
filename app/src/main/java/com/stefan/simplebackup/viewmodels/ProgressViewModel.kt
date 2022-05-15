@@ -14,7 +14,7 @@ import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.launch
 
 class ProgressViewModel(
-    private val selectedApps: Array<String>?,
+    private val selectionList: IntArray?,
     application: MainApplication
 ) : AndroidViewModel(application) {
 
@@ -30,14 +30,14 @@ class ProgressViewModel(
     }
 
     private fun startWorker() {
-        selectedApps?.let {
-            val workerHelper = WorkerHelper(selectedApps, workManager)
+        selectionList?.let {
+            val workerHelper = WorkerHelper(selectionList, workManager)
             workerHelper.beginUniqueWork<MainWorker>()
         }
     }
 
     suspend fun getCurrentApp(packageName: String) =
-        repository.getAppByPackageName(packageName)
+        repository.getProgressAppData(packageName)
 
     override fun onCleared() {
         super.onCleared()
@@ -47,12 +47,12 @@ class ProgressViewModel(
 
 @Suppress("UNCHECKED_CAST")
 class ProgressViewModelFactory(
-    private val selectedApps: Array<String>?,
+    private val selectionList: IntArray?,
     private val application: MainApplication
 ) : ViewModelProvider.AndroidViewModelFactory(application) {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ProgressViewModel::class.java)) {
-            return ProgressViewModel(selectedApps, application) as T
+            return ProgressViewModel(selectionList, application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

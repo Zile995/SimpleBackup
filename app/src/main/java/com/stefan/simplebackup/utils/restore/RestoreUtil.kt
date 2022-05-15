@@ -1,10 +1,7 @@
 package com.stefan.simplebackup.utils.restore
 
-import android.content.Context
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
-import com.stefan.simplebackup.utils.archive.TarUtil
-import com.stefan.simplebackup.utils.archive.ZipUtil
-import com.stefan.simplebackup.utils.backup.BackupHelper
+import com.stefan.simplebackup.utils.file.FileHelper
 import com.stefan.simplebackup.utils.main.PreferenceHelper
 import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.withContext
@@ -12,14 +9,9 @@ import kotlinx.coroutines.withContext
 private const val TMP: String = "/data/local/tmp"
 private const val DATA: String = "/data/data"
 
-@SuppressWarnings("unused")
 class RestoreUtil(
-    appContext: Context,
-    private val packageNames: Array<String>
-) : BackupHelper(appContext) {
-
-    private var zipUtil: ZipUtil? = null
-    private var tarUtil: TarUtil? = null
+    private val packageNames: IntArray
+) : FileHelper {
 
     private var currentProgress = 0
     private val updatedProgress: Int
@@ -30,7 +22,7 @@ class RestoreUtil(
 
     suspend fun restore() {
         withContext(ioDispatcher) {
-            PreferenceHelper.savePackageName(TMP + DATA)
+            PreferenceHelper.savePackageName(null)
             unzipData()
             restoreData()
         }
