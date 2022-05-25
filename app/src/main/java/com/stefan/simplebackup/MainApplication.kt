@@ -67,12 +67,6 @@ class MainApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        StrictMode.setVmPolicy(
-            VmPolicy.Builder()
-                .detectLeakedClosableObjects()
-                .penaltyLog()
-                .build()
-        )
         initPreferences()
         setMainBackupDir()
         Log.d("MainApplication", "Started creating database")

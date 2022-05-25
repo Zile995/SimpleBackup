@@ -2,6 +2,8 @@ package com.stefan.simplebackup.utils.main
 
 import android.util.Log
 import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 val coroutineExceptionHandler get() =
     CoroutineExceptionHandler { coroutineContext, throwable ->
@@ -17,11 +19,11 @@ val coroutineExceptionHandler get() =
         }
     }
 
-inline fun CoroutineScope.launchWithLogging(
-    coroutineName: CoroutineName,
-    crossinline block: suspend CoroutineScope.() -> Unit
-) {
-    launch(coroutineName + coroutineExceptionHandler) {
+fun CoroutineScope.launchWithLogging(
+    context: CoroutineContext = EmptyCoroutineContext,
+    block: suspend CoroutineScope.() -> Unit
+): Job {
+    return launch(context + coroutineExceptionHandler) {
         block()
     }
 }

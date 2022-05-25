@@ -14,9 +14,7 @@ import com.stefan.simplebackup.data.repository.AppRepository
 import com.stefan.simplebackup.utils.main.ioDispatcher
 import com.stefan.simplebackup.utils.main.launchWithLogging
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 
 class AppViewModel(application: MainApplication) :
     AndroidViewModel(application), PackageListener {
@@ -30,9 +28,9 @@ class AppViewModel(application: MainApplication) :
         get() = _spinner
 
     //     Observable application properties used for list loading
-    private var _allApps = MutableStateFlow(mutableListOf<AppData>())
-    val getAllApps: StateFlow<MutableList<AppData>>
-        get() = _allApps
+    private var _userApps = MutableStateFlow(mutableListOf<AppData>())
+    val userApps: StateFlow<MutableList<AppData>>
+        get() = _userApps
 
     // Selection properties
     val selectionList = mutableListOf<Int>()
@@ -46,22 +44,23 @@ class AppViewModel(application: MainApplication) :
     val isStateInitialized: Boolean get() = this::state.isInitialized
 
     init {
-        viewModelScope.launchDataLoading {
-            repository.installedApps
+        viewModelScope.launch {
+            launchDataLoading {
+                repository.installedApps
+            }
         }
     }
 
     // Loading methods
     private inline fun CoroutineScope.launchDataLoading(
         crossinline databaseCallBack: () -> Flow<MutableList<AppData>>,
-    ) {
-        launch {
+    ): Job {
+        return launchWithLogging(CoroutineName("LoadUserApps")) {
             appManager.printSequence()
             databaseCallBack().collect { apps ->
-                _allApps.value = apps
+                _userApps.emit(apps)
                 delay(200)
                 _spinner.emit(false)
-                refreshPackageList()
             }
         }
     }

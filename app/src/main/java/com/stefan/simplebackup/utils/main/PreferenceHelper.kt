@@ -24,8 +24,6 @@ object PreferenceHelper {
         sharedPreferences = getSharedPreferences(MAIN_PREFERENCE, Context.MODE_PRIVATE)
     }
 
-    fun SharedPreferences.getPackageName() = this.getString(SHARED_PACKAGE_NAME, null)
-
     private suspend fun <T> SharedPreferences.editPreference(preferenceName: String, value: T) {
         withContext(ioDispatcher) {
             edit().apply {

@@ -27,19 +27,22 @@ import com.stefan.simplebackup.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-    // Create RootChecker Class instance and reference
-    private val rootChecker by lazy { RootChecker(applicationContext) }
-    private var isSearching = false
+    // Binding properties
+    private var _binding: ActivityMainBinding? = null
+    private val binding get() = _binding!!
+
+    // NavController for fragments
+    private lateinit var navController: NavController
 
     // ViewModel
     private val appViewModel: AppViewModel by viewModels {
         AppViewModelFactory(application as MainApplication)
     }
 
-    // NavController for fragments
-    private lateinit var navController: NavController
+    // Create RootChecker Class instance and reference
+    private val rootChecker by lazy { RootChecker(applicationContext) }
 
-    // Broadcast Receiver
+    // Broadcast receivers
     private val receiver: PackageReceiver by lazy {
         PackageReceiver(
             appViewModel,
@@ -51,12 +54,9 @@ class MainActivity : AppCompatActivity() {
         NotificationReceiver()
     }
 
-    // Binding properties
-    private var _binding: ActivityMainBinding? = null
-    private val binding get() = _binding!!
-
     // Flags
     private var isSubmitted: Boolean = false
+    private var isSearching = false
 
     /**
      * - Standardna onCreate metoda Activity Lifecycle-a
@@ -68,7 +68,7 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             launch {
-                supportFragmentManager.setNavController()
+                setNavController()
                 binding.bindViews()
             }
             registerBroadcast()
@@ -84,8 +84,8 @@ class MainActivity : AppCompatActivity() {
         outState.putBoolean("isSearching", isSearching)
     }
 
-    private fun FragmentManager.setNavController() {
-        val navHostFragment = findFragmentById(R.id.nav_host_container) as NavHostFragment
+    private fun setNavController() {
+        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_container) as NavHostFragment
         navController = navHostFragment.navController
     }
 
@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private suspend fun hasRootAccess() {
-        if (rootChecker.hasRootAccess()) {
+        if (rootChecker.hasRootAccess() == true) {
             PreferenceHelper.setRootGranted(true)
         } else {
             PreferenceHelper.setRootGranted(false)
@@ -157,12 +157,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
         isSubmitted = savedInstanceState.getBoolean("isSubmitted")
         isSearching = savedInstanceState.getBoolean("isSearching")
         if (isSearching) {
             binding.searchInput.requestFocus()
         }
-        super.onRestoreInstanceState(savedInstanceState)
     }
 
     override fun onDestroy() {

@@ -15,7 +15,10 @@ import kotlinx.serialization.Transient
  * Klasa koja će sadržati sve podatke o aplikaciji
  */
 @Suppress("unused")
-@Entity(tableName = "app_table", indices = [Index(value = ["package_name", "is_local", "is_cloud"], unique = true)])
+@Entity(
+    tableName = "app_table",
+    indices = [Index(value = ["package_name", "is_local", "is_cloud"], unique = true)]
+)
 @Keep
 @Serializable
 data class AppData(
@@ -36,13 +39,11 @@ data class AppData(
     @ColumnInfo(name = "version_name")
     val versionName: String,
 
-    @Transient
     @ColumnInfo(name = "target_sdk")
-    val targetSdk: Int = 0,
+    val targetSdk: Int,
 
-    @Transient
     @ColumnInfo(name = "min_sdk")
-    val minSdk: Int = 0,
+    val minSdk: Int,
 
     @ColumnInfo(name = "data_dir")
     val dataDir: String,
@@ -93,7 +94,8 @@ data class AppData(
         uid = parcel.readInt(),
         name = parcel.readString() ?: "",
         bitmap = ByteArray(parcel.readInt()).also { byteArrayBitmap ->
-            parcel.readByteArray(byteArrayBitmap) },
+            parcel.readByteArray(byteArrayBitmap)
+        },
         packageName = parcel.readString() ?: "",
         versionName = parcel.readString() ?: "",
         targetSdk = parcel.readInt(),
@@ -137,7 +139,6 @@ data class AppData(
 
         other as AppData
 
-        if (uid != other.uid) return false
         if (name != other.name) return false
         if (!bitmap.contentEquals(other.bitmap)) return false
         if (packageName != other.packageName) return false
@@ -162,8 +163,7 @@ data class AppData(
     override fun describeContents(): Int = 0
 
     override fun hashCode(): Int {
-        var result = uid
-        result = 31 * result + name.hashCode()
+        var result = name.hashCode()
         result = 31 * result + bitmap.contentHashCode()
         result = 31 * result + packageName.hashCode()
         result = 31 * result + versionName.hashCode()
@@ -180,9 +180,10 @@ data class AppData(
         result = 31 * result + date.hashCode()
         result = 31 * result + isLocal.hashCode()
         result = 31 * result + isCloud.hashCode()
+        result = 31 * result + shouldBackupData.hashCode()
+        result = 31 * result + shouldBackupCache.hashCode()
         return result
     }
-
 
     companion object CREATOR : Parcelable.Creator<AppData> {
         override fun createFromParcel(parcel: Parcel): AppData {

@@ -3,7 +3,6 @@ package com.stefan.simplebackup.utils.file
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.main.ioDispatcher
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
@@ -34,18 +33,21 @@ object JsonUtil {
         }
     }
 
-    suspend fun deserializeApp(jsonFile: File) = flow<AppData> {
+    fun deserializeApp(jsonFile: File): AppData? {
         Log.d("Serialization", "Creating the app from ${jsonFile.absolutePath}")
-        try {
+        val app: AppData
+        return try {
             jsonFile.inputStream()
                 .bufferedReader()
                 .use { reader ->
-                    emit(Json.decodeFromString(reader.readLine()))
+                    app = Json.decodeFromString(reader.readLine())
                 }
+            app
         } catch (e: SerializationException) {
             e.localizedMessage?.let { message ->
                 Log.d("Serialization", message)
             }
+            null
         }
     }
 }

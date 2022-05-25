@@ -22,7 +22,6 @@ import com.stefan.simplebackup.utils.main.workerDialog
 import com.stefan.simplebackup.viewmodels.RestoreViewModel
 import com.stefan.simplebackup.viewmodels.RestoreViewModelFactory
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class RestoreListFragment : Fragment() {
@@ -118,7 +117,6 @@ class RestoreListFragment : Fragment() {
         setRestoreAdapter()
         restoreRecyclerView.apply {
             adapter = restoreAdapter
-            isAnimating
             setHasFixedSize(true)
         }
     }
@@ -146,7 +144,12 @@ class RestoreListFragment : Fragment() {
 
     private fun FragmentRestoreListBinding.initObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            launch {
+                viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                    restoreViewModel.startPackagePolling()
+                }
+            }
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 launch {
                     restoreViewModel.isSelected.collect { value ->
                         batchRestore.visibility = if (value) View.VISIBLE else View.GONE
@@ -157,7 +160,7 @@ class RestoreListFragment : Fragment() {
                         progressBar.visibility = View.VISIBLE
                     } else {
                         progressBar.visibility = View.GONE
-                        restoreViewModel.localApps.collectLatest { appList ->
+                        restoreViewModel.localApps.collect { appList ->
                             restoreAdapter.submitList(appList)
                         }
                     }

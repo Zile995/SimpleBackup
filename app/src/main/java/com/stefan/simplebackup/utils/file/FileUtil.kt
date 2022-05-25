@@ -35,12 +35,12 @@ object FileUtil {
         }
     }
 
-    suspend fun findJsonFile(path: String) = flow {
-        File(path).listFiles()?.filter { appDirFile ->
-            appDirFile.isFile && appDirFile.extension == "json"
-        }?.map { jsonFile ->
-            JsonUtil.deserializeApp(jsonFile).collect {
-                emit(it)
+    suspend fun findJsonFiles(path: String) = flow {
+        File(path).listFiles()?.forEach { appDirList ->
+            appDirList.listFiles()?.filter { appDirFile ->
+                appDirFile.isFile && appDirFile.extension == "json"
+            }?.map { jsonFile ->
+                emit(jsonFile)
             }
         }
     }.flowOn(ioDispatcher)

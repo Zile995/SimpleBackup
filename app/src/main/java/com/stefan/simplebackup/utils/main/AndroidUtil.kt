@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.os.Build.VERSION.SDK_INT
 import android.provider.Settings
 import android.widget.ImageView
 import android.widget.Toast
@@ -17,7 +19,6 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.backup.ROOT
 import com.stefan.simplebackup.utils.file.BitmapUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -139,11 +140,18 @@ fun Context.permissionDialog(
     }
     builder.setNegativeButton(negativeButtonText) { dialog, _ ->
         dialog.cancel()
-        startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            addCategory(Intent.CATEGORY_DEFAULT)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            data = Uri.parse("package:${applicationContext.packageName}")
-        })
+        val uriData = Uri.parse("package:${applicationContext.packageName}")
+        if (SDK_INT >= Build.VERSION_CODES.R) {
+            startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                addCategory(Intent.CATEGORY_DEFAULT)
+                data = uriData
+            })
+        } else {
+            startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                addCategory(Intent.CATEGORY_DEFAULT)
+                data = uriData
+            })
+        }
     }
     val alert = builder.create()
     alert.setOnShowListener {
@@ -180,7 +188,6 @@ fun RecyclerView.hideAttachedButton(floatingButton: FloatingActionButton) {
 
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
-            // Ako ne može da skroluje na dole (1 je down direction) i ako može ka gore (-1 up direction)
             if (!recyclerView.canScrollVertically(-1)) {
                 floatingButton.hide()
             }

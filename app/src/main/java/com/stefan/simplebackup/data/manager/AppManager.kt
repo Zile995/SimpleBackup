@@ -11,10 +11,9 @@ import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
 import com.stefan.simplebackup.utils.main.PreferenceHelper
 import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile
 import java.io.File
@@ -91,16 +90,11 @@ class AppManager(private val context: Context) {
         flags and ApplicationInfo.FLAG_SYSTEM == 0
 
     // Simple flow which sends data
-    fun dataBuilder(includeSystemApps: Boolean = false) = channelFlow {
-        val semaphore = Semaphore(2)
+    fun dataBuilder(includeSystemApps: Boolean = false) = flow {
         val completeAppsInfo = getCompleteAppsInfo()
         completeAppsInfo.apply {
             getFilteredInfo(includeSystemApps).forEach { userAppsInfo ->
-                semaphore.withPermit {
-                    launch {
-                        send(getAppData(userAppsInfo))
-                    }
-                }
+                emit(getAppData(userAppsInfo))
             }
         }
     }.flowOn(Dispatchers.Default)

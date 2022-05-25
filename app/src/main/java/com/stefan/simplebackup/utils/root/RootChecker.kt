@@ -2,7 +2,7 @@ package com.stefan.simplebackup.utils.root
 
 import android.content.Context
 import android.content.pm.PackageManager
-import android.util.Log
+import com.stefan.simplebackup.utils.main.ioDispatcher
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -17,8 +17,8 @@ class RootChecker(private val rootContext: Context) {
         return hasSuBinary() || hasRootManagerApp(rootContext)
     }
 
-    fun hasRootAccess(): Boolean {
-        return Shell.rootAccess()
+    fun hasRootAccess(): Boolean? {
+        return Shell.isAppGrantedRoot()
     }
 
     private fun hasRootManagerApp(context: Context): Boolean {

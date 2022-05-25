@@ -11,7 +11,7 @@ android {
     defaultConfig {
         applicationId "com.stefan.simplebackup"
         minSdk 26
-        targetSdk 29
+        targetSdk 32
         versionCode 20
         versionName "1.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -135,5 +135,5 @@ dependencies {
     kapt "com.github.bumptech.glide:compiler:$glide"
 
     // Leak Canary
-   // debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"
+    debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"
 }

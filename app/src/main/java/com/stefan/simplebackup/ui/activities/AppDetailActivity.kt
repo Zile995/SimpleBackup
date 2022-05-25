@@ -38,7 +38,7 @@ class AppDetailActivity : AppCompatActivity() {
     private val binding get() = _binding!!
 
     private val appDetailViewModel: AppDetailViewModel by viewModels {
-        val selectedApp: AppData? = intent?.extras?.getParcelable("application")
+        val selectedApp: AppData? = intent?.extras?.getParcelable(PARCELABLE_EXTRA)
         AppDetailViewModelFactory(selectedApp, application as MainApplication)
     }
 

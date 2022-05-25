@@ -12,28 +12,28 @@ import com.stefan.simplebackup.MainApplication.Companion.mainBackupDirPath
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
-import com.stefan.simplebackup.utils.file.JsonUtil
+import com.stefan.simplebackup.utils.file.FileUtil.findJsonFiles
+import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
 class RestoreViewModel(application: MainApplication) : AndroidViewModel(application) {
 
-    //    private val appManager = application.getAppManager
-    private val workManager by lazy { WorkManager.getInstance(application) }
+    lateinit var localApps: StateFlow<MutableList<AppData>>
+
+    private val workManager = WorkManager.getInstance(application)
     private val repository = application.getRepository
 
     // Observable spinner properties used for progressbar observing
     private var _spinner = MutableStateFlow(true)
     val spinner: StateFlow<Boolean>
         get() = _spinner
-
-    private var _localApps = MutableStateFlow(mutableListOf<AppData>())
-    val localApps: StateFlow<MutableList<AppData>> get() = _localApps
 
     // Selection properties
     val selectionList = mutableListOf<Int>()
@@ -50,29 +50,23 @@ class RestoreViewModel(application: MainApplication) : AndroidViewModel(applicat
     init {
         Log.d("ViewModel", "RestoreViewModel created")
         viewModelScope.launch {
-            launch {
-                repository.localApps.collect { localApps ->
-                    _localApps.value = localApps
-                    delay(350)
-                    _spinner.emit(false)
-                }
-            }
-            startPackagePolling()
+            localApps = repository.localApps.stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(2_000L),
+                mutableListOf()
+            )
+            delay(400)
+            _spinner.emit(false)
         }
     }
 
-    private suspend fun startPackagePolling() {
+    suspend fun startPackagePolling() {
         withContext(Dispatchers.Default) {
             while (true) {
-                val dir = File(mainBackupDirPath)
-                dir.listFiles()?.forEach { appDirList ->
-                    appDirList.listFiles()?.filter { appDirFile ->
-                        appDirFile.isFile && appDirFile.extension == "json"
-                    }?.map { jsonFile ->
-                        JsonUtil.deserializeApp(jsonFile).collect { app ->
-                            if (!repository.doesExist(app.packageName))
-                                repository.insert(app)
-                        }
+                findJsonFiles(mainBackupDirPath).collect { jsonFile ->
+                    val app = deserializeApp(jsonFile)
+                    app?.let {
+                        repository.insert(app)
                     }
                 }
                 delay(1_500)

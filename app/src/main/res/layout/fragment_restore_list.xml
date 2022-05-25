@@ -36,7 +36,7 @@
         android:indeterminateTint="@color/floatingButton"
         android:scaleX="0.12"
         android:scaleY="0.12"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
