@@ -33,21 +33,23 @@ object JsonUtil {
         }
     }
 
-    fun deserializeApp(jsonFile: File): AppData? {
+    suspend fun deserializeApp(jsonFile: File): AppData? {
         Log.d("Serialization", "Creating the app from ${jsonFile.absolutePath}")
         val app: AppData
-        return try {
-            jsonFile.inputStream()
-                .bufferedReader()
-                .use { reader ->
-                    app = Json.decodeFromString(reader.readLine())
+        return withContext(ioDispatcher) {
+            try {
+                jsonFile.inputStream()
+                    .bufferedReader()
+                    .use { reader ->
+                        app = Json.decodeFromString(reader.readLine())
+                    }
+                app
+            } catch (e: SerializationException) {
+                e.localizedMessage?.let { message ->
+                    Log.d("Serialization", message)
                 }
-            app
-        } catch (e: SerializationException) {
-            e.localizedMessage?.let { message ->
-                Log.d("Serialization", message)
+                null
             }
-            null
         }
     }
 }

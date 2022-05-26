@@ -7,6 +7,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+import net.lingala.zip4j.ZipFile
+import net.lingala.zip4j.model.FileHeader
 import java.io.File
 
 object FileUtil {
@@ -44,4 +46,19 @@ object FileUtil {
             }
         }
     }.flowOn(ioDispatcher)
+
+    fun getApkZipFile(path: String): ZipFile? {
+        val backupFiles = File(path)
+        backupFiles.listFiles()?.filter { backupFile ->
+            backupFile.isFile and (backupFile.extension == "zip")
+        }?.forEach { file ->
+            val zipFile = ZipFile(file)
+            val headerList = zipFile.fileHeaders
+            headerList.map { fileHeader ->
+                if (fileHeader.fileName.endsWith("apk"))
+                    return zipFile
+            }
+        }
+        return null
+    }
 }

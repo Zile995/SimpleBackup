@@ -27,16 +27,16 @@ abstract class BaseViewHolder(
     }
 
     fun setSelected() {
-        itemView.apply {
-            cardView.setCardBackgroundColor(
+        cardView.apply {
+            setCardBackgroundColor(
                 context.getColor(R.color.cardViewSelected)
             )
         }
     }
 
     fun unsetSelected() {
-        itemView.apply {
-            cardView.setCardBackgroundColor(
+        cardView.apply {
+            setCardBackgroundColor(
                 context.getColor(R.color.cardView)
             )
         }

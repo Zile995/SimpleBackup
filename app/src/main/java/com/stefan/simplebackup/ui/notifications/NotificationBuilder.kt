@@ -29,7 +29,15 @@ class NotificationBuilder(
         get() = NOTIFICATION_ID
 
     override val notificationBuilder: NotificationCompat.Builder by lazy {
-        setNotificationBuilder()
+        NotificationCompat.Builder(context, CHANNEL_ID).apply {
+            setContentTitle("Work")
+            setContentText("Work in progress")
+            setSmallIcon(R.drawable.ic_launcher_foreground)
+            setOnlyAlertOnce(true)
+            setAutoCancel(false)
+            setOngoing(ongoing)
+            priority = NotificationCompat.PRIORITY_DEFAULT
+        }
     }
 
     private fun createNotificationChannel() {
@@ -43,18 +51,6 @@ class NotificationBuilder(
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
-    }
-
-    private fun setNotificationBuilder(): NotificationCompat.Builder {
-        return NotificationCompat.Builder(context, CHANNEL_ID).apply {
-            setContentTitle("Work")
-            setContentText("Work in progress")
-            setSmallIcon(R.drawable.ic_launcher_foreground)
-            setOnlyAlertOnce(true)
-            setAutoCancel(false)
-            setOngoing(ongoing)
-            priority = NotificationCompat.PRIORITY_DEFAULT
-        }
     }
 
     override fun Context.sendNotificationBroadcast(
@@ -79,13 +75,13 @@ class NotificationBuilder(
         isBackup: Boolean
     ): Notification {
         return notificationBuilder.apply {
-            val appString = if (numberOfPackages > 1) "apps" else "app"
+            val appText = if (numberOfPackages > 1) "apps" else "app"
             if (isBackup) {
                 setContentTitle("Backup Completed")
-                setContentText("$numberOfPackages $appString successfully backed up")
+                setContentText("$numberOfPackages $appText successfully backed up")
             } else {
                 setContentTitle("Restore Completed")
-                setContentText("$numberOfPackages $appString successfully restored")
+                setContentText("$numberOfPackages $appText successfully restored")
             }
             setOnlyAlertOnce(true)
             setAutoCancel(false)

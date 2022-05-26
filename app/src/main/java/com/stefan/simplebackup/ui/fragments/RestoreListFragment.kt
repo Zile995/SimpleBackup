@@ -77,7 +77,7 @@ class RestoreListFragment : Fragment() {
                         positiveButtonText = getString(R.string.yes),
                         negativeButtonText = getString(R.string.no)
                     ) {
-                        restoreViewModel.startRestoreWorker()
+                        restoreViewModel.startRestoreWorker(item.uid)
                     }
                 }
             }

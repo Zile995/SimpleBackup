@@ -51,30 +51,35 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                     }
                 }
             }
-        } catch (e: Throwable) {
+        } catch (e: Exception) {
             Log.e("MainWorker", "Work error: ${e.message}")
             Result.failure(outputData)
         }
     }
 
     private suspend fun backup() {
-        items?.let { items ->
-            val backupUtil = BackupUtil(applicationContext, items)
+        items?.let { backupItems ->
+            val backupUtil = BackupUtil(applicationContext, backupItems)
             backupUtil.backup().collect { notificationData ->
                 updateForegroundInfo(notificationData)
             }
+            outputWorkData()
         }
+    }
+
+    private suspend fun restore() {
+        items?.let { restoreItems ->
+            val restoreUtil = RestoreUtil(applicationContext, restoreItems)
+            restoreUtil.restore()
+            outputWorkData()
+        }
+    }
+
+    private fun outputWorkData() {
         outputData = workDataOf(
             INPUT_LIST to true,
             WORK_ITEMS to (items?.size ?: 0)
         )
-    }
-
-    private suspend fun restore() {
-        items?.let { items ->
-            val restoreUtil = RestoreUtil(items)
-            restoreUtil.restore()
-        }
     }
 
     private suspend fun updateForegroundInfo(
@@ -93,5 +98,4 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             )
         }
     }
-
 }

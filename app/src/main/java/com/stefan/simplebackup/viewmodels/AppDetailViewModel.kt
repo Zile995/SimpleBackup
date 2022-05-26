@@ -10,7 +10,7 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
-import com.stefan.simplebackup.utils.main.ioDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class AppDetailViewModel(
@@ -26,8 +26,8 @@ class AppDetailViewModel(
     }
 
     fun createLocalBackup() {
-        viewModelScope.launch(ioDispatcher) {
-            app?.uid?.let { uid ->
+        viewModelScope.launch(Dispatchers.Default) {
+            app?.apply {
                 val workerHelper = WorkerHelper(uid, workManager)
                 workerHelper.beginUniqueWork<MainWorker>()
             }

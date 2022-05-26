@@ -1,18 +1,16 @@
 package com.stefan.simplebackup.ui.adapters
 
 import android.view.ViewGroup
-import androidx.recyclerview.widget.ListAdapter
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.ui.adapters.AppAdapter.Companion.AppDiffCallBack
+
+typealias selectionModeCallBack = (Boolean) -> Unit
 
 class RestoreAdapter(
     override val selectedItems: MutableList<Int>,
     private val clickListener: OnClickListener,
-    private val onSelectionModeCallback: (Boolean) -> Unit
+    onSelectionModeCallback: selectionModeCallBack
 ) :
-    ListAdapter<AppData, RestoreViewHolder>(AppDiffCallBack),
-    SelectionListener<RestoreViewHolder> by BaseSelectionListenerImpl(
+    BaseAppAdapter<RestoreViewHolder>(
         selectedItems,
         onSelectionModeCallback
     ) {

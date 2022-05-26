@@ -164,7 +164,7 @@ class AppListFragment : Fragment() {
                         progressBar.visibility = View.VISIBLE
                     else {
                         progressBar.visibility = View.GONE
-                        appViewModel.userApps.collect { appList ->
+                        appViewModel.installedApps.collect { appList ->
                             appAdapter.submitList(appList)
                         }
                     }

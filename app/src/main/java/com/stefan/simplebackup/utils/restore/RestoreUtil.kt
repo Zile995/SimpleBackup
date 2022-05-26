@@ -1,40 +1,36 @@
 package com.stefan.simplebackup.utils.restore
 
+import android.content.Context
+import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
+import com.stefan.simplebackup.utils.archive.ZipUtil
 import com.stefan.simplebackup.utils.file.FileHelper
 import com.stefan.simplebackup.utils.main.PreferenceHelper
-import com.stefan.simplebackup.utils.main.ioDispatcher
-import kotlinx.coroutines.withContext
 
 private const val TMP: String = "/data/local/tmp"
 private const val DATA: String = "/data/data"
 
 class RestoreUtil(
-    private val packageNames: IntArray
+    appContext: Context,
+    private val restoreItems: IntArray
 ) : FileHelper {
 
+    private val repository = (appContext as MainApplication).getRepository
+
     private var currentProgress = 0
-    private val updatedProgress: Int
-        get() {
-            currentProgress += (PROGRESS_MAX / packageNames.size) / 3
-            return currentProgress
-        }
+    private val updateProgress: () -> Unit = {
+        currentProgress += (PROGRESS_MAX / restoreItems.size) / 3
+    }
 
     suspend fun restore() {
-        withContext(ioDispatcher) {
-            PreferenceHelper.savePackageName(null)
-            unzipData()
-            restoreData()
+        restoreItems.forEach { item ->
+            repository.getAppData(item).also { app ->
+                PreferenceHelper.savePackageName(null)
+                ZipUtil.extractData(app)
+            }
         }
     }
 
-    private fun unzipData() {
-
-    }
-
-    private fun restoreData() {
-
-    }
 }
 
 //private suspend fun installApp(context: Context, app: AppData) {

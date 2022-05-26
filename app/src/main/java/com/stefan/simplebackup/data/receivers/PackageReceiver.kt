@@ -22,13 +22,13 @@ class PackageReceiver(
                 packageListener.apply {
                     when (intent.action) {
                         Intent.ACTION_PACKAGE_ADDED -> {
-                            addOrUpdatePackage(packageName)
+                            insertOrUpdatePackage(packageName)
                         }
                         Intent.ACTION_PACKAGE_REMOVED -> {
                             deletePackage(packageName)
                         }
                         Intent.ACTION_PACKAGE_REPLACED -> {
-                            addOrUpdatePackage(packageName)
+                            insertOrUpdatePackage(packageName)
                         }
                     }
                 }

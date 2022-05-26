@@ -8,16 +8,18 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.manager.AppManager
-import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.receivers.PackageListener
+import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.data.repository.AppRepository
-import com.stefan.simplebackup.utils.main.ioDispatcher
 import com.stefan.simplebackup.utils.main.launchWithLogging
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 
 class AppViewModel(application: MainApplication) :
-    AndroidViewModel(application), PackageListener {
+    BaseAndroidViewModel(application), PackageListener by PackageListenerImpl(application) {
 
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
@@ -27,78 +29,28 @@ class AppViewModel(application: MainApplication) :
     val spinner: StateFlow<Boolean>
         get() = _spinner
 
-    //     Observable application properties used for list loading
-    private var _userApps = MutableStateFlow(mutableListOf<AppData>())
-    val userApps: StateFlow<MutableList<AppData>>
-        get() = _userApps
-
-    // Selection properties
-    val selectionList = mutableListOf<Int>()
-    val setSelectionMode: (Boolean) -> Unit = { isSelected -> _isSelected.value = isSelected }
-    private var _isSelected = MutableStateFlow(false)
-    val isSelected: StateFlow<Boolean> get() = _isSelected
-
-    // Parcelable properties used for saving a RecyclerView layout position
-    private lateinit var state: Parcelable
-    val restoreRecyclerViewState: Parcelable get() = state
-    val isStateInitialized: Boolean get() = this::state.isInitialized
+    // Observable application properties used for list loading
+    val installedApps by lazy {
+        repository.installedApps.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(4_000L),
+            mutableListOf()
+        )
+    }
 
     init {
-        viewModelScope.launch {
-            launchDataLoading {
-                repository.installedApps
-            }
-        }
-    }
-
-    // Loading methods
-    private inline fun CoroutineScope.launchDataLoading(
-        crossinline databaseCallBack: () -> Flow<MutableList<AppData>>,
-    ): Job {
-        return launchWithLogging(CoroutineName("LoadUserApps")) {
+        viewModelScope.launchWithLogging {
             appManager.printSequence()
-            databaseCallBack().collect { apps ->
-                _userApps.emit(apps)
-                delay(200)
-                _spinner.emit(false)
-            }
-        }
-    }
-
-    // Used to check for changed packages on init
-    suspend fun refreshPackageList() {
-        Log.d("ViewModel", "Refreshing the package list")
-        withContext(ioDispatcher) {
-            appManager.apply {
-                getChangedPackageNames().collect { packageName ->
-                    if (doesPackageExists(packageName)) {
-                        Log.d("ViewModel", "Adding or updating the $packageName")
-                        addOrUpdatePackage(packageName)
-                    } else {
-                        Log.d("ViewModel", "Deleting the $packageName")
-                        deletePackage(packageName)
-                    }
-                }
-            }
+            installedApps
+            delay(500)
+            _spinner.emit(false)
+            refreshPackageList()
         }
     }
 
     // Save RecyclerView state
     fun saveRecyclerViewState(parcelable: Parcelable) {
         state = parcelable
-    }
-
-    // PackageListener methods - Used for database package updates
-    override suspend fun addOrUpdatePackage(packageName: String) {
-        appManager.apply {
-            repository.insert(build(packageName))
-            updateSequenceNumber()
-        }
-    }
-
-    override suspend fun deletePackage(packageName: String) {
-        repository.delete(packageName)
-        appManager.updateSequenceNumber()
     }
 
     override fun onCleared() {

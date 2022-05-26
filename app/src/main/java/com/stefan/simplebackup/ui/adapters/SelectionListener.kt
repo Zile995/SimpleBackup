@@ -3,7 +3,7 @@ package com.stefan.simplebackup.ui.adapters
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.data.model.AppData
 
-interface SelectionListener<VH: RecyclerView.ViewHolder> {
+interface SelectionListener<VH : RecyclerView.ViewHolder> {
     val selectedItems: MutableList<Int>
 
     fun hasSelectedItems(): Boolean

@@ -11,6 +11,7 @@ import com.stefan.simplebackup.data.repository.AppRepository
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
 import com.stefan.simplebackup.utils.main.ioDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class ProgressViewModel(
@@ -24,14 +25,14 @@ class ProgressViewModel(
 
     init {
         Log.d("ProgressViewModel", "ProgressViewModel created")
-        viewModelScope.launch(ioDispatcher) {
+        viewModelScope.launch(Dispatchers.Default) {
             startWorker()
         }
     }
 
     private fun startWorker() {
-        selectionList?.let {
-            val workerHelper = WorkerHelper(selectionList, workManager)
+        selectionList?.let { appList ->
+            val workerHelper = WorkerHelper(appList, workManager)
             workerHelper.beginUniqueWork<MainWorker>()
         }
     }

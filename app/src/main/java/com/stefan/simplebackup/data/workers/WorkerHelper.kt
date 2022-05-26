@@ -9,9 +9,8 @@ const val WORK_NAME = "SIMPLE_WORK"
 const val WORK_ITEMS = "NUMBER_OF_PACKAGES"
 
 class WorkerHelper(
-    private val appList: IntArray,
-    @PublishedApi
-    internal val workManager: WorkManager
+    private val workItems: IntArray,
+    val workManager: WorkManager
 ) {
 
     constructor(uid: Int, workManager: WorkManager) : this(
@@ -19,8 +18,7 @@ class WorkerHelper(
         workManager
     )
 
-    @PublishedApi
-    internal val constraints = Constraints.Builder()
+    val constraints = Constraints.Builder()
         .setRequiresStorageNotLow(true)
         .build()
 
@@ -36,10 +34,9 @@ class WorkerHelper(
             }
     }
 
-    @PublishedApi
-    internal fun createInputData(shouldBackup: Boolean): Data {
+    fun createInputData(shouldBackup: Boolean): Data {
         val builder = Data.Builder()
-        return builder.putIntArray(INPUT_LIST, appList)
+        return builder.putIntArray(INPUT_LIST, workItems)
             .putBoolean(SHOULD_BACKUP, shouldBackup)
             .build()
     }

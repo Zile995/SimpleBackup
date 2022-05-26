@@ -1,7 +1,9 @@
 package com.stefan.simplebackup.data.receivers
 
 interface PackageListener {
-    suspend fun addOrUpdatePackage(packageName: String)
+    suspend fun insertOrUpdatePackage(packageName: String)
 
     suspend fun deletePackage(packageName: String)
+
+    suspend fun refreshPackageList()
 }

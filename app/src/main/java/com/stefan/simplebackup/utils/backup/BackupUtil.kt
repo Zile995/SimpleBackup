@@ -17,7 +17,7 @@ const val ROOT: String = "SimpleBackup/local"
 
 class BackupUtil(
     appContext: Context,
-    private val items: IntArray
+    private val backupItems: IntArray
 ) : FileHelper {
 
     private val notificationData = NotificationData()
@@ -25,11 +25,11 @@ class BackupUtil(
 
     private var currentProgress = 0
     private val updateProgress: () -> Unit = {
-        currentProgress += (PROGRESS_MAX / items.size) / 3
+        currentProgress += (PROGRESS_MAX / backupItems.size) / 3
     }
 
     suspend fun backup() = flow {
-        items.forEach { item ->
+        backupItems.forEach { item ->
             repository.getAppData(item).also { app ->
                 PreferenceHelper.savePackageName(app.packageName)
                 emitProgress(
@@ -81,7 +81,6 @@ class BackupUtil(
                     status.second?.let {
                         text = it
                     }
-
                 }
             })
         }

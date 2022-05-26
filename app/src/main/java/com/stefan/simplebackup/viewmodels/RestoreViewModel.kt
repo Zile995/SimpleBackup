@@ -9,11 +9,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.MainApplication.Companion.mainBackupDirPath
-import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
 import com.stefan.simplebackup.utils.file.FileUtil.findJsonFiles
 import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
+import com.stefan.simplebackup.utils.file.Kind
+import com.stefan.simplebackup.utils.file.asFileWatcher
+import com.stefan.simplebackup.utils.main.launchWithLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,73 +24,73 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
-class RestoreViewModel(application: MainApplication) : AndroidViewModel(application) {
-
-    lateinit var localApps: StateFlow<MutableList<AppData>>
+class RestoreViewModel(application: MainApplication) : BaseAndroidViewModel(application) {
 
     private val workManager = WorkManager.getInstance(application)
     private val repository = application.getRepository
+    private val fileWatcher = File(mainBackupDirPath).asFileWatcher()
 
     // Observable spinner properties used for progressbar observing
     private var _spinner = MutableStateFlow(true)
     val spinner: StateFlow<Boolean>
         get() = _spinner
 
-    // Selection properties
-    val selectionList = mutableListOf<Int>()
-
-    private var _isSelected = MutableStateFlow(false)
-    val isSelected: StateFlow<Boolean> get() = _isSelected
-    val setSelectionMode = { isSelected: Boolean -> _isSelected.value = isSelected }
-
-    // Parcelable properties used for saving a RecyclerView layout position
-    private lateinit var state: Parcelable
-    val restoreRecyclerViewState: Parcelable get() = state
-    val isStateInitialized: Boolean get() = this::state.isInitialized
+    val localApps by lazy {
+        repository.localApps.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(4_000L),
+            mutableListOf()
+        )
+    }
 
     init {
         Log.d("ViewModel", "RestoreViewModel created")
-        viewModelScope.launch {
-            localApps = repository.localApps.stateIn(
-                viewModelScope,
-                SharingStarted.WhileSubscribed(2_000L),
-                mutableListOf()
-            )
-            delay(400)
-            _spinner.emit(false)
+        viewModelScope.launchWithLogging {
+            launch {
+                localApps
+                delay(350)
+                _spinner.emit(false)
+            }
+            fileWatcher.processEvents().collect { fileEvent ->
+
+            }
+
         }
     }
 
     suspend fun startPackagePolling() {
         withContext(Dispatchers.Default) {
-            while (true) {
-                findJsonFiles(mainBackupDirPath).collect { jsonFile ->
-                    val app = deserializeApp(jsonFile)
-                    app?.let {
-                        repository.insert(app)
+            launch {
+                while (true) {
+                    findJsonFiles(mainBackupDirPath).collect { jsonFile ->
+                        val app = deserializeApp(jsonFile)
+                        app?.let {
+                            repository.insertOrUpdate(it)
+                        }
                     }
+                    delay(1_500)
                 }
-                delay(1_500)
             }
         }
     }
 
-    fun startRestoreWorker() {
+    fun startRestoreWorker(uid: Int) {
         viewModelScope.launch(Dispatchers.Default) {
-            val workerHelper = WorkerHelper(selectionList.toIntArray(), workManager)
+            val workerHelper = WorkerHelper(uid, workManager)
             workerHelper.beginUniqueWork<MainWorker>(shouldBackup = false)
         }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        Log.d("ViewModel", "RestoreViewModel cleared")
     }
 
     // Save RecyclerView state
     fun saveRecyclerViewState(parcelable: Parcelable) {
         state = parcelable
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d("ViewModel", "RestoreViewModel cleared")
     }
 }
 

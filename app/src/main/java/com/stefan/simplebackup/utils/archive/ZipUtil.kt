@@ -3,6 +3,7 @@ package com.stefan.simplebackup.utils.archive
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.file.FileHelper
+import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,6 +27,12 @@ object ZipUtil : FileHelper {
         }
     }
 
+    suspend fun extractData(app: AppData) {
+        withContext(ioDispatcher) {
+            extractApks(app)
+        }
+    }
+
     private fun zipApks(app: AppData) {
         try {
             val backupDirPath = getBackupDirPath(app)
@@ -38,6 +45,20 @@ object ZipUtil : FileHelper {
             zipFile.addFiles(getApkList(app), zipParameters)
             Log.d("ZipUtil", "Successfully zipped ${app.name} apks")
         } catch (exception: ZipException) {
+            exception.message?.let { message ->
+                Log.e("ZipUtil", message)
+            }
+        }
+    }
+
+    private fun extractApks(app: AppData) {
+        try {
+            val backupDirPath = getBackupDirPath(app)
+            val zipFile = FileUtil.getApkZipFile(backupDirPath)
+            Log.d("ZipUtil", "Extracting the ${app.name} apks to $backupDirPath")
+            zipFile?.extractAll(backupDirPath)
+            Log.d("ZipUtil", "Successfully extracted ${app.name} apks")
+        } catch (exception: Exception) {
             exception.message?.let { message ->
                 Log.e("ZipUtil", message)
             }

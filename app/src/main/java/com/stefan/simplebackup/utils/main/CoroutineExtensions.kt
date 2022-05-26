@@ -5,7 +5,7 @@ import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-val coroutineExceptionHandler get() =
+private val coroutineExceptionHandler =
     CoroutineExceptionHandler { coroutineContext, throwable ->
         when (throwable) {
             is CancellationException -> throw throwable
