@@ -1,9 +1,9 @@
-package com.stefan.simplebackup.utils.archive
+package com.stefan.simplebackup.utils.work.archive
 
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.file.FileHelper
-import com.stefan.simplebackup.utils.main.ioDispatcher
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -12,7 +12,8 @@ object TarUtil : FileHelper {
     suspend fun backupData(app: AppData) {
         withContext(ioDispatcher) {
             try {
-                if (!Shell.rootAccess()) {
+                val isGranted = Shell.isAppGrantedRoot() ?: return@withContext
+                if (!isGranted) {
                     return@withContext
                 }
                 Log.d("TarUtil", "Creating the ${app.packageName} data archive")

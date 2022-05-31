@@ -1,11 +1,11 @@
-package com.stefan.simplebackup.utils.restore
+package com.stefan.simplebackup.utils.work.restore
 
 import android.content.Context
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
-import com.stefan.simplebackup.utils.archive.ZipUtil
+import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.file.FileHelper
-import com.stefan.simplebackup.utils.main.PreferenceHelper
+import com.stefan.simplebackup.utils.work.archive.ZipUtil
 
 private const val TMP: String = "/data/local/tmp"
 private const val DATA: String = "/data/data"
@@ -30,7 +30,6 @@ class RestoreUtil(
             }
         }
     }
-
 }
 
 //private suspend fun installApp(context: Context, app: AppData) {

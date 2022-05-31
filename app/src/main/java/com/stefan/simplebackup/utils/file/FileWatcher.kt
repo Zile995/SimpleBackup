@@ -1,6 +1,6 @@
 package com.stefan.simplebackup.utils.file
 
-import com.stefan.simplebackup.utils.main.ioDispatcher
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn

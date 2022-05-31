@@ -6,9 +6,9 @@ import androidx.work.*
 import com.stefan.simplebackup.data.model.NotificationData
 import com.stefan.simplebackup.ui.notifications.NotificationBuilder
 import com.stefan.simplebackup.ui.notifications.NotificationHelper
-import com.stefan.simplebackup.utils.backup.BackupUtil
-import com.stefan.simplebackup.utils.main.ioDispatcher
-import com.stefan.simplebackup.utils.restore.RestoreUtil
+import com.stefan.simplebackup.utils.work.backup.BackupUtil
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
+import com.stefan.simplebackup.utils.work.restore.RestoreUtil
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext

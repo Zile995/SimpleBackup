@@ -2,8 +2,8 @@ package com.stefan.simplebackup.data.receivers
 
 import android.util.Log
 import com.stefan.simplebackup.MainApplication
-import com.stefan.simplebackup.utils.main.PreferenceHelper
-import com.stefan.simplebackup.utils.main.ioDispatcher
+import com.stefan.simplebackup.utils.PreferenceHelper
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.withContext
 
 class PackageListenerImpl(application: MainApplication) : PackageListener {

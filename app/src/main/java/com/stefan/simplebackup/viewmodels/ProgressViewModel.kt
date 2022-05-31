@@ -7,10 +7,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
-import com.stefan.simplebackup.data.repository.AppRepository
+import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
-import com.stefan.simplebackup.utils.main.ioDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 

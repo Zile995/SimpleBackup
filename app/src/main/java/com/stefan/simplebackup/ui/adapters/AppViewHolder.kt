@@ -8,8 +8,8 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.main.loadBitmap
-import com.stefan.simplebackup.utils.main.transformBytesToString
+import com.stefan.simplebackup.utils.extensions.bytesToString
+import com.stefan.simplebackup.utils.extensions.loadBitmap
 
 class AppViewHolder(
     private val view: View,
@@ -29,7 +29,7 @@ class AppViewHolder(
         appName.text = checkAndSetString(item.name)
         versionName.text = checkAndSetString(item.versionName)
         packageName.text = checkAndSetString(item.packageName)
-        apkSize.text = item.apkSize.transformBytesToString()
+        apkSize.text = item.apkSize.bytesToString()
         if (item.isSplit) {
             splitApk.text = view.resources.getString(R.string.split)
             splitApk.visibility = View.VISIBLE

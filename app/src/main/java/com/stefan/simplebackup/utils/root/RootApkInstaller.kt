@@ -1,7 +1,7 @@
-package com.stefan.simplebackup.utils.installer
+package com.stefan.simplebackup.utils.root
 
 import android.content.Context
-import com.stefan.simplebackup.utils.main.ioDispatcher
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.withContext
 import java.io.File

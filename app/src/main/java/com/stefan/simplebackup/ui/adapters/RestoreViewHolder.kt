@@ -7,8 +7,8 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.textview.MaterialTextView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.main.loadBitmap
-import com.stefan.simplebackup.utils.main.transformBytesToString
+import com.stefan.simplebackup.utils.extensions.bytesToString
+import com.stefan.simplebackup.utils.extensions.loadBitmap
 
 class RestoreViewHolder(
     view: View,
@@ -27,7 +27,7 @@ class RestoreViewHolder(
         appVersionName.text = item.versionName
         appName.text = item.name
         appPackageName.text = item.packageName
-        appDataSize.text = item.dataSize.transformBytesToString()
+        appDataSize.text = item.dataSize.bytesToString()
         appBackupDate.text = item.date
     }
 }

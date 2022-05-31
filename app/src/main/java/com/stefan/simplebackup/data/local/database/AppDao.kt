@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.data.database
+package com.stefan.simplebackup.data.local.database
 
 import android.database.sqlite.SQLiteException
 import androidx.room.*
@@ -28,7 +28,7 @@ interface AppDao {
     @Throws(SQLiteException::class)
     suspend fun insert(app: AppData): Long
 
-    @Update(onConflict = OnConflictStrategy.IGNORE)
+    @Update
     suspend fun update(app: AppData): Int
 
     @Transaction

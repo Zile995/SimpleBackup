@@ -1,7 +1,8 @@
-package com.stefan.simplebackup.utils.main
+package com.stefan.simplebackup.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.withContext
 
 private const val MAIN_PREFERENCE = "main_preference"

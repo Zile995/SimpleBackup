@@ -2,15 +2,13 @@ package com.stefan.simplebackup
 
 import android.app.Application
 import android.content.Context
-import android.os.StrictMode
-import android.os.StrictMode.VmPolicy
 import android.util.Log
-import com.stefan.simplebackup.data.database.AppDatabase
+import com.stefan.simplebackup.data.local.database.AppDatabase
+import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.data.repository.AppRepository
-import com.stefan.simplebackup.utils.backup.ROOT
-import com.stefan.simplebackup.utils.main.PreferenceHelper.initPreferences
+import com.stefan.simplebackup.utils.PreferenceHelper.initPreferences
+import com.stefan.simplebackup.utils.work.backup.ROOT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 

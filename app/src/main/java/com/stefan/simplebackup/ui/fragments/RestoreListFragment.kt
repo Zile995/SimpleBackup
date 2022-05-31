@@ -17,8 +17,8 @@ import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
 import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.ui.adapters.RestoreAdapter
 import com.stefan.simplebackup.ui.adapters.RestoreViewHolder
-import com.stefan.simplebackup.utils.main.hideAttachedButton
-import com.stefan.simplebackup.utils.main.workerDialog
+import com.stefan.simplebackup.utils.extensions.hideAttachedButton
+import com.stefan.simplebackup.utils.extensions.workerDialog
 import com.stefan.simplebackup.viewmodels.RestoreViewModel
 import com.stefan.simplebackup.viewmodels.RestoreViewModelFactory
 import kotlinx.coroutines.delay

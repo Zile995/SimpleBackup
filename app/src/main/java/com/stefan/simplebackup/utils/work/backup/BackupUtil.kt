@@ -1,14 +1,14 @@
-package com.stefan.simplebackup.utils.backup
+package com.stefan.simplebackup.utils.work.backup
 
 import android.content.Context
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.NotificationData
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
-import com.stefan.simplebackup.utils.archive.TarUtil
-import com.stefan.simplebackup.utils.archive.ZipUtil
+import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.file.FileHelper
-import com.stefan.simplebackup.utils.main.PreferenceHelper
+import com.stefan.simplebackup.utils.work.archive.TarUtil
+import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow

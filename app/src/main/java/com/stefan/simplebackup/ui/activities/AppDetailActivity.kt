@@ -21,10 +21,10 @@ import com.google.api.services.drive.DriveScopes
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
 import com.stefan.simplebackup.databinding.ActivityDetailBinding
-import com.stefan.simplebackup.utils.file.BitmapUtil
+import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.file.BitmapUtil.setBitmap
-import com.stefan.simplebackup.utils.main.*
 import com.stefan.simplebackup.viewmodels.AppDetailViewModel
 import com.stefan.simplebackup.viewmodels.AppDetailViewModelFactory
 import kotlinx.coroutines.launch
@@ -151,10 +151,10 @@ class AppDetailActivity : AppCompatActivity() {
             chipPackageBackup.text = (app.packageName as CharSequence).toString()
             chipVersionBackup.text = (app.versionName as CharSequence).toString()
             chipDirBackup.text = (app.dataDir as CharSequence).toString()
-            apkSize.text = app.apkSize.transformBytesToString()
+            apkSize.text = app.apkSize.bytesToString()
             targetSdk.text = app.targetSdk.toString()
             minSdk.text = app.minSdk.toString()
-            dataSize.text = app.dataSize.transformBytesToString()
+            dataSize.text = app.dataSize.bytesToString()
         }
     }
 

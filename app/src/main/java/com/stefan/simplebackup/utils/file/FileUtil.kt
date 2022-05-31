@@ -1,14 +1,11 @@
 package com.stefan.simplebackup.utils.file
 
 import android.util.Log
-import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.main.ioDispatcher
-import kotlinx.coroutines.flow.Flow
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile
-import net.lingala.zip4j.model.FileHeader
 import java.io.File
 
 object FileUtil {

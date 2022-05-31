@@ -1,8 +1,6 @@
 package com.stefan.simplebackup.viewmodels
 
-import android.os.Parcelable
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -10,8 +8,8 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
-import com.stefan.simplebackup.data.repository.AppRepository
-import com.stefan.simplebackup.utils.main.launchWithLogging
+import com.stefan.simplebackup.data.local.repository.AppRepository
+import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,7 +17,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
 class AppViewModel(application: MainApplication) :
-    BaseAndroidViewModel(application), PackageListener by PackageListenerImpl(application) {
+    BaseViewModel(application), PackageListener by PackageListenerImpl(application) {
 
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
@@ -39,6 +37,7 @@ class AppViewModel(application: MainApplication) :
     }
 
     init {
+        Log.d("ViewModel", "AppViewModel created")
         viewModelScope.launchWithLogging {
             appManager.printSequence()
             installedApps
@@ -46,11 +45,6 @@ class AppViewModel(application: MainApplication) :
             _spinner.emit(false)
             refreshPackageList()
         }
-    }
-
-    // Save RecyclerView state
-    fun saveRecyclerViewState(parcelable: Parcelable) {
-        state = parcelable
     }
 
     override fun onCleared() {

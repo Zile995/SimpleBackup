@@ -1,9 +1,11 @@
-package com.stefan.simplebackup.utils.main
+package com.stefan.simplebackup.utils.extensions
 
 import android.util.Log
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+
+val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
 private val coroutineExceptionHandler =
     CoroutineExceptionHandler { coroutineContext, throwable ->

@@ -13,8 +13,8 @@ import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.data.workers.REQUEST_TAG
 import com.stefan.simplebackup.data.workers.WORK_PROGRESS
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
-import com.stefan.simplebackup.utils.main.PreferenceHelper
-import com.stefan.simplebackup.utils.main.loadBitmap
+import com.stefan.simplebackup.utils.PreferenceHelper
+import com.stefan.simplebackup.utils.extensions.loadBitmap
 import com.stefan.simplebackup.viewmodels.ProgressViewModel
 import com.stefan.simplebackup.viewmodels.ProgressViewModelFactory
 import kotlinx.coroutines.launch

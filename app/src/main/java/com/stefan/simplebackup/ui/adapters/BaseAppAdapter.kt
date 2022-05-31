@@ -18,7 +18,8 @@ abstract class BaseAppAdapter<VH : BaseViewHolder>(
             override fun areItemsTheSame(oldItem: AppData, newItem: AppData): Boolean {
                 return oldItem.packageName == newItem.packageName &&
                         oldItem.versionName == newItem.versionName &&
-                        oldItem.name == newItem.name
+                        oldItem.name == newItem.name &&
+                        oldItem.date == newItem.date
             }
 
             override fun areContentsTheSame(oldItem: AppData, newItem: AppData): Boolean {

@@ -1,8 +1,6 @@
 package com.stefan.simplebackup.viewmodels
 
-import android.os.Parcelable
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -13,9 +11,7 @@ import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
 import com.stefan.simplebackup.utils.file.FileUtil.findJsonFiles
 import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
-import com.stefan.simplebackup.utils.file.Kind
-import com.stefan.simplebackup.utils.file.asFileWatcher
-import com.stefan.simplebackup.utils.main.launchWithLogging
+import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,13 +20,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
 
-class RestoreViewModel(application: MainApplication) : BaseAndroidViewModel(application) {
+class RestoreViewModel(application: MainApplication) : BaseViewModel(application) {
 
     private val workManager = WorkManager.getInstance(application)
     private val repository = application.getRepository
-    private val fileWatcher = File(mainBackupDirPath).asFileWatcher()
+    //private val fileWatcher = File(mainBackupDirPath).asFileWatcher()
 
     // Observable spinner properties used for progressbar observing
     private var _spinner = MutableStateFlow(true)
@@ -53,10 +48,7 @@ class RestoreViewModel(application: MainApplication) : BaseAndroidViewModel(appl
                 delay(350)
                 _spinner.emit(false)
             }
-            fileWatcher.processEvents().collect { fileEvent ->
-
-            }
-
+            //fileWatcher.processEvents().collect { fileEvent ->
         }
     }
 
@@ -81,11 +73,6 @@ class RestoreViewModel(application: MainApplication) : BaseAndroidViewModel(appl
             val workerHelper = WorkerHelper(uid, workManager)
             workerHelper.beginUniqueWork<MainWorker>(shouldBackup = false)
         }
-    }
-
-    // Save RecyclerView state
-    fun saveRecyclerViewState(parcelable: Parcelable) {
-        state = parcelable
     }
 
     override fun onCleared() {

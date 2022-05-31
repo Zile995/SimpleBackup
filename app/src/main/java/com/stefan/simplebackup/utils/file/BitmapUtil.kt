@@ -7,7 +7,7 @@ import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.main.ioDispatcher
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 

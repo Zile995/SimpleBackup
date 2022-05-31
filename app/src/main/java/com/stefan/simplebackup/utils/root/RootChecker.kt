@@ -2,7 +2,6 @@ package com.stefan.simplebackup.utils.root
 
 import android.content.Context
 import android.content.pm.PackageManager
-import com.stefan.simplebackup.utils.main.ioDispatcher
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

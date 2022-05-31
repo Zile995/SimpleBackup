@@ -1,37 +1,21 @@
-package com.stefan.simplebackup.utils.main
+package com.stefan.simplebackup.utils.extensions
 
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.provider.Settings
-import android.widget.ImageView
 import android.widget.Toast
-import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
 import com.stefan.simplebackup.utils.file.BitmapUtil
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlin.math.pow
-
-const val PARCELABLE_EXTRA = "application"
-val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-
-fun Number.transformBytesToString(): String {
-    return String.format("%3.1f %s", this.toFloat() / 1_000.0.pow(2), "MB")
-}
 
 inline fun <reified T : AppCompatActivity> Context?.passParcelableToActivity(
     app: AppData,
@@ -42,28 +26,6 @@ inline fun <reified T : AppCompatActivity> Context?.passParcelableToActivity(
             val intent = Intent(context, T::class.java)
                 .putExtra(PARCELABLE_EXTRA, BitmapUtil.appWithCheckedBitmap(app, context))
             context.startActivity(intent)
-        }
-    }
-}
-
-inline fun AppCompatActivity.requestPermission(
-    permission: String,
-    requestPermissionLauncher: ActivityResultLauncher<String>,
-    continuationCallBack: () -> Unit,
-    dialogCallBack: () -> Unit
-) {
-    when {
-        ContextCompat.checkSelfPermission(
-            this,
-            permission
-        ) == PackageManager.PERMISSION_GRANTED -> {
-            continuationCallBack()
-        }
-        shouldShowRequestPermissionRationale(permission) -> {
-            dialogCallBack()
-        }
-        else -> {
-            requestPermissionLauncher.launch(permission)
         }
     }
 }
@@ -161,36 +123,4 @@ fun Context.permissionDialog(
             .setTextColor(this.getColor(R.color.positiveDialog))
     }
     alert.show()
-}
-
-fun ImageView.loadBitmap(byteArray: ByteArray) {
-    val image = this
-    GlideApp.with(image).apply {
-        asBitmap()
-            .load(byteArray)
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .into(image)
-    }
-}
-
-fun RecyclerView.hideAttachedButton(floatingButton: FloatingActionButton) {
-    addOnScrollListener(object : RecyclerView.OnScrollListener() {
-        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-            super.onScrolled(recyclerView, dx, dy)
-
-            if (dy > 0 && floatingButton.isShown) {
-                floatingButton.hide()
-
-            } else if (dy < 0 && !floatingButton.isShown) {
-                floatingButton.show()
-            }
-        }
-
-        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-            super.onScrollStateChanged(recyclerView, newState)
-            if (!recyclerView.canScrollVertically(-1)) {
-                floatingButton.hide()
-            }
-        }
-    })
 }

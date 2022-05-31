@@ -11,6 +11,8 @@ import androidx.room.PrimaryKey
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
+const val PARCELABLE_EXTRA = "application"
+
 /**
  * Klasa koja će sadržati sve podatke o aplikaciji
  */

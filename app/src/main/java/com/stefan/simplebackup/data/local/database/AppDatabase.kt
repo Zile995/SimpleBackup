@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.data.database
+package com.stefan.simplebackup.data.local.database
 
 import android.content.Context
 import android.database.sqlite.SQLiteException
@@ -9,8 +9,8 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.main.PreferenceHelper
-import com.stefan.simplebackup.utils.main.showToast
+import com.stefan.simplebackup.utils.PreferenceHelper
+import com.stefan.simplebackup.utils.extensions.showToast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch

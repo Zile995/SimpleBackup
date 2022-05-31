@@ -1,6 +1,6 @@
-package com.stefan.simplebackup.data.repository
+package com.stefan.simplebackup.data.local.repository
 
-import com.stefan.simplebackup.data.database.AppDao
+import com.stefan.simplebackup.data.local.database.AppDao
 import com.stefan.simplebackup.data.model.AppData
 
 class AppRepository(private val appDao: AppDao) {
@@ -21,7 +21,8 @@ class AppRepository(private val appDao: AppDao) {
 
     suspend fun getAppData(packageName: String) = appDao.getData(packageName)
 
-    fun doesExist(packageName: String, checkCloudOnly: Boolean = false) = appDao.doesExist(packageName, checkCloudOnly)
+    fun doesExist(packageName: String, checkCloudOnly: Boolean = false) =
+        appDao.doesExist(packageName, checkCloudOnly)
 
     suspend fun getProgressAppData(packageName: String) =
         appDao.getProgressData(packageName)

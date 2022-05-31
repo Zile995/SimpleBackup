@@ -5,9 +5,8 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.stefan.simplebackup.MainApplication
-import com.stefan.simplebackup.utils.main.PreferenceHelper
+import com.stefan.simplebackup.utils.PreferenceHelper
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.collect
 
 class BootPackageWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext,
