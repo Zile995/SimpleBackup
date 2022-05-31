@@ -50,12 +50,11 @@ class ProgressActivity : AppCompatActivity() {
         savedInstanceState?.let {
             isInProgress = savedInstanceState.getBoolean("isInProgress")
         }
-
         println("Saved progress onCreate: $isInProgress")
 
         binding.apply {
             bindViews()
-            setViewModelObservers()
+            initObservers()
         }
     }
 
@@ -75,7 +74,7 @@ class ProgressActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
     }
 
-    private fun ActivityProgressBinding.setViewModelObservers() {
+    private fun ActivityProgressBinding.initObservers() {
         progressViewModel.getWorkManager.getWorkInfosByTagLiveData(REQUEST_TAG)
             .observe(this@ProgressActivity, workInfoObserver())
     }

@@ -8,10 +8,9 @@ import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper.initPreferences
-import com.stefan.simplebackup.utils.work.backup.ROOT
+import com.stefan.simplebackup.utils.file.ROOT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-
 
 /**
  * - Our main [Application] based class

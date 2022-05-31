@@ -12,14 +12,11 @@ import com.stefan.simplebackup.data.workers.WorkerHelper
 import com.stefan.simplebackup.utils.file.FileUtil.findJsonFiles
 import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
 import com.stefan.simplebackup.utils.extensions.launchWithLogging
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class RestoreViewModel(application: MainApplication) : BaseViewModel(application) {
 
@@ -42,13 +39,12 @@ class RestoreViewModel(application: MainApplication) : BaseViewModel(application
 
     init {
         Log.d("ViewModel", "RestoreViewModel created")
-        viewModelScope.launchWithLogging {
+        viewModelScope.launchWithLogging(CoroutineName("LoadLocalList")) {
             launch {
                 localApps
                 delay(350)
                 _spinner.emit(false)
             }
-            //fileWatcher.processEvents().collect { fileEvent ->
         }
     }
 

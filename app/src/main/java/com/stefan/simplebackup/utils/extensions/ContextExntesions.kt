@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.provider.Settings
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.stefan.simplebackup.R
@@ -40,7 +41,7 @@ fun Context.forceStopPackage(packageName: String) {
     val activityManager =
         applicationContext.getSystemService(AppCompatActivity.ACTIVITY_SERVICE) as ActivityManager
     activityManager.killBackgroundProcesses(packageName)
-    showToast("Application stopped!")
+    showToast(R.string.application_stopped)
 }
 
 fun Context.openPackageSettingsInfo(packageName: String) {
@@ -58,8 +59,14 @@ fun Context.launchPackage(packageName: String) {
     }
 }
 
-fun Context.showToast(message: String) {
-    Toast.makeText(applicationContext, message, Toast.LENGTH_SHORT).show()
+fun Context.showToast(@StringRes message: Int, longDuration: Boolean = false) {
+    val duration = if (longDuration) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
+    Toast.makeText(applicationContext, message, duration).show()
+}
+
+fun Context.showToast(message: String, longDuration: Boolean = false) {
+    val duration = if (longDuration) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
+    Toast.makeText(applicationContext, message, duration).show()
 }
 
 fun Context.workerDialog(

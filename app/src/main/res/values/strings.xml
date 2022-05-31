@@ -14,8 +14,6 @@
     <string name="local">Local</string>
     <string name="drive">Drive</string>
     <string name="data_in">Data in</string>
-    <string name="confirm_delete">Confirm Delete</string>
-    <string name="delete_confirmation_message">Are you sure you want to delete this application?</string>
     <string name="confirm_restore">Confirm Restore</string>
     <string name="restore_confirmation_message">Are you sure you want to restore this application?</string>
     <string name="yes">YES</string>
@@ -23,6 +21,7 @@
     <string name="apk">APK </string>
     <string name="search_for_application">Search for Applications</string>
     <string name="force_stop">Force Stop</string>
+    <string name="application_stopped">Application stopped!</string>
     <string name="data">Data </string>
     <string name="date">Date: </string>
     <string name="OK">OK</string>
@@ -37,6 +36,9 @@
     <string name="storage_permission">Permission not granted!</string>
     <string name="storage_perm_info">This permission is required to manage backup files and folders.
         \nPlease set the storage permission.</string>
+    <string name="backup_progress_dir_info">Creating backup dirs</string>
+    <string name="backup_progress_data_info">Backing up app data</string>
+    <string name="backup_progress_zip_info">Zipping all data</string>
     <string name="storage_perm_success">Storage permission granted successfully</string>
     <string name="set_manually">Set Manually</string>
     <string name="filter">Filter</string>

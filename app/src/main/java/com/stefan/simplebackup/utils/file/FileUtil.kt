@@ -7,30 +7,49 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile
 import java.io.File
+import java.io.IOException
+import java.nio.file.DirectoryNotEmptyException
+import java.nio.file.Files
+import kotlin.io.path.copyTo
+import kotlin.io.path.moveTo
 
 object FileUtil {
+
+    @Throws(IOException::class)
     suspend fun createDirectory(path: String) {
         withContext(ioDispatcher) {
-            runCatching {
-                val dir = File(path)
-                if (!dir.exists()) {
-                    Log.d("BaseUtil", "Creating the $path dir")
-                    dir.mkdirs()
-                }
-            }.onFailure { throwable ->
-                throwable.message?.let { message -> Log.e("BaseUtil", "$path: $message") }
+            val dir = File(path)
+            if (!dir.exists()) {
+                Log.d("BaseUtil", "Creating the $path dir")
+                dir.mkdirs()
             }
         }
     }
 
+    @Throws(IOException::class)
+    @Suppress("BlockingMethodInNonBlockingContext")
     suspend fun createFile(path: String) {
         withContext(ioDispatcher) {
-            runCatching {
-                val file = File(path)
-                file.createNewFile()
-            }.onFailure { throwable ->
-                throwable.message?.let { message -> Log.e("BaseUtil", "$path: $message") }
-            }
+            val file = File(path)
+            file.createNewFile()
+        }
+    }
+
+    @Throws(IOException::class)
+    suspend fun deleteFile(path: String) {
+        withContext(ioDispatcher) {
+            val file = File(path)
+            file.delete()
+        }
+    }
+
+    @Throws(IOException::class)
+    @Suppress("BlockingMethodInNonBlockingContext")
+    suspend fun File.moveFile(targetFile: File) {
+        val sourceFilePath = this.toPath()
+        withContext(ioDispatcher) {
+            targetFile.delete()
+            sourceFilePath.moveTo(targetFile.toPath(), true)
         }
     }
 

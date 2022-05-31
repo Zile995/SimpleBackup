@@ -7,7 +7,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 
 val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
-private val coroutineExceptionHandler =
+val coroutineExceptionHandler =
     CoroutineExceptionHandler { coroutineContext, throwable ->
         when (throwable) {
             is CancellationException -> throw throwable

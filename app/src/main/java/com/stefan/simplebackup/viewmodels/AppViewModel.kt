@@ -10,6 +10,7 @@ import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.utils.extensions.launchWithLogging
+import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -38,7 +39,7 @@ class AppViewModel(application: MainApplication) :
 
     init {
         Log.d("ViewModel", "AppViewModel created")
-        viewModelScope.launchWithLogging {
+        viewModelScope.launchWithLogging(CoroutineName("LoadHomeList")) {
             appManager.printSequence()
             installedApps
             delay(500)
