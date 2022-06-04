@@ -55,7 +55,7 @@ abstract class AppDatabase : RoomDatabase() {
                 Log.d("AppDatabase", "Load time: $time")
             } catch (e: SQLiteException) {
                 Log.e("AppDatabase", "Error: ${e.localizedMessage}")
-                context.applicationContext.showToast("Database error, can't insert new items: ${e.localizedMessage}")
+                context.showToast("Database error, can't insert new items: ${e.localizedMessage}")
             }
         }
 

@@ -18,6 +18,7 @@ import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.ui.adapters.RestoreAdapter
 import com.stefan.simplebackup.ui.adapters.RestoreViewHolder
 import com.stefan.simplebackup.utils.extensions.hideAttachedButton
+import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.workerDialog
 import com.stefan.simplebackup.viewmodels.RestoreViewModel
 import com.stefan.simplebackup.viewmodels.RestoreViewModelFactory
@@ -122,7 +123,6 @@ class RestoreListFragment : Fragment() {
     }
 
     private fun FragmentRestoreListBinding.bindFloatingButton() {
-        floatingButton.hide()
         restoreRecyclerView.hideAttachedButton(floatingButton)
 
         floatingButton.setOnClickListener {
@@ -151,15 +151,13 @@ class RestoreListFragment : Fragment() {
             }
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 launch {
-                    restoreViewModel.isSelected.collect { value ->
-                        batchRestore.visibility = if (value) View.VISIBLE else View.GONE
+                    restoreViewModel.isSelected.collect { isSelected ->
+                        batchRestore.isVisible = isSelected
                     }
                 }
-                restoreViewModel.spinner.collect { value ->
-                    if (value) {
-                        progressBar.visibility = View.VISIBLE
-                    } else {
-                        progressBar.visibility = View.GONE
+                restoreViewModel.spinner.collect { isSpinning ->
+                    progressBar.isVisible = isSpinning
+                    if (!isSpinning) {
                         restoreViewModel.localApps.collect { appList ->
                             restoreAdapter.submitList(appList)
                         }

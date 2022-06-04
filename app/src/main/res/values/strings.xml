@@ -39,6 +39,7 @@
     <string name="backup_progress_dir_info">Creating backup dirs</string>
     <string name="backup_progress_data_info">Backing up app data</string>
     <string name="backup_progress_zip_info">Zipping all data</string>
+    <string name="backup_progress_finished">Backup successful</string>
     <string name="storage_perm_success">Storage permission granted successfully</string>
     <string name="set_manually">Set Manually</string>
     <string name="filter">Filter</string>

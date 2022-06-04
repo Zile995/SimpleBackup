@@ -5,7 +5,7 @@ import com.stefan.simplebackup.data.model.AppData
 
 class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     override val selectedItems: MutableList<Int>,
-    private val onSelectionModeCallback: (Boolean) -> Unit
+    private val onSelectionModeCallback: SelectionModeCallBack
 ) : SelectionListener<VH> {
 
     override fun hasSelectedItems(): Boolean {

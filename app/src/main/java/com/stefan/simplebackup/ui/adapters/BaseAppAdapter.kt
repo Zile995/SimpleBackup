@@ -6,7 +6,7 @@ import com.stefan.simplebackup.data.model.AppData
 
 abstract class BaseAppAdapter<VH : BaseViewHolder>(
     override val selectedItems: MutableList<Int>,
-    private val onSelectionModeCallback: selectionModeCallBack,
+    private val onSelectionModeCallback: SelectionModeCallBack,
 ) : ListAdapter<AppData, VH>(diffCallback),
     SelectionListener<VH> by BaseSelectionListenerImpl(
         selectedItems,

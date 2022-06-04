@@ -57,7 +57,6 @@ class AppDetailActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         lifecycleScope.launch {
-            requestPermissionLauncher
             appDetailViewModel.selectedApp?.let {
                 binding.apply {
                     bindViews()

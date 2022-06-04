@@ -7,7 +7,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.NotificationData
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
-import com.stefan.simplebackup.data.workers.foregroundCallBack
+import com.stefan.simplebackup.data.workers.ForegroundCallBack
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.file.FileHelper
 import com.stefan.simplebackup.utils.file.FileUtil
@@ -20,7 +20,7 @@ import java.io.IOException
 class BackupUtil(
     appContext: Context,
     private val backupItems: IntArray,
-    private val updateForegroundInfo: foregroundCallBack
+    private val updateForegroundInfo: ForegroundCallBack
 ) : FileHelper {
 
     private val notificationData = NotificationData()
@@ -31,7 +31,7 @@ class BackupUtil(
         currentProgress += (PROGRESS_MAX / backupItems.size) / 3
     }
 
-    private val getResource: (Int) -> String = { resource ->
+    private val getStringResource: (Int) -> String = { resource ->
         appContext.getString(resource)
     }
 
@@ -56,7 +56,7 @@ class BackupUtil(
             name = app.name
             image = app.bitmap
             progress = currentProgress
-            text = getResource(info)
+            text = getStringResource(info)
         }
         updateForegroundInfo(notificationData)
     }
@@ -83,6 +83,7 @@ class BackupUtil(
     private suspend fun outputAppInfo(app: AppData) {
         setBackupTime(app)
         serializeApp(app)
+        app.updateNotificationData(R.string.backup_progress_finished)
     }
 
     private suspend fun AppData.runBackup(

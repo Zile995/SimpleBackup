@@ -29,20 +29,17 @@ class AppViewModel(application: MainApplication) :
         get() = _spinner
 
     // Observable application properties used for list loading
-    val installedApps by lazy {
-        repository.installedApps.stateIn(
+    val installedApps = repository.installedApps.stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(4_000L),
             mutableListOf()
         )
-    }
 
     init {
         Log.d("ViewModel", "AppViewModel created")
         viewModelScope.launchWithLogging(CoroutineName("LoadHomeList")) {
             appManager.printSequence()
-            installedApps
-            delay(500)
+            delay(400)
             _spinner.emit(false)
             refreshPackageList()
         }

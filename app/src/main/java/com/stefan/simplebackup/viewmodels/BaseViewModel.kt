@@ -3,7 +3,7 @@ package com.stefan.simplebackup.viewmodels
 import android.os.Parcelable
 import androidx.lifecycle.AndroidViewModel
 import com.stefan.simplebackup.MainApplication
-import com.stefan.simplebackup.ui.adapters.selectionModeCallBack
+import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -12,7 +12,7 @@ abstract class BaseViewModel(application: MainApplication) : AndroidViewModel(ap
     private var _isSelected = MutableStateFlow(false)
     val selectionList = mutableListOf<Int>()
     val isSelected: StateFlow<Boolean> get() = _isSelected
-    val setSelectionMode: selectionModeCallBack =
+    val setSelectionMode: SelectionModeCallBack =
         { isSelected: Boolean -> _isSelected.value = isSelected }
 
     // Parcelable properties used for saving a RecyclerView layout position

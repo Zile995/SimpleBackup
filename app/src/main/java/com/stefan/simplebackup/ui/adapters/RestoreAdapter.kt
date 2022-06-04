@@ -3,12 +3,12 @@ package com.stefan.simplebackup.ui.adapters
 import android.view.ViewGroup
 import com.stefan.simplebackup.R
 
-typealias selectionModeCallBack = (Boolean) -> Unit
+typealias SelectionModeCallBack = (Boolean) -> Unit
 
 class RestoreAdapter(
     override val selectedItems: MutableList<Int>,
     private val clickListener: OnClickListener,
-    onSelectionModeCallback: selectionModeCallBack
+    onSelectionModeCallback: SelectionModeCallBack
 ) :
     BaseAppAdapter<RestoreViewHolder>(
         selectedItems,

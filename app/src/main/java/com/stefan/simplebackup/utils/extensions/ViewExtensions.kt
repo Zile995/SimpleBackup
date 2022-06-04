@@ -1,10 +1,28 @@
 package com.stefan.simplebackup.utils.extensions
 
+import android.view.View
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.GlideApp
+
+fun View.show() {
+    visibility = View.VISIBLE
+}
+
+fun View.hide() {
+    visibility = View.GONE
+}
+
+var View.isVisible: Boolean
+    get() = visibility == View.VISIBLE
+    set(value) {
+        when {
+            value -> show()
+            else -> hide()
+        }
+    }
 
 fun ImageView.loadBitmap(byteArray: ByteArray) {
     val image = this

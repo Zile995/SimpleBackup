@@ -5,7 +5,6 @@ import android.content.IntentFilter
 import android.os.Bundle
 import android.os.PersistableBundle
 import androidx.activity.viewModels
-import androidx.annotation.MainThread
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -40,7 +39,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Create RootChecker Class instance and reference
-    private val rootChecker by lazy { RootChecker(applicationContext) }
+    private val rootChecker by lazy { RootChecker(this) }
 
     // Broadcast receivers
     private val receiver: PackageReceiver by lazy {
@@ -71,7 +70,7 @@ class MainActivity : AppCompatActivity() {
                 setNavController()
                 binding.bindViews()
             }
-            registerBroadcast()
+            registerBroadcasts()
             setRootDialogs()
         }
     }
@@ -99,7 +98,7 @@ class MainActivity : AppCompatActivity() {
         bottomNavigation.setupWithNavController(navController)
     }
 
-    private fun registerBroadcast() {
+    private fun registerBroadcasts() {
         registerReceiver(receiver, IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED)
             addAction(Intent.ACTION_PACKAGE_REMOVED)

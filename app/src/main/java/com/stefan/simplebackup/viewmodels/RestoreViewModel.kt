@@ -9,9 +9,9 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.MainApplication.Companion.mainBackupDirPath
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
+import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import com.stefan.simplebackup.utils.file.FileUtil.findJsonFiles
 import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
-import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -29,20 +29,17 @@ class RestoreViewModel(application: MainApplication) : BaseViewModel(application
     val spinner: StateFlow<Boolean>
         get() = _spinner
 
-    val localApps by lazy {
-        repository.localApps.stateIn(
+    val localApps = repository.localApps.stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(4_000L),
             mutableListOf()
         )
-    }
 
     init {
         Log.d("ViewModel", "RestoreViewModel created")
         viewModelScope.launchWithLogging(CoroutineName("LoadLocalList")) {
             launch {
-                localApps
-                delay(350)
+                delay(400)
                 _spinner.emit(false)
             }
         }

@@ -6,7 +6,7 @@ import com.stefan.simplebackup.R
 class AppAdapter(
     override val selectedItems: MutableList<Int>,
     private val clickListener: OnClickListener,
-    onSelectionModeCallback: selectionModeCallBack
+    onSelectionModeCallback: SelectionModeCallBack
 ) :
     BaseAppAdapter<AppViewHolder>(selectedItems, onSelectionModeCallback) {
 

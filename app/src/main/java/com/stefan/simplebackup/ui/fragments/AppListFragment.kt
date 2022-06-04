@@ -20,6 +20,7 @@ import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.AppViewHolder
 import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.utils.extensions.hideAttachedButton
+import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.passParcelableToActivity
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
@@ -117,7 +118,6 @@ class AppListFragment : Fragment() {
     }
 
     private fun FragmentAppListBinding.bindFloatingButton() {
-        floatingButton.hide()
         recyclerView.hideAttachedButton(floatingButton)
 
         floatingButton.setOnClickListener {
@@ -152,22 +152,15 @@ class AppListFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 launch {
                     appViewModel.isSelected.collect { isSelected ->
-                        batchBackup.visibility =
-                            if (isSelected)
-                                View.VISIBLE
-                            else
-                                View.GONE
+                        batchBackup.isVisible = isSelected
                     }
                 }
-                appViewModel.spinner.collect { value ->
-                    if (value)
-                        progressBar.visibility = View.VISIBLE
-                    else {
-                        progressBar.visibility = View.GONE
+                appViewModel.spinner.collect { isSpinning ->
+                    progressBar.isVisible = isSpinning
+                    if (!isSpinning)
                         appViewModel.installedApps.collect { appList ->
                             appAdapter.submitList(appList)
                         }
-                    }
                 }
             }
         }

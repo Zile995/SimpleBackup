@@ -10,6 +10,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.NotificationData
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.NotificationReceiver
+import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.file.BitmapUtil.toBitmap
 
 const val NOTIFICATION_ID = 42
@@ -92,13 +93,14 @@ class NotificationBuilder(
         }.build()
     }
 
-    override suspend fun NotificationCompat.Builder.updateNotificationContent(notificationData: NotificationData): NotificationCompat.Builder {
+    override suspend fun NotificationCompat.Builder.getUpdatedNotification(notificationData: NotificationData): Notification {
         return apply {
             notificationData.apply {
                 setContentTitle("Backing up $name")
                 setLargeIcon(image.toBitmap())
                 setContentText(text)
+                setProgress(PROGRESS_MAX, notificationData.progress, false)
             }
-        }
+        }.build()
     }
 }

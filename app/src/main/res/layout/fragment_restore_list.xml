@@ -51,7 +51,7 @@
         android:layout_marginBottom="25dp"
         android:contentDescription="@string/scroll_to_top"
         android:src="@drawable/baseline_keyboard_arrow_up_deep_purple_50_24dp"
-        android:visibility="visible"
+        android:visibility="gone"
         app:backgroundTint="@color/floatingButton"
         app:borderWidth="0dp"
         app:fabCustomSize="54dp"
