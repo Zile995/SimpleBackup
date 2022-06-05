@@ -2,17 +2,33 @@ package com.stefan.simplebackup.ui.notifications
 
 import android.app.Notification
 import android.content.Context
+import android.content.Intent
 import androidx.core.app.NotificationCompat
-import com.stefan.simplebackup.data.model.NotificationData
+import com.stefan.simplebackup.data.receivers.NotificationReceiver
+
+const val EXTRA_NOTIFICATION = "NOTIFICATION_PARCEL"
+const val EXTRA_NOTIFICATION_ID = "NOTIFICATION_ID"
 
 interface NotificationHelper {
     val notificationId: Int
     val notificationBuilder: NotificationCompat.Builder
 
-    fun getFinishedNotification(numberOfPackages: Int = 0, isBackup: Boolean = true): Notification
-
-    fun Context.sendNotificationBroadcast(notification: Notification)
-
-    suspend fun NotificationCompat.Builder.getUpdatedNotification(notificationData: NotificationData)
-            : Notification
+    fun Context.sendNotificationBroadcast(
+        notification: Notification,
+        actionName: String
+    ) {
+        applicationContext.sendBroadcast(
+            Intent(
+                applicationContext,
+                NotificationReceiver::class.java
+            ).apply {
+                action = actionName
+                putExtra(
+                    EXTRA_NOTIFICATION,
+                    notification
+                )
+                putExtra(EXTRA_NOTIFICATION_ID, notificationId)
+                setPackage(applicationContext.packageName)
+            })
+    }
 }

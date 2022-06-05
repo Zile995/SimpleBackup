@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.utils.extensions
 
+import android.os.Parcelable
 import android.view.View
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
@@ -31,6 +32,18 @@ fun ImageView.loadBitmap(byteArray: ByteArray) {
             .load(byteArray)
             .diskCacheStrategy(DiskCacheStrategy.NONE)
             .into(image)
+    }
+}
+
+fun RecyclerView.onSaveRecyclerViewState(saveState: (Parcelable) -> Unit) {
+    layoutManager?.onSaveInstanceState()?.let { stateParcelable ->
+        saveState(stateParcelable)
+    }
+}
+
+fun RecyclerView.onRestoreRecyclerViewState(parcelable: Parcelable?) {
+    parcelable?.let { stateParcelable ->
+        layoutManager?.onRestoreInstanceState(stateParcelable)
     }
 }
 

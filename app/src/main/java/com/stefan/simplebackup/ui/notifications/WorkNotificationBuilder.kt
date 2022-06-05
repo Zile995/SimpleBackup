@@ -4,35 +4,29 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
-import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.NotificationData
-import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
-import com.stefan.simplebackup.data.receivers.NotificationReceiver
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.file.BitmapUtil.toBitmap
 
-const val NOTIFICATION_ID = 42
-const val EXTRA_NOTIFICATION = "NOTIFICATION_PARCEL"
-const val CHANNEL_ID = "MAIN_NOTIFICATION"
+private const val CHANNEL_ID = "WORK_NOTIFICATION"
 
-class NotificationBuilder(
+class WorkNotificationBuilder(
     private val context: Context,
     private val ongoing: Boolean = true
-) : NotificationHelper {
+) : WorkNotificationHelper {
 
     init {
         createNotificationChannel()
     }
 
-    override val notificationId: Int
-        get() = NOTIFICATION_ID
+    override val notificationId: Int = 42
 
     override val notificationBuilder: NotificationCompat.Builder by lazy {
         NotificationCompat.Builder(context, CHANNEL_ID).apply {
-            setContentTitle("Work")
-            setContentText("Work in progress")
+            setContentTitle(context.getString(R.string.work))
+            setContentText(context.getString(R.string.work_in_progress))
             setSmallIcon(R.drawable.ic_launcher_foreground)
             setOnlyAlertOnce(true)
             setAutoCancel(false)
@@ -54,35 +48,19 @@ class NotificationBuilder(
         notificationManager.createNotificationChannel(channel)
     }
 
-    override fun Context.sendNotificationBroadcast(
-        notification: Notification
-    ) {
-        applicationContext.sendBroadcast(
-            Intent(
-                applicationContext,
-                NotificationReceiver::class.java
-            ).apply {
-                action = ACTION_WORK_FINISHED
-                putExtra(
-                    EXTRA_NOTIFICATION,
-                    notification
-                )
-                setPackage(applicationContext.packageName)
-            })
-    }
-
     override fun getFinishedNotification(
         numberOfPackages: Int,
         isBackup: Boolean
     ): Notification {
         return notificationBuilder.apply {
-            val appText = if (numberOfPackages > 1) "apps" else "app"
+            val appText =
+                if (numberOfPackages > 1) context.getString(R.string.apps) else context.getString(R.string.app)
             if (isBackup) {
-                setContentTitle("Backup Completed")
-                setContentText("$numberOfPackages $appText successfully backed up")
+                setContentTitle(context.getString(R.string.backup_completed))
+                setContentText("$numberOfPackages $appText ${context.getString(R.string.successfully_backed_up)}")
             } else {
-                setContentTitle("Restore Completed")
-                setContentText("$numberOfPackages $appText successfully restored")
+                setContentTitle(context.getString(R.string.restore_completed))
+                setContentText("$numberOfPackages $appText ${context.getString(R.string.successfully_restored)}")
             }
             setOnlyAlertOnce(true)
             setAutoCancel(false)
@@ -93,10 +71,10 @@ class NotificationBuilder(
         }.build()
     }
 
-    override suspend fun NotificationCompat.Builder.getUpdatedNotification(notificationData: NotificationData): Notification {
-        return apply {
+    override suspend fun getUpdatedNotification(notificationData: NotificationData): Notification {
+        return notificationBuilder.apply {
             notificationData.apply {
-                setContentTitle("Backing up $name")
+                setContentTitle("${context.getString(R.string.backing_up)} $name")
                 setLargeIcon(image.toBitmap())
                 setContentText(text)
                 setProgress(PROGRESS_MAX, notificationData.progress, false)

@@ -6,7 +6,6 @@ const val REQUEST_TAG = "WORKER_TAG"
 const val INPUT_LIST = "UID_LIST"
 const val SHOULD_BACKUP = "WORKER_TYPE"
 const val WORK_NAME = "SIMPLE_WORK"
-const val WORK_ITEMS = "NUMBER_OF_PACKAGES"
 
 class WorkerHelper(
     private val workItems: IntArray,

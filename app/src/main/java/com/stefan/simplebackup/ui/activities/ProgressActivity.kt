@@ -64,7 +64,7 @@ class ProgressActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        println("Saved progress back button: $isInProgress")
+        println("OnBackPressed check: Is work in progress?: $isInProgress")
         if (!isInProgress)
             super.onBackPressed()
     }

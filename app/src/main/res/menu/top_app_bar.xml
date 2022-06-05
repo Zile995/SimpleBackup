@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-
     <item
         android:id="@+id/select_all"
         android:icon="@drawable/baseline_select_all_white_24dp"
@@ -12,7 +11,7 @@
     <item
         android:id="@+id/search"
         android:icon="@drawable/baseline_search_white_24dp"
-        android:title="@string/search_for_application"
+        android:title="@string/search_for_applications"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="ifRoom|collapseActionView" />
 </menu>

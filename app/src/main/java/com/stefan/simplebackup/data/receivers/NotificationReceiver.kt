@@ -6,7 +6,7 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationManagerCompat
 import com.stefan.simplebackup.ui.notifications.EXTRA_NOTIFICATION
-import com.stefan.simplebackup.ui.notifications.NOTIFICATION_ID
+import com.stefan.simplebackup.ui.notifications.EXTRA_NOTIFICATION_ID
 
 const val ACTION_WORK_FINISHED = "com.stefan.simplebackup.WORK_FINISHED"
 
@@ -18,7 +18,7 @@ class NotificationReceiver : BroadcastReceiver() {
                 notification?.let {
                     NotificationManagerCompat
                         .from(context)
-                        .notify(NOTIFICATION_ID + 1, it)
+                        .notify(intent.getIntExtra(EXTRA_NOTIFICATION_ID, 0) + 1, it)
                 }
             }
         }

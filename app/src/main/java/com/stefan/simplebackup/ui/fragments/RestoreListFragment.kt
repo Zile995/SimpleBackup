@@ -17,9 +17,7 @@ import com.stefan.simplebackup.databinding.FragmentRestoreListBinding
 import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.ui.adapters.RestoreAdapter
 import com.stefan.simplebackup.ui.adapters.RestoreViewHolder
-import com.stefan.simplebackup.utils.extensions.hideAttachedButton
-import com.stefan.simplebackup.utils.extensions.isVisible
-import com.stefan.simplebackup.utils.extensions.workerDialog
+import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.viewmodels.RestoreViewModel
 import com.stefan.simplebackup.viewmodels.RestoreViewModelFactory
 import kotlinx.coroutines.delay
@@ -131,15 +129,13 @@ class RestoreListFragment : Fragment() {
     }
 
     private fun FragmentRestoreListBinding.saveRecyclerViewState() {
-        restoreRecyclerView.layoutManager?.onSaveInstanceState()?.let {
-            restoreViewModel.saveRecyclerViewState(it)
+        restoreRecyclerView.onSaveRecyclerViewState { stateParcelable ->
+            restoreViewModel.saveRecyclerViewState(stateParcelable)
         }
     }
 
     private fun FragmentRestoreListBinding.restoreRecyclerViewState() {
-        if (restoreViewModel.isStateInitialized) {
-            restoreRecyclerView.layoutManager?.onRestoreInstanceState(restoreViewModel.restoreRecyclerViewState)
-        }
+            restoreRecyclerView.onRestoreRecyclerViewState(restoreViewModel.savedRecyclerViewState)
     }
 
     private fun FragmentRestoreListBinding.initObservers() {

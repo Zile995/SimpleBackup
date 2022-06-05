@@ -48,6 +48,7 @@ class BackupUtil(
                 )
             }
         }
+        PreferenceHelper.clearPackageName()
     }
 
     private suspend fun AppData.updateNotificationData(@StringRes info: Int) {
@@ -83,7 +84,7 @@ class BackupUtil(
     private suspend fun outputAppInfo(app: AppData) {
         setBackupTime(app)
         serializeApp(app)
-        app.updateNotificationData(R.string.backup_progress_finished)
+        app.updateNotificationData(R.string.backup_progress_successful)
     }
 
     private suspend fun AppData.runBackup(

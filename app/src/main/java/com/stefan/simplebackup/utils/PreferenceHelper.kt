@@ -32,11 +32,8 @@ object PreferenceHelper {
                     is Boolean -> {
                         putBoolean(preferenceName, value)
                     }
-                    is String -> {
-                        putString(preferenceName, value)
-                    }
-                    is String? -> {
-                        putString(preferenceName, value)
+                    is String, is String? -> {
+                        putString(preferenceName, value as String?)
                     }
                     is Int -> {
                         putInt(preferenceName, value)
@@ -55,6 +52,10 @@ object PreferenceHelper {
 
     suspend fun resetSequenceNumber() {
         sharedPreferences.editPreference(SEQUENCE_NUMBER, 0)
+    }
+
+    suspend fun clearPackageName() {
+        sharedPreferences.editPreference(SHARED_PACKAGE_NAME, null)
     }
 
     suspend fun updateSequenceNumber(newSequenceNumber: Int) {

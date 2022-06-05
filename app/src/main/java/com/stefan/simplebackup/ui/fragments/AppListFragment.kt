@@ -19,9 +19,7 @@ import com.stefan.simplebackup.ui.activities.ProgressActivity
 import com.stefan.simplebackup.ui.adapters.AppAdapter
 import com.stefan.simplebackup.ui.adapters.AppViewHolder
 import com.stefan.simplebackup.ui.adapters.OnClickListener
-import com.stefan.simplebackup.utils.extensions.hideAttachedButton
-import com.stefan.simplebackup.utils.extensions.isVisible
-import com.stefan.simplebackup.utils.extensions.passParcelableToActivity
+import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
 import kotlinx.coroutines.delay
@@ -136,15 +134,13 @@ class AppListFragment : Fragment() {
     }
 
     private fun FragmentAppListBinding.saveRecyclerViewState() {
-        recyclerView.layoutManager?.onSaveInstanceState()?.let {
-            appViewModel.saveRecyclerViewState(it)
+        recyclerView.onSaveRecyclerViewState { stateParcelable ->
+            appViewModel.saveRecyclerViewState(stateParcelable)
         }
     }
 
     private fun FragmentAppListBinding.restoreRecyclerViewState() {
-        if (appViewModel.isStateInitialized) {
-            recyclerView.layoutManager?.onRestoreInstanceState(appViewModel.restoreRecyclerViewState)
-        }
+        recyclerView.onRestoreRecyclerViewState(appViewModel.savedRecyclerViewState)
     }
 
     private fun FragmentAppListBinding.initObservers() {

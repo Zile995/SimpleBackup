@@ -17,8 +17,7 @@ abstract class BaseViewModel(application: MainApplication) : AndroidViewModel(ap
 
     // Parcelable properties used for saving a RecyclerView layout position
     private lateinit var state: Parcelable
-    val restoreRecyclerViewState: Parcelable get() = state
-    val isStateInitialized: Boolean get() = this::state.isInitialized
+    val savedRecyclerViewState get() = if (::state.isInitialized) state else null
 
     // Save RecyclerView state
     fun saveRecyclerViewState(parcelable: Parcelable) {
