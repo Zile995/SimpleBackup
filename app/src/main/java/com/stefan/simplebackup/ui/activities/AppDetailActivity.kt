@@ -24,7 +24,6 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
 import com.stefan.simplebackup.databinding.ActivityDetailBinding
 import com.stefan.simplebackup.utils.extensions.*
-import com.stefan.simplebackup.utils.file.BitmapUtil.setBitmap
 import com.stefan.simplebackup.viewmodels.AppDetailViewModel
 import com.stefan.simplebackup.viewmodels.AppDetailViewModelFactory
 import kotlinx.coroutines.launch

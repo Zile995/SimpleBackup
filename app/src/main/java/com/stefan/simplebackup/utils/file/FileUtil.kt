@@ -8,11 +8,9 @@ import kotlinx.coroutines.withContext
 import net.lingala.zip4j.ZipFile
 import java.io.File
 import java.io.IOException
-import java.nio.file.DirectoryNotEmptyException
-import java.nio.file.Files
-import kotlin.io.path.copyTo
 import kotlin.io.path.moveTo
 
+@Suppress("BlockingMethodInNonBlockingContext")
 object FileUtil {
 
     @Throws(IOException::class)
@@ -20,14 +18,13 @@ object FileUtil {
         withContext(ioDispatcher) {
             val dir = File(path)
             if (!dir.exists()) {
-                Log.d("BaseUtil", "Creating the $path dir")
+                Log.d("FileUtil", "Creating the $path dir")
                 dir.mkdirs()
             }
         }
     }
 
     @Throws(IOException::class)
-    @Suppress("BlockingMethodInNonBlockingContext")
     suspend fun createFile(path: String) {
         withContext(ioDispatcher) {
             val file = File(path)
@@ -38,13 +35,14 @@ object FileUtil {
     @Throws(IOException::class)
     suspend fun deleteFile(path: String) {
         withContext(ioDispatcher) {
+            Log.d("FileUtil", "Deleting the $path")
             val file = File(path)
-            file.delete()
+            if (file.isDirectory) file.deleteRecursively() else file.delete()
         }
     }
 
     @Throws(IOException::class)
-    @Suppress("BlockingMethodInNonBlockingContext")
+    // TODO: Fix file moving, as backup solutions...
     suspend fun File.moveFile(targetFile: File) {
         val sourceFilePath = this.toPath()
         withContext(ioDispatcher) {

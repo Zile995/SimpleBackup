@@ -3,14 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/select_all"
-        android:icon="@drawable/baseline_select_all_white_24dp"
+        android:icon="@drawable/select_all_24dp"
         android:title="@string/select_all"
         android:visible="false"
         app:showAsAction="always|collapseActionView" />
 
     <item
         android:id="@+id/search"
-        android:icon="@drawable/baseline_search_white_24dp"
+        android:icon="@drawable/search_24dp"
         android:title="@string/search_for_applications"
         app:actionViewClass="androidx.appcompat.widget.SearchView"
         app:showAsAction="ifRoom|collapseActionView" />

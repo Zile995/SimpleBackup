@@ -17,16 +17,20 @@
         <entry key="app/src/main/res/drawable/baseline_storage_orange_300_24dp.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/bottom_nav_tint.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/bottom_view_ripple.xml" value="0.2015" />
+        <entry key="app/src/main/res/drawable/completed_24dp.xml" value="0.173" />
+        <entry key="app/src/main/res/drawable/completed_48dp.xml" value="0.173" />
         <entry key="app/src/main/res/drawable/curved_bottom_view.xml" value="0.20677083333333332" />
         <entry key="app/src/main/res/drawable/curved_tab_layout.xml" value="0.1828125" />
         <entry key="app/src/main/res/drawable/dialog_style.xml" value="0.25" />
         <entry key="app/src/main/res/drawable/drawable_selector.xml" value="0.3482051282051282" />
+        <entry key="app/src/main/res/drawable/error_48dp.xml" value="0.173" />
         <entry key="app/src/main/res/drawable/glide_placeholder.xml" value="0.1305" />
         <entry key="app/src/main/res/drawable/home_24dp.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_launcher_background.xml" value="0.20677083333333332" />
         <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/local_24dp.xml" value="0.252" />
         <entry key="app/src/main/res/drawable/navigation_bar_ripple_color.xml" value="0.2375" />
+        <entry key="app/src/main/res/drawable/remove_circle_30dp.xml" value="0.174" />
         <entry key="app/src/main/res/drawable/restore_24dp.xml" value="0.252" />
         <entry key="app/src/main/res/drawable/round_playlist_add_check_white_24dp.xml" value="0.11388888888888889" />
         <entry key="app/src/main/res/drawable/scrollbar_style.xml" value="0.3536458333333333" />

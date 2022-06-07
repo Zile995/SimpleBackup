@@ -8,13 +8,15 @@ import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.provider.Settings
 import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.content.ContextCompat
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
-import com.stefan.simplebackup.utils.file.BitmapUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -25,7 +27,7 @@ inline fun <reified T : AppCompatActivity> Context?.passParcelableToActivity(
     this?.let { context ->
         scope.launch {
             val intent = Intent(context, T::class.java)
-                .putExtra(PARCELABLE_EXTRA, BitmapUtil.appWithCheckedBitmap(app, context))
+                .putExtra(PARCELABLE_EXTRA, app.withCheckedBitmap(context))
             context.startActivity(intent)
         }
     }
@@ -68,6 +70,9 @@ fun Context.showToast(message: String, longDuration: Boolean = false) {
     val duration = if (longDuration) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
     Toast.makeText(applicationContext, message, duration).show()
 }
+
+fun Context.getResourceDrawable(@DrawableRes drawable: Int) =
+    ContextCompat.getDrawable(this, drawable)
 
 fun Context.workerDialog(
     title: String,

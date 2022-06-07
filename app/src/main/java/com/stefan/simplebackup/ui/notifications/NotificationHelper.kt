@@ -31,4 +31,9 @@ interface NotificationHelper {
                 setPackage(applicationContext.packageName)
             })
     }
+
+    fun NotificationCompat.Builder.setExpendableText(text: String) = run {
+        setStyle(NotificationCompat.BigTextStyle().bigText(text))
+    }
+
 }

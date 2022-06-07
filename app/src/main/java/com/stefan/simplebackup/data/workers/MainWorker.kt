@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import androidx.work.*
 import com.stefan.simplebackup.data.model.NotificationData
+import com.stefan.simplebackup.data.model.WorkResult
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.ui.notifications.WorkNotificationBuilder
 import com.stefan.simplebackup.ui.notifications.WorkNotificationHelper
@@ -34,6 +35,8 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     private val shouldBackup: Boolean
         get() = inputData.getBoolean(SHOULD_BACKUP, true)
 
+    private lateinit var workResults: List<WorkResult>
+
     private val updateForegroundInfo = createForegroundInfo(notificationId)
     
     private val foregroundCallBack: ForegroundCallBack = { notificationData ->
@@ -59,8 +62,8 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                     items?.apply {
                         applicationContext.sendNotificationBroadcast(
                             notification = getFinishedNotification(
-                                numberOfPackages = size,
-                                isBackup = shouldBackup
+                                results = workResults,
+                                isBackupNotification = shouldBackup
                             ),
                             actionName = ACTION_WORK_FINISHED
                         )
@@ -70,7 +73,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         } catch (e: Exception) {
             Log.e("MainWorker", "Work error: $e: ${e.message}")
             withContext(Dispatchers.Main) {
-                applicationContext.showToast("Error $e: ${e.message}")
+                applicationContext.showToast("Error $e: ${e.message}", true)
             }
             Result.failure()
         }
@@ -79,7 +82,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     private suspend fun backup() {
         items?.let { backupItems ->
             val backupUtil = BackupUtil(applicationContext, backupItems, foregroundCallBack)
-            backupUtil.backup()
+            workResults = backupUtil.backup()
         }
     }
 
@@ -96,7 +99,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
     private fun createForegroundInfo(notificationId: Int): suspend (Notification) -> Unit {
         return { notification ->
-            this.setForeground(ForegroundInfo(notificationId, notification))
+            setForeground(ForegroundInfo(notificationId, notification))
         }
     }
 }

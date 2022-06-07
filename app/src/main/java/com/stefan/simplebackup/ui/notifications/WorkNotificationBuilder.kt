@@ -7,6 +7,7 @@ import android.content.Context
 import androidx.core.app.NotificationCompat
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.NotificationData
+import com.stefan.simplebackup.data.model.WorkResult
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.file.BitmapUtil.toBitmap
 
@@ -49,21 +50,43 @@ class WorkNotificationBuilder(
     }
 
     override fun getFinishedNotification(
-        numberOfPackages: Int,
-        isBackup: Boolean
+        results: List<WorkResult>,
+        isBackupNotification: Boolean
     ): Notification {
         return notificationBuilder.apply {
+            val successful = results.count { workResult ->
+                workResult == WorkResult.SUCCESS
+            }
+            val failed = results.count { workResult ->
+                workResult == WorkResult.ERROR
+            }
             val appText =
-                if (numberOfPackages > 1) context.getString(R.string.apps) else context.getString(R.string.app)
-            if (isBackup) {
+                if (successful > 1) context.getString(R.string.apps) else context.getString(R.string.app)
+            val withFailed: () -> String = {
+                if (failed > 0)
+                    ", $failed $appText ${context.getString(R.string.unsuccessfully)}"
+                else
+                    ""
+            }
+            if (isBackupNotification) {
                 setContentTitle(context.getString(R.string.backup_completed))
-                setContentText("$numberOfPackages $appText ${context.getString(R.string.successfully_backed_up)}")
+                setExpendableText(
+                    "$successful" +
+                            " $appText" +
+                            " ${context.getString(R.string.successfully)}" +
+                            withFailed() +
+                            " ${context.getString(R.string.backed_up)}"
+                )
             } else {
                 setContentTitle(context.getString(R.string.restore_completed))
-                setContentText("$numberOfPackages $appText ${context.getString(R.string.successfully_restored)}")
+                setExpendableText(
+                    "$successful $appText ${context.getString(R.string.successfully)} " +
+                            context.getString(R.string.restored)
+                )
             }
             setOnlyAlertOnce(true)
             setAutoCancel(false)
+            setContentText(null)
             setLargeIcon(null)
             setOngoing(false)
             setProgress(0, 0, false)
@@ -76,7 +99,7 @@ class WorkNotificationBuilder(
             notificationData.apply {
                 setContentTitle("${context.getString(R.string.backing_up)} $name")
                 setLargeIcon(image.toBitmap())
-                setContentText(text)
+                setExpendableText(text)
                 setProgress(PROGRESS_MAX, notificationData.progress, false)
             }
         }.build()

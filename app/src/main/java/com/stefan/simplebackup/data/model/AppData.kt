@@ -1,27 +1,36 @@
 package com.stefan.simplebackup.data.model
 
 
+import android.content.Context
 import android.os.Parcel
 import android.os.Parcelable
+import android.util.Log
 import androidx.annotation.Keep
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.stefan.simplebackup.R
+import com.stefan.simplebackup.utils.extensions.getResourceDrawable
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
+import com.stefan.simplebackup.utils.file.BitmapUtil.saveByteArray
+import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import java.io.IOException
 
 const val PARCELABLE_EXTRA = "application"
 
 /**
- * Klasa koja će sadržati sve podatke o aplikaciji
+ * - Main model data class
  */
-@Suppress("unused")
+@Keep
 @Entity(
     tableName = "app_table",
     indices = [Index(value = ["package_name", "is_local", "is_cloud"], unique = true)]
 )
-@Keep
 @Serializable
 data class AppData(
     @Transient
@@ -87,11 +96,6 @@ data class AppData(
     @ColumnInfo(name = "should_backup_cache")
     var shouldBackupCache = false
 
-    /**
-     * * U parceli može postojati i null String tako da readString() može čitati i String? tip
-     * * Međutim imamo definisane String varijable u AppData klasi
-     * * Ukoliko je pročitan String null, upiši prazan String "" u konstruktor AppData klase
-     */
     constructor(parcel: Parcel) : this(
         uid = parcel.readInt(),
         name = parcel.readString() ?: "",
@@ -185,6 +189,36 @@ data class AppData(
         result = 31 * result + shouldBackupData.hashCode()
         result = 31 * result + shouldBackupCache.hashCode()
         return result
+    }
+
+    suspend fun withCheckedBitmap(context: Context): AppData {
+        return run {
+            if (bitmap.size < 200_000) {
+                Log.d("Bitmap", "${bitmap.size}")
+                bitmap.saveByteArray(name, context)
+                copy(bitmap = byteArrayOf())
+            } else {
+                this
+            }
+        }
+    }
+
+    @Suppress("BlockingMethodInNonBlockingContext")
+    suspend fun setBitmap(context: Context) {
+        withContext(ioDispatcher) {
+            try {
+                if (bitmap.isNotEmpty())
+                    return@withContext
+                context.openFileInput(name).use { stream ->
+                    bitmap = stream.readBytes()
+                }
+                context.deleteFile(name)
+            } catch (exception: IOException) {
+                bitmap =
+                    context.getResourceDrawable(R.drawable.error_48dp)?.toByteArray()
+                        ?: byteArrayOf()
+            }
+        }
     }
 
     companion object CREATOR : Parcelable.Creator<AppData> {
