@@ -27,7 +27,7 @@ class BackupUtil(
     private val repository = (appContext as MainApplication).getRepository
 
     private var currentProgress = 0
-    private val updateProgress: (Int) -> Unit = { steps ->
+    private val updateProgress = { steps: Int ->
         currentProgress += (PROGRESS_MAX / backupItems.size) / steps
     }
 
