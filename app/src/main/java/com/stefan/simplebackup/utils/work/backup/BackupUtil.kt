@@ -27,11 +27,11 @@ class BackupUtil(
     private val repository = (appContext as MainApplication).getRepository
 
     private var currentProgress = 0
-    private val updateProgress: () -> Unit = {
-        currentProgress += (PROGRESS_MAX / backupItems.size) / 3
+    private val updateProgress: (Int) -> Unit = { steps ->
+        currentProgress += (PROGRESS_MAX / backupItems.size) / steps
     }
 
-    private val getStringResource: (Int) -> String = { resource ->
+    private val getResourceString: (Int) -> String = { resource ->
         appContext.getString(resource)
     }
 
@@ -43,7 +43,7 @@ class BackupUtil(
                     ::createDirs,
                     ::backupData,
                     ::zipData,
-                    ::outputAppInfo,
+                    ::serializeAppData,
                     ::moveBackup
                 )
             }
@@ -57,7 +57,7 @@ class BackupUtil(
             name = app.name
             image = app.bitmap
             progress = currentProgress
-            text = getStringResource(info)
+            text = getResourceString(info)
         }
         updateForegroundInfo(notificationData)
     }
@@ -66,33 +66,31 @@ class BackupUtil(
         app.updateNotificationData(R.string.backup_progress_dir_info)
         createMainDir()
         createAppBackupDir(getTempDirPath(app))
-        updateProgress()
     }
 
     private suspend fun backupData(app: AppData) {
         app.updateNotificationData(R.string.backup_progress_data_info)
         TarUtil.backupData(app)
-        updateProgress()
     }
 
     private suspend fun zipData(app: AppData) {
         app.updateNotificationData(R.string.backup_progress_zip_info)
         ZipUtil.zipAllData(app)
-        updateProgress()
     }
 
-    private suspend fun outputAppInfo(app: AppData) {
+    private suspend fun serializeAppData(app: AppData) {
         setBackupTime(app)
         serializeApp(app)
         app.updateNotificationData(R.string.backup_progress_successful)
     }
 
-    private suspend fun AppData.runBackup(
+    private suspend inline fun AppData.runBackup(
         vararg actions: suspend (AppData) -> Unit
     ) {
         try {
             actions.forEach { action ->
                 action(this)
+                updateProgress(actions.size)
             }
         } catch (exception: Exception) {
             when (exception) {
