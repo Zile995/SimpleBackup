@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.ui.fragments
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -22,6 +21,7 @@ import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.viewmodels.AppViewModel
 import com.stefan.simplebackup.viewmodels.AppViewModelFactory
+import com.stefan.simplebackup.viewmodels.SELECTION_EXTRA
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -73,10 +73,9 @@ class AppListFragment : Fragment() {
                     if (appAdapter.hasSelectedItems()) {
                         appAdapter.doSelection(holder as AppViewHolder, item)
                     } else {
-                        context?.passParcelableToActivity<AppDetailActivity>(
-                            item,
-                            viewLifecycleOwner.lifecycleScope
-                        )
+                        viewLifecycleOwner.lifecycleScope.launch {
+                            item.passToActivity<AppDetailActivity>(context)
+                        }
                     }
                 }
 
@@ -126,9 +125,7 @@ class AppListFragment : Fragment() {
     private fun FragmentAppListBinding.bindBackupChip() {
         batchBackup.setOnClickListener {
             requireContext().apply {
-                startActivity(Intent(requireContext(), ProgressActivity::class.java).apply {
-                    putExtra("selection_list", appViewModel.selectionList.toIntArray())
-                })
+                passBundleToActivity<ProgressActivity>(SELECTION_EXTRA to appViewModel.selectionList.toIntArray())
             }
         }
     }

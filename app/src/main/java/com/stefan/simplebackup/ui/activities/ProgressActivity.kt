@@ -17,6 +17,7 @@ import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.loadBitmap
 import com.stefan.simplebackup.viewmodels.ProgressViewModel
 import com.stefan.simplebackup.viewmodels.ProgressViewModelFactory
+import com.stefan.simplebackup.viewmodels.SELECTION_EXTRA
 import kotlinx.coroutines.launch
 
 class ProgressActivity : AppCompatActivity() {
@@ -38,7 +39,7 @@ class ProgressActivity : AppCompatActivity() {
     }
 
     private val progressViewModel: ProgressViewModel by viewModels {
-        val selection = intent?.extras?.getIntArray("selection_list")
+        val selection = intent?.extras?.getIntArray(SELECTION_EXTRA)
         ProgressViewModelFactory(selection, application as MainApplication)
     }
 

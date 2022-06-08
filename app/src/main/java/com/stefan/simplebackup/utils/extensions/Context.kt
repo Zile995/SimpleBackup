@@ -12,24 +12,16 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
-inline fun <reified T : AppCompatActivity> Context?.passParcelableToActivity(
-    app: AppData,
-    scope: CoroutineScope
+inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
+    value: Pair<String, Any?>
 ) {
-    this?.let { context ->
-        scope.launch {
-            val intent = Intent(context, T::class.java)
-                .putExtra(PARCELABLE_EXTRA, app.withCheckedBitmap(context))
-            context.startActivity(intent)
-        }
+    Intent(this, T::class.java).apply {
+        putExtras(bundleOf(value))
+        startActivity(this)
     }
 }
 

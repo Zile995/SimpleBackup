@@ -6,7 +6,7 @@ import android.os.Parcel
 import android.os.Parcelable
 import android.util.Log
 import androidx.annotation.Keep
-import androidx.appcompat.content.res.AppCompatResources
+import androidx.appcompat.app.AppCompatActivity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
@@ -14,6 +14,7 @@ import androidx.room.PrimaryKey
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.utils.extensions.getResourceDrawable
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
+import com.stefan.simplebackup.utils.extensions.passBundleToActivity
 import com.stefan.simplebackup.utils.file.BitmapUtil.saveByteArray
 import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
 import kotlinx.coroutines.withContext
@@ -21,7 +22,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.io.IOException
 
-const val PARCELABLE_EXTRA = "application"
+const val PARCELABLE_EXTRA = "APPLICATION_DATA"
 
 /**
  * - Main model data class
@@ -191,9 +192,19 @@ data class AppData(
         return result
     }
 
+    suspend inline fun <reified T : AppCompatActivity> passToActivity(
+        context: Context?
+    ) {
+        context?.let {
+            context.passBundleToActivity<T>(
+                PARCELABLE_EXTRA to withCheckedBitmap(context)
+            )
+        }
+    }
+
     suspend fun withCheckedBitmap(context: Context): AppData {
         return run {
-            if (bitmap.size < 200_000) {
+            if (bitmap.size > 200_000) {
                 Log.d("Bitmap", "${bitmap.size}")
                 bitmap.saveByteArray(name, context)
                 copy(bitmap = byteArrayOf())

@@ -7,6 +7,8 @@ import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
+const val SELECTION_EXTRA = "SELECTION_LIST"
+
 abstract class BaseViewModel(application: MainApplication) : AndroidViewModel(application) {
     // Selection properties
     private var _isSelected = MutableStateFlow(false)
