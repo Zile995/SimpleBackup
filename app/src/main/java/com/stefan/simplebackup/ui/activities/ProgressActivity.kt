@@ -92,7 +92,6 @@ class ProgressActivity : AppCompatActivity() {
                 backButton.isEnabled = true
                 isInProgress = false
                 progressIndicator.setProgress(PROGRESS_MAX, true)
-                progressViewModel.getWorkManager.pruneWork()
             }
         }
     }
@@ -101,6 +100,7 @@ class ProgressActivity : AppCompatActivity() {
         lifecycleScope.launch {
             window.setBackgroundDrawableResource(R.color.background)
             bindData()
+            bindProgressIndicator()
             bindBackButton()
         }
     }
@@ -109,6 +109,10 @@ class ProgressActivity : AppCompatActivity() {
         PreferenceHelper.packageName?.let { packageName ->
             setViewData(packageName)
         }
+    }
+
+    private fun ActivityProgressBinding.bindProgressIndicator() {
+        progressIndicator.max = PROGRESS_MAX
     }
 
     private fun ActivityProgressBinding.bindBackButton() {

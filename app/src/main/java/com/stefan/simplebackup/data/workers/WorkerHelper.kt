@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.data.workers
 
 import androidx.work.*
+import java.time.Duration
 
 const val REQUEST_TAG = "WORKER_TAG"
 const val INPUT_LIST = "UID_LIST"
@@ -23,9 +24,10 @@ class WorkerHelper(
 
     inline fun <reified W : ListenableWorker> beginUniqueWork(shouldBackup: Boolean = true) {
         OneTimeWorkRequestBuilder<W>()
-            .setInputData(createInputData(shouldBackup))
-            .setConstraints(constraints)
             .addTag(REQUEST_TAG)
+            .setConstraints(constraints)
+            .setInputData(createInputData(shouldBackup))
+            .keepResultsForAtLeast(Duration.ofMillis(100))
             .build().also { buildRequest ->
                 workManager
                     .beginUniqueWork(WORK_NAME, ExistingWorkPolicy.KEEP, buildRequest)
