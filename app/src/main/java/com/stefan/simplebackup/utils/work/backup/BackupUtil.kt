@@ -7,7 +7,6 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.NotificationData
-import com.stefan.simplebackup.data.model.WorkResult
 import com.stefan.simplebackup.data.workers.ForegroundCallBack
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.PreferenceHelper
@@ -128,4 +127,9 @@ class BackupUtil(
         }
         updateForegroundInfo(notificationData)
     }
+}
+
+enum class WorkResult {
+    SUCCESS,
+    ERROR
 }

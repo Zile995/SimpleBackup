@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.fragments.RestoreListFragment">
+    tools:context=".ui.fragments.LocalFragment">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh"
@@ -41,22 +41,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/floating_button"
-        style="@style/Widget.SimpleBackup.FloatingActionButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="25dp"
-        android:contentDescription="@string/scroll_to_top"
-        android:src="@drawable/arrow_up_24dp"
-        android:visibility="gone"
-        app:backgroundTint="@color/floatingButton"
-        app:borderWidth="0dp"
-        app:fabCustomSize="54dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.chip.Chip
         android:id="@+id/batch_restore"

@@ -98,6 +98,22 @@
         app:layout_constraintTop_toBottomOf="@+id/tab_layout"
         app:navGraph="@navigation/nav_graph" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/floating_button"
+        style="@style/Widget.SimpleBackup.FloatingActionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="25dp"
+        android:backgroundTint="@color/floatingButton"
+        android:contentDescription="@string/scroll_to_top"
+        android:src="@drawable/arrow_up_24dp"
+        android:visibility="gone"
+        app:borderWidth="0dp"
+        app:fabCustomSize="54dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_card_view"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <androidx.cardview.widget.CardView
         android:id="@+id/bottom_card_view"
         style="@style/Widget.SimpleBackup.BottomCardView"

@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 const val SELECTION_EXTRA = "SELECTION_LIST"
 
 abstract class BaseViewModel(application: MainApplication) : AndroidViewModel(application) {
+    // Saved button state
+    var isButtonVisible = false
+
     // Selection properties
     private var _isSelected = MutableStateFlow(false)
     val selectionList = mutableListOf<Int>()

@@ -39,7 +39,7 @@ interface AppDao {
     }
 
     @Query("DELETE FROM app_table WHERE package_name = :packageName")
-    suspend fun delete(packageName: String)
+    suspend fun delete(packageName: String): Int
 
     @Query("DELETE FROM app_table")
     suspend fun clear()

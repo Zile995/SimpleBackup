@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.utils.file
 
-import android.util.Log
 import com.stefan.simplebackup.MainApplication.Companion.mainBackupDirPath
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.file.FileUtil.moveFile
@@ -11,6 +10,7 @@ import java.util.*
 const val ROOT: String = "SimpleBackup/local"
 const val TEMP: String = "SimpleBackup/temp"
 
+// TODO: Remove completely this interface with default static method implementations
 @Suppress("BlockingMethodInNonBlockingContext")
 interface FileHelper {
 

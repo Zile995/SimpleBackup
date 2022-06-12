@@ -54,6 +54,7 @@
         <entry key="app/src/main/res/layout/activity_restore.xml" value="0.22" />
         <entry key="app/src/main/res/layout/activity_search.xml" value="0.3375" />
         <entry key="app/src/main/res/layout/fragment_app_list.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/fragment_home.xml" value="0.105078125" />
         <entry key="app/src/main/res/layout/fragment_restore_list.xml" value="0.1" />
         <entry key="app/src/main/res/layout/list_item.xml" value="0.25" />
         <entry key="app/src/main/res/layout/restore_item.xml" value="0.4481216457960644" />

@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
-class RestoreViewModel(application: MainApplication) : BaseViewModel(application) {
+class LocalViewModel(application: MainApplication) : BaseViewModel(application) {
 
     private val workManager = WorkManager.getInstance(application)
     private val repository = application.getRepository
@@ -36,7 +36,7 @@ class RestoreViewModel(application: MainApplication) : BaseViewModel(application
         )
 
     init {
-        Log.d("ViewModel", "RestoreViewModel created")
+        Log.d("ViewModel", "LocalViewModel created")
         viewModelScope.launchWithLogging(CoroutineName("LoadLocalList")) {
             launch {
                 delay(400)
@@ -70,16 +70,16 @@ class RestoreViewModel(application: MainApplication) : BaseViewModel(application
 
     override fun onCleared() {
         super.onCleared()
-        Log.d("ViewModel", "RestoreViewModel cleared")
+        Log.d("ViewModel", "LocalViewModel cleared")
     }
 }
 
-class RestoreViewModelFactory(private val application: MainApplication) :
+class LocalViewModelFactory(private val application: MainApplication) :
     ViewModelProvider.AndroidViewModelFactory(application) {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         @Suppress("UNCHECKED_CAST")
-        if (modelClass.isAssignableFrom(RestoreViewModel::class.java)) {
-            return RestoreViewModel(application) as T
+        if (modelClass.isAssignableFrom(LocalViewModel::class.java)) {
+            return LocalViewModel(application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

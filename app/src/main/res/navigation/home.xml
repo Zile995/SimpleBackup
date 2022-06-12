@@ -6,7 +6,7 @@
     app:startDestination="@id/appListFragment">
     <fragment
         android:id="@+id/appListFragment"
-        android:name="com.stefan.simplebackup.ui.fragments.AppListFragment"
+        android:name="com.stefan.simplebackup.ui.fragments.HomeFragment"
         android:label="fragment_app_list"
-        tools:layout="@layout/fragment_app_list" />
+        tools:layout="@layout/fragment_home" />
 </navigation>

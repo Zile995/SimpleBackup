@@ -46,7 +46,6 @@ class MainApplication : Application() {
      */
     private val appManager: AppManager by lazy { AppManager(this) }
 
-
     /**
      * - Used to update Room [AppDatabase] content by using [AppDao] methods
      */
@@ -75,6 +74,7 @@ class MainApplication : Application() {
          * - Used to get our main backup dir path
          */
         lateinit var mainBackupDirPath: String
+            private set
 
         private fun Context.setMainBackupDir() {
             val externalFilesDir = this.getExternalFilesDir(null)?.absolutePath ?: ""
@@ -82,5 +82,4 @@ class MainApplication : Application() {
                 externalFilesDir.substring(0, externalFilesDir.indexOf("Android")) + ROOT
         }
     }
-
 }

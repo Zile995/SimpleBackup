@@ -24,8 +24,8 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
 import com.stefan.simplebackup.databinding.ActivityDetailBinding
 import com.stefan.simplebackup.utils.extensions.*
-import com.stefan.simplebackup.viewmodels.AppDetailViewModel
-import com.stefan.simplebackup.viewmodels.AppDetailViewModelFactory
+import com.stefan.simplebackup.viewmodels.DetailsViewModel
+import com.stefan.simplebackup.viewmodels.DetailsViewModelFactory
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -36,15 +36,15 @@ class AppDetailActivity : AppCompatActivity() {
     private var _binding: ActivityDetailBinding? = null
     private val binding get() = _binding!!
 
-    private val appDetailViewModel: AppDetailViewModel by viewModels {
+    private val detailsViewModel: DetailsViewModel by viewModels {
         val selectedApp: AppData? = intent?.extras?.getParcelable(PARCELABLE_EXTRA)
-        AppDetailViewModelFactory(selectedApp, application as MainApplication)
+        DetailsViewModelFactory(selectedApp, application as MainApplication)
     }
 
     private val requestPermissionLauncher by lazy {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
-                appDetailViewModel.createLocalBackup()
+                detailsViewModel.createLocalBackup()
             }
         }
     }
@@ -56,7 +56,7 @@ class AppDetailActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         lifecycleScope.launch {
-            appDetailViewModel.selectedApp?.let {
+            detailsViewModel.selectedApp?.let {
                 binding.apply {
                     bindViews()
                     setData()
@@ -83,7 +83,7 @@ class AppDetailActivity : AppCompatActivity() {
         setCardViewSize()
         bindPackageDetails()
         backupCardView.setOnClickListener {
-            appDetailViewModel.selectedApp?.let { app ->
+            detailsViewModel.selectedApp?.let { app ->
                 launchPackage(app.packageName)
             }
         }
@@ -103,7 +103,7 @@ class AppDetailActivity : AppCompatActivity() {
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 requestPermissionLauncher,
                 continuationCallBack = {
-                    appDetailViewModel.createLocalBackup()
+                    detailsViewModel.createLocalBackup()
                 },
                 dialogCallBack = {
                     permissionDialog(
@@ -118,7 +118,7 @@ class AppDetailActivity : AppCompatActivity() {
 
     private fun ActivityDetailBinding.bindPackageDetails() {
         packageDetails.setOnClickListener {
-            appDetailViewModel.selectedApp?.apply {
+            detailsViewModel.selectedApp?.apply {
                 openPackageSettingsInfo(packageName)
             }
         }
@@ -133,7 +133,7 @@ class AppDetailActivity : AppCompatActivity() {
     private fun ActivityDetailBinding.bindDeleteButton() {
         floatingDeleteButton.setOnClickListener {
             lifecycleScope.launch {
-                appDetailViewModel.selectedApp?.apply {
+                detailsViewModel.selectedApp?.apply {
                     onBackPressed()
                     deletePackage(packageName)
                 }
@@ -142,7 +142,7 @@ class AppDetailActivity : AppCompatActivity() {
     }
 
     private suspend fun ActivityDetailBinding.setData() {
-        appDetailViewModel.selectedApp?.let { app ->
+        detailsViewModel.selectedApp?.let { app ->
             app.setBitmap(applicationContext)
             applicationImageBackup.loadBitmap(app.bitmap)
             textItemBackup.text = app.name
@@ -164,7 +164,7 @@ class AppDetailActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.force_stop -> {
-                appDetailViewModel.selectedApp?.apply {
+                detailsViewModel.selectedApp?.apply {
                     forceStopPackage(packageName)
                 }
                 true
@@ -185,6 +185,7 @@ class AppDetailActivity : AppCompatActivity() {
         return true
     }
 
+    @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             REQUEST_CODE_SIGN_IN ->

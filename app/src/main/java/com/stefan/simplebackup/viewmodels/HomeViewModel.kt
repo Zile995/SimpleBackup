@@ -5,10 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
-import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.delay
@@ -17,11 +17,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
-class AppViewModel(application: MainApplication) :
+class HomeViewModel(application: MainApplication) :
     BaseViewModel(application), PackageListener by PackageListenerImpl(application) {
 
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
+
+    private var _button = MutableStateFlow(false)
+    val button: StateFlow<Boolean> get() = _button
 
     // Observable spinner properties used for progressbar observing
     private var _spinner = MutableStateFlow(true)
@@ -36,7 +39,7 @@ class AppViewModel(application: MainApplication) :
         )
 
     init {
-        Log.d("ViewModel", "AppViewModel created")
+        Log.d("ViewModel", "HomeViewModel created")
         viewModelScope.launchWithLogging(CoroutineName("LoadHomeList")) {
             appManager.printSequence()
             delay(400)
@@ -45,20 +48,24 @@ class AppViewModel(application: MainApplication) :
         }
     }
 
+    fun changeButtonVisibility(isVisible: Boolean) {
+        _button.value = isVisible
+    }
+
     override fun onCleared() {
         super.onCleared()
-        Log.d("ViewModel", "AppViewModel cleared")
+        Log.d("ViewModel", "HomeViewModel cleared")
     }
 }
 
-class AppViewModelFactory(
+class HomeViewModelFactory(
     private val application: MainApplication
 ) :
     ViewModelProvider.AndroidViewModelFactory(application) {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(AppViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AppViewModel(application) as T
+            return HomeViewModel(application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

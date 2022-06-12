@@ -25,18 +25,18 @@ class RootApkInstaller(context: Context) {
     }
 
     private fun startInstalling(apkSizeMap: HashMap<File, Long>, totalSize: Long) {
-        Shell.su("pm install-create -S $totalSize").exec()
+        Shell.cmd("pm install-create -S $totalSize").exec()
         val sessionId = packageInstaller
             .allSessions[0]
             .sessionId
         for ((apk, apkSize) in apkSizeMap) {
             val apkFilePath = "x=$(echo -e \"${apk.absolutePath}\")"
-            Shell.su(
+            Shell.cmd(
                 apkFilePath +
                         " && pm install-write -S $apkSize $sessionId ${apk.name} " +
                         "\"\$x\""
             ).exec()
         }
-        Shell.su("pm install-commit $sessionId").exec()
+        Shell.cmd("pm install-commit $sessionId").exec()
     }
 }

@@ -7,9 +7,9 @@ import android.content.Context
 import androidx.core.app.NotificationCompat
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.NotificationData
-import com.stefan.simplebackup.data.model.WorkResult
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.file.BitmapUtil.toBitmap
+import com.stefan.simplebackup.utils.work.backup.WorkResult
 
 private const val CHANNEL_ID = "WORK_NOTIFICATION"
 

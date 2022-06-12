@@ -14,7 +14,19 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.lifecycleScope
 import com.stefan.simplebackup.R
+import kotlinx.coroutines.launch
+
+fun <T : AppCompatActivity> FragmentActivity.onActivityCallbacks(block: suspend T.() -> Unit) {
+    @Suppress("UNCHECKED_CAST")
+    (this as T).apply {
+        lifecycleScope.launch {
+            block()
+        }
+    }
+}
 
 inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     value: Pair<String, Any?>

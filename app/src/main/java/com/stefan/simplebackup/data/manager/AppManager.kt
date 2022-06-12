@@ -10,7 +10,8 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -97,7 +98,7 @@ class AppManager(private val context: Context) {
                 emit(getAppData(userAppsInfo))
             }
         }
-    }.flowOn(Dispatchers.Default)
+    }.flowOn(ioDispatcher)
 
     private fun getCompleteAppsInfo(): List<ApplicationInfo> {
         return packageManager
@@ -116,12 +117,13 @@ class AppManager(private val context: Context) {
 
     private fun ApplicationInfo.loadLabel() = loadLabel(packageManager).toString()
 
-    private suspend fun getAppData(appInfo: ApplicationInfo): AppData {
+    private suspend fun getAppData(appInfo: ApplicationInfo): AppData = coroutineScope {
         val storageStats: StorageStats =
             storageStatsManager.queryStatsForUid(appInfo.storageUuid, appInfo.uid)
         val cacheSize = storageStats.cacheBytes
         val dataSize = storageStats.dataBytes
         val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }
+        val apkInfo = async { getApkInfo(apkDir) }
         val name = appInfo.loadLabel(packageManager).toString()
         val packageName = appInfo.packageName
         val drawable = appInfo.loadIcon(packageManager)
@@ -129,9 +131,9 @@ class AppManager(private val context: Context) {
             appInfo.packageName,
             PackageManager.GET_META_DATA
         ).versionName?.substringBefore(" (") ?: ""
-        val apkInfo = getApkInfo(apkDir)
 
-        return AppData(
+
+        return@coroutineScope AppData(
             name = name,
             bitmap = drawable.toByteArray(),
             packageName = packageName,
@@ -140,8 +142,8 @@ class AppManager(private val context: Context) {
             minSdk = appInfo.minSdkVersion,
             dataDir = appInfo.dataDir,
             apkDir = apkDir,
-            apkSize = apkInfo!!.first,
-            isSplit = apkInfo.second,
+            apkSize = apkInfo.await()!!.first,
+            isSplit = apkInfo.await()!!.second,
             dataSize = dataSize,
             cacheSize = cacheSize,
             isUserApp = appInfo.isUserApp(),

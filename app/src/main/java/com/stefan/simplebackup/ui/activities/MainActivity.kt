@@ -2,17 +2,21 @@ package com.stefan.simplebackup.ui.activities
 
 import android.content.Intent
 import android.content.IntentFilter
+import android.opengl.Visibility
 import android.os.Bundle
 import android.os.PersistableBundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
+import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
@@ -20,10 +24,13 @@ import com.stefan.simplebackup.data.receivers.NotificationReceiver
 import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.utils.PreferenceHelper
+import com.stefan.simplebackup.utils.extensions.hideAttachedButton
 import com.stefan.simplebackup.utils.root.RootChecker
-import com.stefan.simplebackup.viewmodels.AppViewModel
-import com.stefan.simplebackup.viewmodels.AppViewModelFactory
+import com.stefan.simplebackup.viewmodels.HomeViewModel
+import com.stefan.simplebackup.viewmodels.HomeViewModelFactory
 import kotlinx.coroutines.launch
+
+typealias FloatingButtonCallback = (Boolean) -> Unit
 
 class MainActivity : AppCompatActivity() {
     // Binding properties
@@ -34,8 +41,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
 
     // ViewModel
-    private val appViewModel: AppViewModel by viewModels {
-        AppViewModelFactory(application as MainApplication)
+    private val homeViewModel: HomeViewModel by viewModels {
+        HomeViewModelFactory(application as MainApplication)
     }
 
     // Create RootChecker Class instance and reference
@@ -44,22 +51,18 @@ class MainActivity : AppCompatActivity() {
     // Broadcast receivers
     private val receiver: PackageReceiver by lazy {
         PackageReceiver(
-            appViewModel,
-            appViewModel.viewModelScope
+            homeViewModel,
+            homeViewModel.viewModelScope
         )
     }
-
     private val notificationReceiver: NotificationReceiver by lazy {
         NotificationReceiver()
     }
 
     // Flags
-    private var isSubmitted: Boolean = false
+    private var isSubmitted = false
     private var isSearching = false
 
-    /**
-     * - Standardna onCreate metoda Activity Lifecycle-a
-     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityMainBinding.inflate(layoutInflater)
@@ -68,10 +71,31 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             launch {
                 setNavController()
-                binding.bindViews()
+                binding.apply {
+                    bindViews()
+                    initObservers()
+                }
             }
             registerBroadcasts()
             setRootDialogs()
+        }
+    }
+
+    fun RecyclerView.controlFloatingButton(isButtonVisible: Boolean) {
+        binding.floatingButton.setOnClickListener {
+            this.smoothScrollToPosition(0)
+        }
+        hideAttachedButton(isButtonVisible) { isVisible ->
+            homeViewModel.changeButtonVisibility(isVisible)
+        }
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        isSubmitted = savedInstanceState.getBoolean("isSubmitted")
+        isSearching = savedInstanceState.getBoolean("isSearching")
+        if (isSearching) {
+            binding.searchInput.requestFocus()
         }
     }
 
@@ -94,7 +118,18 @@ class MainActivity : AppCompatActivity() {
         bindBottomNavigationView()
     }
 
+    private fun ActivityMainBinding.initObservers() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                homeViewModel.button.collect { isVisible ->
+                    if (isVisible) floatingButton.show() else floatingButton.hide()
+                }
+            }
+        }
+    }
+
     private fun ActivityMainBinding.bindBottomNavigationView() {
+        // TODO: Should change animations, and save button states on fragment change
         bottomNavigation.setupWithNavController(navController)
     }
 
@@ -156,15 +191,6 @@ class MainActivity : AppCompatActivity() {
         alert.show()
     }
 
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        isSubmitted = savedInstanceState.getBoolean("isSubmitted")
-        isSearching = savedInstanceState.getBoolean("isSearching")
-        if (isSearching) {
-            binding.searchInput.requestFocus()
-        }
-    }
-
     override fun onDestroy() {
         _binding = null
         unregisterReceiver(receiver)
@@ -172,3 +198,5 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 }
+
+

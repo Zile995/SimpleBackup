@@ -3,15 +3,18 @@ package com.stefan.simplebackup.data.workers
 import android.app.Notification
 import android.content.Context
 import android.util.Log
-import androidx.work.*
+import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
+import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.stefan.simplebackup.data.model.NotificationData
-import com.stefan.simplebackup.data.model.WorkResult
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.ui.notifications.WorkNotificationBuilder
 import com.stefan.simplebackup.ui.notifications.WorkNotificationHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.extensions.showToast
 import com.stefan.simplebackup.utils.work.backup.BackupUtil
+import com.stefan.simplebackup.utils.work.backup.WorkResult
 import com.stefan.simplebackup.utils.work.restore.RestoreUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -38,7 +41,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     private lateinit var workResults: List<WorkResult>
 
     private val updateForegroundInfo = createForegroundInfo(notificationId)
-    
+
     private val foregroundCallBack: ForegroundCallBack = { notificationData ->
         setProgress(workDataOf(WORK_PROGRESS to notificationData.progress))
         updateForegroundInfo(

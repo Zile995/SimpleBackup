@@ -3,10 +3,11 @@ package com.stefan.simplebackup.utils.extensions
 import android.os.Parcelable
 import android.view.View
 import android.widget.ImageView
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.stefan.simplebackup.GlideApp
+import coil.imageLoader
+import coil.request.ImageRequest
+import com.stefan.simplebackup.ui.activities.FloatingButtonCallback
 
 fun View.show() {
     visibility = View.VISIBLE
@@ -26,13 +27,13 @@ var View.isVisible: Boolean
     }
 
 fun ImageView.loadBitmap(byteArray: ByteArray) {
-    val image = this
-    GlideApp.with(image).apply {
-        asBitmap()
-            .load(byteArray)
-            .diskCacheStrategy(DiskCacheStrategy.NONE)
-            .into(image)
-    }
+    val imageLoader = context.imageLoader
+    val request = ImageRequest.Builder(context)
+        .data(byteArray)
+        .crossfade(true)
+        .target(this)
+        .build()
+    imageLoader.enqueue(request)
 }
 
 fun RecyclerView.onSaveRecyclerViewState(saveState: (Parcelable) -> Unit) {
@@ -47,24 +48,45 @@ fun RecyclerView.onRestoreRecyclerViewState(parcelable: Parcelable?) {
     }
 }
 
-fun RecyclerView.hideAttachedButton(floatingButton: FloatingActionButton) {
+fun RecyclerView.canScrollUp() = canScrollVertically(-1)
+
+fun RecyclerView.canScrollDown() = canScrollVertically(1)
+
+fun RecyclerView.hideAttachedButton(
+    isButtonVisible: Boolean,
+    shouldShowButton: FloatingButtonCallback
+) {
+    val linearLayoutManager = layoutManager as LinearLayoutManager
+    var checkOnAttach = true
     addOnScrollListener(object : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
 
-            if (dy > 0 && floatingButton.isShown) {
-                floatingButton.hide()
+            if (checkOnAttach) {
+                val firstItemPosition = linearLayoutManager.findFirstCompletelyVisibleItemPosition()
+                val lastItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
 
-            } else if (dy < 0 && !floatingButton.isShown) {
-                floatingButton.show()
+                if (firstItemPosition == 0) {
+                    shouldShowButton(false)
+                } else {
+                    shouldShowButton(true)
+                }
+                if (lastItemPosition == linearLayoutManager.itemCount - 1) {
+                    shouldShowButton(false)
+                }
+                checkOnAttach = false
+            }
+
+            if (dy > 0) {
+                shouldShowButton(false)
+            } else if (dy < 0) {
+                shouldShowButton(true)
             }
         }
 
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
-            if (!recyclerView.canScrollVertically(-1)) {
-                floatingButton.hide()
-            }
+            if (!canScrollUp() || !canScrollDown()) shouldShowButton(false)
         }
     })
 }

@@ -31,7 +31,7 @@ ext {
     googleGson = '1.41.8'
     googleApiClient = '1.35.0'
     googleDriveApi = 'v3-rev20220508-1.32.1'
-    glide = '4.13.2'
+    coil = '2.1.0'
     libsu = '5.0.2'
     zip4j = '2.10.0'
     lifecycle = '2.4.1'

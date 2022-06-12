@@ -13,7 +13,7 @@ import com.stefan.simplebackup.data.workers.WorkerHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class AppDetailViewModel(
+class DetailsViewModel(
     private val app: AppData?,
     application: MainApplication
 ) : AndroidViewModel(application) {
@@ -22,7 +22,7 @@ class AppDetailViewModel(
     val selectedApp get() = app
 
     init {
-        Log.d("ViewModel", "AppDetailViewModel created")
+        Log.d("ViewModel", "DetailsViewModel created")
     }
 
     fun createLocalBackup() {
@@ -36,19 +36,19 @@ class AppDetailViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        Log.d("ViewModel", "AppDetailViewModel cleared")
+        Log.d("ViewModel", "DetailsViewModel cleared")
     }
 }
 
-class AppDetailViewModelFactory(
+class DetailsViewModelFactory(
     private val app: AppData?,
     private val application: MainApplication
 ) :
     ViewModelProvider.AndroidViewModelFactory(application) {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(AppDetailViewModel::class.java)) {
+        if (modelClass.isAssignableFrom(DetailsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AppDetailViewModel(app, application) as T
+            return DetailsViewModel(app, application) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
