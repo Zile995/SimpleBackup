@@ -8,21 +8,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AppDao {
-    @Query(
-        "SELECT * FROM app_table" +
-                " WHERE is_user_app =:showUserApps AND is_local = 0 AND is_cloud = 0" +
-                " ORDER BY name ASC"
-    )
+    @Query("SELECT * FROM app_table ORDER BY name ASC")
     @Transaction
-    fun getInstalledApps(showUserApps: Boolean = true): Flow<MutableList<AppData>>
-
-    @Query(
-        "SELECT * FROM app_table" +
-                " WHERE is_user_app = 1 AND is_local = 1 AND is_cloud =:showOnlyCloudBackups" +
-                " ORDER BY name ASC"
-    )
-    @Transaction
-    fun getBackupApps(showOnlyCloudBackups: Boolean = false): Flow<MutableList<AppData>>
+    fun getAllApps(): Flow<MutableList<AppData>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     @Throws(SQLiteException::class)
@@ -55,12 +43,6 @@ interface AppDao {
 
     @Query("SELECT * FROM app_table WHERE package_name = :packageName")
     suspend fun getData(packageName: String): AppData
-
-    @Query(
-        "SELECT * FROM app_table" +
-                " WHERE package_name = :packageName AND is_local =1 AND is_local =:selectCloudOnly"
-    )
-    suspend fun getBackupData(packageName: String, selectCloudOnly: Boolean = false): AppData
 
     @Query(
         "SELECT EXISTS(SELECT * FROM app_table" +

@@ -5,6 +5,8 @@
       <map>
         <entry key="../../../../layout/custom_preview.xml" value="0.18177083333333333" />
         <entry key="app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.20208333333333334" />
+        <entry key="app/src/main/res/drawable/add_to_drive_24dp.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/android_24dp.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/baseline_add_to_drive_yellow_300_24dp.xml" value="0.2015625" />
         <entry key="app/src/main/res/drawable/baseline_android_teal_a400_24dp.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/baseline_delete_black_24dp.xml" value="0.2015625" />
@@ -17,6 +19,7 @@
         <entry key="app/src/main/res/drawable/baseline_storage_orange_300_24dp.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/bottom_nav_tint.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/bottom_view_ripple.xml" value="0.2015" />
+        <entry key="app/src/main/res/drawable/cloud_24dp.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/completed_24dp.xml" value="0.173" />
         <entry key="app/src/main/res/drawable/completed_48dp.xml" value="0.173" />
         <entry key="app/src/main/res/drawable/curved_bottom_view.xml" value="0.20677083333333332" />
@@ -37,6 +40,8 @@
         <entry key="app/src/main/res/drawable/search_bar.xml" value="0.265234375" />
         <entry key="app/src/main/res/drawable/selected_nav_item.xml" value="0.3482051282051282" />
         <entry key="app/src/main/res/drawable/starting_screen.xml" value="0.3536458333333333" />
+        <entry key="app/src/main/res/drawable/storage_24dp.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/test.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/twotone_android_black_24dp.xml" value="0.3" />
         <entry key="app/src/main/res/drawable/twotone_api_black_24dp.xml" value="0.11388888888888889" />
         <entry key="app/src/main/res/drawable/twotone_info_black_24dp.xml" value="0.31296296296296294" />

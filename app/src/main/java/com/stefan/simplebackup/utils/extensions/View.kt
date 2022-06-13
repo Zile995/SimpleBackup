@@ -1,9 +1,11 @@
 package com.stefan.simplebackup.utils.extensions
 
 import android.os.Parcelable
+import android.util.DisplayMetrics
 import android.view.View
 import android.widget.ImageView
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import coil.imageLoader
 import coil.request.ImageRequest
@@ -36,6 +38,22 @@ fun ImageView.loadBitmap(byteArray: ByteArray) {
     imageLoader.enqueue(request)
 }
 
+fun RecyclerView.smoothSnapToPosition(
+    position: Int,
+    snapMode: Int = LinearSmoothScroller.SNAP_TO_START
+) {
+    val scrollDuration = 500f;
+    val smoothScroller = object : LinearSmoothScroller(context) {
+        override fun getVerticalSnapPreference(): Int = snapMode
+        override fun getHorizontalSnapPreference(): Int = snapMode
+        override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics?): Float {
+            return scrollDuration / computeVerticalScrollRange();
+        }
+    }
+    smoothScroller.targetPosition = position
+    layoutManager?.startSmoothScroll(smoothScroller)
+}
+
 fun RecyclerView.onSaveRecyclerViewState(saveState: (Parcelable) -> Unit) {
     layoutManager?.onSaveInstanceState()?.let { stateParcelable ->
         saveState(stateParcelable)
@@ -52,10 +70,7 @@ fun RecyclerView.canScrollUp() = canScrollVertically(-1)
 
 fun RecyclerView.canScrollDown() = canScrollVertically(1)
 
-fun RecyclerView.hideAttachedButton(
-    isButtonVisible: Boolean,
-    shouldShowButton: FloatingButtonCallback
-) {
+fun RecyclerView.hideAttachedButton(shouldShowButton: FloatingButtonCallback) {
     val linearLayoutManager = layoutManager as LinearLayoutManager
     var checkOnAttach = true
     addOnScrollListener(object : RecyclerView.OnScrollListener() {

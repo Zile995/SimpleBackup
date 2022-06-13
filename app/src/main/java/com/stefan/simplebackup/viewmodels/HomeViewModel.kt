@@ -23,9 +23,6 @@ class HomeViewModel(application: MainApplication) :
     private val repository: AppRepository = application.getRepository
     private val appManager: AppManager = application.getAppManager
 
-    private var _button = MutableStateFlow(false)
-    val button: StateFlow<Boolean> get() = _button
-
     // Observable spinner properties used for progressbar observing
     private var _spinner = MutableStateFlow(true)
     val spinner: StateFlow<Boolean>
@@ -46,10 +43,6 @@ class HomeViewModel(application: MainApplication) :
             _spinner.emit(false)
             refreshPackageList()
         }
-    }
-
-    fun changeButtonVisibility(isVisible: Boolean) {
-        _button.value = isVisible
     }
 
     override fun onCleared() {

@@ -107,6 +107,7 @@ class LocalFragment : Fragment() {
         swipeRefresh.setOnRefreshListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 val refresh = launch {
+                    // TODO: Could be deleted
                 }
                 refresh.join()
                 swipeRefresh.isRefreshing = false
@@ -125,7 +126,7 @@ class LocalFragment : Fragment() {
 
     private fun FragmentLocalBinding.setActivityCallBacks() {
         activity?.onActivityCallbacks<MainActivity> {
-            restoreRecyclerView.controlFloatingButton(localViewModel.isButtonVisible)
+            restoreRecyclerView.controlFloatingButton()
         }
     }
 
@@ -165,9 +166,9 @@ class LocalFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
         Log.d("LocalFragment", "Destroying LocalFragment")
         _binding = null
         _localAdapter = null
+        super.onDestroyView()
     }
 }

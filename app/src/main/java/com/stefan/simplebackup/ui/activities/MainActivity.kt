@@ -2,16 +2,13 @@ package com.stefan.simplebackup.ui.activities
 
 import android.content.Intent
 import android.content.IntentFilter
-import android.opengl.Visibility
 import android.os.Bundle
 import android.os.PersistableBundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -25,6 +22,7 @@ import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.hideAttachedButton
+import com.stefan.simplebackup.utils.extensions.smoothSnapToPosition
 import com.stefan.simplebackup.utils.root.RootChecker
 import com.stefan.simplebackup.viewmodels.HomeViewModel
 import com.stefan.simplebackup.viewmodels.HomeViewModelFactory
@@ -70,10 +68,9 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             launch {
-                setNavController()
                 binding.apply {
+                    setNavController()
                     bindViews()
-                    initObservers()
                 }
             }
             registerBroadcasts()
@@ -81,12 +78,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun RecyclerView.controlFloatingButton(isButtonVisible: Boolean) {
+    fun RecyclerView.controlFloatingButton() {
         binding.floatingButton.setOnClickListener {
-            this.smoothScrollToPosition(0)
+            this.smoothSnapToPosition(0)
         }
-        hideAttachedButton(isButtonVisible) { isVisible ->
-            homeViewModel.changeButtonVisibility(isVisible)
+        hideAttachedButton { shouldShow ->
+            if (shouldShow) binding.floatingButton.show() else binding.floatingButton.hide()
         }
     }
 
@@ -116,16 +113,6 @@ class MainActivity : AppCompatActivity() {
     private fun ActivityMainBinding.bindViews() {
         window.setBackgroundDrawableResource(R.color.background)
         bindBottomNavigationView()
-    }
-
-    private fun ActivityMainBinding.initObservers() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                homeViewModel.button.collect { isVisible ->
-                    if (isVisible) floatingButton.show() else floatingButton.hide()
-                }
-            }
-        }
     }
 
     private fun ActivityMainBinding.bindBottomNavigationView() {

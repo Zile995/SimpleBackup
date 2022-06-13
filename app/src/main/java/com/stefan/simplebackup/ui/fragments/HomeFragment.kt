@@ -126,7 +126,7 @@ class HomeFragment : Fragment() {
 
     private fun FragmentHomeBinding.setActivityCallBacks() {
         activity?.onActivityCallbacks<MainActivity> {
-            recyclerView.controlFloatingButton(homeViewModel.isButtonVisible)
+            recyclerView.controlFloatingButton()
         }
     }
 
