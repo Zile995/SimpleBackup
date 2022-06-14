@@ -1,11 +1,13 @@
 package com.stefan.simplebackup.ui.activities
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import com.stefan.simplebackup.BuildConfig
 import com.topjohnwu.superuser.Shell
 
+@SuppressLint("CustomSplashScreen")
 class SplashActivity : Activity() {
 
     companion object {

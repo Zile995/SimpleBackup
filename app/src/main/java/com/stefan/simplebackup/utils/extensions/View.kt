@@ -8,8 +8,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import coil.imageLoader
+import coil.request.CachePolicy
 import coil.request.ImageRequest
-import com.stefan.simplebackup.ui.activities.FloatingButtonCallback
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+
 
 fun View.show() {
     visibility = View.VISIBLE
@@ -32,7 +34,7 @@ fun ImageView.loadBitmap(byteArray: ByteArray) {
     val imageLoader = context.imageLoader
     val request = ImageRequest.Builder(context)
         .data(byteArray)
-        .crossfade(true)
+        .diskCachePolicy(CachePolicy.ENABLED)
         .target(this)
         .build()
     imageLoader.enqueue(request)
@@ -42,12 +44,12 @@ fun RecyclerView.smoothSnapToPosition(
     position: Int,
     snapMode: Int = LinearSmoothScroller.SNAP_TO_START
 ) {
-    val scrollDuration = 500f;
+    val scrollDuration = 500f
     val smoothScroller = object : LinearSmoothScroller(context) {
         override fun getVerticalSnapPreference(): Int = snapMode
         override fun getHorizontalSnapPreference(): Int = snapMode
         override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics?): Float {
-            return scrollDuration / computeVerticalScrollRange();
+            return scrollDuration / computeVerticalScrollRange()
         }
     }
     smoothScroller.targetPosition = position
@@ -70,7 +72,7 @@ fun RecyclerView.canScrollUp() = canScrollVertically(-1)
 
 fun RecyclerView.canScrollDown() = canScrollVertically(1)
 
-fun RecyclerView.hideAttachedButton(shouldShowButton: FloatingButtonCallback) {
+fun RecyclerView.hideAttachedButton(floatingButton: FloatingActionButton) {
     val linearLayoutManager = layoutManager as LinearLayoutManager
     var checkOnAttach = true
     addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -81,27 +83,25 @@ fun RecyclerView.hideAttachedButton(shouldShowButton: FloatingButtonCallback) {
                 val firstItemPosition = linearLayoutManager.findFirstCompletelyVisibleItemPosition()
                 val lastItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
 
-                if (firstItemPosition == 0) {
-                    shouldShowButton(false)
-                } else {
-                    shouldShowButton(true)
-                }
-                if (lastItemPosition == linearLayoutManager.itemCount - 1) {
-                    shouldShowButton(false)
+                if ((firstItemPosition == 0 || lastItemPosition == linearLayoutManager.itemCount - 1)
+                    && floatingButton.isShown
+                ) {
+                    floatingButton.hide()
                 }
                 checkOnAttach = false
             }
 
-            if (dy > 0) {
-                shouldShowButton(false)
-            } else if (dy < 0) {
-                shouldShowButton(true)
+            if (dy > 0 && floatingButton.isShown) {
+                floatingButton.hide()
+
+            } else if (dy < 0 && !floatingButton.isShown) {
+                floatingButton.show()
             }
         }
 
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
-            if (!canScrollUp() || !canScrollDown()) shouldShowButton(false)
+            if (!canScrollUp() || !canScrollDown()) floatingButton.hide()
         }
     })
 }

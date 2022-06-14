@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.MainApplication.Companion.mainBackupDirPath
+import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
 import com.stefan.simplebackup.utils.extensions.launchWithLogging
@@ -21,7 +22,7 @@ import kotlinx.coroutines.flow.stateIn
 class LocalViewModel(application: MainApplication) : BaseViewModel(application) {
 
     private val workManager = WorkManager.getInstance(application)
-    private val repository = application.getRepository
+    private val repository by lazy { AppRepository(application.database.appDao()) }
     //private val fileWatcher = File(mainBackupDirPath).asFileWatcher()
 
     // Observable spinner properties used for progressbar observing

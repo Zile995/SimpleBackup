@@ -4,18 +4,20 @@ import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.MainApplication.Companion.getDatabaseInstance
+import com.stefan.simplebackup.data.local.repository.AppRepository
+import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.utils.PreferenceHelper
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.*
 
 class BootPackageWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext,
     params
 ) {
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-    private val mainApplication: MainApplication = applicationContext as MainApplication
-    private val repository = mainApplication.getRepository
-    private val appManager = mainApplication.getAppManager
+    private val database = appContext.getDatabaseInstance(CoroutineScope(SupervisorJob()))
+    private val repository = AppRepository(database.appDao())
+    private val appManager = AppManager(appContext)
 
     override suspend fun doWork(): Result = coroutineScope {
         try {

@@ -64,7 +64,7 @@ class BaseAdapter(
         return LayoutInflater.from(parent.context)
     }
 
-    class DiffCallback : DiffUtil.ItemCallback<AppData>() {
+    private class DiffCallback : DiffUtil.ItemCallback<AppData>() {
         override fun areItemsTheSame(oldItem: AppData, newItem: AppData): Boolean {
             return oldItem.packageName == newItem.packageName &&
                     oldItem.versionName == newItem.versionName &&
@@ -81,6 +81,5 @@ class BaseAdapter(
 enum class HolderType {
     HOME,
     LOCAL,
-    DRIVE,
-    SETTINGS
+    DRIVE
 }

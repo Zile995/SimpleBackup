@@ -28,8 +28,6 @@ import com.stefan.simplebackup.viewmodels.HomeViewModel
 import com.stefan.simplebackup.viewmodels.HomeViewModelFactory
 import kotlinx.coroutines.launch
 
-typealias FloatingButtonCallback = (Boolean) -> Unit
-
 class MainActivity : AppCompatActivity() {
     // Binding properties
     private var _binding: ActivityMainBinding? = null
@@ -68,10 +66,8 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             launch {
-                binding.apply {
-                    setNavController()
-                    bindViews()
-                }
+                setNavController()
+                binding.bindViews()
             }
             registerBroadcasts()
             setRootDialogs()
@@ -79,11 +75,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun RecyclerView.controlFloatingButton() {
-        binding.floatingButton.setOnClickListener {
-            this.smoothSnapToPosition(0)
-        }
-        hideAttachedButton { shouldShow ->
-            if (shouldShow) binding.floatingButton.show() else binding.floatingButton.hide()
+        binding.floatingButton.apply {
+            hideAttachedButton(this)
+            setOnClickListener {
+                smoothSnapToPosition(0)
+            }
         }
     }
 
@@ -179,10 +175,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        super.onDestroy()
         _binding = null
         unregisterReceiver(receiver)
         unregisterReceiver(notificationReceiver)
-        super.onDestroy()
     }
 }
 

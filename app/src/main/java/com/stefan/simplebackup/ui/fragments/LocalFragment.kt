@@ -51,9 +51,9 @@ class LocalFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             binding.apply {
                 bindViews()
+                setActivityCallBacks()
                 initObservers()
                 restoreRecyclerViewState()
-                setActivityCallBacks()
             }
         }
     }
@@ -65,7 +65,7 @@ class LocalFragment : Fragment() {
         }
     }
 
-    private fun setLocalAdapter() {
+    private fun RecyclerView.setBaseAdapter() {
         _localAdapter = BaseAdapter(
             HolderType.LOCAL,
             localViewModel.selectionList,
@@ -96,6 +96,7 @@ class LocalFragment : Fragment() {
                 }
             }
         }
+        adapter = localAdapter
     }
 
     private fun FragmentLocalBinding.bindViews() {
@@ -117,27 +118,26 @@ class LocalFragment : Fragment() {
     }
 
     private fun FragmentLocalBinding.bindRecyclerView() {
-        setLocalAdapter()
-        restoreRecyclerView.apply {
-            adapter = localAdapter
+        localRecyclerView.apply {
+            setBaseAdapter()
             setHasFixedSize(true)
         }
     }
 
     private fun FragmentLocalBinding.setActivityCallBacks() {
         activity?.onActivityCallbacks<MainActivity> {
-            restoreRecyclerView.controlFloatingButton()
+            localRecyclerView.controlFloatingButton()
         }
     }
 
     private fun FragmentLocalBinding.saveRecyclerViewState() {
-        restoreRecyclerView.onSaveRecyclerViewState { stateParcelable ->
+        localRecyclerView.onSaveRecyclerViewState { stateParcelable ->
             localViewModel.saveRecyclerViewState(stateParcelable)
         }
     }
 
     private fun FragmentLocalBinding.restoreRecyclerViewState() {
-        restoreRecyclerView.onRestoreRecyclerViewState(localViewModel.savedRecyclerViewState)
+        localRecyclerView.onRestoreRecyclerViewState(localViewModel.savedRecyclerViewState)
     }
 
     private fun FragmentLocalBinding.initObservers() {
@@ -167,8 +167,8 @@ class LocalFragment : Fragment() {
 
     override fun onDestroyView() {
         Log.d("LocalFragment", "Destroying LocalFragment")
-        _binding = null
-        _localAdapter = null
         super.onDestroyView()
+        _localAdapter = null
+        _binding = null
     }
 }

@@ -29,7 +29,6 @@ abstract class AppDatabase : RoomDatabase() {
     private class AppDatabaseCallback(
         private val context: Context,
         private val scope: CoroutineScope,
-        private val appManager: AppManager
     ) :
         RoomDatabase.Callback() {
 
@@ -38,6 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         private suspend fun insertAll() {
             try {
+                val appManager = AppManager(context)
                 val time = measureTimeMillis {
                     appManager.apply {
                         updateSequenceNumber()
@@ -86,25 +86,23 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getInstance(
             context: Context,
-            scope: CoroutineScope,
-            appManager: AppManager
+            scope: CoroutineScope
         ): AppDatabase =
             INSTANCE ?: synchronized(this) {
-                INSTANCE ?: buildDatabase(context, scope, appManager).also { appDatabase ->
+                INSTANCE ?: buildDatabase(context, scope).also { appDatabase ->
                     INSTANCE = appDatabase
                 }
             }
 
         private fun buildDatabase(
             context: Context,
-            scope: CoroutineScope,
-            appManager: AppManager
+            scope: CoroutineScope
         ) =
             Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java, DATABASE_NAME
             )
-                .addCallback(AppDatabaseCallback(context, scope, appManager))
+                .addCallback(AppDatabaseCallback(context, scope))
                 .build()
     }
 }

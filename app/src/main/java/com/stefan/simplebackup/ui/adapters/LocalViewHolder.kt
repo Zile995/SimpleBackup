@@ -10,6 +10,7 @@ class LocalViewHolder(
     private val binding: LocalItemBinding,
     clickListener: OnClickListener?
 ) : BaseViewHolder(binding, clickListener) {
+
     override val cardView = binding.cardRestoreItem
 
     override fun bind(item: AppData) {

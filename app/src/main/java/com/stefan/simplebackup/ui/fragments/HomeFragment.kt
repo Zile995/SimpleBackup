@@ -54,9 +54,9 @@ class HomeFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             binding.apply {
                 bindViews()
+                setActivityCallBacks()
                 initObservers()
                 restoreRecyclerViewState()
-                setActivityCallBacks()
             }
         }
     }
@@ -68,7 +68,7 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun setHomeAdapter() {
+    private fun RecyclerView.setBaseAdapter() {
         _homeAdapter =
             BaseAdapter(
                 HolderType.HOME,
@@ -97,6 +97,7 @@ class HomeFragment : Fragment() {
                     }
                 }
             }
+        adapter = homeAdapter
     }
 
     private fun FragmentHomeBinding.bindViews() {
@@ -106,9 +107,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun FragmentHomeBinding.bindRecyclerView() {
-        setHomeAdapter()
-        recyclerView.apply {
-            adapter = homeAdapter
+        homeRecyclerView.apply {
+            setBaseAdapter()
             setHasFixedSize(true)
         }
     }
@@ -126,7 +126,7 @@ class HomeFragment : Fragment() {
 
     private fun FragmentHomeBinding.setActivityCallBacks() {
         activity?.onActivityCallbacks<MainActivity> {
-            recyclerView.controlFloatingButton()
+            homeRecyclerView.controlFloatingButton()
         }
     }
 
@@ -139,13 +139,13 @@ class HomeFragment : Fragment() {
     }
 
     private fun FragmentHomeBinding.saveRecyclerViewState() {
-        recyclerView.onSaveRecyclerViewState { stateParcelable ->
+        homeRecyclerView.onSaveRecyclerViewState { stateParcelable ->
             homeViewModel.saveRecyclerViewState(stateParcelable)
         }
     }
 
     private fun FragmentHomeBinding.restoreRecyclerViewState() {
-        recyclerView.onRestoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
+        homeRecyclerView.onRestoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
     }
 
     private fun FragmentHomeBinding.initObservers() {
@@ -168,9 +168,9 @@ class HomeFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-        _homeAdapter = null
         Log.d("HomeFragment", "Destroying HomeFragment")
+        super.onDestroyView()
+        _homeAdapter = null
+        _binding = null
     }
 }

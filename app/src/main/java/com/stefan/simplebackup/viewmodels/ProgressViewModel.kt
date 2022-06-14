@@ -18,7 +18,7 @@ class ProgressViewModel(
     application: MainApplication
 ) : AndroidViewModel(application) {
 
-    private val repository: AppRepository = application.getRepository
+    private val repository: AppRepository = AppRepository(application.database.appDao())
     private val workManager by lazy { WorkManager.getInstance(application) }
     val getWorkManager get() = workManager
 

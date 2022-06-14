@@ -5,12 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.MainApplication.Companion.getDatabaseInstance
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,10 +21,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
 class HomeViewModel(application: MainApplication) :
-    BaseViewModel(application), PackageListener by PackageListenerImpl(application) {
-
-    private val repository: AppRepository = application.getRepository
-    private val appManager: AppManager = application.getAppManager
+    BaseViewModel(application),
+    PackageListener by PackageListenerImpl(application) {
+    private val repository = getRepository()
 
     // Observable spinner properties used for progressbar observing
     private var _spinner = MutableStateFlow(true)
@@ -30,15 +32,14 @@ class HomeViewModel(application: MainApplication) :
 
     // Observable application properties used for list loading
     val installedApps = repository.installedApps.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(4_000L),
-            mutableListOf()
-        )
+        viewModelScope,
+        SharingStarted.WhileSubscribed(4_000L),
+        mutableListOf()
+    )
 
     init {
         Log.d("ViewModel", "HomeViewModel created")
         viewModelScope.launchWithLogging(CoroutineName("LoadHomeList")) {
-            appManager.printSequence()
             delay(400)
             _spinner.emit(false)
             refreshPackageList()

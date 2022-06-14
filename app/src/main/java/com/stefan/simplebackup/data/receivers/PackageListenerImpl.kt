@@ -2,13 +2,18 @@ package com.stefan.simplebackup.data.receivers
 
 import android.util.Log
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.data.local.repository.AppRepository
+import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.withContext
 
 class PackageListenerImpl(application: MainApplication) : PackageListener {
-    private val appManager = application.getAppManager
-    private val repository = application.getRepository
+
+    private val repository = AppRepository(application.database.appDao())
+    private val appManager = AppManager(application)
+
+    override fun getRepository() = repository
 
     // Used to check for changed packages on init
     override suspend fun refreshPackageList() {

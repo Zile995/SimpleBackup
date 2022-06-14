@@ -10,7 +10,6 @@ class AppRepository(private val appDao: AppDao) {
         get() = appDao.getAllApps().filterBy { app ->
             app.isUserApp && !app.isLocal
         }
-
     val localApps
         get() = appDao.getAllApps().filterBy { app ->
                 app.isLocal
@@ -35,7 +34,9 @@ class AppRepository(private val appDao: AppDao) {
     suspend fun getAppData(uid: Int) = appDao.getData(uid)
     suspend fun getAppData(packageName: String) = appDao.getData(packageName)
 
+    // TODO: Update and insert could be changed
     suspend fun insertOrUpdate(app: AppData) = appDao.insertOrUpdate(app)
+
 
     fun doesExist(packageName: String, checkCloudOnly: Boolean = false) =
         appDao.doesExist(packageName, checkCloudOnly)
