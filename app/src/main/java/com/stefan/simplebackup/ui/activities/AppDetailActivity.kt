@@ -24,8 +24,8 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
 import com.stefan.simplebackup.databinding.ActivityDetailBinding
 import com.stefan.simplebackup.utils.extensions.*
-import com.stefan.simplebackup.viewmodels.DetailsViewModel
-import com.stefan.simplebackup.viewmodels.DetailsViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
+import com.stefan.simplebackup.ui.viewmodels.DetailsViewModelFactory
 import kotlinx.coroutines.launch
 import java.util.*
 

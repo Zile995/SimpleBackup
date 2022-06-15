@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.viewmodels
+package com.stefan.simplebackup.ui.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -6,7 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
-import com.stefan.simplebackup.MainApplication.Companion.mainBackupDirPath
+import com.stefan.simplebackup.MainApplication.Companion.backupDirPath
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
@@ -50,7 +50,7 @@ class LocalViewModel(application: MainApplication) : BaseViewModel(application) 
         withContext(Dispatchers.Default) {
             launch {
                 while (true) {
-                    findJsonFiles(mainBackupDirPath).collect { jsonFile ->
+                    findJsonFiles(backupDirPath).collect { jsonFile ->
                         val app = deserializeApp(jsonFile)
                         app?.let {
                             repository.insertOrUpdate(it)

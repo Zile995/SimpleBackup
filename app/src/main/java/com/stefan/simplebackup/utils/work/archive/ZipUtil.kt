@@ -3,9 +3,10 @@ package com.stefan.simplebackup.utils.work.archive
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
-import com.stefan.simplebackup.utils.file.FileHelper
 import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.file.FileUtil.getApkZipFile
+import com.stefan.simplebackup.utils.file.FileUtil.getBackupDirPath
+import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -20,7 +21,7 @@ import net.lingala.zip4j.model.enums.EncryptionMethod
 import java.io.File
 
 @Suppress("BlockingMethodInNonBlockingContext")
-object ZipUtil : FileHelper {
+object ZipUtil {
 
     suspend fun zipAllData(app: AppData) {
         withContext(ioDispatcher) {
@@ -31,7 +32,7 @@ object ZipUtil : FileHelper {
         }
     }
 
-    suspend fun extractData(app: AppData) {
+    suspend fun extractAllData(app: AppData) {
         withContext(ioDispatcher) {
             extractApks(app)
         }

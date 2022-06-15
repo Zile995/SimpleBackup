@@ -15,15 +15,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
 import com.stefan.simplebackup.R
-import kotlinx.coroutines.launch
 
-fun <T : AppCompatActivity> FragmentActivity.onActivityCallbacks(block: T.() -> Unit) {
-    @Suppress("UNCHECKED_CAST")
-    (this as T).apply {
-            block()
-    }
+val Context.getResourceString: (Int) -> String get() = { resource ->
+    this.getString(resource)
 }
 
 inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
@@ -32,6 +27,13 @@ inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     Intent(this, T::class.java).apply {
         putExtras(bundleOf(value))
         startActivity(this)
+    }
+}
+
+fun <T : AppCompatActivity> FragmentActivity.onActivityCallbacks(block: T.() -> Unit) {
+    @Suppress("UNCHECKED_CAST")
+    (this as T).apply {
+        block()
     }
 }
 

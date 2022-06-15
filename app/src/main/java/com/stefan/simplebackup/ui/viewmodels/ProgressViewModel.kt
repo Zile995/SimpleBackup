@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.viewmodels
+package com.stefan.simplebackup.ui.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel

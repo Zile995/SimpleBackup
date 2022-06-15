@@ -11,8 +11,12 @@ import com.stefan.simplebackup.data.model.NotificationData
 import com.stefan.simplebackup.data.workers.ForegroundCallBack
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.PreferenceHelper
-import com.stefan.simplebackup.utils.file.FileHelper
+import com.stefan.simplebackup.utils.extensions.getResourceString
 import com.stefan.simplebackup.utils.file.FileUtil
+import com.stefan.simplebackup.utils.file.FileUtil.createAppBackupDir
+import com.stefan.simplebackup.utils.file.FileUtil.createMainDir
+import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
+import com.stefan.simplebackup.utils.file.FileUtil.moveBackup
 import com.stefan.simplebackup.utils.work.archive.TarUtil
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import kotlinx.coroutines.coroutineScope
@@ -23,17 +27,17 @@ class BackupUtil(
     private val appContext: Context,
     private val backupItems: IntArray,
     private val updateForegroundInfo: ForegroundCallBack
-) : FileHelper {
+) {
 
+    // Notification data
     private val notificationData = NotificationData()
+
+    // Progress variables
     private var currentProgress = 0
     private val generatedIntervals = mutableListOf<Int>()
     private val perItemInterval = PROGRESS_MAX / backupItems.size
     private val updateProgress = { steps: Int ->
         currentProgress += perItemInterval / steps
-    }
-    private val getResourceString: (Int) -> String = { resource ->
-        appContext.getString(resource)
     }
 
     init {
@@ -78,9 +82,11 @@ class BackupUtil(
     }
 
     private suspend fun serializeAppData(app: AppData) {
-        app.updateNotificationData(R.string.backup_progress_saving_application_data)
-        setBackupTime(app)
-        serializeApp(app)
+        app.apply {
+            updateNotificationData(R.string.backup_progress_saving_application_data)
+            setBackupTime()
+            serializeApp()
+        }
     }
 
     private suspend inline fun AppData.runBackup(
@@ -122,7 +128,7 @@ class BackupUtil(
             name = app.name
             image = app.bitmap
             progress = currentProgress
-            text = getResourceString(info)
+            text = appContext.getResourceString(info)
         }
         updateForegroundInfo(notificationData)
     }

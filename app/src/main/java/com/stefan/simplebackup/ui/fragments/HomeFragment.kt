@@ -21,9 +21,9 @@ import com.stefan.simplebackup.ui.adapters.BaseViewHolder
 import com.stefan.simplebackup.ui.adapters.HolderType
 import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.utils.extensions.*
-import com.stefan.simplebackup.viewmodels.HomeViewModel
-import com.stefan.simplebackup.viewmodels.HomeViewModelFactory
-import com.stefan.simplebackup.viewmodels.SELECTION_EXTRA
+import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
+import com.stefan.simplebackup.ui.viewmodels.HomeViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

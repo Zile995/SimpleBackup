@@ -24,8 +24,8 @@ import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.hideAttachedButton
 import com.stefan.simplebackup.utils.extensions.smoothSnapToPosition
 import com.stefan.simplebackup.utils.root.RootChecker
-import com.stefan.simplebackup.viewmodels.HomeViewModel
-import com.stefan.simplebackup.viewmodels.HomeViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
+import com.stefan.simplebackup.ui.viewmodels.HomeViewModelFactory
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {

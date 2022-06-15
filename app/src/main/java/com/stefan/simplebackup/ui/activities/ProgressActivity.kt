@@ -15,9 +15,9 @@ import com.stefan.simplebackup.data.workers.WORK_PROGRESS
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.loadBitmap
-import com.stefan.simplebackup.viewmodels.ProgressViewModel
-import com.stefan.simplebackup.viewmodels.ProgressViewModelFactory
-import com.stefan.simplebackup.viewmodels.SELECTION_EXTRA
+import com.stefan.simplebackup.ui.viewmodels.ProgressViewModel
+import com.stefan.simplebackup.ui.viewmodels.ProgressViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import kotlinx.coroutines.launch
 
 class ProgressActivity : AppCompatActivity() {

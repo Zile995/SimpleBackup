@@ -20,8 +20,8 @@ import com.stefan.simplebackup.ui.adapters.BaseViewHolder
 import com.stefan.simplebackup.ui.adapters.HolderType
 import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.utils.extensions.*
-import com.stefan.simplebackup.viewmodels.LocalViewModel
-import com.stefan.simplebackup.viewmodels.LocalViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
+import com.stefan.simplebackup.ui.viewmodels.LocalViewModelFactory
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

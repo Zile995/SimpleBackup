@@ -1,19 +1,14 @@
-package com.stefan.simplebackup.viewmodels
+package com.stefan.simplebackup.ui.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
-import com.stefan.simplebackup.MainApplication.Companion.getDatabaseInstance
-import com.stefan.simplebackup.data.local.repository.AppRepository
-import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted

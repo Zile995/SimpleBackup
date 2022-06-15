@@ -5,7 +5,6 @@ import com.stefan.simplebackup.MainApplication.Companion.getDatabaseInstance
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.PreferenceHelper
-import com.stefan.simplebackup.utils.file.FileHelper
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import kotlinx.coroutines.coroutineScope
 
@@ -15,7 +14,7 @@ private const val DATA: String = "/data/data"
 class RestoreUtil(
     private val appContext: Context,
     private val restoreItems: IntArray
-) : FileHelper {
+) {
 
     private var currentProgress = 0
     private val updateProgress: () -> Unit = {
@@ -28,7 +27,7 @@ class RestoreUtil(
         restoreItems.forEach { item ->
             repository.getAppData(item).also { app ->
                 PreferenceHelper.savePackageName(null)
-                ZipUtil.extractData(app)
+                ZipUtil.extractAllData(app)
             }
         }
     }

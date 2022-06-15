@@ -17,10 +17,14 @@ import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.extensions.passBundleToActivity
 import com.stefan.simplebackup.utils.file.BitmapUtil.saveByteArray
 import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
+import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
+import com.stefan.simplebackup.utils.file.JsonUtil
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.*
 
 const val PARCELABLE_EXTRA = "APPLICATION_DATA"
 
@@ -117,6 +121,59 @@ data class AppData(
         favorite = parcel.readBooleanValue() ?: false
     )
 
+    suspend fun serializeApp() {
+        isLocal = true
+        JsonUtil.serializeApp(this, getTempDirPath(this))
+    }
+
+    fun setBackupTime() {
+        val locale = Locale.getDefault()
+        val time = SimpleDateFormat(
+            "dd.MM.yy-HH:mm", locale
+        )
+        date = time.format(Date())
+    }
+
+    suspend inline fun <reified T : AppCompatActivity> passToActivity(
+        context: Context?
+    ) {
+        context?.let {
+            context.passBundleToActivity<T>(
+                PARCELABLE_EXTRA to withCheckedBitmap(context)
+            )
+        }
+    }
+
+    suspend fun withCheckedBitmap(context: Context): AppData {
+        return run {
+            if (bitmap.size > 200_000) {
+                Log.d("Bitmap", "${bitmap.size}")
+                bitmap.saveByteArray(name, context)
+                copy(bitmap = byteArrayOf())
+            } else {
+                this
+            }
+        }
+    }
+
+    @Suppress("BlockingMethodInNonBlockingContext")
+    suspend fun setBitmap(context: Context) {
+        withContext(ioDispatcher) {
+            try {
+                if (bitmap.isNotEmpty())
+                    return@withContext
+                context.openFileInput(name).use { stream ->
+                    bitmap = stream.readBytes()
+                }
+                context.deleteFile(name)
+            } catch (exception: IOException) {
+                bitmap =
+                    context.getResourceDrawable(R.drawable.error_48dp)?.toByteArray()
+                        ?: byteArrayOf()
+            }
+        }
+    }
+
     override fun writeToParcel(dest: Parcel, flags: Int) {
         dest.writeInt(uid)
         dest.writeString(name)
@@ -190,46 +247,6 @@ data class AppData(
         result = 31 * result + shouldBackupData.hashCode()
         result = 31 * result + shouldBackupCache.hashCode()
         return result
-    }
-
-    suspend inline fun <reified T : AppCompatActivity> passToActivity(
-        context: Context?
-    ) {
-        context?.let {
-            context.passBundleToActivity<T>(
-                PARCELABLE_EXTRA to withCheckedBitmap(context)
-            )
-        }
-    }
-
-    suspend fun withCheckedBitmap(context: Context): AppData {
-        return run {
-            if (bitmap.size > 200_000) {
-                Log.d("Bitmap", "${bitmap.size}")
-                bitmap.saveByteArray(name, context)
-                copy(bitmap = byteArrayOf())
-            } else {
-                this
-            }
-        }
-    }
-
-    @Suppress("BlockingMethodInNonBlockingContext")
-    suspend fun setBitmap(context: Context) {
-        withContext(ioDispatcher) {
-            try {
-                if (bitmap.isNotEmpty())
-                    return@withContext
-                context.openFileInput(name).use { stream ->
-                    bitmap = stream.readBytes()
-                }
-                context.deleteFile(name)
-            } catch (exception: IOException) {
-                bitmap =
-                    context.getResourceDrawable(R.drawable.error_48dp)?.toByteArray()
-                        ?: byteArrayOf()
-            }
-        }
     }
 
     companion object CREATOR : Parcelable.Creator<AppData> {

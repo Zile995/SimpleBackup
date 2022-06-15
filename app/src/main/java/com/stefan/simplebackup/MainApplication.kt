@@ -6,7 +6,7 @@ import android.util.Log
 import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.utils.PreferenceHelper.initPreferences
-import com.stefan.simplebackup.utils.file.ROOT
+import com.stefan.simplebackup.utils.file.BACKUP_DIR_PATH
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -21,11 +21,11 @@ class MainApplication : Application() {
     /**
      * - Reference to singleton object of [AppDatabase] class
      * - Used to create, open, update Room SQL database
-     * - It is controlled by [AppRepository] which uses interface [AppDao] exposed methods
+     * - It is controlled by [AppRepository] which uses [AppDao] interface exposed methods
      * - It will be initialised lazily, on the first call
      * - Main database coroutine scope is using [SupervisorJob] job with [Dispatchers.Default] dispatcher.
-     * - All other child coroutines will be canceled if this scope is canceled
-     * - If one child coroutine fails, others will not
+     * - All other child coroutines will be canceled if this scope is canceled, if one child coroutine
+     *   fails, others will not
      */
     val database by lazy {
         getDatabaseInstance(CoroutineScope(SupervisorJob()))
@@ -42,13 +42,13 @@ class MainApplication : Application() {
         /**
          * - Used to get our main backup dir path
          */
-        lateinit var mainBackupDirPath: String
+        lateinit var backupDirPath: String
             private set
 
         private fun Context.setMainBackupDir() {
             val externalFilesDir = this.getExternalFilesDir(null)?.absolutePath ?: ""
-            mainBackupDirPath =
-                externalFilesDir.substring(0, externalFilesDir.indexOf("Android")) + ROOT
+            backupDirPath =
+                externalFilesDir.substring(0, externalFilesDir.indexOf("Android")) + BACKUP_DIR_PATH
         }
 
         fun Context.getDatabaseInstance(scope: CoroutineScope) =

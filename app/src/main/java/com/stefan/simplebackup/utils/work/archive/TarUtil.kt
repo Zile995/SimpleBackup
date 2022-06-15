@@ -3,12 +3,12 @@ package com.stefan.simplebackup.utils.work.archive
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
-import com.stefan.simplebackup.utils.file.FileHelper
+import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-object TarUtil : FileHelper {
+object TarUtil {
 
     @Throws(IOException::class)
     suspend fun backupData(app: AppData) {
