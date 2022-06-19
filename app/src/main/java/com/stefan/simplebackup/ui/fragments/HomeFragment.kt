@@ -20,14 +20,14 @@ import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.BaseViewHolder
 import com.stefan.simplebackup.ui.adapters.HolderType
 import com.stefan.simplebackup.ui.adapters.OnClickListener
-import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModelFactory
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
+import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class HomeFragment : Fragment() {
+class HomeFragment : Fragment(), RecyclerViewSaver<FragmentHomeBinding> {
     // Binding
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
@@ -117,7 +117,6 @@ class HomeFragment : Fragment() {
         swipeRefresh.setOnRefreshListener {
             viewLifecycleOwner.lifecycleScope.launch {
                 homeViewModel.refreshPackageList()
-                println("List size: ${homeViewModel.selectionList}")
                 delay(250)
                 swipeRefresh.isRefreshing = false
             }
@@ -125,7 +124,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun FragmentHomeBinding.setActivityCallBacks() {
-        activity?.onActivityCallbacks<MainActivity> {
+        onActivityCallback<MainActivity> {
             homeRecyclerView.controlFloatingButton()
         }
     }
@@ -138,13 +137,13 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun FragmentHomeBinding.saveRecyclerViewState() {
+    override fun FragmentHomeBinding.saveRecyclerViewState() {
         homeRecyclerView.onSaveRecyclerViewState { stateParcelable ->
             homeViewModel.saveRecyclerViewState(stateParcelable)
         }
     }
 
-    private fun FragmentHomeBinding.restoreRecyclerViewState() {
+    override fun FragmentHomeBinding.restoreRecyclerViewState() {
         homeRecyclerView.onRestoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
     }
 

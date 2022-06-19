@@ -19,13 +19,13 @@ import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.BaseViewHolder
 import com.stefan.simplebackup.ui.adapters.HolderType
 import com.stefan.simplebackup.ui.adapters.OnClickListener
-import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModelFactory
+import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class LocalFragment : Fragment() {
+class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
     // Binding
     private var _binding: FragmentLocalBinding? = null
     private val binding get() = _binding!!
@@ -125,18 +125,18 @@ class LocalFragment : Fragment() {
     }
 
     private fun FragmentLocalBinding.setActivityCallBacks() {
-        activity?.onActivityCallbacks<MainActivity> {
+        onActivityCallback<MainActivity> {
             localRecyclerView.controlFloatingButton()
         }
     }
 
-    private fun FragmentLocalBinding.saveRecyclerViewState() {
+    override fun FragmentLocalBinding.saveRecyclerViewState() {
         localRecyclerView.onSaveRecyclerViewState { stateParcelable ->
             localViewModel.saveRecyclerViewState(stateParcelable)
         }
     }
 
-    private fun FragmentLocalBinding.restoreRecyclerViewState() {
+    override fun FragmentLocalBinding.restoreRecyclerViewState() {
         localRecyclerView.onRestoreRecyclerViewState(localViewModel.savedRecyclerViewState)
     }
 
@@ -154,6 +154,7 @@ class LocalFragment : Fragment() {
                     }
                 }
                 localViewModel.spinner.collect { isSpinning ->
+                    //delay(350)
                     progressBar.isVisible = isSpinning
                     if (!isSpinning) {
                         localViewModel.localApps.collect { appList ->

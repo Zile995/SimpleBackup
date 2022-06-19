@@ -62,8 +62,6 @@ object FileUtil {
         }
     }
 
-    suspend fun createAppBackupDir(backupDirPath: String) = createDirectory(backupDirPath)
-
     fun getBackupDirPath(app: AppData) = "${backupDirPath}/${app.packageName}"
 
     fun getTempDirPath(app: AppData): String {

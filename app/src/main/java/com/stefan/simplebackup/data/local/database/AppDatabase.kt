@@ -45,10 +45,6 @@ abstract class AppDatabase : RoomDatabase() {
                             println("Inserting: ${app.name}")
                             appDao?.insert(app)
                         }
-                        dataBuilder(true).collect { app ->
-                            println("Inserting: ${app.name}")
-                            appDao?.insert(app)
-                        }
                     }
                 }
                 PreferenceHelper.setDatabaseCreated(true)

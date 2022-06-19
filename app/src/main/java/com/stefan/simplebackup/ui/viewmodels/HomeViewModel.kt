@@ -5,15 +5,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 
 class HomeViewModel(application: MainApplication) :
     BaseViewModel(application),
@@ -22,21 +20,20 @@ class HomeViewModel(application: MainApplication) :
 
     // Observable spinner properties used for progressbar observing
     private var _spinner = MutableStateFlow(true)
-    val spinner: StateFlow<Boolean>
-        get() = _spinner
+    val spinner get() = _spinner.asStateFlow()
 
     // Observable application properties used for list loading
-    val installedApps = repository.installedApps.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(4_000L),
-        mutableListOf()
-    )
+    private var _installedApps = MutableStateFlow(listOf<AppData>())
+    val installedApps = _installedApps.asStateFlow()
 
     init {
         Log.d("ViewModel", "HomeViewModel created")
         viewModelScope.launchWithLogging(CoroutineName("LoadHomeList")) {
-            delay(400)
-            _spinner.emit(false)
+            repository.installedApps.collect { list ->
+                _installedApps.value = list
+                delay(400)
+                _spinner.value = false
+            }
             refreshPackageList()
         }
     }

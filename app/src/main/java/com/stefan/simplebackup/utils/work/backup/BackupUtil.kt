@@ -13,7 +13,7 @@ import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.getResourceString
 import com.stefan.simplebackup.utils.file.FileUtil
-import com.stefan.simplebackup.utils.file.FileUtil.createAppBackupDir
+import com.stefan.simplebackup.utils.file.FileUtil.createDirectory
 import com.stefan.simplebackup.utils.file.FileUtil.createMainDir
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.moveBackup
@@ -41,7 +41,7 @@ class BackupUtil(
     }
 
     init {
-        generateIntervals(backupItems.size)
+        generateIntervals()
     }
 
     suspend fun backup(): List<WorkResult> = coroutineScope {
@@ -68,7 +68,7 @@ class BackupUtil(
     private suspend fun createDirs(app: AppData) {
         app.updateNotificationData(R.string.backup_progress_dir_info)
         createMainDir()
-        createAppBackupDir(getTempDirPath(app))
+        createDirectory(getTempDirPath(app))
     }
 
     private suspend fun backupData(app: AppData) {
@@ -97,29 +97,37 @@ class BackupUtil(
                 action(this)
                 updateProgress(actions.size)
             }
-            updateNotificationData(R.string.backup_progress_successful)
-            WorkResult.SUCCESS
+            updateOnSuccess()
         } catch (exception: IOException) {
             Log.e("BackupUtil", "Oh, an error occurred: $exception ${exception.localizedMessage}")
-            FileUtil.deleteFile(getTempDirPath(this))
-            setNearestItemInterval(this)
-            WorkResult.ERROR
+            updateOnFailure()
         }
     }
 
-    private fun generateIntervals(numberOfItems: Int) {
+    private suspend fun AppData.updateOnSuccess(): WorkResult {
+        updateNotificationData(R.string.backup_progress_successful)
+        return WorkResult.SUCCESS
+    }
+
+    private suspend fun AppData.updateOnFailure(): WorkResult {
+        FileUtil.deleteFile(getTempDirPath(this))
+        setNearestItemInterval()
+        updateNotificationData(R.string.backup_progress_failed)
+        return WorkResult.ERROR
+    }
+
+    private fun generateIntervals() {
         var intervalSum = 0
-        repeat(numberOfItems) {
+        repeat(backupItems.size) {
             intervalSum += perItemInterval
             generatedIntervals.add(intervalSum)
         }
     }
 
-    private suspend fun setNearestItemInterval(app: AppData) {
+    private fun setNearestItemInterval() {
         currentProgress = generatedIntervals.first { interval ->
             interval > currentProgress
         }
-        app.updateNotificationData(R.string.backup_progress_failed)
     }
 
     private suspend fun AppData.updateNotificationData(@StringRes info: Int) {

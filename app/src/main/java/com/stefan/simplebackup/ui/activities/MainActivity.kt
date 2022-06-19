@@ -1,7 +1,6 @@
 package com.stefan.simplebackup.ui.activities
 
 import android.content.Intent
-import android.content.IntentFilter
 import android.os.Bundle
 import android.os.PersistableBundle
 import androidx.activity.viewModels
@@ -12,7 +11,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
@@ -20,18 +18,18 @@ import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.NotificationReceiver
 import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
-import com.stefan.simplebackup.utils.PreferenceHelper
-import com.stefan.simplebackup.utils.extensions.hideAttachedButton
-import com.stefan.simplebackup.utils.extensions.smoothSnapToPosition
-import com.stefan.simplebackup.utils.root.RootChecker
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModelFactory
+import com.stefan.simplebackup.utils.PreferenceHelper
+import com.stefan.simplebackup.utils.extensions.*
+import com.stefan.simplebackup.utils.root.RootChecker
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     // Binding properties
-    private var _binding: ActivityMainBinding? = null
-    private val binding get() = _binding!!
+    private val binding by viewBinding { inflater ->
+        ActivityMainBinding.inflate(inflater)
+    }
 
     // NavController for fragments
     private lateinit var navController: NavController
@@ -61,7 +59,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         lifecycleScope.launch {
@@ -69,7 +66,7 @@ class MainActivity : AppCompatActivity() {
                 setNavController()
                 binding.bindViews()
             }
-            registerBroadcasts()
+            registerReceivers()
             setRootDialogs()
         }
     }
@@ -112,20 +109,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun ActivityMainBinding.bindBottomNavigationView() {
-        // TODO: Should change animations, and save button states on fragment change
-        bottomNavigation.setupWithNavController(navController)
+        bottomNavigation.navigateWithAnimation(navController)
     }
 
-    private fun registerBroadcasts() {
-        registerReceiver(receiver, IntentFilter().apply {
-            addAction(Intent.ACTION_PACKAGE_ADDED)
-            addAction(Intent.ACTION_PACKAGE_REMOVED)
-            addAction(Intent.ACTION_PACKAGE_REPLACED)
+    private fun registerReceivers() {
+        registerReceiver(receiver, intentFilter(
+            Intent.ACTION_PACKAGE_ADDED,
+            Intent.ACTION_PACKAGE_REMOVED,
+            Intent.ACTION_PACKAGE_REPLACED
+        ) {
             addDataScheme("package")
         })
-        registerReceiver(notificationReceiver, IntentFilter().apply {
-            addAction(ACTION_WORK_FINISHED)
-        })
+        registerReceiver(notificationReceiver, intentFilter(ACTION_WORK_FINISHED))
+    }
+
+    private fun unregisterReceivers() {
+        unregisterReceiver(receiver)
+        unregisterReceiver(notificationReceiver)
     }
 
     private suspend fun setRootDialogs() {
@@ -176,9 +176,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        _binding = null
-        unregisterReceiver(receiver)
-        unregisterReceiver(notificationReceiver)
+        unregisterReceivers()
     }
 }
 

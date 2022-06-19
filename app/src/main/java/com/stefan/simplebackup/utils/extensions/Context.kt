@@ -3,10 +3,12 @@ package com.stefan.simplebackup.utils.extensions
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.provider.Settings
+import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -14,12 +16,30 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
-import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.Fragment
+import androidx.viewbinding.ViewBinding
 import com.stefan.simplebackup.R
 
-val Context.getResourceString: (Int) -> String get() = { resource ->
-    this.getString(resource)
-}
+val Context.getResourceString: (Int) -> String
+    get() = { resource ->
+        this.getString(resource)
+    }
+
+inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.() -> Unit = {}) =
+    IntentFilter().apply {
+        actions.forEach { action ->
+            addAction(action)
+        }
+        block()
+    }
+
+inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
+    crossinline bindingInflater: (LayoutInflater) -> T
+) =
+    lazy(LazyThreadSafetyMode.NONE) {
+        println("Reinitializing lazy binding value")
+        bindingInflater(layoutInflater)
+    }
 
 inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     value: Pair<String, Any?>
@@ -30,9 +50,9 @@ inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     }
 }
 
-fun <T : AppCompatActivity> FragmentActivity.onActivityCallbacks(block: T.() -> Unit) {
+fun <T : AppCompatActivity> Fragment.onActivityCallback(block: T.() -> Unit) {
     @Suppress("UNCHECKED_CAST")
-    (this as T).apply {
+    (activity as? T)?.apply {
         block()
     }
 }

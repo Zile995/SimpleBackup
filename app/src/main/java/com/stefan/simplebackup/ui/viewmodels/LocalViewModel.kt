@@ -10,14 +10,16 @@ import com.stefan.simplebackup.MainApplication.Companion.backupDirPath
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
-import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import com.stefan.simplebackup.utils.file.FileUtil.findJsonFiles
 import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LocalViewModel(application: MainApplication) : BaseViewModel(application) {
 
@@ -27,22 +29,19 @@ class LocalViewModel(application: MainApplication) : BaseViewModel(application) 
 
     // Observable spinner properties used for progressbar observing
     private var _spinner = MutableStateFlow(true)
-    val spinner: StateFlow<Boolean>
-        get() = _spinner
+    val spinner: StateFlow<Boolean> get() = _spinner
 
     val localApps = repository.localApps.stateIn(
-            viewModelScope,
-            SharingStarted.WhileSubscribed(4_000L),
-            mutableListOf()
-        )
+        viewModelScope,
+        SharingStarted.WhileSubscribed(4_000L),
+        mutableListOf()
+    )
 
     init {
         Log.d("ViewModel", "LocalViewModel created")
-        viewModelScope.launchWithLogging(CoroutineName("LoadLocalList")) {
-            launch {
-                delay(400)
-                _spinner.emit(false)
-            }
+        viewModelScope.launch {
+            delay(400)
+            _spinner.value = false
         }
     }
 
