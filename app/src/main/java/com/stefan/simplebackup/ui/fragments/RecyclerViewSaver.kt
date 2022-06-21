@@ -1,9 +1,11 @@
 package com.stefan.simplebackup.ui.fragments
 
 import androidx.viewbinding.ViewBinding
+import java.lang.ref.WeakReference
 
-interface RecyclerViewSaver<T: ViewBinding> {
-    fun T.saveRecyclerViewState()
+interface RecyclerViewSaver<VB: ViewBinding> {
 
-    fun T.restoreRecyclerViewState()
+    fun WeakReference<VB>.saveRecyclerViewState()
+
+    fun VB.restoreRecyclerViewState()
 }

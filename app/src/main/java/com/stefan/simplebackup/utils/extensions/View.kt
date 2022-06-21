@@ -3,10 +3,13 @@ package com.stefan.simplebackup.utils.extensions
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.DisplayMetrics
+import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.annotation.IdRes
 import androidx.core.view.forEach
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -14,6 +17,8 @@ import androidx.navigation.NavOptions
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
+import androidx.transition.AutoTransition
+import androidx.transition.TransitionManager
 import coil.imageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
@@ -38,6 +43,17 @@ var View.isVisible: Boolean
             else -> hide()
         }
     }
+
+fun ViewGroup.startAnimations() {
+    val transition = AutoTransition()
+        .setInterpolator(FastOutSlowInInterpolator())
+        .setDuration(400)
+        .excludeTarget(R.id.tool_bar, true)
+    TransitionManager.beginDelayedTransition(
+        this,
+        transition
+    )
+}
 
 fun ImageView.loadBitmap(byteArray: ByteArray) {
     val imageLoader = context.imageLoader
@@ -67,7 +83,12 @@ fun BottomNavigationView.navigateWithAnimation(
                 saveState = true
             )
         }
-        navController.navigate(item.itemId, args, navOptions.build())
+        when (item.itemId) {
+            R.id.home -> navController.navigate(item.itemId, args, navOptions.build())
+            R.id.local -> navController.navigate(item.itemId, args, navOptions.build())
+            R.id.cloud -> {}
+            R.id.settings -> {}
+        }
         true
     }
 
@@ -100,7 +121,7 @@ fun RecyclerView.smoothSnapToPosition(
     position: Int,
     snapMode: Int = LinearSmoothScroller.SNAP_TO_START
 ) {
-    val scrollDuration = 375f
+    val scrollDuration = 380f
     val smoothScroller = object : LinearSmoothScroller(context) {
         override fun getVerticalSnapPreference(): Int = snapMode
         override fun getHorizontalSnapPreference(): Int = snapMode
@@ -112,30 +133,50 @@ fun RecyclerView.smoothSnapToPosition(
     layoutManager?.startSmoothScroll(smoothScroller)
 }
 
+fun <VH : RecyclerView.ViewHolder> RecyclerView.setupAdapter(
+    block: () -> RecyclerView.Adapter<VH>
+) {
+    setAdapterOnAttacheStateChanges {
+        block()
+    }
+}
+
+private fun <VH : RecyclerView.ViewHolder> RecyclerView.setAdapterOnAttacheStateChanges(block: () -> RecyclerView.Adapter<VH>) {
+    addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+        override fun onViewAttachedToWindow(v: View?) {
+            this@setAdapterOnAttacheStateChanges.adapter = block()
+        }
+
+        override fun onViewDetachedFromWindow(v: View?) {
+            this@setAdapterOnAttacheStateChanges.adapter = null
+        }
+    })
+}
+
 fun RecyclerView.onSaveRecyclerViewState(saveState: (Parcelable) -> Unit) {
     layoutManager?.onSaveInstanceState()?.let { stateParcelable ->
+        Log.d("ViewModel", "Saving recyclerview state")
         saveState(stateParcelable)
     }
 }
 
-fun RecyclerView.onRestoreRecyclerViewState(parcelable: Parcelable?) {
+fun RecyclerView.onRestoreRecyclerViewState(parcelable: Parcelable?) =
     parcelable?.let { stateParcelable ->
         layoutManager?.onRestoreInstanceState(stateParcelable)
     }
-}
 
 fun RecyclerView.canScrollUp() = canScrollVertically(-1)
 
 fun RecyclerView.canScrollDown() = canScrollVertically(1)
 
 fun RecyclerView.hideAttachedButton(floatingButton: FloatingActionButton) {
-    val linearLayoutManager = layoutManager as LinearLayoutManager
     var checkOnAttach = true
     addOnScrollListener(object : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
 
             if (checkOnAttach) {
+                val linearLayoutManager = layoutManager as LinearLayoutManager
                 val firstItemPosition = linearLayoutManager.findFirstCompletelyVisibleItemPosition()
                 val lastItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
 

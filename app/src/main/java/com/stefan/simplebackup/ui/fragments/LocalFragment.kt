@@ -24,13 +24,13 @@ import com.stefan.simplebackup.ui.viewmodels.LocalViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.lang.ref.WeakReference
 
 class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
     // Binding
-    private var _binding: FragmentLocalBinding? = null
-    private val binding get() = _binding!!
-    private var _localAdapter: BaseAdapter? = null
-    private val localAdapter get() = _localAdapter!!
+    private val binding by viewBinding(FragmentLocalBinding::inflate)
+    private var bindingReference: WeakReference<FragmentLocalBinding> = WeakReference(null)
+    private lateinit var localAdapter: BaseAdapter
 
     private val localViewModel: LocalViewModel by viewModels {
         LocalViewModelFactory(requireActivity().application as MainApplication)
@@ -41,8 +41,7 @@ class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
         savedInstanceState: Bundle?
     ): View {
         Log.d("LocalFragment", "Creating LocalFragment")
-        _binding = FragmentLocalBinding
-            .inflate(inflater, container, false)
+        bindingReference = WeakReference(binding)
         return binding.root
     }
 
@@ -51,22 +50,15 @@ class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
         viewLifecycleOwner.lifecycleScope.launch {
             binding.apply {
                 bindViews()
-                setActivityCallBacks()
                 initObservers()
+                setActivityCallBacks()
                 restoreRecyclerViewState()
             }
         }
     }
 
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        _binding?.apply {
-            saveRecyclerViewState()
-        }
-    }
-
-    private fun RecyclerView.setBaseAdapter() {
-        _localAdapter = BaseAdapter(
+    private fun RecyclerView.setLocalAdapter() {
+        localAdapter = BaseAdapter(
             HolderType.LOCAL,
             localViewModel.selectionList,
             localViewModel.setSelectionMode
@@ -99,6 +91,11 @@ class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
         adapter = localAdapter
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        bindingReference.saveRecyclerViewState()
+    }
+
     private fun FragmentLocalBinding.bindViews() {
         bindRecyclerView()
         bindSwipeContainer()
@@ -119,25 +116,28 @@ class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
 
     private fun FragmentLocalBinding.bindRecyclerView() {
         localRecyclerView.apply {
-            setBaseAdapter()
+            setLocalAdapter()
             setHasFixedSize(true)
         }
+    }
+
+    override fun WeakReference<FragmentLocalBinding>.saveRecyclerViewState() {
+        val binding = this.get()
+        binding?.apply {
+            localRecyclerView.onSaveRecyclerViewState { stateParcelable ->
+                localViewModel.saveRecyclerViewState(stateParcelable)
+            }
+        }
+    }
+
+    override fun FragmentLocalBinding.restoreRecyclerViewState() {
+        localRecyclerView.onRestoreRecyclerViewState(localViewModel.savedRecyclerViewState)
     }
 
     private fun FragmentLocalBinding.setActivityCallBacks() {
         onActivityCallback<MainActivity> {
             localRecyclerView.controlFloatingButton()
         }
-    }
-
-    override fun FragmentLocalBinding.saveRecyclerViewState() {
-        localRecyclerView.onSaveRecyclerViewState { stateParcelable ->
-            localViewModel.saveRecyclerViewState(stateParcelable)
-        }
-    }
-
-    override fun FragmentLocalBinding.restoreRecyclerViewState() {
-        localRecyclerView.onRestoreRecyclerViewState(localViewModel.savedRecyclerViewState)
     }
 
     private fun FragmentLocalBinding.initObservers() {
@@ -169,7 +169,5 @@ class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
     override fun onDestroyView() {
         Log.d("LocalFragment", "Destroying LocalFragment")
         super.onDestroyView()
-        _localAdapter = null
-        _binding = null
     }
 }

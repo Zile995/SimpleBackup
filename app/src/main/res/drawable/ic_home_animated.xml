@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/home_filled"
+        android:drawable="@drawable/ic_home_filled"
+        android:state_checked="true" />
+
+    <item
+        android:id="@+id/home_outlined"
+        android:drawable="@drawable/ic_home_outlined" />
+
+    <transition
+        android:drawable="@drawable/avd_home_from_filled"
+        android:fromId="@+id/home_filled"
+        android:toId="@+id/home_outlined" />
+
+    <transition
+        android:drawable="@drawable/avd_home_to_filled"
+        android:fromId="@+id/home_outlined"
+        android:toId="@+id/home_filled" />
+
+</animated-selector>

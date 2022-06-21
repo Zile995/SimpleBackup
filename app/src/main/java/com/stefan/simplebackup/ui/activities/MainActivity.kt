@@ -27,9 +27,7 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     // Binding properties
-    private val binding by viewBinding { inflater ->
-        ActivityMainBinding.inflate(inflater)
-    }
+    private val binding by viewBinding(ActivityMainBinding::inflate)
 
     // NavController for fragments
     private lateinit var navController: NavController
@@ -72,11 +70,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun RecyclerView.controlFloatingButton() {
-        binding.floatingButton.apply {
-            hideAttachedButton(this)
-            setOnClickListener {
-                smoothSnapToPosition(0)
-            }
+        hideAttachedButton(binding.floatingButton)
+        binding.floatingButton.setOnClickListener {
+            smoothSnapToPosition(0)
         }
     }
 

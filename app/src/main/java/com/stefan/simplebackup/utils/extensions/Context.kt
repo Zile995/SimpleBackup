@@ -17,8 +17,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.viewbinding.ViewBinding
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.ui.fragments.FragmentViewBindingDelegate
+import kotlinx.coroutines.launch
 
 val Context.getResourceString: (Int) -> String
     get() = { resource ->
@@ -37,9 +40,14 @@ inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
     crossinline bindingInflater: (LayoutInflater) -> T
 ) =
     lazy(LazyThreadSafetyMode.NONE) {
-        println("Reinitializing lazy binding value")
         bindingInflater(layoutInflater)
     }
+
+inline fun <T : ViewBinding> Fragment.viewBinding(
+    crossinline bindingInflater: (LayoutInflater) -> T
+): FragmentViewBindingDelegate<T> = FragmentViewBindingDelegate(this) {
+    bindingInflater(layoutInflater)
+}
 
 inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     value: Pair<String, Any?>
@@ -50,10 +58,12 @@ inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     }
 }
 
-fun <T : AppCompatActivity> Fragment.onActivityCallback(block: T.() -> Unit) {
+fun <T : AppCompatActivity> Fragment.onActivityCallback(block: suspend T.() -> Unit) {
     @Suppress("UNCHECKED_CAST")
     (activity as? T)?.apply {
-        block()
+        viewLifecycleOwner.lifecycleScope.launch {
+            block()
+        }
     }
 }
 
@@ -122,7 +132,6 @@ fun Context.workerDialog(
     }
     alert.show()
 }
-
 
 fun Context.permissionDialog(
     title: String,

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/cloud_filled"
+        android:drawable="@drawable/ic_cloud_filled"
+        android:state_checked="true" />
+
+    <item
+        android:id="@+id/settings_outlined"
+        android:drawable="@drawable/ic_cloud_outlined" />
+
+    <transition
+        android:drawable="@drawable/avd_cloud_from_filled"
+        android:fromId="@+id/cloud_filled"
+        android:toId="@+id/settings_outlined" />
+
+    <transition
+        android:drawable="@drawable/avd_cloud_to_filled"
+        android:fromId="@+id/settings_outlined"
+        android:toId="@+id/cloud_filled" />
+
+</animated-selector>

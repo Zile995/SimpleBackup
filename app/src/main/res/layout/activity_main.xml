@@ -108,7 +108,7 @@
         android:backgroundTint="@color/floatingButton"
         android:contentDescription="@string/scroll_to_top"
         android:src="@drawable/arrow_up_24dp"
-        android:visibility="gone"
+        android:visibility="visible"
         app:borderWidth="0dp"
         app:fabCustomSize="54dp"
         app:layout_constraintBottom_toTopOf="@+id/bottom_card_view"
