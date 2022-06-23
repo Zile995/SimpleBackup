@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -13,13 +12,11 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.databinding.FragmentHomeBinding
-import com.stefan.simplebackup.databinding.FragmentLocalBinding
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.activities.ProgressActivity
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.BaseViewHolder
-import com.stefan.simplebackup.ui.adapters.HolderType
 import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModelFactory
@@ -29,10 +26,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
-class HomeFragment() : Fragment(), RecyclerViewSaver<FragmentHomeBinding> {
+class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     // Binding
     private val binding by viewBinding(FragmentHomeBinding::inflate)
-    private var bindingReference: WeakReference<FragmentHomeBinding> = WeakReference(null)
     private lateinit var homeAdapter: BaseAdapter
 
     // ViewModel
@@ -41,10 +37,10 @@ class HomeFragment() : Fragment(), RecyclerViewSaver<FragmentHomeBinding> {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        Log.d("HomeFragment", "Creating HomeFragment")
         bindingReference = WeakReference(binding)
         return binding.root
     }
@@ -54,21 +50,24 @@ class HomeFragment() : Fragment(), RecyclerViewSaver<FragmentHomeBinding> {
         viewLifecycleOwner.lifecycleScope.launch {
             binding.apply {
                 bindViews()
-                setActivityCallBacks()
-                restoreRecyclerViewState()
                 initObservers()
+                restoreRecyclerViewState()
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.setActivityCallBacks()
     }
 
     private fun RecyclerView.setHomeAdapter() {
         homeAdapter =
             BaseAdapter(
-                HolderType.HOME,
                 homeViewModel.selectionList,
                 homeViewModel.setSelectionMode
-            ).apply {
-                clickListener = object : OnClickListener {
+            ) {
+                object : OnClickListener {
                     override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
                         val item = homeAdapter.currentList[position]
                         if (homeAdapter.hasSelectedItems()) {
@@ -91,11 +90,6 @@ class HomeFragment() : Fragment(), RecyclerViewSaver<FragmentHomeBinding> {
                 }
             }
         adapter = homeAdapter
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        bindingReference.saveRecyclerViewState()
     }
 
     private fun FragmentHomeBinding.bindViews() {
@@ -154,6 +148,19 @@ class HomeFragment() : Fragment(), RecyclerViewSaver<FragmentHomeBinding> {
         }
     }
 
+    override fun WeakReference<FragmentHomeBinding>.saveRecyclerViewState() {
+        val binding = this.get()
+        binding?.apply {
+            homeRecyclerView.onSaveRecyclerViewState { stateParcelable ->
+                homeViewModel.saveRecyclerViewState(stateParcelable)
+            }
+        }
+    }
+
+    override fun FragmentHomeBinding.restoreRecyclerViewState() {
+        homeRecyclerView.onRestoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         Log.d("HomeFragment", "Destroyed HomeFragment Views")
@@ -162,20 +169,5 @@ class HomeFragment() : Fragment(), RecyclerViewSaver<FragmentHomeBinding> {
     override fun onDestroy() {
         super.onDestroy()
         Log.d("HomeFragment", "Destroyed HomeFragment completely")
-    }
-
-
-    override fun WeakReference<FragmentHomeBinding>.saveRecyclerViewState() {
-        val binding = this.get()
-        binding?.apply {
-            homeRecyclerView.onSaveRecyclerViewState { stateParcelable ->
-                homeViewModel.saveRecyclerViewState(stateParcelable)
-
-            }
-        }
-    }
-
-    override fun FragmentHomeBinding.restoreRecyclerViewState() {
-        homeRecyclerView.onRestoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
     }
 }

@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -17,7 +16,6 @@ import com.stefan.simplebackup.databinding.FragmentLocalBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.BaseViewHolder
-import com.stefan.simplebackup.ui.adapters.HolderType
 import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModelFactory
@@ -26,10 +24,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
-class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
+class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     // Binding
     private val binding by viewBinding(FragmentLocalBinding::inflate)
-    private var bindingReference: WeakReference<FragmentLocalBinding> = WeakReference(null)
     private lateinit var localAdapter: BaseAdapter
 
     private val localViewModel: LocalViewModel by viewModels {
@@ -37,10 +34,10 @@ class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        Log.d("LocalFragment", "Creating LocalFragment")
         bindingReference = WeakReference(binding)
         return binding.root
     }
@@ -51,20 +48,23 @@ class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
             binding.apply {
                 bindViews()
                 initObservers()
-                setActivityCallBacks()
                 restoreRecyclerViewState()
             }
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        binding.setActivityCallBacks()
+    }
+
     private fun RecyclerView.setLocalAdapter() {
         localAdapter = BaseAdapter(
-            HolderType.LOCAL,
             localViewModel.selectionList,
             localViewModel.setSelectionMode
-        ).apply {
+        ) {
             val context = requireContext()
-            clickListener = object : OnClickListener {
+            object : OnClickListener {
                 override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
                     val item = localAdapter.currentList[position]
                     if (localAdapter.hasSelectedItems()) {
@@ -89,11 +89,6 @@ class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
             }
         }
         adapter = localAdapter
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        bindingReference.saveRecyclerViewState()
     }
 
     private fun FragmentLocalBinding.bindViews() {
@@ -130,16 +125,6 @@ class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
         }
     }
 
-    override fun FragmentLocalBinding.restoreRecyclerViewState() {
-        localRecyclerView.onRestoreRecyclerViewState(localViewModel.savedRecyclerViewState)
-    }
-
-    private fun FragmentLocalBinding.setActivityCallBacks() {
-        onActivityCallback<MainActivity> {
-            localRecyclerView.controlFloatingButton()
-        }
-    }
-
     private fun FragmentLocalBinding.initObservers() {
         viewLifecycleOwner.lifecycleScope.launch {
             launch {
@@ -154,7 +139,6 @@ class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
                     }
                 }
                 localViewModel.spinner.collect { isSpinning ->
-                    //delay(350)
                     progressBar.isVisible = isSpinning
                     if (!isSpinning) {
                         localViewModel.localApps.collect { appList ->
@@ -163,6 +147,16 @@ class LocalFragment : Fragment(), RecyclerViewSaver<FragmentLocalBinding> {
                     }
                 }
             }
+        }
+    }
+
+    override fun FragmentLocalBinding.restoreRecyclerViewState() {
+        localRecyclerView.onRestoreRecyclerViewState(localViewModel.savedRecyclerViewState)
+    }
+
+    private fun FragmentLocalBinding.setActivityCallBacks() {
+        onActivityCallback<MainActivity> {
+            localRecyclerView.controlFloatingButton()
         }
     }
 

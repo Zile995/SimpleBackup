@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.ui.viewmodels
 
 import android.os.Parcelable
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
@@ -23,6 +24,7 @@ abstract class BaseViewModel(application: MainApplication) : AndroidViewModel(ap
 
     // Save RecyclerView state
     fun saveRecyclerViewState(parcelable: Parcelable) {
+        Log.d("ViewModel", "Saving recyclerview state")
         state = parcelable
     }
 }

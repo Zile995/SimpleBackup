@@ -8,7 +8,7 @@ import com.stefan.simplebackup.data.model.AppData
 
 sealed class BaseViewHolder(
     binding: ViewBinding,
-    private val clickListener: OnClickListener?
+    private val clickListener: () -> OnClickListener
 ) : RecyclerView.ViewHolder(binding.root) {
 
     abstract val cardView: MaterialCardView
@@ -16,11 +16,11 @@ sealed class BaseViewHolder(
 
     init {
         binding.root.setOnClickListener {
-            clickListener?.onItemViewClick(this, adapterPosition)
+            clickListener().onItemViewClick(this, adapterPosition)
         }
 
         binding.root.setOnLongClickListener {
-            clickListener?.onLongItemViewClick(this, adapterPosition)
+            clickListener().onLongItemViewClick(this, adapterPosition)
             true
         }
     }

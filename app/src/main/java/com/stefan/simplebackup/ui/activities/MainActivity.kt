@@ -70,10 +70,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun RecyclerView.controlFloatingButton() {
-        hideAttachedButton(binding.floatingButton)
         binding.floatingButton.setOnClickListener {
             smoothSnapToPosition(0)
         }
+        hideAttachedButton(binding.floatingButton)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -105,7 +105,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun ActivityMainBinding.bindBottomNavigationView() {
-        bottomNavigation.navigateWithAnimation(navController)
+        bottomNavigation.navigateWithAnimation(navController, doBeforeNavigating = {
+            floatingButton.setOnClickListener(null)
+        })
     }
 
     private fun registerReceivers() {

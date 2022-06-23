@@ -6,43 +6,26 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.databinding.HomeItemBinding
-import com.stefan.simplebackup.databinding.LocalItemBinding
 
 typealias SelectionModeCallBack = (Boolean) -> Unit
 
 class BaseAdapter(
-    private val holderType: HolderType,
     override val selectedItems: MutableList<Int>,
     private val onSelectionModeCallback: SelectionModeCallBack,
+    private val clickListener: () -> OnClickListener
 ) : ListAdapter<AppData, BaseViewHolder>(DiffCallback()),
     SelectionListener<BaseViewHolder> by BaseSelectionListenerImpl(
         selectedItems,
         onSelectionModeCallback
     ) {
 
-    var clickListener: OnClickListener? = null
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder {
-        return when (holderType) {
-            HolderType.HOME -> {
-                HomeViewHolder(
-                    HomeItemBinding.inflate(getLayoutInflater(parent), parent, false),
-                    clickListener
-                )
-            }
-            HolderType.LOCAL -> {
-                LocalViewHolder(
-                    LocalItemBinding.inflate(
-                        getLayoutInflater(parent),
-                        parent,
-                        false
-                    ), clickListener
-                )
-            }
-            else -> {
-                throw IllegalArgumentException("Invalid holder type")
-            }
-        }
+        val layoutInflater = getLayoutInflater(parent)
+        // TODO: Use different logic for separate fragment creation
+        return HomeViewHolder(
+            HomeItemBinding.inflate(layoutInflater, parent, false),
+            clickListener
+        )
     }
 
     override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
@@ -76,10 +59,4 @@ class BaseAdapter(
             return oldItem == newItem
         }
     }
-}
-
-enum class HolderType {
-    HOME,
-    LOCAL,
-    DRIVE
 }

@@ -3,7 +3,6 @@ package com.stefan.simplebackup.utils.extensions
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.DisplayMetrics
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
@@ -65,10 +64,12 @@ fun ImageView.loadBitmap(byteArray: ByteArray) {
     imageLoader.enqueue(request)
 }
 
-fun BottomNavigationView.navigateWithAnimation(
+inline fun BottomNavigationView.navigateWithAnimation(
     navController: NavController,
-    args: Bundle? = null
+    args: Bundle? = null,
+    crossinline doBeforeNavigating: () -> Unit = {}
 ) {
+    val weakReference = WeakReference(this)
     setOnItemSelectedListener { item ->
         val navOptions = NavOptions.Builder().apply {
             setLaunchSingleTop(true)
@@ -83,6 +84,7 @@ fun BottomNavigationView.navigateWithAnimation(
                 saveState = true
             )
         }
+        doBeforeNavigating()
         when (item.itemId) {
             R.id.home -> navController.navigate(item.itemId, args, navOptions.build())
             R.id.local -> navController.navigate(item.itemId, args, navOptions.build())
@@ -92,7 +94,6 @@ fun BottomNavigationView.navigateWithAnimation(
         true
     }
 
-    val weakReference = WeakReference(this)
     navController.addOnDestinationChangedListener(
         object : NavController.OnDestinationChangedListener {
             override fun onDestinationChanged(
@@ -133,29 +134,8 @@ fun RecyclerView.smoothSnapToPosition(
     layoutManager?.startSmoothScroll(smoothScroller)
 }
 
-fun <VH : RecyclerView.ViewHolder> RecyclerView.setupAdapter(
-    block: () -> RecyclerView.Adapter<VH>
-) {
-    setAdapterOnAttacheStateChanges {
-        block()
-    }
-}
-
-private fun <VH : RecyclerView.ViewHolder> RecyclerView.setAdapterOnAttacheStateChanges(block: () -> RecyclerView.Adapter<VH>) {
-    addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-        override fun onViewAttachedToWindow(v: View?) {
-            this@setAdapterOnAttacheStateChanges.adapter = block()
-        }
-
-        override fun onViewDetachedFromWindow(v: View?) {
-            this@setAdapterOnAttacheStateChanges.adapter = null
-        }
-    })
-}
-
 fun RecyclerView.onSaveRecyclerViewState(saveState: (Parcelable) -> Unit) {
     layoutManager?.onSaveInstanceState()?.let { stateParcelable ->
-        Log.d("ViewModel", "Saving recyclerview state")
         saveState(stateParcelable)
     }
 }

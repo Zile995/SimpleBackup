@@ -58,7 +58,9 @@ inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     }
 }
 
-fun <T : AppCompatActivity> Fragment.onActivityCallback(block: suspend T.() -> Unit) {
+inline fun <T : AppCompatActivity> Fragment.onActivityCallback(
+    crossinline block: suspend T.() -> Unit
+) {
     @Suppress("UNCHECKED_CAST")
     (activity as? T)?.apply {
         viewLifecycleOwner.lifecycleScope.launch {

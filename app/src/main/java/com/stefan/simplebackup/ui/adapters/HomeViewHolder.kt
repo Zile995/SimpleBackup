@@ -10,7 +10,7 @@ import com.stefan.simplebackup.utils.extensions.loadBitmap
 
 class HomeViewHolder(
     private val binding: HomeItemBinding,
-    clickListener: OnClickListener?
+    clickListener: () -> OnClickListener
 ) : BaseViewHolder(binding, clickListener) {
 
     override val cardView = binding.cardItem
