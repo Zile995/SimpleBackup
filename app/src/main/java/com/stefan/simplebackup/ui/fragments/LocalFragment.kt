@@ -25,7 +25,8 @@ import java.lang.ref.WeakReference
 class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     // Binding
     private val binding by viewBinding(FragmentLocalBinding::inflate)
-    private lateinit var localAdapter: LocalAdapter
+    private var _localAdapter: LocalAdapter? = null
+    private val localAdapter get() = _localAdapter!!
 
     private val localViewModel: LocalViewModel by viewModels {
         LocalViewModelFactory(requireActivity().application as MainApplication)
@@ -57,7 +58,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     }
 
     private fun RecyclerView.setLocalAdapter() {
-        localAdapter = LocalAdapter(
+        _localAdapter = LocalAdapter(
             localViewModel.selectionList,
             localViewModel.setSelectionMode
         ) {
@@ -159,6 +160,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     }
 
     override fun onDestroyView() {
+        _localAdapter = null
         Log.d("LocalFragment", "Destroying LocalFragment")
         super.onDestroyView()
     }

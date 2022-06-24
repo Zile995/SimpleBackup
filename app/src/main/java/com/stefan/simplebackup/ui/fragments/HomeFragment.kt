@@ -15,7 +15,6 @@ import com.stefan.simplebackup.databinding.FragmentHomeBinding
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.activities.ProgressActivity
-import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.BaseViewHolder
 import com.stefan.simplebackup.ui.adapters.HomeAdapter
 import com.stefan.simplebackup.ui.adapters.OnClickListener
@@ -30,7 +29,8 @@ import java.lang.ref.WeakReference
 class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     // Binding
     private val binding by viewBinding(FragmentHomeBinding::inflate)
-    private lateinit var homeAdapter: HomeAdapter
+    private var _homeAdapter: HomeAdapter? = null
+    private val homeAdapter get() = _homeAdapter!!
 
     // ViewModel
     private val homeViewModel: HomeViewModel by activityViewModels {
@@ -63,7 +63,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     }
 
     private fun RecyclerView.setHomeAdapter() {
-        homeAdapter =
+        _homeAdapter =
             HomeAdapter(
                 homeViewModel.selectionList,
                 homeViewModel.setSelectionMode
@@ -163,8 +163,10 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
+        _homeAdapter = null
         Log.d("HomeFragment", "Destroyed HomeFragment Views")
+        super.onDestroyView()
+
     }
 
     override fun onDestroy() {
