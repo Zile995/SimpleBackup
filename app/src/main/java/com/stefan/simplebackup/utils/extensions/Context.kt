@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.utils.extensions
 
 import android.app.ActivityManager
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -35,6 +36,12 @@ inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.
         }
         block()
     }
+
+fun Context.unregisterReceivers(vararg receivers: BroadcastReceiver) {
+    receivers.forEach { receiver ->
+        unregisterReceiver(receiver)
+    }
+}
 
 inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
     crossinline bindingInflater: (LayoutInflater) -> T

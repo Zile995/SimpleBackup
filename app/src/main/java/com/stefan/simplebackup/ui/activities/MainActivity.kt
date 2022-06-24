@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.ui.activities
 
+import android.content.BroadcastReceiver
 import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
@@ -121,11 +122,6 @@ class MainActivity : AppCompatActivity() {
         registerReceiver(notificationReceiver, intentFilter(ACTION_WORK_FINISHED))
     }
 
-    private fun unregisterReceivers() {
-        unregisterReceiver(receiver)
-        unregisterReceiver(notificationReceiver)
-    }
-
     private suspend fun setRootDialogs() {
         if (!isSubmitted) {
             hasRootAccess()
@@ -174,7 +170,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceivers()
+        unregisterReceivers(receiver, notificationReceiver)
     }
 }
 
