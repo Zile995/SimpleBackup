@@ -84,8 +84,8 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
     private suspend fun backup() {
         items?.let { backupItems ->
-            val backupUtil = BackupUtil(applicationContext, backupItems) {
-                foregroundCallBack
+            val backupUtil = BackupUtil(applicationContext, backupItems) { notificationData ->
+                foregroundCallBack(notificationData)
             }
             workResults = backupUtil.backup()
         }
