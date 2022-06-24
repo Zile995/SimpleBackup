@@ -26,7 +26,7 @@ const val PROGRESS_MAX = 10_000
 const val WORK_PROGRESS = "PROGRESS"
 const val WORK_ITEMS = "NUMBER_OF_PACKAGES"
 
-typealias ForegroundCallBack = suspend (NotificationData) -> Unit
+typealias ForegroundCallback = suspend (NotificationData) -> Unit
 
 class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext,
@@ -42,7 +42,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
     private val updateForegroundInfo = createForegroundInfo(notificationId)
 
-    private val foregroundCallBack: ForegroundCallBack = { notificationData ->
+    private val foregroundCallBack: ForegroundCallback = { notificationData ->
         setProgress(workDataOf(WORK_PROGRESS to notificationData.progress))
         updateForegroundInfo(
             getUpdatedNotification(notificationData)
@@ -84,7 +84,9 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
     private suspend fun backup() {
         items?.let { backupItems ->
-            val backupUtil = BackupUtil(applicationContext, backupItems, foregroundCallBack)
+            val backupUtil = BackupUtil(applicationContext, backupItems) {
+                foregroundCallBack
+            }
             workResults = backupUtil.backup()
         }
     }

@@ -9,24 +9,15 @@ import com.stefan.simplebackup.databinding.HomeItemBinding
 
 typealias SelectionModeCallBack = (Boolean) -> Unit
 
-class BaseAdapter(
+abstract class BaseAdapter(
     override val selectedItems: MutableList<Int>,
     private val onSelectionModeCallback: SelectionModeCallBack,
-    private val clickListener: () -> OnClickListener
+    protected val clickListener: () -> OnClickListener
 ) : ListAdapter<AppData, BaseViewHolder>(DiffCallback()),
     SelectionListener<BaseViewHolder> by BaseSelectionListenerImpl(
         selectedItems,
         onSelectionModeCallback
     ) {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder {
-        val layoutInflater = getLayoutInflater(parent)
-        // TODO: Use different logic for separate fragment creation
-        return HomeViewHolder(
-            HomeItemBinding.inflate(layoutInflater, parent, false),
-            clickListener
-        )
-    }
 
     override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
         val item = getItem(position)
@@ -43,7 +34,7 @@ class BaseAdapter(
         holder.unsetSelected()
     }
 
-    private fun getLayoutInflater(parent: ViewGroup): LayoutInflater {
+    protected fun getLayoutInflater(parent: ViewGroup): LayoutInflater {
         return LayoutInflater.from(parent.context)
     }
 

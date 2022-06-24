@@ -14,9 +14,7 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.FragmentLocalBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
-import com.stefan.simplebackup.ui.adapters.BaseAdapter
-import com.stefan.simplebackup.ui.adapters.BaseViewHolder
-import com.stefan.simplebackup.ui.adapters.OnClickListener
+import com.stefan.simplebackup.ui.adapters.*
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
@@ -27,7 +25,7 @@ import java.lang.ref.WeakReference
 class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     // Binding
     private val binding by viewBinding(FragmentLocalBinding::inflate)
-    private lateinit var localAdapter: BaseAdapter
+    private lateinit var localAdapter: LocalAdapter
 
     private val localViewModel: LocalViewModel by viewModels {
         LocalViewModelFactory(requireActivity().application as MainApplication)
@@ -59,7 +57,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     }
 
     private fun RecyclerView.setLocalAdapter() {
-        localAdapter = BaseAdapter(
+        localAdapter = LocalAdapter(
             localViewModel.selectionList,
             localViewModel.setSelectionMode
         ) {
