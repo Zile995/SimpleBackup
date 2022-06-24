@@ -6,10 +6,10 @@ import androidx.viewbinding.ViewBinding
 import java.lang.ref.WeakReference
 
 abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB> {
-    protected lateinit var bindingReference: WeakReference<VB>
+    protected var bindingReference: WeakReference<VB>? = null
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        bindingReference.saveRecyclerViewState()
+        bindingReference?.saveRecyclerViewState()
     }
 }

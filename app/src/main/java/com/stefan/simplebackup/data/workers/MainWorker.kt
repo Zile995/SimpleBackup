@@ -61,7 +61,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                     /**
                      *  Delay and send new notification sound only for fast works
                      */
-                    if (time <= 1_000L) delay(1_000L)
+                    if (time <= 1_000L) delay(1_100L)
                     items?.apply {
                         applicationContext.sendNotificationBroadcast(
                             notification = getFinishedNotification(
