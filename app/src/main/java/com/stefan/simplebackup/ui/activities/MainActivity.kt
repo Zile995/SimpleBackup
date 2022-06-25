@@ -1,6 +1,6 @@
 package com.stefan.simplebackup.ui.activities
 
-import android.content.BroadcastReceiver
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
@@ -13,6 +13,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayoutMediator
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
@@ -29,6 +31,7 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
     // Binding properties
     private val binding by viewBinding(ActivityMainBinding::inflate)
+    private var mediator: TabLayoutMediator? = null
 
     // NavController for fragments
     private lateinit var navController: NavController
@@ -77,6 +80,30 @@ class MainActivity : AppCompatActivity() {
         hideAttachedButton(binding.floatingButton)
     }
 
+    fun ViewPager2.controlTabLayout() {
+        mediator = TabLayoutMediator(
+            binding.tabLayout,
+            this,
+            true,
+            true
+        ) { tab, position ->
+            when (position) {
+                0 -> {
+                    tab.text = this@MainActivity.getResourceString(R.string.applications)
+                }
+                1 -> {
+                    tab.text = this@MainActivity.getResourceString(R.string.favorites)
+                }
+            }
+        }
+        mediator?.attach()
+    }
+
+    fun detachTabLayoutMediator() {
+        mediator?.detach()
+        mediator = null
+    }
+
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         isSubmitted = savedInstanceState.getBoolean("isSubmitted")
@@ -100,6 +127,7 @@ class MainActivity : AppCompatActivity() {
         navController = navHostFragment.navController
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private fun ActivityMainBinding.bindViews() {
         window.setBackgroundDrawableResource(R.color.background)
         bindBottomNavigationView()

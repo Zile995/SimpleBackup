@@ -14,7 +14,9 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.FragmentLocalBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
-import com.stefan.simplebackup.ui.adapters.*
+import com.stefan.simplebackup.ui.adapters.BaseViewHolder
+import com.stefan.simplebackup.ui.adapters.LocalAdapter
+import com.stefan.simplebackup.ui.adapters.OnClickListener
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
@@ -24,7 +26,9 @@ import java.lang.ref.WeakReference
 
 class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     // Binding
-    private val binding by viewBinding(FragmentLocalBinding::inflate)
+    private val binding by viewBinding(FragmentLocalBinding::inflate) {
+        cleanUp()
+    }
     private var _localAdapter: LocalAdapter? = null
     private val localAdapter get() = _localAdapter!!
 
@@ -159,8 +163,11 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
         }
     }
 
-    override fun onDestroyView() {
+    private fun cleanUp() {
         _localAdapter = null
+    }
+
+    override fun onDestroyView() {
         Log.d("LocalFragment", "Destroying LocalFragment")
         super.onDestroyView()
     }

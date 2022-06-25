@@ -2,7 +2,8 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <dimen name="bottom_navigation_height" tools:override="true">80dp</dimen>
     <dimen name="tab_layout_height" tools:override="true">30dp</dimen>
-    <dimen name="app_bar_height" tools:override="true">60dp</dimen>
+    <dimen name="activity_bar_height" tools:override="true">100dp</dimen>
+    <dimen name="toolbar_height" tools:override="true">60dp</dimen>
     <dimen name="search_bar_height" tools:override="true">44dp</dimen>
     <dimen name="bottom_card_view_height" tools:override="true">90dp</dimen>
 </resources>

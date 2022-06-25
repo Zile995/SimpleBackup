@@ -12,7 +12,7 @@ typealias SelectionModeCallBack = (Boolean) -> Unit
 abstract class BaseAdapter(
     override val selectedItems: MutableList<Int>,
     private val onSelectionModeCallback: SelectionModeCallBack,
-    protected val clickListener: () -> OnClickListener
+    val clickListener: () -> OnClickListener
 ) : ListAdapter<AppData, BaseViewHolder>(DiffCallback()),
     SelectionListener<BaseViewHolder> by BaseSelectionListenerImpl(
         selectedItems,

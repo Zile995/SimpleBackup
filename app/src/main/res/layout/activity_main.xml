@@ -7,12 +7,12 @@
     android:background="?attr/colorPrimaryVariant"
     tools:context=".ui.activities.MainActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
+    <com.google.android.material.card.MaterialCardView
         android:id="@+id/app_bar_layout"
+        style="@style/Widget.SimpleBackup.BottomCardView"
+        android:layout_marginTop="-10dp"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/app_bar_height"
-        app:elevation="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/tab_layout"
+        android:layout_height="@dimen/activity_bar_height"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -20,7 +20,10 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="?attr/colorPrimary">
+            android:background="?attr/colorPrimary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/tool_bar"
@@ -28,8 +31,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/search_bar_height"
                 android:layout_marginStart="18dp"
-                android:layout_marginTop="5dp"
                 android:layout_marginEnd="18dp"
+                android:layout_marginBottom="15dp"
                 app:cardBackgroundColor="@color/searchBar"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -55,36 +58,26 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tab_layout"
+                android:background="@drawable/curved_tab_layout"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/tab_layout_height"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tool_bar"
+                app:tabIndicatorColor="@color/selectedTab"
+                app:tabIndicatorFullWidth="false"
+                app:tabMode="fixed"
+                app:tabRippleColor="@color/cardViewRipple"
+                app:tabSelectedTextColor="@color/selectedTab">
+
+            </com.google.android.material.tabs.TabLayout>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tab_layout"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/tab_layout_height"
-        android:background="@drawable/curved_tab_layout"
-        app:layout_constraintBottom_toTopOf="@+id/nav_host_container"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/app_bar_layout"
-        app:tabIndicatorColor="@color/selectedTab"
-        app:tabIndicatorFullWidth="false"
-        app:tabMode="fixed"
-        app:tabRippleColor="@color/cardViewRipple"
-        app:tabSelectedTextColor="@color/selectedTab">
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/applications" />
-
-        <com.google.android.material.tabs.TabItem
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/favorites" />
-
-    </com.google.android.material.tabs.TabLayout>
+    </com.google.android.material.card.MaterialCardView>
 
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_container"
@@ -95,7 +88,7 @@
         app:layout_constraintBottom_toTopOf="@+id/bottom_card_view"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tab_layout"
+        app:layout_constraintTop_toBottomOf="@+id/app_bar_layout"
         app:navGraph="@navigation/nav_graph" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -108,7 +101,7 @@
         android:backgroundTint="@color/floatingButton"
         android:contentDescription="@string/scroll_to_top"
         android:src="@drawable/arrow_up_24dp"
-        android:visibility="visible"
+        android:visibility="gone"
         app:borderWidth="0dp"
         app:fabCustomSize="54dp"
         app:layout_constraintBottom_toTopOf="@+id/bottom_card_view"

@@ -16,5 +16,4 @@ class HomeAdapter(
             clickListener
         )
     }
-
 }

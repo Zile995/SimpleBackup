@@ -51,10 +51,15 @@ inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
     }
 
 inline fun <T : ViewBinding> Fragment.viewBinding(
-    crossinline bindingInflater: (LayoutInflater) -> T
-): FragmentViewBindingDelegate<T> = FragmentViewBindingDelegate(this) {
-    bindingInflater(layoutInflater)
-}
+    crossinline bindingInflater: (LayoutInflater) -> T,
+    noinline cleanUp: () -> Unit = {}
+): FragmentViewBindingDelegate<T> = FragmentViewBindingDelegate(
+    this,
+    viewBindingFactory = {
+        bindingInflater(layoutInflater)
+    },
+    cleanUp = cleanUp
+)
 
 inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     value: Pair<String, Any?>
