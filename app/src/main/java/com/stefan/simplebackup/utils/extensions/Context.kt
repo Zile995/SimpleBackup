@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.provider.Settings
 import android.view.LayoutInflater
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
@@ -21,6 +22,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.viewbinding.ViewBinding
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.ui.fragments.BaseFragment
 import com.stefan.simplebackup.ui.fragments.FragmentViewBindingDelegate
 import kotlinx.coroutines.launch
 
@@ -50,6 +52,11 @@ inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
         bindingInflater(layoutInflater)
     }
 
+inline fun <T : ViewBinding> BaseFragment<T>.viewBinding(crossinline bindingInflater: (LayoutInflater) -> T) =
+    viewBinding(bindingInflater) {
+        onCleanUp()
+    }
+
 inline fun <T : ViewBinding> Fragment.viewBinding(
     crossinline bindingInflater: (LayoutInflater) -> T,
     noinline cleanUp: () -> Unit = {}
@@ -60,6 +67,11 @@ inline fun <T : ViewBinding> Fragment.viewBinding(
     },
     cleanUp = cleanUp
 )
+
+inline fun <T : ViewBinding> ViewGroup.viewBinding(
+    factory: (LayoutInflater, ViewGroup, Boolean) -> T
+) =
+    factory(LayoutInflater.from(context), this, false)
 
 inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     value: Pair<String, Any?>

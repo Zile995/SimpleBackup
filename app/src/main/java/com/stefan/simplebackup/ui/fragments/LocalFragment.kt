@@ -26,9 +26,7 @@ import java.lang.ref.WeakReference
 
 class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     // Binding
-    private val binding by viewBinding(FragmentLocalBinding::inflate) {
-        cleanUp()
-    }
+    private val binding by viewBinding(FragmentLocalBinding::inflate)
     private var _localAdapter: LocalAdapter? = null
     private val localAdapter get() = _localAdapter!!
 
@@ -163,7 +161,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
         }
     }
 
-    private fun cleanUp() {
+    override fun onCleanUp() {
         _localAdapter = null
     }
 

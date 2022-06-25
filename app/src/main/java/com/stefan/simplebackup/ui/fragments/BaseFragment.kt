@@ -12,4 +12,6 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         super.onSaveInstanceState(outState)
         bindingReference?.saveRecyclerViewState()
     }
+
+    abstract fun onCleanUp()
 }

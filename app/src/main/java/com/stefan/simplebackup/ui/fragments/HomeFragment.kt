@@ -28,9 +28,7 @@ import java.lang.ref.WeakReference
 
 class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     // Binding
-    private val binding by viewBinding(FragmentHomeBinding::inflate) {
-        cleanUp()
-    }
+    private val binding by viewBinding(FragmentHomeBinding::inflate)
     private var _homeAdapter: HomeAdapter? = null
     private val homeAdapter get() = _homeAdapter!!
 
@@ -164,7 +162,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         homeRecyclerView.onRestoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
     }
 
-    private fun cleanUp() {
+    override fun onCleanUp() {
         _homeAdapter = null
     }
 

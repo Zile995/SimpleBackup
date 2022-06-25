@@ -1,11 +1,8 @@
 package com.stefan.simplebackup.ui.adapters
 
-import android.view.LayoutInflater
-import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.databinding.HomeItemBinding
 
 typealias SelectionModeCallBack = (Boolean) -> Unit
 
@@ -32,10 +29,6 @@ abstract class BaseAdapter(
     override fun onViewRecycled(holder: BaseViewHolder) {
         super.onViewRecycled(holder)
         holder.unsetSelected()
-    }
-
-    protected fun getLayoutInflater(parent: ViewGroup): LayoutInflater {
-        return LayoutInflater.from(parent.context)
     }
 
     private class DiffCallback : DiffUtil.ItemCallback<AppData>() {
