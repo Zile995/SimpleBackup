@@ -3,7 +3,7 @@ package com.stefan.simplebackup.data.receivers
 import com.stefan.simplebackup.data.local.repository.AppRepository
 
 interface PackageListener {
-    fun getRepository(): AppRepository
+    val repository: AppRepository
 
     suspend fun insertOrUpdatePackage(packageName: String)
 

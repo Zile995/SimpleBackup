@@ -11,13 +11,12 @@ import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class HomeViewModel(application: MainApplication) :
     BaseViewModel(application),
     PackageListener by PackageListenerImpl(application) {
-    private val repository = getRepository()
-
     // Observable spinner properties used for progressbar observing
     private var _spinner = MutableStateFlow(true)
     val spinner get() = _spinner.asStateFlow()

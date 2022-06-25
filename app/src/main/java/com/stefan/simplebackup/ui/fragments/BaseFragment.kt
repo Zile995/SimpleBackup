@@ -5,7 +5,7 @@ import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
 import java.lang.ref.WeakReference
 
-abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB> {
+sealed class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB> {
     protected var bindingReference: WeakReference<VB>? = null
 
     override fun onSaveInstanceState(outState: Bundle) {

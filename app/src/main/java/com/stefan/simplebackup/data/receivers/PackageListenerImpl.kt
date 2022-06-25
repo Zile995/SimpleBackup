@@ -10,10 +10,8 @@ import kotlinx.coroutines.withContext
 
 class PackageListenerImpl(application: MainApplication) : PackageListener {
 
-    private val repository = AppRepository(application.database.appDao())
+    override val repository = AppRepository(application.database.appDao())
     private val appManager = AppManager(application)
-
-    override fun getRepository() = repository
 
     // Used to check for changed packages on init
     override suspend fun refreshPackageList() {
