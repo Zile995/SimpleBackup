@@ -33,8 +33,7 @@ private const val TAG: String = "AppDetailActivity"
 private const val REQUEST_CODE_SIGN_IN: Int = 400
 
 class AppDetailActivity : AppCompatActivity() {
-    private var _binding: ActivityDetailBinding? = null
-    private val binding get() = _binding!!
+    private val binding by viewBinding(ActivityDetailBinding::inflate)
 
     private val detailsViewModel: DetailsViewModel by viewModels {
         val selectedApp: AppData? = intent?.extras?.getParcelable(PARCELABLE_EXTRA)
@@ -52,7 +51,6 @@ class AppDetailActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detail)
-        _binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         lifecycleScope.launch {
@@ -173,11 +171,6 @@ class AppDetailActivity : AppCompatActivity() {
                 super.onOptionsItemSelected(item)
             }
         }
-    }
-
-    override fun onDestroy() {
-        _binding = null
-        super.onDestroy()
     }
 
     override fun onSupportNavigateUp(): Boolean {

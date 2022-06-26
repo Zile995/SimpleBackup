@@ -56,5 +56,4 @@ class ProgressViewModelFactory(
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }
-
 }

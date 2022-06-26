@@ -18,13 +18,13 @@ import com.stefan.simplebackup.utils.extensions.loadBitmap
 import com.stefan.simplebackup.ui.viewmodels.ProgressViewModel
 import com.stefan.simplebackup.ui.viewmodels.ProgressViewModelFactory
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
+import com.stefan.simplebackup.utils.extensions.viewBinding
 import kotlinx.coroutines.launch
 
 class ProgressActivity : AppCompatActivity() {
 
     // Binding properties
-    private var _binding: ActivityProgressBinding? = null
-    private val binding get() = _binding!!
+    private val binding: ActivityProgressBinding by viewBinding(ActivityProgressBinding::inflate)
 
     private var isInProgress: Boolean = true
 
@@ -45,7 +45,6 @@ class ProgressActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        _binding = ActivityProgressBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         savedInstanceState?.let {
@@ -133,7 +132,6 @@ class ProgressActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        _binding = null
         PreferenceHelper.unregisterPreferenceListener(preferencesListener)
         super.onDestroy()
     }
