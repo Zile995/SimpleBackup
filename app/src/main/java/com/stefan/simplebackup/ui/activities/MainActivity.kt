@@ -81,6 +81,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun ViewPager2.controlTabLayout() {
+        reduceDragSensitivity()
         mediator = TabLayoutMediator(
             binding.tabLayout,
             this,

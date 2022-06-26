@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.annotation.IdRes
+import androidx.annotation.IntRange
 import androidx.core.view.forEach
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.navigation.NavController
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
+import androidx.viewpager2.widget.ViewPager2
 import coil.imageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
@@ -181,4 +183,15 @@ fun RecyclerView.hideAttachedButton(floatingButton: FloatingActionButton) {
             if (!canScrollUp() || !canScrollDown()) floatingButton.hide()
         }
     })
+}
+
+fun ViewPager2.reduceDragSensitivity(multiplier: Int = 2) {
+    val recyclerViewField = ViewPager2::class.java.getDeclaredField("mRecyclerView")
+    recyclerViewField.isAccessible = true
+    val recyclerView = recyclerViewField.get(this) as RecyclerView
+
+    val touchSlopField = RecyclerView::class.java.getDeclaredField("mTouchSlop")
+    touchSlopField.isAccessible = true
+    val touchSlop = touchSlopField.get(recyclerView) as Int
+    touchSlopField.set(recyclerView, touchSlop * multiplier)
 }
