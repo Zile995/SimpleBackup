@@ -23,9 +23,9 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
 import com.stefan.simplebackup.databinding.ActivityDetailBinding
-import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
 import com.stefan.simplebackup.ui.viewmodels.DetailsViewModelFactory
+import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.launch
 import java.util.*
 
@@ -147,7 +147,7 @@ class AppDetailActivity : AppCompatActivity() {
             chipPackageBackup.text = (app.packageName as CharSequence).toString()
             chipVersionBackup.text = (app.versionName as CharSequence).toString()
             chipDirBackup.text = (app.dataDir as CharSequence).toString()
-            apkSize.text = app.apkSize.bytesToString()
+            textApkSize.text = app.apkSize.bytesToString()
             targetSdk.text = app.targetSdk.toString()
             minSdk.text = app.minSdk.toString()
             dataSize.text = app.dataSize.bytesToString()
@@ -155,7 +155,7 @@ class AppDetailActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.top_backup_bar, menu)
+        menuInflater.inflate(R.menu.top_details_bar, menu)
         return super.onCreateOptionsMenu(menu)
     }
 

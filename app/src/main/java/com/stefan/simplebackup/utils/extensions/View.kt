@@ -4,12 +4,9 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.util.DisplayMetrics
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.annotation.IdRes
-import androidx.annotation.IntRange
 import androidx.core.view.forEach
-import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -17,8 +14,6 @@ import androidx.navigation.NavOptions
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
-import androidx.transition.AutoTransition
-import androidx.transition.TransitionManager
 import androidx.viewpager2.widget.ViewPager2
 import coil.imageLoader
 import coil.request.CachePolicy
@@ -44,17 +39,6 @@ var View.isVisible: Boolean
             else -> hide()
         }
     }
-
-fun ViewGroup.startAnimations() {
-    val transition = AutoTransition()
-        .setInterpolator(FastOutSlowInInterpolator())
-        .setDuration(400)
-        .excludeTarget(R.id.tool_bar, true)
-    TransitionManager.beginDelayedTransition(
-        this,
-        transition
-    )
-}
 
 fun ImageView.loadBitmap(byteArray: ByteArray) {
     val imageLoader = context.imageLoader

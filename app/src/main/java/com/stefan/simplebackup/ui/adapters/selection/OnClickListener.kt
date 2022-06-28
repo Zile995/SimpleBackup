@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.ui.adapters
+package com.stefan.simplebackup.ui.adapters.selection
 
 import androidx.recyclerview.widget.RecyclerView
 

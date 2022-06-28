@@ -22,9 +22,12 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.viewbinding.ViewBinding
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.fragments.BaseFragment
+import com.stefan.simplebackup.ui.fragments.BaseViewPagerFragment
 import com.stefan.simplebackup.ui.fragments.FragmentViewBindingDelegate
 import kotlinx.coroutines.launch
+import java.lang.reflect.ParameterizedType
 
 val Context.getResourceString: (Int) -> String
     get() = { resource ->
@@ -52,20 +55,39 @@ inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
         bindingInflater(layoutInflater)
     }
 
-inline fun <T : ViewBinding> BaseFragment<T>.viewBinding(crossinline bindingInflater: (LayoutInflater) -> T) =
-    viewBinding(bindingInflater) {
+fun <T : ViewBinding> BaseFragment<T>.viewBinding(
+) = reflectionViewBinding<T>(::onCleanUp)
+
+fun <T : ViewBinding> BaseViewPagerFragment<T>.viewBinding(
+) = reflectionViewBinding<T>(::onCleanUp)
+
+@Suppress("UNCHECKED_CAST")
+inline fun <T : ViewBinding> Fragment.reflectionViewBinding(
+    crossinline onCleanUp: () -> Unit = {}
+): FragmentViewBindingDelegate<T> {
+    val vbClass =
+        (javaClass.genericSuperclass as ParameterizedType).actualTypeArguments[0] as Class<T>
+    println("Name = ${vbClass.name}")
+    val method = vbClass.declaredMethods.first {
+        it.parameterTypes.contains(LayoutInflater::class.java)
+    }
+    val bindingInflater: (LayoutInflater) -> T = { layoutInflater ->
+        method.invoke(null, layoutInflater) as T
+    }
+    return viewBinding(bindingInflater) {
         onCleanUp()
     }
+}
 
 inline fun <T : ViewBinding> Fragment.viewBinding(
     crossinline bindingInflater: (LayoutInflater) -> T,
-    noinline cleanUp: () -> Unit = {}
+    noinline onCleanUp: () -> Unit = {}
 ): FragmentViewBindingDelegate<T> = FragmentViewBindingDelegate(
-    this,
+    fragment = this,
     viewBindingFactory = {
         bindingInflater(layoutInflater)
     },
-    cleanUp = cleanUp
+    onCleanUp = onCleanUp
 )
 
 inline fun <T : ViewBinding> ViewGroup.viewBinding(
@@ -81,6 +103,11 @@ inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
         startActivity(this)
     }
 }
+
+inline fun Fragment.onMainActivityCallback(crossinline block: suspend MainActivity.() -> Unit) =
+    onActivityCallback<MainActivity> {
+        block()
+    }
 
 inline fun <T : AppCompatActivity> Fragment.onActivityCallback(
     crossinline block: suspend T.() -> Unit

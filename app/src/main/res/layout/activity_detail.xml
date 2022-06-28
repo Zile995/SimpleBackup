@@ -16,8 +16,8 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:titleTextAppearance="@style/ToolBarFont"
-        app:title="Backup" />
+        app:title="@string/details"
+        app:titleTextAppearance="@style/ToolBarFont" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/backup_card_view"
@@ -79,7 +79,7 @@
                 app:layout_constraintTop_toTopOf="@+id/application_image_backup" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/apk_size"
+                android:id="@+id/favorites_apk_size"
                 style="@style/Widget.SimpleBackup.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="42dp"
@@ -93,7 +93,7 @@
                 android:textSize="5.5pt"
                 android:textStyle="bold"
                 app:chipBackgroundColor="@color/greenChip"
-                app:chipIcon="@drawable/android_24dp"
+                app:chipIcon="@drawable/ic_android"
                 app:iconStartPadding="5dp"
                 app:layout_constraintStart_toStartOf="@+id/text_apk_size"
                 app:layout_constraintTop_toBottomOf="@+id/text_apk_size" />
@@ -110,7 +110,7 @@
                 android:textColor="@color/redChipLabel"
                 android:textSize="5pt"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/apk_size"
+                app:layout_constraintStart_toEndOf="@+id/favorites_apk_size"
                 app:layout_constraintTop_toTopOf="@+id/text_apk_size" />
 
             <com.google.android.material.chip.Chip
@@ -128,7 +128,7 @@
                 android:textSize="5.5pt"
                 android:textStyle="bold"
                 app:chipBackgroundColor="@color/greenChip"
-                app:chipIcon="@drawable/sd_storage_24dp"
+                app:chipIcon="@drawable/ic_sd_storage"
                 app:chipIconSize="22dp"
                 app:iconStartPadding="5dp"
                 app:layout_constraintStart_toStartOf="@+id/text_data_size"
@@ -149,7 +149,7 @@
                 android:textSize="5.5pt"
                 android:textStyle="bold"
                 app:chipBackgroundColor="@color/redChip"
-                app:chipIcon="@drawable/api_24dp"
+                app:chipIcon="@drawable/ic_api"
                 app:chipIconSize="20dp"
                 app:iconStartPadding="5dp"
                 app:layout_constraintStart_toStartOf="@+id/text_target_sdk"
@@ -170,7 +170,7 @@
                 android:textSize="5.5pt"
                 android:textStyle="bold"
                 app:chipBackgroundColor="@color/redChip"
-                app:chipIcon="@drawable/api_24dp"
+                app:chipIcon="@drawable/ic_api"
                 app:chipIconSize="20dp"
                 app:iconStartPadding="5dp"
                 app:layout_constraintStart_toStartOf="@+id/text_min_sdk"
@@ -203,7 +203,7 @@
                 android:textColor="@color/greenChipLabel"
                 android:textSize="5pt"
                 app:layout_constraintStart_toStartOf="@+id/text_apk_size"
-                app:layout_constraintTop_toBottomOf="@+id/apk_size" />
+                app:layout_constraintTop_toBottomOf="@+id/favorites_apk_size" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -275,8 +275,8 @@
                 app:layout_constraintTop_toBottomOf="@id/text_view_package" />
 
             <com.google.android.material.chip.Chip
-                style="@style/Widget.SimpleBackup.Chip"
                 android:id="@+id/chip_version_backup"
+                style="@style/Widget.SimpleBackup.Chip"
                 android:layout_width="wrap_content"
                 android:layout_height="42dp"
                 android:layout_marginStart="12dp"
@@ -327,12 +327,12 @@
                 android:id="@+id/package_details"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_marginBottom="10dp"
                 android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
-                android:src="@drawable/info_24dp"
+                android:src="@drawable/ic_info"
                 app:layout_constraintBottom_toBottomOf="@+id/chip_version_backup"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/chip_version_backup" />
@@ -362,26 +362,26 @@
             android:layout_height="match_parent">
 
             <com.google.android.material.button.MaterialButton
-                style="@style/Widget.SimpleBackup.Button"
                 android:id="@+id/backup_button"
+                style="@style/Widget.SimpleBackup.Button"
                 android:layout_width="130dp"
                 android:layout_height="48dp"
                 android:layout_marginTop="20dp"
-                android:textStyle="bold"
                 android:text="@string/local"
-                app:icon="@drawable/storage_24dp"
+                android:textStyle="bold"
+                app:icon="@drawable/ic_storage"
                 app:layout_constraintEnd_toStartOf="@id/backup_drive_button"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
             <com.google.android.material.button.MaterialButton
-                style="@style/Widget.SimpleBackup.Button"
                 android:id="@+id/backup_drive_button"
+                style="@style/Widget.SimpleBackup.Button"
                 android:layout_width="130dp"
                 android:layout_height="48dp"
                 android:text="@string/drive"
                 android:textStyle="bold"
-                app:icon="@drawable/add_to_drive_24dp"
+                app:icon="@drawable/ic_add_to_drive"
                 app:iconGravity="textStart"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@+id/backup_button"
@@ -404,11 +404,10 @@
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/floating_delete_button"
-                style="@style/Widget.SimpleBackup.FloatingActionButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="30dp"
-                android:src="@drawable/delete_24dp"
+                android:src="@drawable/ic_delete"
                 app:backgroundTint="?attr/colorError"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/force_stop"
-        android:icon="@drawable/force_stop_30dp"
+        android:icon="@drawable/ic_force_stop"
         android:title="@string/force_stop"
         app:showAsAction="always"/>
 </menu>

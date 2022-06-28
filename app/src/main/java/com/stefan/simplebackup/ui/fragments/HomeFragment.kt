@@ -2,10 +2,8 @@ package com.stefan.simplebackup.ui.fragments
 
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -13,11 +11,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.databinding.FragmentHomeBinding
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
-import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.activities.ProgressActivity
-import com.stefan.simplebackup.ui.adapters.BaseViewHolder
 import com.stefan.simplebackup.ui.adapters.HomeAdapter
-import com.stefan.simplebackup.ui.adapters.OnClickListener
+import com.stefan.simplebackup.ui.adapters.selection.OnClickListener
+import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModelFactory
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
@@ -28,23 +25,12 @@ import java.lang.ref.WeakReference
 
 class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     // Binding
-    private val binding by viewBinding(FragmentHomeBinding::inflate)
     private var _homeAdapter: HomeAdapter? = null
     private val homeAdapter get() = _homeAdapter!!
 
-    // ViewModel
-    private val homeViewModel: HomeViewModel by activityViewModels {
-        HomeViewModelFactory(requireActivity().application as MainApplication)
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        bindingReference = WeakReference(binding)
-        return binding.root
-    }
+    private val homeViewModel: HomeViewModel by viewModels(
+        ownerProducer = { requireParentFragment() }
+    )
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -117,7 +103,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     }
 
     private fun FragmentHomeBinding.setActivityCallBacks() {
-        onActivityCallback<MainActivity> {
+        onMainActivityCallback {
             homeRecyclerView.controlFloatingButton()
         }
     }

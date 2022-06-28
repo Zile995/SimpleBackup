@@ -6,12 +6,12 @@
     android:id="@+id/nav_graph">
     <fragment
         android:id="@+id/local"
-        android:name="com.stefan.simplebackup.ui.fragments.LocalFragment"
+        android:name="com.stefan.simplebackup.ui.fragments.HomeViewPagerFragment"
         android:label="local_fragment"
-        tools:layout="@layout/fragment_local" />
+        tools:layout="@layout/fragment_home_view_pager" />
     <fragment
         android:id="@+id/home"
-        android:name="com.stefan.simplebackup.ui.fragments.ViewPagerFragment"
+        android:name="com.stefan.simplebackup.ui.fragments.HomeViewPagerFragment"
         android:label="fragment_view_pager"
-        tools:layout="@layout/fragment_view_pager" />
+        tools:layout="@layout/fragment_home_view_pager" />
 </navigation>

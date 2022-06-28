@@ -2,6 +2,9 @@ package com.stefan.simplebackup.ui.adapters
 
 import android.view.ViewGroup
 import com.stefan.simplebackup.databinding.HomeItemBinding
+import com.stefan.simplebackup.ui.adapters.selection.OnClickListener
+import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
+import com.stefan.simplebackup.ui.adapters.viewholders.HomeViewHolder
 import com.stefan.simplebackup.utils.extensions.viewBinding
 
 class HomeAdapter(

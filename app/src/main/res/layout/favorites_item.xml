@@ -2,7 +2,7 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     style="@style/Widget.SimpleBackup.CardView"
-    android:id="@+id/card_restore_item"
+    android:id="@+id/favorites_card_item"
     android:layout_width="match_parent"
     android:layout_height="100dp"
     android:layout_marginStart="10dp"
@@ -19,7 +19,7 @@
         android:outlineProvider="none">
 
         <ImageView
-            android:id="@+id/restore_application_image"
+            android:id="@+id/favorites_application_image"
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_marginStart="15dp"
@@ -30,19 +30,19 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/restore_version_name"
+            android:id="@+id/favorites_version_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="14dp"
             android:fontFamily="@font/inter_family"
             android:textColor="@color/textView"
             android:textSize="6pt"
-            app:layout_constraintBottom_toTopOf="@+id/restore_application_name"
-            app:layout_constraintStart_toEndOf="@+id/restore_application_image"
-            app:layout_constraintTop_toTopOf="@+id/restore_application_image" />
+            app:layout_constraintBottom_toTopOf="@+id/favorites_application_name"
+            app:layout_constraintStart_toEndOf="@+id/favorites_application_image"
+            app:layout_constraintTop_toTopOf="@+id/favorites_application_image" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/restore_application_name"
+            android:id="@+id/favorites_application_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter"
@@ -52,23 +52,40 @@
             android:textColor="@color/appNameLabel"
             android:textSize="7pt"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/restore_package_name"
-            app:layout_constraintStart_toStartOf="@+id/restore_version_name"
-            app:layout_constraintTop_toTopOf="@+id/restore_version_name" />
+            app:layout_constraintBottom_toBottomOf="@+id/favorites_package_name"
+            app:layout_constraintStart_toStartOf="@+id/favorites_version_name"
+            app:layout_constraintTop_toTopOf="@+id/favorites_version_name" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/restore_package_name"
+            android:id="@+id/favorites_package_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter_family"
             android:textColor="@color/textView"
             android:textSize="6pt"
-            app:layout_constraintBottom_toBottomOf="@+id/restore_application_image"
-            app:layout_constraintStart_toStartOf="@+id/restore_application_name"
-            app:layout_constraintTop_toBottomOf="@+id/restore_application_name" />
+            app:layout_constraintBottom_toBottomOf="@+id/favorites_application_image"
+            app:layout_constraintStart_toStartOf="@+id/favorites_application_name"
+            app:layout_constraintTop_toBottomOf="@+id/favorites_application_name" />
 
         <com.google.android.material.chip.Chip
-            android:id="@+id/restore_data_size"
+            android:id="@+id/favorites_split_apk"
+            style="@style/Widget.SimpleBackup.Chip"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:clickable="false"
+            android:fontFamily="@font/inter"
+            android:textAlignment="center"
+            android:textColor="@color/textInBlueChip"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            app:chipBackgroundColor="@color/blueChip"
+            app:chipEndPadding="2dp"
+            app:chipStartPadding="2dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@id/favorites_application_image" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/favorites_apk_size"
             style="@style/Widget.SimpleBackup.Chip"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
@@ -84,38 +101,6 @@
             app:chipStartPadding="2dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/date_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:fontFamily="@font/inter_family"
-            android:text="@string/date"
-            android:textColor="@color/textView"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/backup_date"
-            app:layout_constraintStart_toStartOf="@+id/restore_application_image"
-            app:layout_constraintTop_toTopOf="@id/backup_date"/>
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/backup_date"
-            style="@style/Widget.SimpleBackup.Chip"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="4dp"
-            android:clickable="false"
-            android:fontFamily="@font/inter"
-            android:textAlignment="center"
-            android:textColor="@color/textInBlueChip"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            app:chipBackgroundColor="@color/blueChip"
-            app:chipEndPadding="2dp"
-            app:chipStartPadding="2dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/date_label" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

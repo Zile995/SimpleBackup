@@ -5,13 +5,15 @@
     <string name="package_version">Package</string>
     <string name="search_button">Search button</string>
     <string name="search_app">Search for apps</string>
+    <string name="details">App Details</string>
     <string name="delete">Delete</string>
     <string name="home">Home</string>
-    <string name="restore">Restore</string>
-    <string name="batch_restore">Batch Restore</string>
+    <string name="local">Local</string>
     <string name="cloud">Cloud</string>
     <string name="settings">Settings</string>
-    <string name="local">Local</string>
+    <string name="backup">Backup</string>
+    <string name="restore">Restore</string>
+    <string name="batch_restore">Batch Restore</string>
     <string name="drive">Drive</string>
     <string name="data_in">Data in</string>
     <string name="confirm_restore">Confirm Restore</string>
@@ -62,7 +64,6 @@
     <string name="favorites">Favorites</string>
     <string name="target_sdk">Target SDK</string>
     <string name="min_sdk">Min SDK</string>
-    <string name="backup">Backup</string>
     <string name="notification_channel_name">Backup notification</string>
     <string name="notification_channel_description">Backup notification progress</string>
     <string name="done">Done!</string>

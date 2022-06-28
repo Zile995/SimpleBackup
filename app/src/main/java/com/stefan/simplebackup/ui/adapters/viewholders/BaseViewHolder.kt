@@ -1,10 +1,11 @@
-package com.stefan.simplebackup.ui.adapters
+package com.stefan.simplebackup.ui.adapters.viewholders
 
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.card.MaterialCardView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.ui.adapters.selection.OnClickListener
 
 sealed class BaseViewHolder(
     binding: ViewBinding,

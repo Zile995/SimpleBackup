@@ -8,7 +8,8 @@ import com.stefan.simplebackup.ui.fragments.BaseFragment
 
 class ViewPagerAdapter(
     private val fragmentList: ArrayList<BaseFragment<*>>,
-    fragmentManager: FragmentManager, lifecycle: Lifecycle
+    fragmentManager: FragmentManager,
+    lifecycle: Lifecycle
 ) : FragmentStateAdapter(fragmentManager, lifecycle) {
 
     override fun getItemCount(): Int = fragmentList.size

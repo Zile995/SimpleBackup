@@ -12,7 +12,7 @@ import kotlin.reflect.KProperty
 class FragmentViewBindingDelegate<T : ViewBinding>(
     private val fragment: Fragment,
     private val viewBindingFactory: () -> T,
-    private val cleanUp: () -> Unit = {}
+    private val onCleanUp: () -> Unit = {}
 ) : ReadOnlyProperty<Fragment, T> {
     private var binding: T? = null
 
@@ -24,7 +24,7 @@ class FragmentViewBindingDelegate<T : ViewBinding>(
 
                     viewLifecycleOwner.lifecycle.addObserver(object : DefaultLifecycleObserver {
                         override fun onDestroy(owner: LifecycleOwner) {
-                            cleanUp.invoke()
+                            onCleanUp.invoke()
                             binding = null
                         }
                     })

@@ -5,32 +5,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorPrimaryVariant"
-    tools:context=".ui.fragments.HomeFragment">
+    tools:context=".ui.fragments.FavoritesFragment">
 
-    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-        android:id="@+id/swipe_refresh"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/favorites_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="?attr/colorPrimaryVariant"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp"
+        android:scrollbarThumbVertical="@drawable/scrollbar_style"
+        android:scrollbars="vertical"
+        app:layoutManager="LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/home_recycler_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="?attr/colorPrimaryVariant"
-            android:clipToPadding="false"
-            android:paddingBottom="8dp"
-            android:scrollbarThumbVertical="@drawable/scrollbar_style"
-            android:scrollbars="vertical"
-            app:layoutManager="LinearLayoutManager" />
-
-    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ProgressBar
-        android:id="@+id/progress_bar"
+        android:id="@+id/favorites_progress_bar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:indeterminateTint="@color/floatingButton"

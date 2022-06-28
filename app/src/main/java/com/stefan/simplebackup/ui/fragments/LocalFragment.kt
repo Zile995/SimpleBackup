@@ -2,23 +2,18 @@ package com.stefan.simplebackup.ui.fragments
 
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
-import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.FragmentLocalBinding
-import com.stefan.simplebackup.ui.activities.MainActivity
-import com.stefan.simplebackup.ui.adapters.BaseViewHolder
 import com.stefan.simplebackup.ui.adapters.LocalAdapter
-import com.stefan.simplebackup.ui.adapters.OnClickListener
+import com.stefan.simplebackup.ui.adapters.selection.OnClickListener
+import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
-import com.stefan.simplebackup.ui.viewmodels.LocalViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -26,22 +21,12 @@ import java.lang.ref.WeakReference
 
 class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     // Binding
-    private val binding by viewBinding(FragmentLocalBinding::inflate)
     private var _localAdapter: LocalAdapter? = null
     private val localAdapter get() = _localAdapter!!
 
-    private val localViewModel: LocalViewModel by viewModels {
-        LocalViewModelFactory(requireActivity().application as MainApplication)
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        bindingReference = WeakReference(binding)
-        return binding.root
-    }
+    private val localViewModel: LocalViewModel by viewModels(
+        ownerProducer = { requireParentFragment() }
+    )
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -156,7 +141,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     }
 
     private fun FragmentLocalBinding.setActivityCallBacks() {
-        onActivityCallback<MainActivity> {
+        onMainActivityCallback {
             localRecyclerView.controlFloatingButton()
         }
     }

@@ -1,7 +1,9 @@
-package com.stefan.simplebackup.ui.adapters
+package com.stefan.simplebackup.ui.adapters.selection
 
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
+import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 
 class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     override val selectedItems: MutableList<Int>,

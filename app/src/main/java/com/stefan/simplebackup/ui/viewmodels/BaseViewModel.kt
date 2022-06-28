@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 const val SELECTION_EXTRA = "SELECTION_LIST"
 
-abstract class BaseViewModel(application: MainApplication) : AndroidViewModel(application) {
+sealed class BaseViewModel(application: MainApplication) : AndroidViewModel(application) {
     // Selection properties
     private var _isSelected = MutableStateFlow(false)
     val selectionList = mutableListOf<Int>()

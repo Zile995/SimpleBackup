@@ -168,7 +168,7 @@ data class AppData(
                 context.deleteFile(name)
             } catch (exception: IOException) {
                 bitmap =
-                    context.getResourceDrawable(R.drawable.error_48dp)?.toByteArray()
+                    context.getResourceDrawable(R.drawable.ic_error)?.toByteArray()
                         ?: byteArrayOf()
             }
         }

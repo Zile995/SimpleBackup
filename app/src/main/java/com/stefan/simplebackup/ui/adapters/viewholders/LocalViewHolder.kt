@@ -1,7 +1,8 @@
-package com.stefan.simplebackup.ui.adapters
+package com.stefan.simplebackup.ui.adapters.viewholders
 
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.databinding.LocalItemBinding
+import com.stefan.simplebackup.ui.adapters.selection.OnClickListener
 import com.stefan.simplebackup.utils.extensions.bytesToString
 import com.stefan.simplebackup.utils.extensions.checkedString
 import com.stefan.simplebackup.utils.extensions.loadBitmap
