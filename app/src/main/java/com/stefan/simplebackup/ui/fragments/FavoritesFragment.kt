@@ -1,12 +1,8 @@
 package com.stefan.simplebackup.ui.fragments
 
-import android.os.Bundle
 import android.util.Log
-import android.view.View
-import androidx.fragment.app.viewModels
 import com.stefan.simplebackup.databinding.FragmentFavoritesBinding
 import com.stefan.simplebackup.ui.adapters.FavoritesAdapter
-import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
 import com.stefan.simplebackup.utils.extensions.onRestoreRecyclerViewState
 import com.stefan.simplebackup.utils.extensions.onSaveRecyclerViewState
 import java.lang.ref.WeakReference

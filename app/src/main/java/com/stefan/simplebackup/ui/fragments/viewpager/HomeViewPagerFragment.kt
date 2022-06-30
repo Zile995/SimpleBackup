@@ -14,17 +14,23 @@ import com.stefan.simplebackup.ui.fragments.HomeFragment
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
+import com.stefan.simplebackup.utils.extensions.reduceDragSensitivity
 import com.stefan.simplebackup.utils.extensions.viewModel
 import kotlinx.coroutines.launch
 
 class HomeViewPagerFragment : BaseViewPagerFragment<FragmentHomeViewPagerBinding>() {
-    // ViewModel
     private val mainViewModel: MainViewModel by activityViewModels()
-
     private val homeViewModel: HomeViewModel by viewModel {
         ViewModelFactory(
             requireActivity().application as MainApplication,
             mainViewModel
+        )
+    }
+
+    private val fragmentList by lazy {
+        arrayListOf(
+            HomeFragment(),
+            FavoritesFragment()
         )
     }
 
@@ -37,41 +43,39 @@ class HomeViewPagerFragment : BaseViewPagerFragment<FragmentHomeViewPagerBinding
     private fun FragmentHomeViewPagerBinding.bindViews() {
         viewLifecycleOwner.lifecycleScope.launch {
             setAdapter()
-            setTabLayoutMediator(homeViewPager) {
-                provideTabLayoutMediator()
-            }
+            setTabLayoutMediator()
         }
     }
 
     override fun FragmentHomeViewPagerBinding.setAdapter() {
         homeViewPager.adapter = ViewPagerAdapter(
-            arrayListOf(
-                HomeFragment(),
-                FavoritesFragment()
-            ),
+            fragmentList,
             childFragmentManager,
             viewLifecycleOwner.lifecycle
         )
     }
 
-    override fun FragmentHomeViewPagerBinding.provideTabLayoutMediator(): TabLayoutMediator =
-        TabLayoutMediator(
+    override fun FragmentHomeViewPagerBinding.setTabLayoutMediator() {
+        homeViewPager.reduceDragSensitivity()
+        mediator = TabLayoutMediator(
             binding.homeTabLayout, homeViewPager,
             true,
             true
         ) { tab, position ->
             when (position) {
                 0 -> {
-                    tab.text = requireContext().getString(R.string.applications)
+                    tab.text = context?.applicationContext?.getString(R.string.applications)
                 }
                 1 -> {
-                    tab.text = requireContext().getString(R.string.favorites)
+                    tab.text = context?.applicationContext?.getString(R.string.favorites)
                 }
             }
         }
+        mediator?.attach()
+    }
 
     override fun onCleanUp() {
-        super.onCleanUp()
         binding.homeViewPager.adapter = null
+        super.onCleanUp()
     }
 }

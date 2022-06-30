@@ -19,7 +19,7 @@ class CloudViewPagerFragment : BaseViewPagerFragment<FragmentCloudViewPagerBindi
         TODO("Not yet implemented")
     }
 
-    override fun FragmentCloudViewPagerBinding.provideTabLayoutMediator(): TabLayoutMediator {
+    override fun FragmentCloudViewPagerBinding.setTabLayoutMediator() {
         TODO("Not yet implemented")
     }
 }

@@ -4,10 +4,10 @@ import android.os.Parcel
 import android.os.Parcelable
 
 data class NotificationData(
-    val name: String = "",
-    val text: String = "",
-    val image: ByteArray = byteArrayOf(),
-    val progress: Int = 0
+    val name: String,
+    val text: String,
+    val image: ByteArray,
+    val progress: Int
 ) : Parcelable {
 
     constructor(parcel: Parcel) : this(

@@ -26,9 +26,6 @@ class BackupUtil(
     private val backupItems: IntArray,
     private val updateForegroundInfo: ForegroundCallback
 ) {
-
-    private var notificationData = NotificationData()
-
     // Progress variables
     private var currentProgress = 0
     private val generatedIntervals = mutableListOf<Int>()
@@ -127,21 +124,13 @@ class BackupUtil(
 
     private suspend fun AppData.updateNotificationData(@StringRes info: Int) {
         val text = appContext.getString(info)
-        notificationData = if (!notificationData.image.contentEquals(bitmap)) {
+        val notificationData =
             NotificationData(
                 name = name,
                 text = text,
                 image = bitmap,
                 progress = currentProgress
             )
-        } else {
-            NotificationData(
-                name = name,
-                text = text,
-                bitmap,
-                progress = currentProgress
-            )
-        }
         updateForegroundInfo(notificationData)
     }
 }

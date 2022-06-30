@@ -14,14 +14,17 @@ import com.stefan.simplebackup.ui.fragments.LocalFragment
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
+import com.stefan.simplebackup.utils.extensions.reduceDragSensitivity
 import com.stefan.simplebackup.utils.extensions.viewModel
 import kotlinx.coroutines.launch
 
 class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBinding>() {
-
     private val mainViewModel: MainViewModel by activityViewModels()
     private val localViewModel: LocalViewModel by viewModel {
-        ViewModelFactory(requireActivity().application as MainApplication, mainViewModel.repository)
+        ViewModelFactory(
+            requireActivity().application as MainApplication,
+            mainViewModel.repository
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -33,9 +36,7 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
     private fun FragmentLocalViewPagerBinding.bindViews() {
         viewLifecycleOwner.lifecycleScope.launch {
             setAdapter()
-            setTabLayoutMediator(localViewPager) {
-                provideTabLayoutMediator()
-            }
+            setTabLayoutMediator()
         }
     }
 
@@ -50,24 +51,27 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
         )
     }
 
-    override fun FragmentLocalViewPagerBinding.provideTabLayoutMediator(): TabLayoutMediator =
-        TabLayoutMediator(
+    override fun FragmentLocalViewPagerBinding.setTabLayoutMediator() {
+        localViewPager.reduceDragSensitivity()
+        mediator = TabLayoutMediator(
             binding.localTabLayout, localViewPager,
             true,
             true
         ) { tab, position ->
             when (position) {
                 0 -> {
-                    tab.text = requireContext().getString(R.string.backups)
+                    tab.text = context?.applicationContext?.getString(R.string.backups)
                 }
                 1 -> {
-                    tab.text = requireContext().getString(R.string.favorites)
+                    tab.text = context?.applicationContext?.getString(R.string.favorites)
                 }
             }
         }
+        mediator?.attach()
+    }
 
     override fun onCleanUp() {
-        super.onCleanUp()
         binding.localViewPager.adapter = null
+        super.onCleanUp()
     }
 }

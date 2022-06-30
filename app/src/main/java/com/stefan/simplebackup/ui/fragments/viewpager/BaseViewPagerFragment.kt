@@ -15,7 +15,7 @@ import com.stefan.simplebackup.utils.extensions.viewBinding
 
 abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(), ViewReferenceCleaner {
     protected val binding by viewBinding()
-    private var mediator: TabLayoutMediator? = null
+    protected var mediator: TabLayoutMediator? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -26,16 +26,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(), ViewReferen
     }
 
     abstract fun VB.setAdapter()
-    abstract fun VB.provideTabLayoutMediator(): TabLayoutMediator
-
-    protected fun setTabLayoutMediator(
-        viewPager: ViewPager2,
-        mediatorFactory: () -> TabLayoutMediator
-    ) {
-        viewPager.reduceDragSensitivity()
-        mediator = mediatorFactory()
-        mediator?.attach()
-    }
+    abstract fun VB.setTabLayoutMediator()
 
     override fun onCleanUp() {
         mediator?.detach()

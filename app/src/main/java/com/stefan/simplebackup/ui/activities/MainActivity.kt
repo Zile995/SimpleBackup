@@ -37,8 +37,8 @@ class MainActivity : AppCompatActivity() {
         ViewModelFactory(application as MainApplication)
     }
 
-    // Create RootChecker Class instance and reference
-    private val rootChecker by lazy { RootChecker(this) }
+    // Create RootChecker Class instance lazily
+    private val rootChecker by lazy { RootChecker(applicationContext) }
 
     // Broadcast receivers
     private val receiver: PackageReceiver by lazy {

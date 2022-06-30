@@ -21,6 +21,9 @@ import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.utils.extensions.loadBitmap
 import com.stefan.simplebackup.utils.extensions.viewBinding
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
 
 class ProgressActivity : AppCompatActivity() {
@@ -29,6 +32,7 @@ class ProgressActivity : AppCompatActivity() {
     private val binding: ActivityProgressBinding by viewBinding(ActivityProgressBinding::inflate)
 
     private var isInProgress: Boolean = true
+    private var bitmap: ByteArray = byteArrayOf()
 
     private val progressViewModel: ProgressViewModel by viewModels {
         val selection = intent?.extras?.getIntArray(SELECTION_EXTRA)
@@ -70,7 +74,7 @@ class ProgressActivity : AppCompatActivity() {
                     .observe(this@ProgressActivity, workInfoObserver())
             }
             lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                MainWorker.notificationObserver.collect { notificationData ->
+                MainWorker.notificationObserver.collect{ notificationData ->
                     updateViews(notificationData)
                 }
             }
@@ -102,9 +106,10 @@ class ProgressActivity : AppCompatActivity() {
 
     private fun ActivityProgressBinding.updateViews(notificationData: NotificationData?) {
         notificationData?.apply {
-            if (image.isNotEmpty()) {
+            if (!bitmap.contentEquals(image)) {
                 applicationImageProgress.loadBitmap(image)
                 applicationNameProgress.text = name
+                bitmap = image
             }
         }
     }
