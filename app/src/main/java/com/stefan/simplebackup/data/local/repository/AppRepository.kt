@@ -37,10 +37,6 @@ class AppRepository(private val appDao: AppDao) {
     // TODO: Update and insert could be changed
     suspend fun insertOrUpdate(app: AppData) = appDao.insertOrUpdate(app)
 
-
     fun doesExist(packageName: String, checkCloudOnly: Boolean = false) =
         appDao.doesExist(packageName, checkCloudOnly)
-
-    suspend fun getProgressAppData(packageName: String) =
-        appDao.getProgressData(packageName)
 }

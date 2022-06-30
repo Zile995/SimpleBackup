@@ -127,7 +127,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
                 localViewModel.spinner.collect { isSpinning ->
                     progressBar.isVisible = isSpinning
                     if (!isSpinning) {
-                        localViewModel.localApps.collect { appList ->
+                        localViewModel.observableList.collect { appList ->
                             localAdapter.submitList(appList)
                         }
                     }

@@ -10,8 +10,6 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.NotificationData
 import com.stefan.simplebackup.data.workers.ForegroundCallback
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
-import com.stefan.simplebackup.utils.PreferenceHelper
-import com.stefan.simplebackup.utils.extensions.getResourceString
 import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.file.FileUtil.createDirectory
 import com.stefan.simplebackup.utils.file.FileUtil.createMainDir
@@ -28,8 +26,8 @@ class BackupUtil(
     private val backupItems: IntArray,
     private val updateForegroundInfo: ForegroundCallback
 ) {
-    // Notification data
-    private val notificationData = NotificationData()
+
+    private var notificationData = NotificationData()
 
     // Progress variables
     private var currentProgress = 0
@@ -49,7 +47,6 @@ class BackupUtil(
         val repository = AppRepository(database.appDao())
         backupItems.forEach { item ->
             repository.getAppData(item).also { app ->
-                PreferenceHelper.savePackageName(app.packageName)
                 val result = app.runBackup(
                     ::createDirs,
                     ::backupData,
@@ -60,7 +57,6 @@ class BackupUtil(
                 results.add(result)
             }
         }
-        PreferenceHelper.clearPackageName()
         return@coroutineScope results.toList()
     }
 
@@ -130,12 +126,21 @@ class BackupUtil(
     }
 
     private suspend fun AppData.updateNotificationData(@StringRes info: Int) {
-        val app = this
-        notificationData.apply {
-            name = app.name
-            image = app.bitmap
-            progress = currentProgress
-            text = appContext.getResourceString(info)
+        val text = appContext.getString(info)
+        notificationData = if (!notificationData.image.contentEquals(bitmap)) {
+            NotificationData(
+                name = name,
+                text = text,
+                image = bitmap,
+                progress = currentProgress
+            )
+        } else {
+            NotificationData(
+                name = name,
+                text = text,
+                bitmap,
+                progress = currentProgress
+            )
         }
         updateForegroundInfo(notificationData)
     }

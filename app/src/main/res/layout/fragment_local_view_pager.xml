@@ -5,7 +5,7 @@ xmlns:tools="http://schemas.android.com/tools"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
 android:background="@color/background"
-tools:context=".ui.fragments.LocalViewPagerFragment">
+tools:context=".ui.fragments.viewpager.LocalViewPagerFragment">
 
 <com.google.android.material.tabs.TabLayout
     android:id="@+id/local_tab_layout"

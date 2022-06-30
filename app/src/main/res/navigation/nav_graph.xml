@@ -2,16 +2,16 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    app:startDestination="@id/home"
-    android:id="@+id/nav_graph">
-    <fragment
-        android:id="@+id/local"
-        android:name="com.stefan.simplebackup.ui.fragments.HomeViewPagerFragment"
-        android:label="local_fragment"
-        tools:layout="@layout/fragment_home_view_pager" />
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/home">
     <fragment
         android:id="@+id/home"
-        android:name="com.stefan.simplebackup.ui.fragments.HomeViewPagerFragment"
-        android:label="fragment_view_pager"
+        android:name="com.stefan.simplebackup.ui.fragments.viewpager.HomeViewPagerFragment"
+        android:label="fragment_home_view_pager"
         tools:layout="@layout/fragment_home_view_pager" />
+    <fragment
+        android:id="@+id/local"
+        android:name="com.stefan.simplebackup.ui.fragments.viewpager.LocalViewPagerFragment"
+        android:label="fragment_local_view_pager"
+        tools:layout="@layout/fragment_local_view_pager" />
 </navigation>

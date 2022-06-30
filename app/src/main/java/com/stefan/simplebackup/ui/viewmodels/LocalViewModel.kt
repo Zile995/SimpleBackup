@@ -1,8 +1,6 @@
 package com.stefan.simplebackup.ui.viewmodels
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
@@ -10,38 +8,23 @@ import com.stefan.simplebackup.MainApplication.Companion.backupDirPath
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
+import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import com.stefan.simplebackup.utils.file.FileUtil.findJsonFiles
 import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 
-class LocalViewModel(application: MainApplication) : BaseViewModel(application) {
+class LocalViewModel(application: MainApplication, private val repository: AppRepository) :
+    BaseViewModel() {
 
     private val workManager = WorkManager.getInstance(application)
-    private val repository by lazy { AppRepository(application.database.appDao()) }
     //private val fileWatcher = File(mainBackupDirPath).asFileWatcher()
-
-    // Observable spinner properties used for progressbar observing
-    private var _spinner = MutableStateFlow(true)
-    val spinner: StateFlow<Boolean> get() = _spinner
-
-    val localApps = repository.localApps.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(4_000L),
-        mutableListOf()
-    )
 
     init {
         Log.d("ViewModel", "LocalViewModel created")
-        viewModelScope.launch {
-            delay(400)
-            _spinner.value = false
+        viewModelScope.launchWithLogging(CoroutineName("LoadLocalList")) {
+            loadList {
+                repository.localApps
+            }
         }
     }
 
@@ -71,16 +54,5 @@ class LocalViewModel(application: MainApplication) : BaseViewModel(application) 
     override fun onCleared() {
         super.onCleared()
         Log.d("ViewModel", "LocalViewModel cleared")
-    }
-}
-
-class LocalViewModelFactory(private val application: MainApplication) :
-    ViewModelProvider.AndroidViewModelFactory(application) {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        @Suppress("UNCHECKED_CAST")
-        if (modelClass.isAssignableFrom(LocalViewModel::class.java)) {
-            return LocalViewModel(application) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

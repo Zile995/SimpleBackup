@@ -24,7 +24,7 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
 import com.stefan.simplebackup.databinding.ActivityDetailBinding
 import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
-import com.stefan.simplebackup.ui.viewmodels.DetailsViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.launch
 import java.util.*
@@ -37,7 +37,7 @@ class AppDetailActivity : AppCompatActivity() {
 
     private val detailsViewModel: DetailsViewModel by viewModels {
         val selectedApp: AppData? = intent?.extras?.getParcelable(PARCELABLE_EXTRA)
-        DetailsViewModelFactory(selectedApp, application as MainApplication)
+        ViewModelFactory(application as MainApplication, selectedApp)
     }
 
     private val requestPermissionLauncher by lazy {

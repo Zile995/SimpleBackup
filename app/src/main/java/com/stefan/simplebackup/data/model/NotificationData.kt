@@ -3,12 +3,11 @@ package com.stefan.simplebackup.data.model
 import android.os.Parcel
 import android.os.Parcelable
 
-@Suppress("ArrayInDataClass")
 data class NotificationData(
-    var name: String = "",
-    var text: String = "",
-    var image: ByteArray = byteArrayOf(),
-    var progress: Int = 0
+    val name: String = "",
+    val text: String = "",
+    val image: ByteArray = byteArrayOf(),
+    val progress: Int = 0
 ) : Parcelable {
 
     constructor(parcel: Parcel) : this(
@@ -27,6 +26,28 @@ data class NotificationData(
         dest.writeInt(image.size)
         dest.writeByteArray(image)
         dest.writeInt(progress)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as NotificationData
+
+        if (name != other.name) return false
+        if (text != other.text) return false
+        if (!image.contentEquals(other.image)) return false
+        if (progress != other.progress) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + text.hashCode()
+        result = 31 * result + image.contentHashCode()
+        result = 31 * result + progress
+        return result
     }
 
     companion object CREATOR : Parcelable.Creator<NotificationData> {

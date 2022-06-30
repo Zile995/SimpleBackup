@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.ui.fragments
+package com.stefan.simplebackup.ui.fragments.viewpager
 
 import android.os.Bundle
 import android.view.View
@@ -9,31 +9,41 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.FragmentHomeViewPagerBinding
 import com.stefan.simplebackup.ui.adapters.ViewPagerAdapter
+import com.stefan.simplebackup.ui.fragments.FavoritesFragment
+import com.stefan.simplebackup.ui.fragments.HomeFragment
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
-import com.stefan.simplebackup.ui.viewmodels.HomeViewModelFactory
-import com.stefan.simplebackup.utils.extensions.getResourceString
-import com.stefan.simplebackup.utils.extensions.reduceDragSensitivity
+import com.stefan.simplebackup.ui.viewmodels.MainViewModel
+import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
+import com.stefan.simplebackup.utils.extensions.viewModel
 import kotlinx.coroutines.launch
 
 class HomeViewPagerFragment : BaseViewPagerFragment<FragmentHomeViewPagerBinding>() {
     // ViewModel
-    private val homeViewModel: HomeViewModel by activityViewModels {
-        HomeViewModelFactory(requireActivity().application as MainApplication)
+    private val mainViewModel: MainViewModel by activityViewModels()
+
+    private val homeViewModel: HomeViewModel by viewModel {
+        ViewModelFactory(
+            requireActivity().application as MainApplication,
+            mainViewModel
+        )
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        homeViewModel
         binding.bindViews()
     }
 
     private fun FragmentHomeViewPagerBinding.bindViews() {
         viewLifecycleOwner.lifecycleScope.launch {
-            setHomeAdapter()
-            controlTabLayout()
+            setAdapter()
+            setTabLayoutMediator(homeViewPager) {
+                provideTabLayoutMediator()
+            }
         }
     }
 
-    private fun FragmentHomeViewPagerBinding.setHomeAdapter() {
+    override fun FragmentHomeViewPagerBinding.setAdapter() {
         homeViewPager.adapter = ViewPagerAdapter(
             arrayListOf(
                 HomeFragment(),
@@ -44,24 +54,21 @@ class HomeViewPagerFragment : BaseViewPagerFragment<FragmentHomeViewPagerBinding
         )
     }
 
-    private fun FragmentHomeViewPagerBinding.controlTabLayout() {
-        homeViewPager.reduceDragSensitivity()
-        mediator = TabLayoutMediator(
+    override fun FragmentHomeViewPagerBinding.provideTabLayoutMediator(): TabLayoutMediator =
+        TabLayoutMediator(
             binding.homeTabLayout, homeViewPager,
             true,
             true
         ) { tab, position ->
             when (position) {
                 0 -> {
-                    tab.text = requireContext().getResourceString(R.string.applications)
+                    tab.text = requireContext().getString(R.string.applications)
                 }
                 1 -> {
-                    tab.text = requireContext().getResourceString(R.string.favorites)
+                    tab.text = requireContext().getString(R.string.favorites)
                 }
             }
         }
-        mediator?.attach()
-    }
 
     override fun onCleanUp() {
         super.onCleanUp()

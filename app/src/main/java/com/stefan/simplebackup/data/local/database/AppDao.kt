@@ -3,7 +3,6 @@ package com.stefan.simplebackup.data.local.database
 import android.database.sqlite.SQLiteException
 import androidx.room.*
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.data.model.ProgressData
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -49,11 +48,4 @@ interface AppDao {
                 " WHERE package_name =:packageName AND is_local = 1 and is_cloud =:checkCloudOnly)"
     )
     fun doesExist(packageName: String, checkCloudOnly: Boolean = false): Boolean
-
-    @Query(
-        "SELECT name, bitmap, package_name, version_name, is_split, is_user_app, favorite" +
-                " FROM app_table" +
-                " WHERE package_name =:packageName"
-    )
-    suspend fun getProgressData(packageName: String): ProgressData
 }

@@ -1,23 +1,25 @@
 package com.stefan.simplebackup.ui.activities
 
-import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.work.WorkInfo
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.model.NotificationData
+import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.data.workers.REQUEST_TAG
 import com.stefan.simplebackup.data.workers.WORK_PROGRESS
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
-import com.stefan.simplebackup.utils.PreferenceHelper
-import com.stefan.simplebackup.utils.extensions.loadBitmap
 import com.stefan.simplebackup.ui.viewmodels.ProgressViewModel
-import com.stefan.simplebackup.ui.viewmodels.ProgressViewModelFactory
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
+import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
+import com.stefan.simplebackup.utils.extensions.loadBitmap
 import com.stefan.simplebackup.utils.extensions.viewBinding
 import kotlinx.coroutines.launch
 
@@ -28,39 +30,20 @@ class ProgressActivity : AppCompatActivity() {
 
     private var isInProgress: Boolean = true
 
-    private val preferencesListener by lazy {
-        SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
-            lifecycleScope.launch {
-                PreferenceHelper.packageName?.let { packageName ->
-                    binding.setViewData(packageName)
-                }
-            }
-        }
-    }
-
     private val progressViewModel: ProgressViewModel by viewModels {
         val selection = intent?.extras?.getIntArray(SELECTION_EXTRA)
-        ProgressViewModelFactory(selection, application as MainApplication)
+        ViewModelFactory(application as MainApplication, selection)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        savedInstanceState?.let {
-            isInProgress = savedInstanceState.getBoolean("isInProgress")
-        }
-        println("Saved progress onCreate: $isInProgress")
-
         binding.apply {
+            savedInstanceState.restoreSavedData()
             bindViews()
             initObservers()
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        PreferenceHelper.registerPreferenceListener(preferencesListener)
     }
 
     override fun onBackPressed() {
@@ -69,14 +52,29 @@ class ProgressActivity : AppCompatActivity() {
             super.onBackPressed()
     }
 
+    private fun Bundle?.restoreSavedData() {
+        this?.apply {
+            isInProgress = getBoolean("isInProgress")
+        }
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("isInProgress", isInProgress)
         super.onSaveInstanceState(outState)
     }
 
     private fun ActivityProgressBinding.initObservers() {
-        progressViewModel.getWorkManager.getWorkInfosByTagLiveData(REQUEST_TAG)
-            .observe(this@ProgressActivity, workInfoObserver())
+        lifecycleScope.launch {
+            launch {
+                progressViewModel.getWorkManager.getWorkInfosByTagLiveData(REQUEST_TAG)
+                    .observe(this@ProgressActivity, workInfoObserver())
+            }
+            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                MainWorker.notificationObserver.collect { notificationData ->
+                    updateViews(notificationData)
+                }
+            }
+        }
     }
 
     private fun ActivityProgressBinding.workInfoObserver(): Observer<List<WorkInfo>> {
@@ -97,17 +95,17 @@ class ProgressActivity : AppCompatActivity() {
     }
 
     private fun ActivityProgressBinding.bindViews() {
-        lifecycleScope.launch {
-            window.setBackgroundDrawableResource(R.color.background)
-            bindData()
-            bindProgressIndicator()
-            bindBackButton()
-        }
+        window.setBackgroundDrawableResource(R.color.background)
+        bindProgressIndicator()
+        bindBackButton()
     }
 
-    private suspend fun ActivityProgressBinding.bindData() {
-        PreferenceHelper.packageName?.let { packageName ->
-            setViewData(packageName)
+    private fun ActivityProgressBinding.updateViews(notificationData: NotificationData?) {
+        notificationData?.apply {
+            if (image.isNotEmpty()) {
+                applicationImageProgress.loadBitmap(image)
+                applicationNameProgress.text = name
+            }
         }
     }
 
@@ -122,17 +120,5 @@ class ProgressActivity : AppCompatActivity() {
                 onBackPressed()
             }
         }
-    }
-
-    private suspend fun ActivityProgressBinding.setViewData(packageName: String) {
-        progressViewModel.getCurrentApp(packageName).apply {
-            applicationImageProgress.loadBitmap(bitmap)
-            applicationNameProgress.text = name
-        }
-    }
-
-    override fun onDestroy() {
-        PreferenceHelper.unregisterPreferenceListener(preferencesListener)
-        super.onDestroy()
     }
 }

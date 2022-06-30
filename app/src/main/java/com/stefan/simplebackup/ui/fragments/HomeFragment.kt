@@ -8,7 +8,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
-import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.databinding.FragmentHomeBinding
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.activities.ProgressActivity
@@ -16,7 +15,6 @@ import com.stefan.simplebackup.ui.adapters.HomeAdapter
 import com.stefan.simplebackup.ui.adapters.selection.OnClickListener
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
-import com.stefan.simplebackup.ui.viewmodels.HomeViewModelFactory
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.delay
@@ -95,7 +93,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     private fun FragmentHomeBinding.bindSwipeContainer() {
         swipeRefresh.setOnRefreshListener {
             viewLifecycleOwner.lifecycleScope.launch {
-                homeViewModel.refreshPackageList()
+                homeViewModel.refreshPackages()
                 delay(250)
                 swipeRefresh.isRefreshing = false
             }
@@ -127,7 +125,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                 homeViewModel.spinner.collect { isSpinning ->
                     progressBar.isVisible = isSpinning
                     if (!isSpinning)
-                        homeViewModel.installedApps.collect { appList ->
+                        homeViewModel.observableList.collect { appList ->
                             homeAdapter.submitList(appList)
                         }
                 }

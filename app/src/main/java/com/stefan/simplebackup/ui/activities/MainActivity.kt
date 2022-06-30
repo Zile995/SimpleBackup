@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.ui.activities
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
@@ -19,8 +18,8 @@ import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.NotificationReceiver
 import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
-import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
-import com.stefan.simplebackup.ui.viewmodels.HomeViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.MainViewModel
+import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.root.RootChecker
@@ -34,8 +33,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController: NavController
 
     // ViewModel
-    private val homeViewModel: HomeViewModel by viewModels {
-        HomeViewModelFactory(application as MainApplication)
+    private val mainViewModel: MainViewModel by viewModels {
+        ViewModelFactory(application as MainApplication)
     }
 
     // Create RootChecker Class instance and reference
@@ -44,8 +43,8 @@ class MainActivity : AppCompatActivity() {
     // Broadcast receivers
     private val receiver: PackageReceiver by lazy {
         PackageReceiver(
-            homeViewModel,
-            homeViewModel.viewModelScope
+            mainViewModel,
+            mainViewModel.viewModelScope
         )
     }
     private val notificationReceiver: NotificationReceiver by lazy {

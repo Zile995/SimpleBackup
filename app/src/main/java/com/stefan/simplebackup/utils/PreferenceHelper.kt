@@ -6,7 +6,6 @@ import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.withContext
 
 private const val MAIN_PREFERENCE = "main_preference"
-private const val SHARED_PACKAGE_NAME = "package_name"
 private const val SEQUENCE_NUMBER = "sequence_number"
 private const val ROOT_GRANTED = "root_granted"
 private const val ROOT_CHECKED = "root_checked"
@@ -15,7 +14,6 @@ private const val DATABASE_CREATED = "database_created"
 object PreferenceHelper {
     private lateinit var sharedPreferences: SharedPreferences
 
-    val packageName: String? get() = sharedPreferences.getString(SHARED_PACKAGE_NAME, null)
     val isRootGranted: Boolean get() = sharedPreferences.getBoolean(ROOT_GRANTED, false)
     val isRootChecked: Boolean get() = sharedPreferences.getBoolean(ROOT_CHECKED, false)
     val getSequenceNumber: Int get() = sharedPreferences.getInt(SEQUENCE_NUMBER, 0)
@@ -54,10 +52,6 @@ object PreferenceHelper {
         sharedPreferences.editPreference(SEQUENCE_NUMBER, 0)
     }
 
-    suspend fun clearPackageName() {
-        sharedPreferences.editPreference(SHARED_PACKAGE_NAME, null)
-    }
-
     suspend fun updateSequenceNumber(newSequenceNumber: Int) {
         sharedPreferences.editPreference(SEQUENCE_NUMBER, newSequenceNumber)
     }
@@ -74,10 +68,6 @@ object PreferenceHelper {
         .OnSharedPreferenceChangeListener
     ) {
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
-    }
-
-    suspend fun savePackageName(packageName: String?) {
-        sharedPreferences.editPreference(SHARED_PACKAGE_NAME, packageName)
     }
 
     suspend fun setDatabaseCreated(isCreated: Boolean) {

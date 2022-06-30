@@ -4,7 +4,6 @@ import android.content.Context
 import com.stefan.simplebackup.MainApplication.Companion.getDatabaseInstance
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
-import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import kotlinx.coroutines.coroutineScope
 
@@ -26,7 +25,6 @@ class RestoreUtil(
         val repository = AppRepository(database.appDao())
         restoreItems.forEach { item ->
             repository.getAppData(item).also { app ->
-                PreferenceHelper.savePackageName(null)
                 ZipUtil.extractAllData(app)
             }
         }
