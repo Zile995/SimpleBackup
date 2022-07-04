@@ -20,7 +20,6 @@ open class HomeViewModel(
             loadList {
                 repository.installedApps
             }
-            refreshPackages()
         }
     }
 
