@@ -60,6 +60,7 @@
     <string name="scroll_to_top">Scroll to top</string>
     <string name="applications">Applications</string>
     <string name="backups">Backups</string>
+    <string name="cloud_backups">Cloud Backups</string>
     <string name="app">app</string>
     <string name="apps">apps</string>
     <string name="favorites">Favorites</string>

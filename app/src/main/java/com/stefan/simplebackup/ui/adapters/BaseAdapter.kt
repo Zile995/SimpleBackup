@@ -3,12 +3,10 @@ package com.stefan.simplebackup.ui.adapters
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.ui.adapters.selection.BaseSelectionListenerImpl
-import com.stefan.simplebackup.ui.adapters.selection.OnClickListener
-import com.stefan.simplebackup.ui.adapters.selection.SelectionListener
-import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
-import com.stefan.simplebackup.ui.adapters.viewholders.HomeViewHolder
-import com.stefan.simplebackup.ui.adapters.viewholders.LocalViewHolder
+import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl
+import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
+import com.stefan.simplebackup.ui.adapters.listeners.SelectionListener
+import com.stefan.simplebackup.ui.adapters.viewholders.*
 
 typealias SelectionModeCallBack = (Boolean) -> Unit
 
@@ -27,6 +25,8 @@ abstract class BaseAdapter(
         when (holder) {
             is HomeViewHolder -> holder.bind(item)
             is LocalViewHolder -> holder.bind(item)
+            is CloudViewHolder -> holder.bind(item)
+            is FavoritesViewHolder -> holder.bind(item)
         }
         if (selectedItems.contains(item.uid))
             holder.setSelected()

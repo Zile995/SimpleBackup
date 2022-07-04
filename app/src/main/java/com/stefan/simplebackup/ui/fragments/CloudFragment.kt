@@ -1,44 +1,142 @@
 package com.stefan.simplebackup.ui.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
+import android.util.Log
 import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModel
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.databinding.FragmentCloudBinding
+import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.adapters.CloudAdapter
-import com.stefan.simplebackup.utils.extensions.viewBinding
+import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
+import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
+import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
+import com.stefan.simplebackup.utils.extensions.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.lang.ref.WeakReference
 
 class CloudFragment : BaseFragment<FragmentCloudBinding>() {
     private var _cloudAdapter: CloudAdapter? = null
     private val cloudAdapter get() = _cloudAdapter!!
 
+    private val homeViewModel: HomeViewModel by viewModels(
+        ownerProducer = { requireParentFragment() }
+    )
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.apply {
             bindViews()
+            initObservers()
+            restoreRecyclerViewState()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.setActivityCallBacks()
     }
 
     private fun FragmentCloudBinding.bindViews() {
-        viewLifecycleOwner.lifecycleScope.launch {
+        bindSwipeContainer()
+        bindRecyclerView()
+    }
 
+    private fun FragmentCloudBinding.bindSwipeContainer() {
+        swipeRefresh.setOnRefreshListener {
+            viewLifecycleOwner.lifecycleScope.launch {
+                homeViewModel.refreshPackages()
+                delay(250)
+                swipeRefresh.isRefreshing = false
+            }
         }
     }
 
-    override fun onCleanUp() {
-        _cloudAdapter = null
+    private fun FragmentCloudBinding.bindRecyclerView() {
+        cloudRecyclerView.apply {
+            setCloudAdapter()
+            setHasFixedSize(true)
+        }
     }
 
-    override fun WeakReference<FragmentCloudBinding>.saveRecyclerViewState() {
-        TODO("Not yet implemented")
+    private fun RecyclerView.setCloudAdapter() {
+        _cloudAdapter =
+            CloudAdapter(
+                homeViewModel.selectionList,
+                homeViewModel.setSelectionMode
+            ) {
+                object : OnClickListener {
+                    override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
+                        val item = cloudAdapter.currentList[position]
+                        if (cloudAdapter.hasSelectedItems()) {
+                            cloudAdapter.doSelection(holder as BaseViewHolder, item)
+                        } else {
+                            viewLifecycleOwner.lifecycleScope.launch {
+                                item.passToActivity<AppDetailActivity>(context)
+                            }
+                        }
+                    }
+
+                    override fun onLongItemViewClick(
+                        holder: RecyclerView.ViewHolder,
+                        position: Int
+                    ) {
+                        val item = cloudAdapter.currentList[position]
+                        homeViewModel.setSelectionMode(true)
+                        cloudAdapter.doSelection(holder as BaseViewHolder, item)
+                    }
+                }
+            }
+        adapter = cloudAdapter
+    }
+
+    private fun FragmentCloudBinding.initObservers() {
+        repeatOnViewLifecycleScope(Lifecycle.State.STARTED) {
+            launch {
+                homeViewModel.isSelected.collect { isSelected ->
+                    batchBackup.isVisible = isSelected
+                }
+            }
+            homeViewModel.spinner.collect { isSpinning ->
+                progressBar.isVisible = isSpinning
+                if (!isSpinning)
+                    homeViewModel.observableList.collect { appList ->
+                        cloudAdapter.submitList(appList)
+                    }
+            }
+        }
+    }
+
+    private fun FragmentCloudBinding.setActivityCallBacks() {
+        onMainActivityCallback {
+            cloudRecyclerView.controlFloatingButton()
+        }
+    }
+
+    override fun FragmentCloudBinding.saveRecyclerViewState() {
+        cloudRecyclerView.onSaveRecyclerViewState { stateParcelable ->
+            homeViewModel.saveRecyclerViewState(stateParcelable)
+        }
     }
 
     override fun FragmentCloudBinding.restoreRecyclerViewState() {
-        TODO("Not yet implemented")
+        cloudRecyclerView.onRestoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        Log.d("Fragments", "Destroyed CloudFragment Views")
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("Fragments", "Destroyed CloudFragment completely")
+    }
+
+    override fun onCleanUp() {
+        super.onCleanUp()
+        _cloudAdapter = null
     }
 }

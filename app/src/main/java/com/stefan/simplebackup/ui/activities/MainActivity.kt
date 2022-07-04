@@ -1,8 +1,11 @@
 package com.stefan.simplebackup.ui.activities
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.util.AttributeSet
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -41,7 +44,7 @@ class MainActivity : AppCompatActivity() {
     private val rootChecker by lazy { RootChecker(applicationContext) }
 
     // Broadcast receivers
-    private val receiver: PackageReceiver by lazy {
+    private val packageReceiver: PackageReceiver by lazy {
         PackageReceiver(
             mainViewModel,
             mainViewModel.viewModelScope
@@ -58,15 +61,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-
-        lifecycleScope.launch {
-            launch {
-                setNavController()
-                binding.bindViews()
-            }
-            registerReceivers()
-            setRootDialogs()
-        }
+        binding.bindViews()
+        registerReceivers()
+        setRootDialogs()
     }
 
     fun RecyclerView.controlFloatingButton() {
@@ -91,17 +88,20 @@ class MainActivity : AppCompatActivity() {
             isSearching = true
         }
         outState.putBoolean("isSearching", isSearching)
+        outState.putBoolean("isSubmitted", isSubmitted)
     }
+
+    private fun ActivityMainBinding.bindViews() {
+        window.setBackgroundDrawableResource(R.color.background)
+        setNavController()
+        bindBottomNavigationView()
+    }
+
 
     private fun setNavController() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_container) as NavHostFragment
         navController = navHostFragment.navController
-    }
-
-    private fun ActivityMainBinding.bindViews() {
-        window.setBackgroundDrawableResource(R.color.background)
-        bindBottomNavigationView()
     }
 
     private fun ActivityMainBinding.bindBottomNavigationView() {
@@ -111,7 +111,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun registerReceivers() {
-        registerReceiver(receiver, intentFilter(
+        registerReceiver(packageReceiver, intentFilter(
             Intent.ACTION_PACKAGE_ADDED,
             Intent.ACTION_PACKAGE_REMOVED,
             Intent.ACTION_PACKAGE_REPLACED
@@ -121,24 +121,26 @@ class MainActivity : AppCompatActivity() {
         registerReceiver(notificationReceiver, intentFilter(ACTION_WORK_FINISHED))
     }
 
-    private suspend fun setRootDialogs() {
-        if (!isSubmitted) {
-            hasRootAccess()
-            isSubmitted = true
-        }
-        if (!PreferenceHelper.isRootChecked && rootChecker.isRooted()
-            && !PreferenceHelper.isRootGranted
-        ) {
-            rootDialog(
-                getString(R.string.root_detected),
-                getString(R.string.not_granted)
-            )
-        } else if (!PreferenceHelper.isRootChecked && !rootChecker.isRooted()
-        ) {
-            rootDialog(
-                getString(R.string.not_rooted),
-                getString(R.string.not_rooted_info)
-            )
+    private fun setRootDialogs() {
+        onViewLifecycleScope {
+            if (!isSubmitted) {
+                hasRootAccess()
+                isSubmitted = true
+            }
+            if (!PreferenceHelper.isRootChecked && rootChecker.isRooted()
+                && !PreferenceHelper.isRootGranted
+            ) {
+                rootDialog(
+                    getString(R.string.root_detected),
+                    getString(R.string.not_granted)
+                )
+            } else if (!PreferenceHelper.isRootChecked && !rootChecker.isRooted()
+            ) {
+                rootDialog(
+                    getString(R.string.not_rooted),
+                    getString(R.string.not_rooted_info)
+                )
+            }
         }
     }
 
@@ -169,7 +171,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceivers(receiver, notificationReceiver)
+        unregisterReceivers(packageReceiver, notificationReceiver)
     }
 }
 

@@ -14,7 +14,6 @@ import androidx.navigation.NavOptions
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
-import androidx.viewpager2.widget.ViewPager2
 import coil.imageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
@@ -71,15 +70,9 @@ inline fun BottomNavigationView.navigateWithAnimation(
             )
         }
         doBeforeNavigating()
-        when (item.itemId) {
-            R.id.home -> navController.navigate(item.itemId, args, navOptions.build())
-            R.id.local -> navController.navigate(item.itemId, args, navOptions.build())
-            R.id.cloud -> {}
-            R.id.settings -> {}
-        }
+        navController.navigate(item.itemId, args, navOptions.build())
         true
     }
-
     navController.addOnDestinationChangedListener(
         object : NavController.OnDestinationChangedListener {
             override fun onDestinationChanged(
@@ -167,15 +160,4 @@ fun RecyclerView.hideAttachedButton(floatingButton: FloatingActionButton) {
             if (!canScrollUp() || !canScrollDown()) floatingButton.hide()
         }
     })
-}
-
-fun ViewPager2.reduceDragSensitivity(multiplier: Int = 2) {
-    val recyclerViewField = ViewPager2::class.java.getDeclaredField("mRecyclerView")
-    recyclerViewField.isAccessible = true
-    val recyclerView = recyclerViewField.get(this) as RecyclerView
-
-    val touchSlopField = RecyclerView::class.java.getDeclaredField("mTouchSlop")
-    touchSlopField.isAccessible = true
-    val touchSlop = touchSlopField.get(recyclerView) as Int
-    touchSlopField.set(recyclerView, touchSlop * multiplier)
 }

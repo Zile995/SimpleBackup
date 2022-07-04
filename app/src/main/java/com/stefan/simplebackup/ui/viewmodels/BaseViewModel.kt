@@ -13,14 +13,19 @@ import kotlinx.coroutines.flow.asStateFlow
 
 const val SELECTION_EXTRA = "SELECTION_LIST"
 
-sealed class BaseViewModel : ViewModel() {
+sealed class BaseViewModel(private val shouldControlSpinner: Boolean = true) : ViewModel() {
     // Observable spinner properties used for progressbar observing
     private var _spinner = MutableStateFlow(true)
     val spinner get() = _spinner.asStateFlow()
+    val stopSpinning: (Boolean) -> Unit by lazy {
+        {
+            _spinner.value = it
+        }
+    }
 
     // Observable application properties used for list loading
     private var _observableList = MutableStateFlow(listOf<AppData>())
-    val observableList = _observableList.asStateFlow()
+    val observableList get() = _observableList.asStateFlow()
 
     // Selection properties
     private var _isSelected = MutableStateFlow(false)
@@ -43,7 +48,7 @@ sealed class BaseViewModel : ViewModel() {
         repositoryList().collect { list ->
             _observableList.value = list
             delay(400)
-            _spinner.value = false
+            if (shouldControlSpinner) _spinner.value = false
         }
     }
 }

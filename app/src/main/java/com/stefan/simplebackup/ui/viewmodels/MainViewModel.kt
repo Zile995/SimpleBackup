@@ -6,8 +6,7 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 
-class MainViewModel(application: MainApplication) :
-    ViewModel(),
+class MainViewModel(application: MainApplication) : ViewModel(),
     PackageListener by PackageListenerImpl(application) {
 
     init {

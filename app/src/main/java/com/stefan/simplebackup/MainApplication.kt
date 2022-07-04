@@ -52,6 +52,6 @@ class MainApplication : Application() {
         }
 
         fun Context.getDatabaseInstance(scope: CoroutineScope) =
-            AppDatabase.getInstance(this, scope)
+            AppDatabase.getInstance(applicationContext, scope)
     }
 }

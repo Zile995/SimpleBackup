@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/colorPrimaryVariant"
     tools:context=".ui.fragments.LocalFragment">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -36,7 +37,7 @@
         android:indeterminateTint="@color/floatingButton"
         android:scaleX="0.12"
         android:scaleY="0.12"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

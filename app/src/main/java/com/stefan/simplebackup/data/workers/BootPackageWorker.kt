@@ -17,7 +17,7 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) : Corouti
 ) {
     private val database = appContext.getDatabaseInstance(CoroutineScope(SupervisorJob()))
     private val repository = AppRepository(database.appDao())
-    private val appManager = AppManager(appContext)
+    private val appManager = AppManager(appContext.applicationContext)
 
     override suspend fun doWork(): Result = coroutineScope {
         try {

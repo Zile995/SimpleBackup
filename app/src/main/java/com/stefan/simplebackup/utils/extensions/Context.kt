@@ -13,16 +13,12 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.DrawableRes
-import androidx.annotation.MainThread
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelLazy
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.viewbinding.ViewBinding
 import com.stefan.simplebackup.R
@@ -47,14 +43,6 @@ fun Context.unregisterReceivers(vararg receivers: BroadcastReceiver) {
     }
 }
 
-@MainThread
-inline fun <reified VM : ViewModel> Fragment.viewModel(
-    noinline factoryProducer: (() -> ViewModelProvider.Factory)? = null
-): Lazy<VM> =
-    ViewModelLazy(VM::class, { this.viewModelStore }, factoryProducer ?: {
-        defaultViewModelProviderFactory
-    })
-
 inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
     crossinline bindingInflater: (LayoutInflater) -> T
 ) =
@@ -74,7 +62,6 @@ inline fun <T : ViewBinding> Fragment.reflectionViewBinding(
 ): FragmentViewBindingDelegate<T> {
     val vbClass =
         (javaClass.genericSuperclass as ParameterizedType).actualTypeArguments[0] as Class<T>
-    println("Name = ${vbClass.name}")
     val method = vbClass.declaredMethods.first {
         it.parameterTypes.contains(LayoutInflater::class.java)
     }

@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.ui.adapters.selection
+package com.stefan.simplebackup.ui.adapters.listeners
 
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.data.model.AppData

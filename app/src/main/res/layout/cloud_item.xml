@@ -53,8 +53,8 @@
             android:textSize="7pt"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="@+id/cloud_package_name"
-            app:layout_constraintStart_toStartOf="@+id/version_name"
-            app:layout_constraintTop_toTopOf="@+id/version_name" />
+            app:layout_constraintStart_toStartOf="@+id/cloud_version_name"
+            app:layout_constraintTop_toTopOf="@+id/cloud_version_name" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/cloud_package_name"

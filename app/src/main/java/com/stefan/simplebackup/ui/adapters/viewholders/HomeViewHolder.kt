@@ -4,7 +4,7 @@ import android.view.View
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.databinding.HomeItemBinding
-import com.stefan.simplebackup.ui.adapters.selection.OnClickListener
+import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.utils.extensions.bytesToString
 import com.stefan.simplebackup.utils.extensions.checkedString
 import com.stefan.simplebackup.utils.extensions.loadBitmap

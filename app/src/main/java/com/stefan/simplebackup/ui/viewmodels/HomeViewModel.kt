@@ -6,11 +6,12 @@ import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import kotlinx.coroutines.CoroutineName
 
-class HomeViewModel(
-    private val packageListener: PackageListener
-) : BaseViewModel() {
+open class HomeViewModel(
+    private val packageListener: PackageListener,
+    shouldControlSpinner: Boolean = true
+) : BaseViewModel(shouldControlSpinner) {
 
-    private val repository = packageListener.repository
+    protected val repository = packageListener.repository
     suspend fun refreshPackages() = packageListener.refreshPackageList()
 
     init {
@@ -21,5 +22,10 @@ class HomeViewModel(
             }
             refreshPackages()
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        Log.d("ViewModel", "HomeViewModel cleared")
     }
 }

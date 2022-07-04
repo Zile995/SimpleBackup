@@ -9,6 +9,7 @@ import com.stefan.simplebackup.data.receivers.PackageListener
 
 @Suppress("UNCHECKED_CAST")
 
+// FIXME: Ugly code, should find better way of creating the ViewModels
 class ViewModelFactory(
     private val application: MainApplication,
     private val additionalProperty: Any? = null
@@ -20,7 +21,13 @@ class ViewModelFactory(
             HomeViewModel::class.java -> HomeViewModel(
                 additionalProperty as PackageListener
             )
-            LocalViewModel::class.java -> LocalViewModel(application, additionalProperty as AppRepository)
+            FavoritesViewModel::class.java -> FavoritesViewModel(
+                additionalProperty as PackageListener
+            )
+            LocalViewModel::class.java -> LocalViewModel(
+                application,
+                additionalProperty as AppRepository
+            )
             ProgressViewModel::class.java -> ProgressViewModel(
                 additionalProperty as? IntArray?,
                 application

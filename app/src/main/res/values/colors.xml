@@ -17,6 +17,8 @@
     <color name="textInRedChip">#531F1F</color>>
     <color name="blueChip">#7C9CD6</color>
     <color name="textInBlueChip">#192231</color>
+    <color name="greenChip">#79B4B7</color>
+    <color name="textInGreenChip">#FF07433A</color>
     <color name="weakRedChip">#FFA5A5</color>
 
     <!-- TextViews -->
