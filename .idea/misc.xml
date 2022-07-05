@@ -98,14 +98,16 @@
         <entry key="app/src/main/res/layout/fragment_favorites.xml" value="0.253515625" />
         <entry key="app/src/main/res/layout/fragment_home.xml" value="0.21" />
         <entry key="app/src/main/res/layout/fragment_home_view_pager.xml" value="0.14" />
-        <entry key="app/src/main/res/layout/fragment_local.xml" value="0.1546875" />
+        <entry key="app/src/main/res/layout/fragment_local.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_local_view_pager.xml" value="0.2774690038477982" />
         <entry key="app/src/main/res/layout/fragment_restore_list.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/fragment_search.xml" value="0.12612227447627192" />
         <entry key="app/src/main/res/layout/fragment_view_pager.xml" value="0.1" />
         <entry key="app/src/main/res/layout/home_item.xml" value="0.15" />
         <entry key="app/src/main/res/layout/list_item.xml" value="0.25" />
         <entry key="app/src/main/res/layout/local_item.xml" value="0.33" />
         <entry key="app/src/main/res/layout/restore_item.xml" value="0.4481216457960644" />
+        <entry key="app/src/main/res/layout/search_item.xml" value="0.12526720820863618" />
         <entry key="app/src/main/res/layout/search_toolbar.xml" value="0.1453125" />
         <entry key="app/src/main/res/layout/search_view_layout.xml" value="0.18541666666666667" />
         <entry key="app/src/main/res/layout/toolbar_search_view.xml" value="0.25" />

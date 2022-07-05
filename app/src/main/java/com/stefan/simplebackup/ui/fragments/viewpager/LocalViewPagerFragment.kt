@@ -36,7 +36,7 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
             adapter = ViewPagerAdapter(
                 arrayListOf(
                     LocalFragment(),
-                    FavoritesFragment()
+                    FavoritesFragment.newInstance()
                 ),
                 childFragmentManager,
                 viewLifecycleOwner.lifecycle

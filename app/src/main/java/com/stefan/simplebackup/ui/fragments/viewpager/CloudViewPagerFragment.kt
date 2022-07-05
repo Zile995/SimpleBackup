@@ -36,7 +36,7 @@ class CloudViewPagerFragment : BaseViewPagerFragment<FragmentCloudViewPagerBindi
             adapter = ViewPagerAdapter(
                 arrayListOf(
                     CloudFragment(),
-                    FavoritesFragment()
+                    FavoritesFragment.newInstance()
                 ),
                 childFragmentManager,
                 viewLifecycleOwner.lifecycle

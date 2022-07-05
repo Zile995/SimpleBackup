@@ -34,7 +34,7 @@ class AppManager(private val context: Context) {
             getAppData(appInfo = getAppInfo(packageName))
         }
 
-    fun printSequence() {
+    private fun printSequence() {
         Log.d(
             "AppManager", "Sequence number:" +
                     " ${PreferenceHelper.getSequenceNumber}"
@@ -48,10 +48,7 @@ class AppManager(private val context: Context) {
         if (newSequenceNumber != PreferenceHelper.getSequenceNumber) {
             PreferenceHelper.updateSequenceNumber(newSequenceNumber)
         }
-        Log.d(
-            "AppManager",
-            "Sequence number: ${PreferenceHelper.getSequenceNumber}"
-        )
+        printSequence()
     }
 
     suspend fun updateSequenceNumber() {
@@ -67,6 +64,8 @@ class AppManager(private val context: Context) {
         val changedPackages = getChangedPackages()
         changedPackages?.let { changed ->
             saveSequenceNumber(changed.sequenceNumber)
+            if (changedPackages.sequenceNumber == PreferenceHelper.getSequenceNumber)
+                return@flow
             changed.packageNames.filter { packageName ->
                 packageName != context.packageName
             }.forEach { packageName ->

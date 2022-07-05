@@ -36,7 +36,7 @@ class HomeViewPagerFragment : BaseViewPagerFragment<FragmentHomeViewPagerBinding
             adapter = ViewPagerAdapter(
                 arrayListOf(
                     HomeFragment(),
-                    FavoritesFragment()
+                    FavoritesFragment.newInstance()
                 ),
                 childFragmentManager,
                 viewLifecycleOwner.lifecycle

@@ -1,9 +1,13 @@
 package com.stefan.simplebackup.utils.extensions
 
+import android.animation.ObjectAnimator
+import android.animation.TimeInterpolator
+import android.animation.ValueAnimator
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.DisplayMetrics
 import android.view.View
+import android.view.animation.DecelerateInterpolator
 import android.widget.ImageView
 import androidx.annotation.IdRes
 import androidx.core.view.forEach
@@ -18,6 +22,7 @@ import coil.imageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import java.lang.ref.WeakReference
@@ -56,6 +61,7 @@ inline fun BottomNavigationView.navigateWithAnimation(
 ) {
     val weakReference = WeakReference(this)
     setOnItemSelectedListener { item ->
+        doBeforeNavigating()
         val navOptions = NavOptions.Builder().apply {
             setLaunchSingleTop(true)
             setRestoreState(true)
@@ -69,7 +75,6 @@ inline fun BottomNavigationView.navigateWithAnimation(
                 saveState = true
             )
         }
-        doBeforeNavigating()
         navController.navigate(item.itemId, args, navOptions.build())
         true
     }
@@ -160,4 +165,75 @@ fun RecyclerView.hideAttachedButton(floatingButton: FloatingActionButton) {
             if (!canScrollUp() || !canScrollDown()) floatingButton.hide()
         }
     })
+}
+
+fun View.withAnimation(
+    shouldShow: Boolean = false,
+    heightTranslation: Float = this.height.toFloat()
+) {
+    var translationValue = 0f
+    if (!shouldShow) translationValue = heightTranslation
+    ObjectAnimator.ofFloat(this, "translationY", translationValue).apply {
+        duration = 200L
+        start()
+    }
+}
+
+fun MaterialCardView.withRadiusAnimation(
+    fromHeightValue: Int,
+    toHeightValue: Int,
+    fromWidthValue: Int,
+    toWidthValue: Int,
+    duration: Long = 300L,
+    interpolator: TimeInterpolator = DecelerateInterpolator(),
+    savedCardViewRadius: Float = this.radius
+) =
+    this.animateViewToParent(
+        fromHeightValue,
+        toHeightValue,
+        fromWidthValue,
+        toWidthValue,
+        duration
+    ) {
+        val radiusAnimator =
+            if (savedCardViewRadius != this.radius)
+                ValueAnimator.ofFloat(0f, savedCardViewRadius)
+            else
+                ValueAnimator.ofFloat(savedCardViewRadius, 0f)
+        radiusAnimator.duration = duration
+        radiusAnimator.interpolator = interpolator
+        radiusAnimator.addUpdateListener {
+            this.radius = it.animatedValue as Float
+            this.requestLayout()
+        }
+        radiusAnimator.start()
+    }
+
+fun View.animateViewToParent(
+    fromHeightValue: Int,
+    toHeightValue: Int,
+    fromWidthValue: Int,
+    toWidthValue: Int,
+    duration: Long = 300L,
+    interpolator: TimeInterpolator = DecelerateInterpolator(),
+    applyWith: () -> Unit
+) {
+    val target = this
+    val heightAnimator = ValueAnimator.ofInt(fromHeightValue, toHeightValue)
+    val widthAnimator = ValueAnimator.ofInt(fromWidthValue, toWidthValue)
+    heightAnimator.duration = duration
+    widthAnimator.duration = duration
+    heightAnimator.interpolator = interpolator
+    widthAnimator.interpolator = interpolator
+    heightAnimator.addUpdateListener { animation ->
+        target.layoutParams.height = animation.animatedValue as Int
+        target.requestLayout()
+    }
+    widthAnimator.addUpdateListener {
+        target.layoutParams.width = it.animatedValue as Int
+        target.requestLayout()
+    }
+    heightAnimator.start()
+    widthAnimator.start()
+    applyWith()
 }

@@ -108,6 +108,9 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
             launch {
                 homeViewModel.isSelected.collect { isSelected ->
                     batchBackup.isVisible = isSelected
+                    onMainActivityCallback {
+                        controlBottomView(!isSelected)
+                    }
                 }
             }
             homeViewModel.spinner.collect { isSpinning ->

@@ -1,19 +1,23 @@
 package com.stefan.simplebackup.ui.activities
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
-import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
+import android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
+import androidx.core.view.marginLeft
+import androidx.core.view.marginRight
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.navOptions
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
@@ -26,7 +30,6 @@ import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.root.RootChecker
-import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     // Binding properties
@@ -56,12 +59,12 @@ class MainActivity : AppCompatActivity() {
 
     // Flags
     private var isSubmitted = false
-    private var isSearching = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         binding.bindViews()
+        binding.initObservers()
         registerReceivers()
         setRootDialogs()
     }
@@ -76,27 +79,19 @@ class MainActivity : AppCompatActivity() {
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
         isSubmitted = savedInstanceState.getBoolean("isSubmitted")
-        isSearching = savedInstanceState.getBoolean("isSearching")
-        if (isSearching) {
-            binding.searchInput.requestFocus()
-        }
     }
 
     override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
         super.onSaveInstanceState(outState, outPersistentState)
-        if (binding.searchInput.hasFocus()) {
-            isSearching = true
-        }
-        outState.putBoolean("isSearching", isSearching)
         outState.putBoolean("isSubmitted", isSubmitted)
     }
 
     private fun ActivityMainBinding.bindViews() {
         window.setBackgroundDrawableResource(R.color.background)
         setNavController()
+        bindSearchBar()
         bindBottomNavigationView()
     }
-
 
     private fun setNavController() {
         val navHostFragment =
@@ -104,9 +99,89 @@ class MainActivity : AppCompatActivity() {
         navController = navHostFragment.navController
     }
 
+    private fun ActivityMainBinding.bindSearchBar() {
+        toolBar.setOnClickListener {
+            navigateToSearchFragment()
+            mainViewModel.changeSearching(true)
+            toolBar.withRadiusAnimation(
+                toolBar.height,
+                (toolBar.parent as View).height,
+                toolBar.width,
+                (toolBar.parent as View).width
+            )
+            floatingButton.hide()
+            floatingButton.setOnClickListener(null)
+        }
+    }
+
+    private fun ActivityMainBinding.expandToolBarToParentView() {
+        toolBar.radius = 0f
+        toolBar.layoutParams.height = (toolBar.parent as View).height
+        toolBar.layoutParams.width = (toolBar.parent as View).width
+        (toolBar.layoutParams as? ViewGroup.MarginLayoutParams)?.leftMargin = 0
+        (toolBar.layoutParams as? ViewGroup.MarginLayoutParams)?.rightMargin = 0
+        toolBar.requestLayout()
+    }
+
+    private fun ActivityMainBinding.saveCurrentToolbarValues() {
+        mainViewModel.toolBarHeight = toolBar.height
+        mainViewModel.toolBarWidth = toolBar.width
+        mainViewModel.toolBarRadius = toolBar.radius
+        mainViewModel.toolBarLeftMargin = toolBar.marginLeft
+        mainViewModel.toolBarRightMargin = toolBar.marginRight
+    }
+
+    private fun navigateToSearchFragment() {
+        navController.navigate(R.id.search, null, navOptions {
+            anim {
+                enter = R.animator.nav_default_enter_anim
+                exit = R.animator.nav_default_exit_anim
+                popEnter = R.animator.nav_default_pop_enter_anim
+                popExit = R.animator.nav_default_pop_exit_anim
+            }
+        })
+    }
+
+    fun controlBottomView(shouldShow: Boolean = false) {
+        binding.apply {
+            bottomNavigationView.withAnimation(shouldShow, bottomNavigationView.height.toFloat())
+        }
+    }
+
+    fun requestFocus() {
+        binding.apply {
+            searchInput.requestFocus()
+            (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showSoftInput(
+                searchInput,
+                SHOW_IMPLICIT
+            )
+
+        }
+    }
+
+    fun revertToolBarToInitialSize() {
+        binding.apply {
+            toolBar.withRadiusAnimation(
+                toolBar.height,
+                mainViewModel.toolBarHeight,
+                toolBar.width,
+                mainViewModel.toolBarWidth,
+                savedCardViewRadius = mainViewModel.toolBarRadius,
+            )
+            (toolBar.layoutParams as ViewGroup.MarginLayoutParams).leftMargin =
+                mainViewModel.toolBarLeftMargin
+            (toolBar.layoutParams as ViewGroup.MarginLayoutParams).rightMargin =
+                mainViewModel.toolBarRightMargin
+            toolBar.requestLayout()
+            mainViewModel.changeSearching(false)
+        }
+    }
+
     private fun ActivityMainBinding.bindBottomNavigationView() {
         bottomNavigationView.navigateWithAnimation(navController, doBeforeNavigating = {
-            floatingButton.setOnClickListener(null)
+            onViewLifecycleScope {
+                floatingButton.setOnClickListener(null)
+            }
         })
     }
 
@@ -140,6 +215,22 @@ class MainActivity : AppCompatActivity() {
                     getString(R.string.not_rooted),
                     getString(R.string.not_rooted_info)
                 )
+            }
+        }
+    }
+
+    private fun ActivityMainBinding.initObservers() {
+        repeatOnViewLifecycleScope(Lifecycle.State.STARTED) {
+            mainViewModel.isSearching.collect { isSearching ->
+                if (isSearching) {
+                    toolBar.isClickable = false
+                    saveCurrentToolbarValues()
+                    expandToolBarToParentView()
+                    bottomNavigationView.hide()
+                } else {
+                    toolBar.isClickable = true
+                    bottomNavigationView.show()
+                }
             }
         }
     }

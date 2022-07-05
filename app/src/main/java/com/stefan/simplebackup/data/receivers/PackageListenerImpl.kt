@@ -15,16 +15,14 @@ class PackageListenerImpl(application: MainApplication) : PackageListener {
 
     // Used to check for changed packages on init
     override suspend fun refreshPackageList() {
-        Log.d("ViewModel", "Refreshing the package list")
+        Log.d("PackageListener", "Refreshing the package list")
         withContext(ioDispatcher) {
             appManager.apply {
                 if (PreferenceHelper.isDatabaseCreated) {
                     getChangedPackageNames().collect { packageName ->
                         if (doesPackageExists(packageName)) {
-                            Log.d("ViewModel", "Adding or updating the $packageName")
                             insertOrUpdatePackage(packageName)
                         } else {
-                            Log.d("ViewModel", "Deleting the $packageName")
                             deletePackage(packageName)
                         }
                     }
@@ -34,6 +32,7 @@ class PackageListenerImpl(application: MainApplication) : PackageListener {
     }
 
     override suspend fun insertOrUpdatePackage(packageName: String) {
+        Log.d("PackageListener", "Adding or updating the $packageName")
         appManager.apply {
             repository.insertOrUpdate(build(packageName))
             updateSequenceNumber()
@@ -41,6 +40,7 @@ class PackageListenerImpl(application: MainApplication) : PackageListener {
     }
 
     override suspend fun deletePackage(packageName: String) {
+        Log.d("PackageListener", "Deleting the $packageName")
         repository.delete(packageName)
         appManager.updateSequenceNumber()
     }
