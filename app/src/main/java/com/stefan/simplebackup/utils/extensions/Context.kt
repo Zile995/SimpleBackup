@@ -108,7 +108,7 @@ inline fun <T : AppCompatActivity> Fragment.onActivityCallback(
 ) {
     @Suppress("UNCHECKED_CAST")
     (activity as? T)?.apply {
-        viewLifecycleOwner.lifecycleScope.launch {
+        onViewLifecycleScope {
             block()
         }
     }

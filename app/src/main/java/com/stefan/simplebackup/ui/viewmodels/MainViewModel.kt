@@ -22,8 +22,8 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     var toolBarLeftMargin: Int = 0
     var toolBarRightMargin: Int = 0
 
-    val changeSearching: (Boolean) -> Unit = {
-        _isSearching.value = it
+    fun changeSearching(isSearching: Boolean) {
+        _isSearching.value = isSearching
     }
 
     init {

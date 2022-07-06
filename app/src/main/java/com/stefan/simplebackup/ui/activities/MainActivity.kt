@@ -3,10 +3,10 @@ package com.stefan.simplebackup.ui.activities
 import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -63,17 +63,13 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        binding.bindViews()
-        binding.initObservers()
+        setNavController()
+        binding.apply {
+            bindViews()
+            initObservers()
+        }
         registerReceivers()
         setRootDialogs()
-    }
-
-    fun RecyclerView.controlFloatingButton() {
-        binding.floatingButton.setOnClickListener {
-            smoothSnapToPosition(0)
-        }
-        hideAttachedButton(binding.floatingButton)
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -88,7 +84,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun ActivityMainBinding.bindViews() {
         window.setBackgroundDrawableResource(R.color.background)
-        setNavController()
         bindSearchBar()
         bindBottomNavigationView()
     }
@@ -97,12 +92,32 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_container) as NavHostFragment
         navController = navHostFragment.navController
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            if (destination.matchDestination(R.id.search_fragment)) {
+                binding.toolBar.isClickable = false
+                mainViewModel.changeSearching(true)
+            } else {
+                binding.toolBar.isClickable = true
+                mainViewModel.changeSearching(false)
+            }
+        }
+    }
+
+    private fun navigateToSearchFragment() {
+        navController.navigate(R.id.search_fragment, null, navOptions {
+            anim {
+                enter = R.animator.nav_default_enter_anim
+                exit = R.animator.nav_default_exit_anim
+                popEnter = R.animator.nav_default_pop_enter_anim
+                popExit = R.animator.nav_default_pop_exit_anim
+            }
+        })
     }
 
     private fun ActivityMainBinding.bindSearchBar() {
         toolBar.setOnClickListener {
+            saveCurrentToolbarValues()
             navigateToSearchFragment()
-            mainViewModel.changeSearching(true)
             toolBar.withRadiusAnimation(
                 toolBar.height,
                 (toolBar.parent as View).height,
@@ -111,6 +126,20 @@ class MainActivity : AppCompatActivity() {
             )
             floatingButton.hide()
             floatingButton.setOnClickListener(null)
+        }
+    }
+
+
+    private fun ActivityMainBinding.initObservers() {
+        repeatOnViewLifecycleScope(Lifecycle.State.RESUMED) {
+            mainViewModel.isSearching.collect { isSearching ->
+                if (isSearching) {
+                    expandToolBarToParentView()
+                    bottomNavigationView.hide()
+                } else {
+                    bottomNavigationView.show()
+                }
+            }
         }
     }
 
@@ -124,6 +153,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun ActivityMainBinding.saveCurrentToolbarValues() {
+        Log.d("ViewModel", "Saving height = ${toolBar.height}")
+        Log.d("ViewModel", "Saving width = ${toolBar.width}")
+        Log.d("ViewModel", "Saving radius = ${toolBar.radius}")
+        Log.d("ViewModel", "Saving marginLeft = ${toolBar.marginLeft}")
+        Log.d("ViewModel", "Saving marginRight = ${toolBar.marginRight}")
         mainViewModel.toolBarHeight = toolBar.height
         mainViewModel.toolBarWidth = toolBar.width
         mainViewModel.toolBarRadius = toolBar.radius
@@ -131,36 +165,13 @@ class MainActivity : AppCompatActivity() {
         mainViewModel.toolBarRightMargin = toolBar.marginRight
     }
 
-    private fun navigateToSearchFragment() {
-        navController.navigate(R.id.search, null, navOptions {
-            anim {
-                enter = R.animator.nav_default_enter_anim
-                exit = R.animator.nav_default_exit_anim
-                popEnter = R.animator.nav_default_pop_enter_anim
-                popExit = R.animator.nav_default_pop_exit_anim
-            }
-        })
-    }
-
-    fun controlBottomView(shouldShow: Boolean = false) {
-        binding.apply {
-            bottomNavigationView.withAnimation(shouldShow, bottomNavigationView.height.toFloat())
-        }
-    }
-
-    fun requestFocus() {
-        binding.apply {
-            searchInput.requestFocus()
-            (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showSoftInput(
-                searchInput,
-                SHOW_IMPLICIT
-            )
-
-        }
-    }
-
     fun revertToolBarToInitialSize() {
         binding.apply {
+            Log.d("ViewModel", "Saved height = ${mainViewModel.toolBarHeight}")
+            Log.d("ViewModel", "Saved width = ${mainViewModel.toolBarWidth}")
+            Log.d("ViewModel", "Saved radius = ${mainViewModel.toolBarRadius}")
+            Log.d("ViewModel", "Saved marginLeft = ${mainViewModel.toolBarLeftMargin}")
+            Log.d("ViewModel", "Saved marginRight = ${mainViewModel.toolBarRightMargin}")
             toolBar.withRadiusAnimation(
                 toolBar.height,
                 mainViewModel.toolBarHeight,
@@ -173,15 +184,13 @@ class MainActivity : AppCompatActivity() {
             (toolBar.layoutParams as ViewGroup.MarginLayoutParams).rightMargin =
                 mainViewModel.toolBarRightMargin
             toolBar.requestLayout()
-            mainViewModel.changeSearching(false)
         }
     }
 
     private fun ActivityMainBinding.bindBottomNavigationView() {
         bottomNavigationView.navigateWithAnimation(navController, doBeforeNavigating = {
-            onViewLifecycleScope {
-                floatingButton.setOnClickListener(null)
-            }
+            floatingButton.setOnClickListener(null)
+            !mainViewModel.isSearching.value
         })
     }
 
@@ -219,21 +228,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun ActivityMainBinding.initObservers() {
-        repeatOnViewLifecycleScope(Lifecycle.State.STARTED) {
-            mainViewModel.isSearching.collect { isSearching ->
-                if (isSearching) {
-                    toolBar.isClickable = false
-                    saveCurrentToolbarValues()
-                    expandToolBarToParentView()
-                    bottomNavigationView.hide()
-                } else {
-                    toolBar.isClickable = true
-                    bottomNavigationView.show()
-                }
-            }
-        }
-    }
 
     private suspend fun hasRootAccess() {
         if (rootChecker.hasRootAccess() == true) {
@@ -258,6 +252,29 @@ class MainActivity : AppCompatActivity() {
                 .setTextColor(ContextCompat.getColor(this, R.color.positiveDialog))
         }
         alert.show()
+    }
+
+    fun RecyclerView.controlFloatingButton() {
+        binding.floatingButton.setOnClickListener {
+            smoothSnapToPosition(0)
+        }
+        hideAttachedButton(binding.floatingButton)
+    }
+
+    fun requestFocus() {
+        binding.apply {
+            searchInput.requestFocus()
+            (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showSoftInput(
+                searchInput,
+                InputMethodManager.SHOW_FORCED
+            )
+        }
+    }
+
+    fun controlBottomView(shouldShow: Boolean = false) {
+        binding.apply {
+            bottomNavigationView.withAnimation(shouldShow, bottomNavigationView.height.toFloat())
+        }
     }
 
     override fun onDestroy() {

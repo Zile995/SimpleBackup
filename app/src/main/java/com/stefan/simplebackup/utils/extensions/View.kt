@@ -57,11 +57,11 @@ fun ImageView.loadBitmap(byteArray: ByteArray) {
 inline fun BottomNavigationView.navigateWithAnimation(
     navController: NavController,
     args: Bundle? = null,
-    crossinline doBeforeNavigating: () -> Unit = {}
+    crossinline doBeforeNavigating: () -> Boolean = { true }
 ) {
-    val weakReference = WeakReference(this)
     setOnItemSelectedListener { item ->
-        doBeforeNavigating()
+        val shouldNavigate = doBeforeNavigating()
+        if (!shouldNavigate) return@setOnItemSelectedListener false
         val navOptions = NavOptions.Builder().apply {
             setLaunchSingleTop(true)
             setRestoreState(true)
@@ -78,6 +78,7 @@ inline fun BottomNavigationView.navigateWithAnimation(
         navController.navigate(item.itemId, args, navOptions.build())
         true
     }
+    val weakReference = WeakReference(this)
     navController.addOnDestinationChangedListener(
         object : NavController.OnDestinationChangedListener {
             override fun onDestinationChanged(
