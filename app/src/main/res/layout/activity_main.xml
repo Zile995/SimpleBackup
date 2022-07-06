@@ -49,6 +49,19 @@
                 android:background="@color/searchBar"
                 android:hint="@string/search_app" />
 
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/material_toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone">
+
+                <SearchView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" >
+                </SearchView>
+
+            </com.google.android.material.appbar.MaterialToolbar>
+
         </com.google.android.material.card.MaterialCardView>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

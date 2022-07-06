@@ -11,6 +11,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
 import androidx.lifecycle.Lifecycle
@@ -106,17 +107,20 @@ class MainActivity : AppCompatActivity() {
     private fun navigateToSearchFragment() {
         navController.navigate(R.id.search_fragment, null, navOptions {
             anim {
-                enter = R.animator.nav_default_enter_anim
-                exit = R.animator.nav_default_exit_anim
-                popEnter = R.animator.nav_default_pop_enter_anim
-                popExit = R.animator.nav_default_pop_exit_anim
+                enter = R.anim.fragment_enter
+                exit = R.anim.fragment_exit
+                popEnter = R.anim.fragment_enter_pop
+                popExit = R.anim.fragment_exit_pop
             }
         })
     }
 
     private fun ActivityMainBinding.bindSearchBar() {
-        toolBar.setOnClickListener {
+        root.doOnPreDraw {
             saveCurrentToolbarValues()
+            if (mainViewModel.isSearching.value) expandToolBarToParentView()
+        }
+        toolBar.setOnClickListener {
             navigateToSearchFragment()
             toolBar.withRadiusAnimation(
                 toolBar.height,
@@ -134,7 +138,6 @@ class MainActivity : AppCompatActivity() {
         repeatOnViewLifecycleScope(Lifecycle.State.RESUMED) {
             mainViewModel.isSearching.collect { isSearching ->
                 if (isSearching) {
-                    expandToolBarToParentView()
                     bottomNavigationView.hide()
                 } else {
                     bottomNavigationView.show()
