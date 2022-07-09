@@ -1,15 +1,20 @@
 package com.stefan.simplebackup.utils.extensions
 
-import android.animation.ObjectAnimator
-import android.animation.TimeInterpolator
-import android.animation.ValueAnimator
+import android.animation.*
+import android.content.Context
+import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.DisplayMetrics
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.DecelerateInterpolator
+import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
+import android.widget.TextView
+import androidx.annotation.ColorRes
 import androidx.annotation.IdRes
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.forEach
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -22,7 +27,6 @@ import coil.imageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.card.MaterialCardView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.R
 import java.lang.ref.WeakReference
@@ -52,6 +56,12 @@ fun ImageView.loadBitmap(byteArray: ByteArray) {
         .target(this)
         .build()
     imageLoader.enqueue(request)
+}
+
+
+fun SearchView.setTypeFace(typeface: Typeface?) {
+    val searchText = this.findViewById<View>(androidx.appcompat.R.id.search_src_text) as TextView
+    searchText.typeface = typeface
 }
 
 inline fun BottomNavigationView.navigateWithAnimation(
@@ -168,58 +178,79 @@ fun RecyclerView.hideAttachedButton(floatingButton: FloatingActionButton) {
     })
 }
 
-fun View.withAnimation(
-    shouldShow: Boolean = false,
-    heightTranslation: Float = this.height.toFloat()
-) {
-    var translationValue = 0f
-    if (!shouldShow) translationValue = heightTranslation
-    ObjectAnimator.ofFloat(this, "translationY", translationValue).apply {
-        duration = 200L
+fun View.changeBackgroundColor(context: Context, @ColorRes color: Int) {
+    setBackgroundColor(
+        context.getColorFromResource(color)
+    )
+}
+
+fun View.moveToTheLeft(animationDuration: Long = 300L, value: Float) {
+    ObjectAnimator.ofFloat(this, "translationX", value).apply {
+        duration = animationDuration
         start()
     }
 }
 
-fun MaterialCardView.withRadiusAnimation(
-    fromHeightValue: Int,
-    toHeightValue: Int,
-    fromWidthValue: Int,
-    toWidthValue: Int,
-    duration: Long = 300L,
-    interpolator: TimeInterpolator = DecelerateInterpolator(),
-    savedCardViewRadius: Float = this.radius
-) =
-    this.animateViewToParent(
-        fromHeightValue,
-        toHeightValue,
-        fromWidthValue,
-        toWidthValue,
-        duration
-    ) {
-        val radiusAnimator =
-            if (savedCardViewRadius != this.radius)
-                ValueAnimator.ofFloat(0f, savedCardViewRadius)
-            else
-                ValueAnimator.ofFloat(savedCardViewRadius, 0f)
-        radiusAnimator.duration = duration
-        radiusAnimator.interpolator = interpolator
-        radiusAnimator.addUpdateListener {
-            this.radius = it.animatedValue as Float
-            this.requestLayout()
-        }
-        radiusAnimator.start()
+fun View.moveToTheRight(animationDuration: Long = 300L, value: Float) {
+    ObjectAnimator.ofFloat(this, "translationX", value).apply {
+        duration = animationDuration
+        start()
     }
+}
 
-fun View.animateViewToParent(
+inline fun View.fadeIn(
+    animationDuration: Long = 300L,
+    crossinline onAnimationEnd: () -> Unit = {},
+    crossinline onAnimationCancel: () -> Unit = {}
+) {
+    animate()
+        .alpha(1f)
+        .setDuration(animationDuration)
+        .setListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationStart(animation: Animator?) {
+                super.onAnimationStart(animation)
+                show()
+            }
+
+            override fun onAnimationEnd(animation: Animator?) {
+                super.onAnimationEnd(animation)
+                onAnimationEnd.invoke()
+            }
+
+            override fun onAnimationCancel(animation: Animator?) {
+                super.onAnimationCancel(animation)
+                fadeOut {
+                    onAnimationCancel.invoke()
+                }
+            }
+        })
+}
+
+inline fun View.fadeOut(
+    animationDuration: Long = 300L,
+    crossinline onAnimationEnd: () -> Unit = {}
+) {
+    animate()
+        .alpha(0f)
+        .setDuration(animationDuration)
+        .setListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator?) {
+                super.onAnimationEnd(animation)
+                hide()
+                onAnimationEnd.invoke()
+            }
+        })
+}
+
+inline fun ViewGroup.animateTo(
     fromHeightValue: Int,
     toHeightValue: Int,
     fromWidthValue: Int,
     toWidthValue: Int,
     duration: Long = 300L,
     interpolator: TimeInterpolator = DecelerateInterpolator(),
-    applyWith: () -> Unit
+    applyWith: () -> Unit = {}
 ) {
-    val target = this
     val heightAnimator = ValueAnimator.ofInt(fromHeightValue, toHeightValue)
     val widthAnimator = ValueAnimator.ofInt(fromWidthValue, toWidthValue)
     heightAnimator.duration = duration
@@ -227,14 +258,19 @@ fun View.animateViewToParent(
     heightAnimator.interpolator = interpolator
     widthAnimator.interpolator = interpolator
     heightAnimator.addUpdateListener { animation ->
-        target.layoutParams.height = animation.animatedValue as Int
-        target.requestLayout()
+        layoutParams.height = animation.animatedValue as Int
+        requestLayout()
     }
     widthAnimator.addUpdateListener {
-        target.layoutParams.width = it.animatedValue as Int
-        target.requestLayout()
+        layoutParams.width = it.animatedValue as Int
+        requestLayout()
     }
     heightAnimator.start()
     widthAnimator.start()
     applyWith()
+}
+
+fun View.showKeyboard() {
+    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+    imm.showSoftInput(findFocus(), 0)
 }

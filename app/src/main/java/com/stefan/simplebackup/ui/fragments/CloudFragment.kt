@@ -93,18 +93,21 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
     }
 
     private fun FragmentCloudBinding.initObservers() {
-        repeatOnViewLifecycleScope(Lifecycle.State.STARTED) {
-            launch {
-                homeViewModel.isSelected.collect { isSelected ->
-                    batchBackup.isVisible = isSelected
-                }
-            }
-            homeViewModel.spinner.collect { isSpinning ->
-                progressBar.isVisible = isSpinning
-                if (!isSpinning)
-                    homeViewModel.observableList.collect { appList ->
-                        cloudAdapter.submitList(appList)
+        launchOnViewLifecycle {
+            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    homeViewModel.isSelected.collect { isSelected ->
+                        mainViewModel.changeTab(isSelected)
+                        batchBackup.isVisible = isSelected
                     }
+                }
+                homeViewModel.spinner.collect { isSpinning ->
+                    progressBar.isVisible = isSpinning
+                    if (!isSpinning)
+                        homeViewModel.observableList.collect { appList ->
+                            cloudAdapter.submitList(appList)
+                        }
+                }
             }
         }
     }

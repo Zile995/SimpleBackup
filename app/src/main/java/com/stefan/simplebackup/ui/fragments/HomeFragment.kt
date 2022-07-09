@@ -80,7 +80,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
 
     private fun FragmentHomeBinding.bindSwipeContainer() {
         swipeRefresh.setOnRefreshListener {
-            onViewLifecycleScope {
+            launchOnViewLifecycle {
                 homeViewModel.refreshPackages()
                 delay(250)
                 swipeRefresh.isRefreshing = false
@@ -104,21 +104,24 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     }
 
     private fun FragmentHomeBinding.initObservers() {
-        repeatOnViewLifecycleScope(Lifecycle.State.STARTED) {
-            launch {
-                homeViewModel.isSelected.collect { isSelected ->
-                    batchBackup.isVisible = isSelected
-                    onMainActivityCallback {
-                        controlBottomView(!isSelected)
+        launchOnViewLifecycle {
+            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    homeViewModel.isSelected.collect { isSelected ->
+                        mainViewModel.changeTab(isSelected)
+                        batchBackup.isVisible = isSelected
+                        onMainActivityCallback {
+                            controlBottomView(!isSelected)
+                        }
                     }
                 }
-            }
-            homeViewModel.spinner.collect { isSpinning ->
-                progressBar.isVisible = isSpinning
-                if (!isSpinning)
-                    homeViewModel.observableList.collect { appList ->
-                        homeAdapter.submitList(appList)
-                    }
+                homeViewModel.spinner.collect { isSpinning ->
+                    progressBar.isVisible = isSpinning
+                    if (!isSpinning)
+                        homeViewModel.observableList.collect { appList ->
+                            homeAdapter.submitList(appList)
+                        }
+                }
             }
         }
     }

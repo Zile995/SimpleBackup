@@ -2,7 +2,7 @@ package com.stefan.simplebackup.ui.fragments.viewpager
 
 import android.os.Bundle
 import android.view.View
-import androidx.fragment.app.activityViewModels
+import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
@@ -13,11 +13,9 @@ import com.stefan.simplebackup.ui.adapters.ViewPagerAdapter
 import com.stefan.simplebackup.ui.fragments.FavoritesFragment
 import com.stefan.simplebackup.ui.fragments.HomeFragment
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
-import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 
 class HomeViewPagerFragment : BaseViewPagerFragment<FragmentHomeViewPagerBinding>() {
-    private val mainViewModel: MainViewModel by activityViewModels()
     private val homeViewModel: HomeViewModel by viewModels {
         ViewModelFactory(
             requireActivity().application as MainApplication,
@@ -36,12 +34,17 @@ class HomeViewPagerFragment : BaseViewPagerFragment<FragmentHomeViewPagerBinding
             adapter = ViewPagerAdapter(
                 arrayListOf(
                     HomeFragment(),
-                    FavoritesFragment.newInstance()
+                    FavoritesFragment()
                 ),
                 childFragmentManager,
                 viewLifecycleOwner.lifecycle
             )
         }
+    }
+
+    override fun FragmentHomeViewPagerBinding.disableTab(position: Int) {
+        (homeTabLayout.getChildAt(0) as ViewGroup).getChildAt(position)
+            .isEnabled = false
     }
 
     override fun FragmentHomeViewPagerBinding.provideTabLayoutMediator(): TabLayoutMediator =
@@ -67,4 +70,5 @@ class HomeViewPagerFragment : BaseViewPagerFragment<FragmentHomeViewPagerBinding
     override fun FragmentHomeViewPagerBinding.unregisterViewPagerCallbacks(
         callback: ViewPager2.OnPageChangeCallback
     ) = homeViewPager.unregisterOnPageChangeCallback(callback)
+
 }

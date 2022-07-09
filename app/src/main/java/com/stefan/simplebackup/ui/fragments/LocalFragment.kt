@@ -78,7 +78,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
 
     private fun FragmentLocalBinding.bindSwipeContainer() {
         swipeRefresh.setOnRefreshListener {
-            onViewLifecycleScope {
+            launchOnViewLifecycle {
                 val refresh = launch {
                     // TODO: Could be deleted
                 }
@@ -97,7 +97,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     }
 
     private fun FragmentLocalBinding.initObservers() {
-        onViewLifecycleScope {
+        launchOnViewLifecycle {
             launch {
                 repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                     localViewModel.startPackagePolling()
@@ -106,6 +106,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     localViewModel.isSelected.collect { isSelected ->
+                        mainViewModel.changeTab(isSelected)
                         batchRestore.isVisible = isSelected
                     }
                 }

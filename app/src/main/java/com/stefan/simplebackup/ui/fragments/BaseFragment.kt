@@ -5,11 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.viewbinding.ViewBinding
+import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.utils.extensions.viewBinding
 
 abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB>,
     ViewReferenceCleaner {
+    protected val mainViewModel: MainViewModel by activityViewModels()
     protected val binding by viewBinding()
 
     override fun onCreateView(

@@ -36,17 +36,15 @@ fun CoroutineScope.launchWithLogging(
     }
 }
 
-fun LifecycleOwner.onViewLifecycleScope(
-    block: suspend CoroutineScope.() -> Unit
+inline fun LifecycleOwner.launchOnViewLifecycle(
+    crossinline block: suspend CoroutineScope.() -> Unit
 ) {
     when (this) {
         is ComponentActivity -> {
             lifecycleScope.launch { block() }
         }
         is Fragment -> {
-            viewLifecycleOwner.lifecycleScope.launch {
-                block()
-            }
+            viewLifecycleOwner.lifecycleScope.launch { block() }
         }
         else -> throw IllegalArgumentException("Unsupported LifecycleOwner")
     }
@@ -64,14 +62,5 @@ suspend fun LifecycleOwner.repeatOnViewLifecycle(
             viewLifecycleOwner.repeatOnLifecycle(state, block)
         }
         else -> throw IllegalArgumentException("Unsupported LifecycleOwner")
-    }
-}
-
-fun LifecycleOwner.repeatOnViewLifecycleScope(
-    state: Lifecycle.State,
-    block: suspend CoroutineScope.() -> Unit
-) {
-    onViewLifecycleScope {
-        repeatOnViewLifecycle(state, block)
     }
 }

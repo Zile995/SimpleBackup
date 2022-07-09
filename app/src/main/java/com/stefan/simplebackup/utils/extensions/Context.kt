@@ -12,21 +12,21 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.viewbinding.ViewBinding
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.fragments.BaseFragment
 import com.stefan.simplebackup.ui.fragments.FragmentViewBindingDelegate
 import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
-import kotlinx.coroutines.launch
 import java.lang.reflect.ParameterizedType
 
 inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.() -> Unit = {}) =
@@ -108,11 +108,17 @@ inline fun <T : AppCompatActivity> Fragment.onActivityCallback(
 ) {
     @Suppress("UNCHECKED_CAST")
     (activity as? T)?.apply {
-        onViewLifecycleScope {
+        launchOnViewLifecycle {
             block()
         }
     }
 }
+
+fun Context.getColorFromResource(@ColorRes color: Int) =
+    ContextCompat.getColor(this, color)
+
+fun Context.getInterFontTypeFace() =
+    ResourcesCompat.getFont(applicationContext, R.font.inter)
 
 fun Context.deletePackage(packageName: String) {
     startActivity(Intent(Intent.ACTION_DELETE).apply {

@@ -3,7 +3,6 @@ package com.stefan.simplebackup.ui.fragments
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -15,7 +14,6 @@ import com.stefan.simplebackup.ui.adapters.FavoritesAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.FavoritesViewModel
-import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.launch
@@ -24,7 +22,6 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     private var _favoritesAdapter: FavoritesAdapter? = null
     private val favoritesAdapter get() = _favoritesAdapter!!
 
-    private val mainViewModel: MainViewModel by activityViewModels()
     private val homeViewModel: FavoritesViewModel by viewModels {
         ViewModelFactory(
             requireActivity().application as MainApplication,
@@ -92,18 +89,21 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     }
 
     private fun FragmentFavoritesBinding.initObservers() {
-        repeatOnViewLifecycleScope(Lifecycle.State.STARTED) {
-            launch {
-                homeViewModel.isSelected.collect { isSelected ->
-                    batchBackup.isVisible = isSelected
-                }
-            }
-            homeViewModel.spinner.collect { isSpinning ->
-                progressBar.isVisible = isSpinning
-                if (!isSpinning)
-                    homeViewModel.observableList.collect { appList ->
-                        favoritesAdapter.submitList(appList)
+        launchOnViewLifecycle {
+            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    homeViewModel.isSelected.collect { isSelected ->
+                        mainViewModel.changeTab(isSelected)
+                        batchBackup.isVisible = isSelected
                     }
+                }
+                homeViewModel.spinner.collect { isSpinning ->
+                    progressBar.isVisible = isSpinning
+                    if (!isSpinning)
+                        homeViewModel.observableList.collect { appList ->
+                            favoritesAdapter.submitList(appList)
+                        }
+                }
             }
         }
     }

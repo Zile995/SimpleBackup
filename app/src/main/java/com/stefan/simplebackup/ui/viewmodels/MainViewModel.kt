@@ -16,14 +16,15 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     private var _isSearching = MutableStateFlow(false)
     val isSearching get() = _isSearching.asStateFlow()
 
-    var toolBarHeight: Int = 0
-    var toolBarWidth: Int = 0
-    var toolBarRadius: Float = 0f
-    var toolBarLeftMargin: Int = 0
-    var toolBarRightMargin: Int = 0
+    private var _shouldDisableTab = MutableStateFlow(false)
+    val shouldDisableTab get() = _shouldDisableTab.asStateFlow()
 
-    fun changeSearching(isSearching: Boolean) {
+    fun setSearching(isSearching: Boolean) {
         _isSearching.value = isSearching
+    }
+
+    fun changeTab(shouldEnable: Boolean) {
+        _shouldDisableTab.value = shouldEnable
     }
 
     init {

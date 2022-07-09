@@ -72,6 +72,12 @@
         <item name="strokeWidth">0dp</item>
     </style>
 
+    <style name="Widget.SimpleBackup.SearchView" parent="Widget.AppCompat.SearchView">
+        <item name="searchHintIcon">@null</item>
+        <item name="searchIcon">@null</item>
+        <item name="queryBackground">@null</item>
+    </style>
+
     <style name="Widget.SimpleBackup.Button" parent="Widget.Material3.Button.TextButton">
         <item name="cornerRadius">4dp</item>
         <item name="backgroundTint">@color/button</item>

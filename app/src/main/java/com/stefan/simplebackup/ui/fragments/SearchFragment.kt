@@ -4,9 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.OnBackPressedCallback
+import androidx.activity.addCallback
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import com.stefan.simplebackup.databinding.FragmentSearchBinding
 import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
 import com.stefan.simplebackup.utils.extensions.viewBinding
@@ -24,15 +23,10 @@ class SearchFragment : Fragment(), ViewReferenceCleaner {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         onMainActivityCallback {
-            requestFocus()
-            onBackPressedDispatcher.addCallback(
-                viewLifecycleOwner,
-                object : OnBackPressedCallback(true) {
-                    override fun handleOnBackPressed() {
-                        findNavController().popBackStack()
-                        revertToolBarToInitialSize()
-                    }
-                })
+            openSearchView()
+            onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
+                onSupportNavigateUp()
+            }
         }
     }
 

@@ -6,12 +6,5 @@
         android:icon="@drawable/ic_select_all"
         android:title="@string/select_all"
         android:visible="false"
-        app:showAsAction="always|collapseActionView" />
-
-    <item
-        android:id="@+id/search_fragment"
-        android:icon="@drawable/ic_search"
-        android:title="@string/search_for_applications"
-        app:actionViewClass="androidx.appcompat.widget.SearchView"
-        app:showAsAction="ifRoom|collapseActionView" />
+        app:showAsAction="ifRoom" />
 </menu>

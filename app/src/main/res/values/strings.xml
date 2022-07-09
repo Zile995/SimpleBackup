@@ -21,7 +21,6 @@
     <string name="yes">YES</string>
     <string name="no">NO</string>
     <string name="apk">APK </string>
-    <string name="search_for_applications">Search for Applications</string>
     <string name="force_stop">Force Stop</string>
     <string name="application_stopped">Application stopped!</string>
     <string name="data">Data</string>

@@ -2,7 +2,7 @@ package com.stefan.simplebackup.ui.fragments.viewpager
 
 import android.os.Bundle
 import android.view.View
-import androidx.fragment.app.activityViewModels
+import android.view.ViewGroup
 import androidx.fragment.app.viewModels
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
@@ -13,11 +13,9 @@ import com.stefan.simplebackup.ui.adapters.ViewPagerAdapter
 import com.stefan.simplebackup.ui.fragments.CloudFragment
 import com.stefan.simplebackup.ui.fragments.FavoritesFragment
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
-import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 
 class CloudViewPagerFragment : BaseViewPagerFragment<FragmentCloudViewPagerBinding>() {
-    private val mainViewModel: MainViewModel by activityViewModels()
     private val homeViewModel: HomeViewModel by viewModels {
         ViewModelFactory(
             requireActivity().application as MainApplication,
@@ -42,6 +40,11 @@ class CloudViewPagerFragment : BaseViewPagerFragment<FragmentCloudViewPagerBindi
                 viewLifecycleOwner.lifecycle
             )
         }
+    }
+
+    override fun FragmentCloudViewPagerBinding.disableTab(position: Int) {
+        (cloudTabLayout.getChildAt(0) as ViewGroup).getChildAt(position)
+            .isEnabled = false
     }
 
     override fun FragmentCloudViewPagerBinding.provideTabLayoutMediator(): TabLayoutMediator =

@@ -4,6 +4,7 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="../../../../layout/custom_preview.xml" value="0.18177083333333333" />
+        <entry key="../../.gradle/caches/transforms-3/c306ff6207b8a35a6a6ee0c09da254f2/transformed/appcompat-1.4.2/res/drawable/abc_ic_clear_material.xml" value="0.163" />
         <entry key="app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.20208333333333334" />
         <entry key="app/src/main/res/drawable-xxxhdpi/ic_cloud_outlined.xml" value="0.1915" />
         <entry key="app/src/main/res/drawable-xxxhdpi/ic_settings_filled.xml" value="0.1915" />
@@ -54,6 +55,7 @@
         <entry key="app/src/main/res/drawable/ic_launcher_foreground.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/drawable/ic_local.xml" value="0.2555" />
         <entry key="app/src/main/res/drawable/ic_local_outlined.xml" value="0.1915" />
+        <entry key="app/src/main/res/drawable/ic_navigate_up.xml" value="0.162" />
         <entry key="app/src/main/res/drawable/ic_search.xml" value="0.163" />
         <entry key="app/src/main/res/drawable/ic_select_all.xml" value="0.163" />
         <entry key="app/src/main/res/drawable/ic_settings.xml" value="0.18" />
@@ -86,7 +88,7 @@
         <entry key="app/src/main/res/font/sailec_font.xml" value="0.215625" />
         <entry key="app/src/main/res/layout/activity_backup.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_detail.xml" value="0.16" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.29918864097363085" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_progress.xml" value="0.11594202898550725" />
         <entry key="app/src/main/res/layout/activity_restore.xml" value="0.22" />
         <entry key="app/src/main/res/layout/activity_search.xml" value="0.3375" />
@@ -117,6 +119,7 @@
         <entry key="app/src/main/res/menu/search_menu.xml" value="0.18541666666666667" />
         <entry key="app/src/main/res/menu/top_app_bar.xml" value="0.25" />
         <entry key="app/src/main/res/menu/top_backup_bar.xml" value="0.2682291666666667" />
+        <entry key="app/src/main/res/menu/top_details_bar.xml" value="0.12612227447627192" />
         <entry key="app/src/main/res/menu/top_restore_bar.xml" value="0.3375" />
         <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.3536458333333333" />
         <entry key="app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.3536458333333333" />

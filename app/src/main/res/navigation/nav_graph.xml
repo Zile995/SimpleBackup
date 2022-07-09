@@ -20,7 +20,7 @@
         android:label="fragment_cloud_view_pager"
         tools:layout="@layout/fragment_cloud_view_pager" />
     <fragment
-        android:id="@+id/search_fragment"
+        android:id="@+id/search_action"
         android:name="com.stefan.simplebackup.ui.fragments.SearchFragment"
         android:label="fragment_search"
         tools:layout="@layout/fragment_search" >
