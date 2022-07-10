@@ -111,7 +111,6 @@ class MainActivity : AppCompatActivity() {
             if (destination.doesMatchDestination(R.id.search_action)) {
                 searchBar.isEnabled = false
                 mainViewModel.setSearching(true)
-                //searchBar.rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
             } else {
                 mainViewModel.setSearching(false)
             }
@@ -170,7 +169,7 @@ class MainActivity : AppCompatActivity() {
             if (mainViewModel.isSearching.value) {
                 // If we are searching, fill the parent (we need reverse animations later)
                 searchBar.expandToParentView()
-                // Also hide it to avoid artifacts on split screen configuration change
+                // Also hide to avoid artifacts on split screen configuration change
                 searchBar.hide()
                 searchMagIcon.hide()
                 searchText.hide()
