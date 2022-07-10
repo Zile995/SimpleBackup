@@ -81,9 +81,9 @@
 
             </com.google.android.material.appbar.MaterialToolbar>
 
-            <androidx.appcompat.widget.SearchView
+            <com.stefan.simplebackup.ui.views.MaterialSearchView
                 android:id="@+id/search_view"
-                style="@style/Widget.SimpleBackup.SearchView"
+                style="@style/Widget.SimpleBackup.MaterialSearchView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:elevation="3dp"
@@ -107,15 +107,15 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:defaultNavHost="true"
-        app:layout_constraintBottom_toTopOf="@id/bottom_navigation_view"
+        app:layout_constraintBottom_toTopOf="@id/navigation_bar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/app_bar_layout"
         app:navGraph="@navigation/nav_graph" />
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation_view"
-        style="@style/Widget.SimpleBackup.BottomNavigationView"
+    <com.stefan.simplebackup.ui.views.NavigationBar
+        android:id="@+id/navigation_bar"
+        style="@style/Widget.SimpleBackup.NavigationBar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/bottom_navigation_height"
         android:background="@color/bottomView"
@@ -123,7 +123,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav" />
+        app:menu="@menu/nav_bar" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floating_button"

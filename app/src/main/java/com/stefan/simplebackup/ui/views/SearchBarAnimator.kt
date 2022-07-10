@@ -2,6 +2,7 @@ package com.stefan.simplebackup.ui.views
 
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
+import android.content.res.ColorStateList
 import android.view.View
 import androidx.annotation.ColorRes
 import com.stefan.simplebackup.R
@@ -15,6 +16,9 @@ class SearchBarAnimator(
     val bindingReference: WeakReference<ActivityMainBinding>
 ) {
 
+    val expandDuration = 300L
+    val shrinkDuration = 250L
+
     inline fun animateSearchBarOnClick(
         crossinline navigate: () -> Unit
     ) {
@@ -23,18 +27,18 @@ class SearchBarAnimator(
                 searchBar.animateTo(
                     (searchBar.parent as View).height,
                     (searchBar.parent as View).width,
-                    animationDuration = 250L,
+                    animationDuration = expandDuration,
                     doOnAnimationStart = {
                         navigate.invoke()
                         floatingButton.hide()
                         floatingButton.setOnClickListener(null)
-                        searchMagIcon.fadeOut(200L)
-                        searchText.fadeOut(200L)
+                        searchMagIcon.fadeOut(expandDuration)
+                        searchText.fadeOut(expandDuration)
                         animateStatusBarColor(R.color.searchBar)
                     },
                     doOnAnimationEnd = {
-                        searchView.fadeIn(animationDuration = 300L)
-                        materialToolbar.fadeIn(animationDuration = 300L,
+                        searchView.fadeIn(animationDuration = expandDuration)
+                        materialToolbar.fadeIn(animationDuration = expandDuration,
                             onAnimationCancel = {
                                 searchBar.show()
                             }, onAnimationEnd = {
@@ -49,17 +53,18 @@ class SearchBarAnimator(
         activityReference.get()?.apply {
             bindingReference.get()?.apply {
                 searchBar.show()
-                appBarLayout.changeBackgroundColor(applicationContext, R.color.bottomView)
                 resetSearchView()
+                appBarLayout.changeBackgroundColor(applicationContext, R.color.bottomView)
                 materialToolbar.fadeOut(animationDuration = 0L) {
-                    searchBar.animateToInitialSize(animationDuration = 250L,
+                    searchBar.animateToInitialSize(animationDuration = shrinkDuration,
                         doOnAnimationStart = {
                             animateStatusBarColor(R.color.bottomView)
-                            searchMagIcon.fadeIn(100L)
-                            searchText.fadeIn(100L)
+                            searchMagIcon.fadeIn(shrinkDuration)
+                            searchText.fadeIn(shrinkDuration)
                         },
                         doOnAnimationEnd = {
                             searchBar.isEnabled = true
+
                         })
                 }
             }

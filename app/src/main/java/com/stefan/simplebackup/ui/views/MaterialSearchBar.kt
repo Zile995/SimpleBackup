@@ -3,6 +3,8 @@ package com.stefan.simplebackup.ui.views
 import android.animation.TimeInterpolator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.DecelerateInterpolator
@@ -14,8 +16,11 @@ import com.google.android.material.card.MaterialCardView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.utils.extensions.animateTo
 
-class MaterialSearchBar(context: Context, attrs: AttributeSet?, defStyleAttr: Int) :
-    MaterialCardView(context, attrs, defStyleAttr) {
+class MaterialSearchBar(
+    context: Context,
+    attrs: AttributeSet?,
+    defStyleAttr: Int
+) : MaterialCardView(context, attrs, defStyleAttr) {
 
     var cachedHeight: Int = 0
         private set
@@ -35,6 +40,14 @@ class MaterialSearchBar(context: Context, attrs: AttributeSet?, defStyleAttr: In
     )
 
     constructor(context: Context) : this(context, null)
+
+    override fun setEnabled(enabled: Boolean) {
+        super.setEnabled(enabled)
+        if (enabled)
+            setRippleColorResource(R.color.cardViewRipple)
+        else
+            rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
+    }
 
     fun expandToParentView() {
         radius = 0f

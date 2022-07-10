@@ -155,7 +155,7 @@ class AppDetailActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.top_details_bar, menu)
+        menuInflater.inflate(R.menu.details_tool_bar, menu)
         return super.onCreateOptionsMenu(menu)
     }
 

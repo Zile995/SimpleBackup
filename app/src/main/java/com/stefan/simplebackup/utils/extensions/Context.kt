@@ -29,20 +29,6 @@ import com.stefan.simplebackup.ui.fragments.FragmentViewBindingDelegate
 import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
 import java.lang.reflect.ParameterizedType
 
-inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.() -> Unit = {}) =
-    IntentFilter().apply {
-        actions.forEach { action ->
-            addAction(action)
-        }
-        block()
-    }
-
-fun Context.unregisterReceivers(vararg receivers: BroadcastReceiver) {
-    receivers.forEach { receiver ->
-        unregisterReceiver(receiver)
-    }
-}
-
 inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
     crossinline bindingInflater: (LayoutInflater) -> T
 ) =
@@ -92,7 +78,7 @@ inline fun <T : ViewBinding> ViewGroup.viewBinding(
 inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     value: Pair<String, Any?>
 ) {
-    Intent(this, T::class.java).apply {
+    Intent(applicationContext, T::class.java).apply {
         putExtras(bundleOf(value))
         startActivity(this)
     }
@@ -114,8 +100,22 @@ inline fun <T : AppCompatActivity> Fragment.onActivityCallback(
     }
 }
 
+inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.() -> Unit = {}) =
+    IntentFilter().apply {
+        actions.forEach { action ->
+            addAction(action)
+        }
+        block()
+    }
+
+fun Context.unregisterReceivers(vararg receivers: BroadcastReceiver) {
+    receivers.forEach { receiver ->
+        unregisterReceiver(receiver)
+    }
+}
+
 fun Context.getColorFromResource(@ColorRes color: Int) =
-    ContextCompat.getColor(this, color)
+    ContextCompat.getColor(applicationContext, color)
 
 fun Context.getInterFontTypeFace() =
     ResourcesCompat.getFont(applicationContext, R.font.inter)

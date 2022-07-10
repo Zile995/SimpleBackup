@@ -27,6 +27,7 @@ abstract class BaseAdapter(
             is LocalViewHolder -> holder.bind(item)
             is CloudViewHolder -> holder.bind(item)
             is FavoritesViewHolder -> holder.bind(item)
+            is SearchViewHolder -> holder.bind(item)
         }
         if (selectedItems.contains(item.uid))
             holder.setSelected()

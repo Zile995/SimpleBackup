@@ -35,18 +35,18 @@
         <item name="android:fontFamily">@font/inter_family</item>
     </style>
 
-    <style name="TextAppearance.SimpleBackup.BottomNavigationView" parent="TextAppearance.Material3.LabelLarge">
+    <style name="TextAppearance.SimpleBackup.NavigationBar" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textSize">15sp</item>
         <item name="fontFamily">@font/inter_family</item>
         <item name="android:fontFamily">@font/inter_family</item>
     </style>
 
-    <style name="Widget.SimpleBackup.BottomNavigationView" parent="Widget.Material3.BottomNavigationView">
+    <style name="Widget.SimpleBackup.NavigationBar" parent="Widget.Material3.BottomNavigationView">
         <item name="itemTextAppearanceInactive">
-            @style/TextAppearance.SimpleBackup.BottomNavigationView
+            @style/TextAppearance.SimpleBackup.NavigationBar
         </item>
         <item name="itemTextAppearanceActive">
-            @style/TextAppearance.SimpleBackup.BottomNavigationView
+            @style/TextAppearance.SimpleBackup.NavigationBar
         </item>
     </style>
 
@@ -72,7 +72,7 @@
         <item name="strokeWidth">0dp</item>
     </style>
 
-    <style name="Widget.SimpleBackup.SearchView" parent="Widget.AppCompat.SearchView">
+    <style name="Widget.SimpleBackup.MaterialSearchView" parent="Widget.AppCompat.SearchView">
         <item name="searchHintIcon">@null</item>
         <item name="searchIcon">@null</item>
         <item name="queryBackground">@null</item>

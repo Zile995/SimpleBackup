@@ -16,7 +16,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <androidx.recyclerview.widget.RecyclerView
+        <com.stefan.simplebackup.ui.views.MainRecyclerView
             android:id="@+id/local_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

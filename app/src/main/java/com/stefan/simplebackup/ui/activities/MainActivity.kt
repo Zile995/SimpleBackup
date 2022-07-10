@@ -1,8 +1,6 @@
 package com.stefan.simplebackup.ui.activities
 
 import android.content.Intent
-import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.Bundle
 import android.os.PersistableBundle
 import androidx.activity.viewModels
@@ -16,7 +14,6 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
@@ -25,6 +22,7 @@ import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
+import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.ui.views.SearchBarAnimator
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
@@ -110,10 +108,10 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.nav_host_container) as NavHostFragment
         navController = navHostFragment.navController
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            if (destination.matchDestination(R.id.search_action)) {
+            if (destination.doesMatchDestination(R.id.search_action)) {
                 searchBar.isEnabled = false
                 mainViewModel.setSearching(true)
-                searchBar.rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
+                //searchBar.rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
             } else {
                 mainViewModel.setSearching(false)
             }
@@ -144,9 +142,9 @@ class MainActivity : AppCompatActivity() {
             repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                 mainViewModel.isSearching.collect { isSearching ->
                     if (isSearching)
-                        bottomNavigationView.fadeOut(250L)
+                        navigationBar.fadeOut(250L)
                     else
-                        bottomNavigationView.fadeIn(250L)
+                        navigationBar.fadeIn(250L)
                 }
             }
         }
@@ -154,11 +152,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun ActivityMainBinding.binSearchView() {
         searchView.setTypeFace(getInterFontTypeFace())
-        searchView.setOnQueryTextFocusChangeListener { view, hasFocus ->
-            if (hasFocus) {
-                view.showKeyboard()
-            }
-        }
     }
 
     private fun ActivityMainBinding.bindSearchBar() {
@@ -194,7 +187,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun ActivityMainBinding.bindBottomNavigationView() {
-        bottomNavigationView.navigateWithAnimation(navController, doBeforeNavigating = {
+        navigationBar.navigateWithAnimation(navController, doBeforeNavigating = {
             floatingButton.setOnClickListener(null)
             return@navigateWithAnimation !mainViewModel.isSearching.value
         })
@@ -259,7 +252,7 @@ class MainActivity : AppCompatActivity() {
         alert.show()
     }
 
-    fun RecyclerView.controlFloatingButton() {
+    fun MainRecyclerView.controlFloatingButton() {
         binding.floatingButton.setOnClickListener {
             smoothSnapToPosition(0)
         }
@@ -268,7 +261,7 @@ class MainActivity : AppCompatActivity() {
 
     fun controlBottomView(shouldShow: Boolean = false) {
         binding.apply {
-            bottomNavigationView.isVisible = shouldShow
+            navigationBar.isVisible = shouldShow
         }
     }
 
