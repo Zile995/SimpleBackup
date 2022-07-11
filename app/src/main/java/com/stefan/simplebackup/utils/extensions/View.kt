@@ -108,7 +108,6 @@ fun View.moveToTheRight(animationDuration: Long = 300L, value: Float) {
 inline fun View.fadeIn(
     animationDuration: Long = 300L,
     crossinline onAnimationEnd: () -> Unit = {},
-    crossinline onAnimationCancel: () -> Unit = {}
 ) {
     animate()
         .alpha(1f)
@@ -126,9 +125,7 @@ inline fun View.fadeIn(
 
             override fun onAnimationCancel(animation: Animator?) {
                 super.onAnimationCancel(animation)
-                fadeOut {
-                    onAnimationCancel.invoke()
-                }
+                fadeOut()
             }
         })
 }

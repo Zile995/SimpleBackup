@@ -2,7 +2,6 @@ package com.stefan.simplebackup.ui.views
 
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
-import android.content.res.ColorStateList
 import android.view.View
 import androidx.annotation.ColorRes
 import com.stefan.simplebackup.R
@@ -34,14 +33,15 @@ class SearchBarAnimator(
                         floatingButton.setOnClickListener(null)
                         searchMagIcon.fadeOut(expandDuration)
                         searchText.fadeOut(expandDuration)
-                        animateStatusBarColor(R.color.searchBar)
+                        animateStatusBarColor(
+                            color = R.color.searchBar,
+                            animationDuration = expandDuration
+                        )
                     },
                     doOnAnimationEnd = {
                         searchView.fadeIn(animationDuration = expandDuration)
                         materialToolbar.fadeIn(animationDuration = expandDuration,
-                            onAnimationCancel = {
-                                searchBar.show()
-                            }, onAnimationEnd = {
+                            onAnimationEnd = {
                                 searchBar.hide()
                             })
                     })
@@ -52,19 +52,22 @@ class SearchBarAnimator(
     fun revertSearchBarToInitialSize() {
         activityReference.get()?.apply {
             bindingReference.get()?.apply {
+                println("Is searchBar visible = ${searchBar.isVisible}")
                 searchBar.show()
                 resetSearchView()
                 appBarLayout.changeBackgroundColor(applicationContext, R.color.bottomView)
                 materialToolbar.fadeOut(animationDuration = 0L) {
                     searchBar.animateToInitialSize(animationDuration = shrinkDuration,
                         doOnAnimationStart = {
-                            animateStatusBarColor(R.color.bottomView)
+                            animateStatusBarColor(
+                                color = R.color.bottomView,
+                                animationDuration = shrinkDuration
+                            )
                             searchMagIcon.fadeIn(shrinkDuration)
                             searchText.fadeIn(shrinkDuration)
                         },
                         doOnAnimationEnd = {
                             searchBar.isEnabled = true
-
                         })
                 }
             }
@@ -79,7 +82,7 @@ class SearchBarAnimator(
         }
     }
 
-    fun animateStatusBarColor(@ColorRes color: Int) {
+    fun animateStatusBarColor(@ColorRes color: Int, animationDuration: Long) {
         activityReference.get()?.apply {
             window.apply {
                 ObjectAnimator.ofObject(
@@ -89,7 +92,7 @@ class SearchBarAnimator(
                     statusBarColor,
                     context.getColorFromResource(color)
                 ).apply {
-                    duration = 100L
+                    duration = animationDuration
                     start()
                 }
             }
