@@ -38,6 +38,7 @@ class SearchBarAnimator(
                         )
                     },
                     doOnAnimationEnd = {
+                        appBarLayout.setExpanded(true)
                         searchView.requestFocus()
                         floatingButton.hide()
                         floatingButton.setOnClickListener(null)

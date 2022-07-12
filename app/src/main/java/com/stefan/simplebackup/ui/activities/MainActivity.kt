@@ -14,6 +14,7 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import androidx.navigation.ui.setupActionBarWithNavController
+import com.google.android.material.appbar.AppBarLayout
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
@@ -27,6 +28,7 @@ import com.stefan.simplebackup.ui.views.SearchBarAnimator
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.root.RootChecker
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 class MainActivity : AppCompatActivity() {
@@ -105,7 +107,6 @@ class MainActivity : AppCompatActivity() {
             if (destination.doesMatchDestination(R.id.search_action)) {
                 searchBar.isEnabled = false
                 mainViewModel.setSearching(true)
-                floatingButton.hide()
             } else {
                 mainViewModel.setSearching(false)
             }
@@ -125,6 +126,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun ActivityMainBinding.bindViews() {
         window.setBackgroundDrawableResource(R.color.background)
+        binAppBarLayout()
         binSearchView()
         bindToolBar()
         bindSearchBar()
@@ -133,7 +135,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun ActivityMainBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
+            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
                 mainViewModel.isSearching.collect { isSearching ->
                     if (isSearching) {
                         navigationBar.fadeOut(250L)
@@ -142,6 +144,19 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+
+    private fun ActivityMainBinding.binAppBarLayout() {
+        appBarLayout.setExpanded(mainViewModel.isAppBarExpanded)
+        appBarLayout.addOnOffsetChangedListener(
+            AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
+                when (verticalOffset) {
+                    0 -> mainViewModel.isAppBarExpanded = true
+                    else -> mainViewModel.isAppBarExpanded = false
+                }
+            }
+        )
     }
 
     private fun ActivityMainBinding.binSearchView() {

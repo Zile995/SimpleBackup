@@ -12,17 +12,13 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/toolbar_height"
         android:background="@color/bottomView"
-        android:elevation="0dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:elevation="0dp" >
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clipChildren="true"
-            app:layout_scrollFlags="snap|scroll|enterAlways"
-            android:elevation="3dp">
+            android:elevation="3dp"
+            app:layout_scrollFlags="snap|scroll|enterAlways">
 
             <com.stefan.simplebackup.ui.views.MaterialSearchBar
                 android:id="@+id/search_bar"
@@ -102,14 +98,9 @@
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:defaultNavHost="true"
         android:layout_marginBottom="@dimen/bottom_navigation_height"
+        app:defaultNavHost="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:layout_constraintBottom_toTopOf="@id/navigation_bar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/app_bar_layout"
-        android:clipToPadding="false"
         app:navGraph="@navigation/nav_graph" />
 
     <com.stefan.simplebackup.ui.views.NavigationBar
@@ -120,9 +111,6 @@
         android:layout_gravity="bottom"
         android:background="@color/bottomView"
         app:labelVisibilityMode="labeled"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/nav_bar" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -136,8 +124,6 @@
         android:contentDescription="@string/scroll_to_top"
         android:src="@drawable/ic_arrow_up"
         android:visibility="invisible"
-        app:fabCustomSize="54dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:fabCustomSize="54dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

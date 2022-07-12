@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 class MainViewModel(application: MainApplication) : ViewModel(),
     PackageListener by PackageListenerImpl(application) {
 
+    var isAppBarExpanded = true
+
     private var _isSearching = MutableStateFlow(false)
     val isSearching get() = _isSearching.asStateFlow()
 
