@@ -21,7 +21,6 @@
         <item name="colorSecondaryVariant">@color/background</item>
         <item name="colorOnSecondary">@color/selectedTab</item>
         <item name="android:textColorSecondary">@color/textColorPrimary</item>
-
         <item name="android:statusBarColor" >@color/bottomView</item>
         <item name="android:navigationBarColor">@color/bottomView</item>
         <item name="android:windowBackground">@drawable/starting_screen</item>
@@ -73,6 +72,7 @@
     </style>
 
     <style name="Widget.SimpleBackup.MaterialSearchView" parent="Widget.AppCompat.SearchView">
+        <item name="android:textColor">?android:textColorHint</item>
         <item name="searchHintIcon">@null</item>
         <item name="searchIcon">@null</item>
         <item name="queryBackground">@null</item>

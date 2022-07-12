@@ -91,14 +91,7 @@ fun View.changeBackgroundColor(context: Context, @ColorRes color: Int) {
     )
 }
 
-fun View.moveToTheLeft(animationDuration: Long = 300L, value: Float) {
-    ObjectAnimator.ofFloat(this, "translationX", value).apply {
-        duration = animationDuration
-        start()
-    }
-}
-
-fun View.moveToTheRight(animationDuration: Long = 300L, value: Float) {
+fun View.moveHorizontally(animationDuration: Long = 300L, value: Float) {
     ObjectAnimator.ofFloat(this, "translationX", value).apply {
         duration = animationDuration
         start()

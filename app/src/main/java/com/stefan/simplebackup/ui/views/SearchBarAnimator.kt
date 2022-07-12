@@ -29,16 +29,18 @@ class SearchBarAnimator(
                     animationDuration = expandDuration,
                     doOnAnimationStart = {
                         navigate.invoke()
-                        floatingButton.hide()
-                        floatingButton.setOnClickListener(null)
                         searchMagIcon.fadeOut(expandDuration)
                         searchText.fadeOut(expandDuration)
+                        searchText.moveHorizontally(expandDuration, -15f)
                         animateStatusBarColor(
                             color = R.color.searchBar,
                             animationDuration = expandDuration
                         )
                     },
                     doOnAnimationEnd = {
+                        searchView.requestFocus()
+                        floatingButton.hide()
+                        floatingButton.setOnClickListener(null)
                         searchView.fadeIn(animationDuration = expandDuration)
                         materialToolbar.fadeIn(animationDuration = expandDuration,
                             onAnimationEnd = {
@@ -52,8 +54,8 @@ class SearchBarAnimator(
     fun revertSearchBarToInitialSize() {
         activityReference.get()?.apply {
             bindingReference.get()?.apply {
-                println("Is searchBar visible = ${searchBar.isVisible}")
                 searchBar.show()
+                searchText.fadeIn(0L)
                 resetSearchView()
                 appBarLayout.changeBackgroundColor(applicationContext, R.color.bottomView)
                 materialToolbar.fadeOut(animationDuration = 0L) {
@@ -64,7 +66,7 @@ class SearchBarAnimator(
                                 animationDuration = shrinkDuration
                             )
                             searchMagIcon.fadeIn(shrinkDuration)
-                            searchText.fadeIn(shrinkDuration)
+                            searchText.moveHorizontally(shrinkDuration, 0f)
                         },
                         doOnAnimationEnd = {
                             searchBar.isEnabled = true
@@ -79,6 +81,21 @@ class SearchBarAnimator(
             searchView.setQuery("", false)
             searchView.clearFocus()
             searchView.fadeOut(0L)
+        }
+    }
+
+    fun prepareWhenSearching(isSearching: Boolean) {
+        activityReference.get()?.apply {
+            bindingReference.get()?.apply {
+                if (isSearching) {
+                    window.statusBarColor = getColorFromResource(R.color.searchBar)
+                    appBarLayout.changeBackgroundColor(applicationContext, R.color.searchBar)
+                    searchText.moveHorizontally(0L, -15f)
+                    materialToolbar.show()
+                    searchView.show()
+                    navigationBar.hide()
+                }
+            }
         }
     }
 

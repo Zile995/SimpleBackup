@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.ui.views
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.widget.TextView
@@ -33,5 +34,6 @@ class MaterialSearchView(
     fun setTypeFace(typeface: Typeface?) {
         val searchText = findViewById<TextView>(R.id.search_src_text)
         searchText.typeface = typeface
+        searchText.textSize = 18f
     }
 }

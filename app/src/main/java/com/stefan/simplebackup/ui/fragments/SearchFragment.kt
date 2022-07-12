@@ -23,7 +23,6 @@ class SearchFragment : Fragment(), ViewReferenceCleaner {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         onMainActivityCallback {
-            openSearchView()
             onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
                 onSupportNavigateUp()
             }

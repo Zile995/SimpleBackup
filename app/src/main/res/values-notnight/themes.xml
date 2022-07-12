@@ -21,7 +21,6 @@
         <item name="colorSecondaryVariant">@color/background</item>
         <item name="colorOnSecondary">@color/selectedTab</item>
         <item name="android:textColorSecondary">@color/textColorPrimary</item>
-
         <item name="android:statusBarColor" >@color/bottomView</item>
         <item name="android:navigationBarColor">@color/bottomView</item>
         <item name="android:windowBackground">@drawable/starting_screen</item>

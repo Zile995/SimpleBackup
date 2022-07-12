@@ -118,7 +118,7 @@ fun Context.getColorFromResource(@ColorRes color: Int) =
     ContextCompat.getColor(applicationContext, color)
 
 fun Context.getInterFontTypeFace() =
-    ResourcesCompat.getFont(applicationContext, R.font.inter)
+    ResourcesCompat.getFont(applicationContext, R.font.inter_family)
 
 fun Context.deletePackage(packageName: String) {
     startActivity(Intent(Intent.ACTION_DELETE).apply {

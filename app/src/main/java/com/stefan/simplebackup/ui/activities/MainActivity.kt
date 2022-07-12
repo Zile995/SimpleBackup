@@ -65,8 +65,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        binding.prepareLayoutWhenSearching()
+        prepareLayoutWhenSearching()
         setContentView(binding.root)
 
         binding.apply {
@@ -94,13 +93,8 @@ class MainActivity : AppCompatActivity() {
         outState.putBoolean("isSubmitted", isSubmitted)
     }
 
-    private fun ActivityMainBinding.prepareLayoutWhenSearching() {
-        if (mainViewModel.isSearching.value) {
-            window.statusBarColor = getColorFromResource(R.color.searchBar)
-            appBarLayout.changeBackgroundColor(applicationContext, R.color.searchBar)
-            materialToolbar.show()
-            searchView.show()
-        }
+    private fun prepareLayoutWhenSearching() {
+        searchBarAnimator.prepareWhenSearching(mainViewModel.isSearching.value)
     }
 
     private fun ActivityMainBinding.setNavController() {
@@ -111,6 +105,7 @@ class MainActivity : AppCompatActivity() {
             if (destination.doesMatchDestination(R.id.search_action)) {
                 searchBar.isEnabled = false
                 mainViewModel.setSearching(true)
+                floatingButton.hide()
             } else {
                 mainViewModel.setSearching(false)
             }
@@ -140,8 +135,9 @@ class MainActivity : AppCompatActivity() {
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                 mainViewModel.isSearching.collect { isSearching ->
-                    if (isSearching)
+                    if (isSearching) {
                         navigationBar.fadeOut(250L)
+                    }
                     else
                         navigationBar.fadeIn(250L)
                 }
