@@ -137,8 +137,7 @@ class MainActivity : AppCompatActivity() {
                 mainViewModel.isSearching.collect { isSearching ->
                     if (isSearching) {
                         navigationBar.fadeOut(250L)
-                    }
-                    else
+                    } else
                         navigationBar.fadeIn(250L)
                 }
             }
@@ -254,14 +253,14 @@ class MainActivity : AppCompatActivity() {
         hideAttachedButton(binding.floatingButton)
     }
 
-    fun controlBottomView(shouldShow: Boolean = false) {
+    fun controlBottomView(shouldShow: Boolean) {
         binding.apply {
-            navigationBar.isVisible = shouldShow
+            if (!shouldShow) {
+                navigationBar.hide()
+            } else {
+                navigationBar.show()
+            }
         }
-    }
-
-    fun openSearchView() {
-        binding.searchView.requestFocus()
     }
 
     override fun onDestroy() {

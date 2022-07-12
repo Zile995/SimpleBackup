@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -21,6 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipChildren="true"
+            app:layout_scrollFlags="snap|scroll|enterAlways"
             android:elevation="3dp">
 
             <com.stefan.simplebackup.ui.views.MaterialSearchBar
@@ -31,11 +32,11 @@
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
                 android:visibility="visible"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:cardBackgroundColor="@color/searchBar"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
                 app:rippleColor="@color/cardViewRipple">
 
                 <ImageView
@@ -52,12 +53,12 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:textColor="?android:textColorHint"
                     android:enabled="false"
                     android:fontFamily="@font/inter_family"
                     android:paddingStart="60dp"
                     android:paddingEnd="20dp"
                     android:text="@string/search_app"
+                    android:textColor="?android:textColorHint"
                     android:textSize="18sp" />
 
             </com.stefan.simplebackup.ui.views.MaterialSearchBar>
@@ -70,9 +71,9 @@
                 android:elevation="2dp"
                 android:tooltipText="Back"
                 android:visibility="gone"
-                app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent" >
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
             </com.google.android.material.appbar.MaterialToolbar>
 
@@ -81,8 +82,8 @@
                 style="@style/Widget.SimpleBackup.MaterialSearchView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:elevation="3dp"
                 android:layout_marginStart="40dp"
+                android:elevation="3dp"
                 android:textAlignment="textStart"
                 android:visibility="gone"
                 app:iconifiedByDefault="false"
@@ -100,12 +101,15 @@
         android:id="@+id/nav_host_container"
         android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
         app:defaultNavHost="true"
+        android:layout_marginBottom="@dimen/bottom_navigation_height"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layout_constraintBottom_toTopOf="@id/navigation_bar"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/app_bar_layout"
+        android:clipToPadding="false"
         app:navGraph="@navigation/nav_graph" />
 
     <com.stefan.simplebackup.ui.views.NavigationBar
@@ -113,6 +117,7 @@
         style="@style/Widget.SimpleBackup.NavigationBar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/bottom_navigation_height"
+        android:layout_gravity="bottom"
         android:background="@color/bottomView"
         app:labelVisibilityMode="labeled"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -124,6 +129,7 @@
         android:id="@+id/floating_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="105dp"
         android:backgroundTint="@color/floatingButton"
@@ -134,4 +140,4 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
