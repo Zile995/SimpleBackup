@@ -135,7 +135,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun ActivityMainBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+            repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                 mainViewModel.isSearching.collect { isSearching ->
                     if (isSearching) {
                         navigationBar.fadeOut(250L)
