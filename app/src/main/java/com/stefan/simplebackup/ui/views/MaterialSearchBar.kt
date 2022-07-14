@@ -68,19 +68,19 @@ class MaterialSearchBar(
 
     inline fun animateToInitialSize(
         animationDuration: Long = 300L,
-        crossinline doOnAnimationStart: () -> Unit = {},
-        crossinline doOnAnimationEnd: () -> Unit = {}
+        crossinline doOnStart: () -> Unit = {},
+        crossinline doOnEnd: () -> Unit = {}
     ) {
         animateTo(
             toHeightValue = cachedHeight,
             toWidthValue = cachedWidth,
             savedCardViewRadius = cachedRadius,
             animationDuration = animationDuration,
-            doOnAnimationStart = {
-                doOnAnimationStart.invoke()
+            doOnStart = {
+                doOnStart.invoke()
             },
-            doOnAnimationEnd = {
-                doOnAnimationEnd.invoke()
+            doOnEnd = {
+                doOnEnd.invoke()
             }
         )
     }
@@ -91,10 +91,10 @@ class MaterialSearchBar(
         animationDuration: Long = 300L,
         interpolator: TimeInterpolator = DecelerateInterpolator(),
         savedCardViewRadius: Float = this.radius,
-        crossinline doOnAnimationStart: () -> Unit = {},
-        crossinline doOnAnimationEnd: () -> Unit = {}
+        crossinline doOnStart: () -> Unit = {},
+        crossinline doOnEnd: () -> Unit = {}
     ) {
-        doOnAnimationStart.invoke()
+        doOnStart.invoke()
         animateTo(
             height,
             toHeightValue,
@@ -113,10 +113,10 @@ class MaterialSearchBar(
                 radius = valueAnimator.animatedValue as Float
                 requestLayout()
                 valueAnimator.doOnStart {
-                    doOnAnimationStart.invoke()
+                    doOnStart.invoke()
                 }
                 valueAnimator.doOnEnd {
-                    doOnAnimationEnd.invoke()
+                    doOnEnd.invoke()
                 }
             }
             radiusAnimator.start()

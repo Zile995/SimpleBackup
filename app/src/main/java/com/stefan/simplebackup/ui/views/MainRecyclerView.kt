@@ -42,7 +42,7 @@ class MainRecyclerView(
         layoutManager?.startSmoothScroll(smoothScroller)
     }
 
-    fun onSaveRecyclerViewState(saveState: (Parcelable) -> Unit) {
+    inline fun onSaveRecyclerViewState(saveState: (Parcelable) -> Unit) {
         layoutManager?.onSaveInstanceState()?.let { stateParcelable ->
             saveState(stateParcelable)
         }
@@ -52,4 +52,8 @@ class MainRecyclerView(
         parcelable?.let { stateParcelable ->
             layoutManager?.onRestoreInstanceState(stateParcelable)
         }
+
+    override fun onCancelPendingInputEvents() {
+        super.onCancelPendingInputEvents()
+    }
 }

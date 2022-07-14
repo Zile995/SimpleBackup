@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
+import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
@@ -18,15 +20,15 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     private var _isSearching = MutableStateFlow(false)
     val isSearching get() = _isSearching.asStateFlow()
 
-    private var _shouldDisableTab = MutableStateFlow(false)
-    val shouldDisableTab get() = _shouldDisableTab.asStateFlow()
+    // Selection properties
+    private var _isSelected = MutableStateFlow(false)
+    val selectionList = mutableListOf<Int>()
+    val isSelected: StateFlow<Boolean> get() = _isSelected
+    val setSelectionMode: SelectionModeCallBack =
+        { isSelected: Boolean -> _isSelected.value = isSelected }
 
     fun setSearching(isSearching: Boolean) {
         _isSearching.value = isSearching
-    }
-
-    fun changeTab(shouldEnable: Boolean) {
-        _shouldDisableTab.value = shouldEnable
     }
 
     init {

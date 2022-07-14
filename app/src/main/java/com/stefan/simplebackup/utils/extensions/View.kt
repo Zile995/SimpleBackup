@@ -9,6 +9,8 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import androidx.annotation.ColorRes
 import androidx.annotation.IdRes
+import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnStart
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -94,6 +96,18 @@ fun View.changeBackgroundColor(context: Context, @ColorRes color: Int) {
 fun View.moveHorizontally(animationDuration: Long = 300L, value: Float) {
     ObjectAnimator.ofFloat(this, "translationX", value).apply {
         duration = animationDuration
+        start()
+    }
+}
+
+fun View.moveVertically(animationDuration: Long = 300L, value: Float) {
+    ObjectAnimator.ofFloat(this, "translationY", value).apply {
+        duration = animationDuration
+        addUpdateListener {
+            it.doOnStart {
+                if (value > 0) fadeOut(animationDuration) else fadeIn(animationDuration)
+            }
+        }
         start()
     }
 }

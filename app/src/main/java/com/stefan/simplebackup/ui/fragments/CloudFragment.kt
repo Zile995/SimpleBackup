@@ -13,7 +13,10 @@ import com.stefan.simplebackup.ui.adapters.CloudAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
-import com.stefan.simplebackup.utils.extensions.*
+import com.stefan.simplebackup.utils.extensions.isVisible
+import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
+import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -64,8 +67,8 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
     private fun RecyclerView.setCloudAdapter() {
         _cloudAdapter =
             CloudAdapter(
-                homeViewModel.selectionList,
-                homeViewModel.setSelectionMode
+                mainViewModel.selectionList,
+                mainViewModel.setSelectionMode
             ) {
                 object : OnClickListener {
                     override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
@@ -84,7 +87,7 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
                         position: Int
                     ) {
                         val item = cloudAdapter.currentList[position]
-                        homeViewModel.setSelectionMode(true)
+                        mainViewModel.setSelectionMode(true)
                         cloudAdapter.doSelection(holder as BaseViewHolder, item)
                     }
                 }
@@ -96,8 +99,7 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    homeViewModel.isSelected.collect { isSelected ->
-                        mainViewModel.changeTab(isSelected)
+                    mainViewModel.isSelected.collect { isSelected ->
                         batchBackup.isVisible = isSelected
                     }
                 }

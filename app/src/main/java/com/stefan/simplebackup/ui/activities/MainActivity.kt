@@ -23,6 +23,7 @@ import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
+import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.ui.views.SearchBarAnimator
 import com.stefan.simplebackup.utils.PreferenceHelper
@@ -135,28 +136,44 @@ class MainActivity : AppCompatActivity() {
 
     private fun ActivityMainBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
-                mainViewModel.isSearching.collect { isSearching ->
-                    if (isSearching) {
-                        navigationBar.fadeOut(250L)
-                    } else
-                        navigationBar.fadeIn(250L)
+            launch {
+                repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
+                    launch {
+                        mainViewModel.isSearching.collect { isSearching ->
+                            if (isSearching || mainViewModel.isSelected.value) {
+                                println("isSearching = $isSearching, isSelected = ${mainViewModel.isSelected.value}")
+                                navigationBar.fadeOut(searchBarAnimator.expandDuration)
+                                floatingButton.fadeOut(searchBarAnimator.expandDuration)
+                                floatingButton.setOnClickListener(null)
+                            } else
+                                navigationBar.fadeIn(searchBarAnimator.shrinkDuration)
+                        }
+                    }
+                    mainViewModel.isSelected.collect { isSelected ->
+                        if (!mainViewModel.isAppBarExpanded) appBarLayout.setExpanded(true)
+                        if (isSelected) {
+                            floatingButton.isVisible = false
+                            navigationBar.hide()
+                        } else {
+                            navigationBar.fadeIn(0L)
+                        }
+                    }
                 }
             }
         }
     }
 
-
     private fun ActivityMainBinding.binAppBarLayout() {
         appBarLayout.setExpanded(mainViewModel.isAppBarExpanded)
-        appBarLayout.addOnOffsetChangedListener(
-            AppBarLayout.OnOffsetChangedListener { _, verticalOffset ->
-                when (verticalOffset) {
-                    0 -> mainViewModel.isAppBarExpanded = true
-                    else -> mainViewModel.isAppBarExpanded = false
+        appBarLayout.addOnOffsetChangedListener(object : AppBarLayoutStateChangedListener() {
+            override fun onStateChanged(appBarLayout: AppBarLayout, state: AppBarLayoutState) {
+                when (state) {
+                    AppBarLayoutState.EXPANDED -> mainViewModel.isAppBarExpanded = true
+                    AppBarLayoutState.COLLAPSED -> mainViewModel.isAppBarExpanded = false
+                    else -> {}
                 }
             }
-        )
+        })
     }
 
     private fun ActivityMainBinding.binSearchView() {
@@ -166,9 +183,8 @@ class MainActivity : AppCompatActivity() {
     private fun ActivityMainBinding.bindSearchBar() {
         hideSearchBarWhenSearching()
         searchBar.setOnClickListener {
-            searchBarAnimator.animateSearchBarOnClick {
-                navigateToSearchFragment()
-            }
+            navigateToSearchFragment()
+            searchBarAnimator.animateSearchBarOnClick()
         }
     }
 
@@ -266,16 +282,6 @@ class MainActivity : AppCompatActivity() {
             smoothSnapToPosition(0)
         }
         hideAttachedButton(binding.floatingButton)
-    }
-
-    fun controlBottomView(shouldShow: Boolean) {
-        binding.apply {
-            if (!shouldShow) {
-                navigationBar.hide()
-            } else {
-                navigationBar.show()
-            }
-        }
     }
 
     override fun onDestroy() {

@@ -44,8 +44,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     private fun RecyclerView.setHomeAdapter() {
         _homeAdapter =
             HomeAdapter(
-                homeViewModel.selectionList,
-                homeViewModel.setSelectionMode
+                mainViewModel.selectionList,
+                mainViewModel.setSelectionMode
             ) {
                 object : OnClickListener {
                     override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
@@ -64,7 +64,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                         position: Int
                     ) {
                         val item = homeAdapter.currentList[position]
-                        homeViewModel.setSelectionMode(true)
+                        mainViewModel.setSelectionMode(true)
                         homeAdapter.doSelection(holder as BaseViewHolder, item)
                     }
                 }
@@ -98,7 +98,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     private fun FragmentHomeBinding.bindBackupChip() {
         batchBackup.setOnClickListener {
             requireContext().apply {
-                passBundleToActivity<ProgressActivity>(SELECTION_EXTRA to homeViewModel.selectionList.toIntArray())
+                passBundleToActivity<ProgressActivity>(SELECTION_EXTRA to mainViewModel.selectionList.toIntArray())
             }
         }
     }
@@ -107,12 +107,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    homeViewModel.isSelected.collect { isSelected ->
-                        mainViewModel.changeTab(isSelected)
+                    mainViewModel.isSelected.collect { isSelected ->
                         batchBackup.isVisible = isSelected
-                        onMainActivityCallback {
-                            controlBottomView(!isSelected)
-                        }
                     }
                 }
                 homeViewModel.spinner.collect { isSpinning ->

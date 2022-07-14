@@ -22,7 +22,7 @@ class AppRepository(private val appDao: AppDao) {
     /**
      * - Filter the given flow list
      */
-    private fun <T> Flow<List<T>>.filterBy(predicate: (T) -> Boolean) = run {
+    private inline fun <T> Flow<List<T>>.filterBy(crossinline predicate: (T) -> Boolean) = run {
         map { list ->
             list.filter(predicate)
         }

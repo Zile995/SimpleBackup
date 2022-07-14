@@ -24,4 +24,5 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
     override fun onCleanUp() {
         binding.saveRecyclerViewState()
     }
+
 }

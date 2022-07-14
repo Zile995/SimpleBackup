@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.viewbinding.ViewBinding
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.activities.MainActivity
@@ -83,6 +84,14 @@ inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
         startActivity(this)
     }
 }
+
+inline fun <reified T : Fragment> FragmentManager.findFragmentByClass(): T? =
+    fragments.firstOrNull { fragment ->
+        fragment is T
+    } as T?
+
+inline fun <reified T : Fragment> FragmentManager.findFragmentsByClass(): List<T> =
+    fragments.filterIsInstance<T>()
 
 inline fun Fragment.onMainActivityCallback(crossinline block: suspend MainActivity.() -> Unit) =
     onActivityCallback<MainActivity> {

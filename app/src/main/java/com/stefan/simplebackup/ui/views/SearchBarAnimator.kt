@@ -19,15 +19,12 @@ class SearchBarAnimator(
     val shrinkDuration = 250L
 
     inline fun animateSearchBarOnClick(
-        crossinline navigate: () -> Unit
+        crossinline navigate: () -> Unit = {}
     ) {
         activityReference.get()?.apply {
             bindingReference.get()?.apply {
-                searchBar.animateTo(
-                    (searchBar.parent as View).height,
-                    (searchBar.parent as View).width,
-                    animationDuration = expandDuration,
-                    doOnAnimationStart = {
+                expandToParentView(
+                    doOnStart = {
                         navigate.invoke()
                         searchMagIcon.fadeOut(expandDuration)
                         searchText.fadeOut(expandDuration)
@@ -37,11 +34,9 @@ class SearchBarAnimator(
                             animationDuration = expandDuration
                         )
                     },
-                    doOnAnimationEnd = {
+                    doOnEnd = {
                         appBarLayout.setExpanded(true)
                         searchView.requestFocus()
-                        floatingButton.hide()
-                        floatingButton.setOnClickListener(null)
                         searchView.fadeIn(animationDuration = expandDuration)
                         materialToolbar.fadeIn(animationDuration = expandDuration,
                             onAnimationEnd = {
@@ -61,7 +56,7 @@ class SearchBarAnimator(
                 appBarLayout.changeBackgroundColor(applicationContext, R.color.bottomView)
                 materialToolbar.fadeOut(animationDuration = 0L) {
                     searchBar.animateToInitialSize(animationDuration = shrinkDuration,
-                        doOnAnimationStart = {
+                        doOnStart = {
                             animateStatusBarColor(
                                 color = R.color.bottomView,
                                 animationDuration = shrinkDuration
@@ -69,10 +64,30 @@ class SearchBarAnimator(
                             searchMagIcon.fadeIn(shrinkDuration)
                             searchText.moveHorizontally(shrinkDuration, 0f)
                         },
-                        doOnAnimationEnd = {
+                        doOnEnd = {
                             searchBar.isEnabled = true
                         })
                 }
+            }
+        }
+    }
+
+    inline fun expandToParentView(
+        crossinline doOnStart: () -> Unit,
+        crossinline doOnEnd: () -> Unit
+    ) {
+        activityReference.get()?.apply {
+            bindingReference.get()?.apply {
+                searchBar.animateTo(
+                    (searchBar.parent as View).height,
+                    (searchBar.parent as View).width,
+                    animationDuration = expandDuration,
+                    doOnStart = {
+                        doOnStart.invoke()
+                    },
+                    doOnEnd = {
+                        doOnEnd.invoke()
+                    })
             }
         }
     }

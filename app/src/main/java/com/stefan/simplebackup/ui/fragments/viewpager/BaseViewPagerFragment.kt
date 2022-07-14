@@ -4,28 +4,51 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.viewbinding.ViewBinding
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.stefan.simplebackup.ui.adapters.ViewPagerAdapter
+import com.stefan.simplebackup.ui.fragments.BaseFragment
 import com.stefan.simplebackup.ui.fragments.FavoritesFragment
 import com.stefan.simplebackup.ui.fragments.ViewReferenceCleaner
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
+import com.stefan.simplebackup.utils.extensions.findFragmentByClass
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.viewBinding
+import kotlinx.coroutines.delay
+import java.lang.reflect.ParameterizedType
 
-abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(), ViewPagerProvider<VB>,
+abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
     ViewReferenceCleaner {
     protected val binding by viewBinding()
-    private var mediator: TabLayoutMediator? = null
     protected val mainViewModel: MainViewModel by activityViewModels()
+
+    private var _viewPager: ViewPager2? = null
+    private val viewPager get() = _viewPager!!
+    private var _tabLayout: TabLayout? = null
+    private val tabLayout get() = _tabLayout!!
+    private var mediator: TabLayoutMediator? = null
 
     private val cachedPageChangeCallback by lazy {
         getOnPageChangeCallback()
     }
+
+    private val tabPositions by lazy {
+        val tabPositions = mutableListOf<Int>()
+        for (position in 0 until tabLayout.tabCount) {
+            tabPositions.add(position)
+        }
+        tabPositions
+    }
+
+    abstract fun createFragments(): ArrayList<BaseFragment<*>>
+    abstract fun configureTabText(): ArrayList<String>
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,35 +58,35 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(), ViewPagerPr
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.apply {
-            setupViewPager {
-                registerViewPagerCallbacks(cachedPageChangeCallback)
-            }
-            attachMediator()
-            initObservers()
-        }
+        bindViews()
+        attachMediator()
+        initObservers()
     }
 
-    override fun setupTabLayout(callback: () -> Unit) {
-        callback()
-    }
-
-    override fun setupViewPager(callback: () -> Unit) {
-        callback()
-    }
-
-    private fun VB.initObservers() {
+    private fun initObservers() {
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
-                mainViewModel.shouldDisableTab.collect { shouldDisable ->
-                    if (shouldDisable) {
-                        setupTabLayout {
-                            disableTab(1)
-                        }
-                    }
+                mainViewModel.isSelected.collect { isInSelectionMode ->
+                    controlTabs(shouldEnableTabs = !isInSelectionMode)
                 }
             }
         }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun bindViews() {
+        val vbClass =
+            (javaClass.genericSuperclass as ParameterizedType).actualTypeArguments[0] as Class<VB>
+        val declaredFields = vbClass.declaredFields
+        declaredFields.forEach { declaredField ->
+            when (declaredField.type) {
+                ViewPager2::class.java -> _viewPager =
+                    vbClass.getDeclaredField(declaredField.name).get(binding) as ViewPager2
+                TabLayout::class.java -> _tabLayout =
+                    vbClass.getDeclaredField(declaredField.name).get(binding) as TabLayout
+            }
+        }
+        setupViewPager()
     }
 
     private fun getOnPageChangeCallback(): ViewPager2.OnPageChangeCallback =
@@ -85,24 +108,69 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(), ViewPagerPr
 
             override fun onPageScrollStateChanged(state: Int) {
                 if (state == ViewPager2.SCROLL_STATE_IDLE && shouldStopSpinning) {
-                    stopProgressBarSpinning()
+                    launchOnViewLifecycle {
+                        delay(100L)
+                        stopProgressBarSpinning()
+                    }
                 }
             }
         }
 
-    private fun stopProgressBarSpinning() {
-        childFragmentManager.fragments.forEach { childFragment ->
-            if (childFragment is FavoritesFragment) childFragment.stopProgressBarSpinning
+    private fun setupViewPager() {
+        viewPager.adapter = ViewPagerAdapter(
+            createFragments(),
+            childFragmentManager,
+            viewLifecycleOwner.lifecycle
+        )
+        registerViewPagerCallbacks(cachedPageChangeCallback)
+    }
+
+    private fun controlTabs(shouldEnableTabs: Boolean) {
+        // Have to doOnPreDraw because the selectedTabPosition update is slow on configuration change
+        binding.root.doOnPreDraw {
+            tabPositions.filter { position ->
+                position != tabLayout.selectedTabPosition
+            }.forEach { notSelectedPosition ->
+                (tabLayout.getChildAt(0) as ViewGroup).getChildAt(notSelectedPosition)
+                    .isEnabled = shouldEnableTabs
+            }
+            viewPager.isUserInputEnabled = shouldEnableTabs
         }
     }
 
-    override fun VB.attachMediator() {
-        mediator = provideTabLayoutMediator()
+    private fun registerViewPagerCallbacks(
+        callback: ViewPager2.OnPageChangeCallback
+    ) = viewPager.registerOnPageChangeCallback(callback)
+
+    private fun unregisterViewPagerCallbacks(
+        callback: ViewPager2.OnPageChangeCallback
+    ) = viewPager.unregisterOnPageChangeCallback(callback)
+
+    private fun stopProgressBarSpinning() {
+        childFragmentManager.findFragmentByClass<FavoritesFragment>()?.apply {
+            stopProgressBarSpinning()
+        }
+    }
+
+    private fun attachMediator() {
+        val tabsText = configureTabText()
+        mediator = TabLayoutMediator(
+            tabLayout, viewPager,
+            true,
+            true
+        ) { tab, position ->
+            if (position <= tabsText.size - 1)
+                tab.text = tabsText[position]
+            else tab.text = "Text is missing"
+        }
         mediator!!.attach()
     }
 
     override fun onCleanUp() {
-        binding.unregisterViewPagerCallbacks(cachedPageChangeCallback)
+        unregisterViewPagerCallbacks(cachedPageChangeCallback)
+        viewPager.adapter = null
+        _tabLayout = null
+        _viewPager = null
         mediator?.detach()
         mediator = null
     }

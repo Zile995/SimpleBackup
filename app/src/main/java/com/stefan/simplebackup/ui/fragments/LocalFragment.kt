@@ -40,8 +40,8 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
 
     private fun RecyclerView.setLocalAdapter() {
         _localAdapter = LocalAdapter(
-            localViewModel.selectionList,
-            localViewModel.setSelectionMode
+            mainViewModel.selectionList,
+            mainViewModel.setSelectionMode
         ) {
             val context = requireContext()
             object : OnClickListener {
@@ -63,7 +63,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
 
                 override fun onLongItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
                     val item = localAdapter.currentList[position]
-                    localViewModel.setSelectionMode(true)
+                    mainViewModel.setSelectionMode(true)
                     localAdapter.doSelection(holder as BaseViewHolder, item)
                 }
             }
@@ -105,8 +105,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
             }
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    localViewModel.isSelected.collect { isSelected ->
-                        mainViewModel.changeTab(isSelected)
+                    mainViewModel.isSelected.collect { isSelected ->
                         batchRestore.isVisible = isSelected
                     }
                 }

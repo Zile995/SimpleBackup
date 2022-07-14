@@ -15,7 +15,10 @@ import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.FavoritesViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
-import com.stefan.simplebackup.utils.extensions.*
+import com.stefan.simplebackup.utils.extensions.isVisible
+import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
+import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
 import kotlinx.coroutines.launch
 
 class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
@@ -29,9 +32,8 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
         )
     }
 
-    val stopProgressBarSpinning by lazy {
+    fun stopProgressBarSpinning() =
         homeViewModel.stopSpinning(false)
-    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -60,8 +62,8 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
 
     private fun RecyclerView.setFavoritesAdapter() {
         _favoritesAdapter = FavoritesAdapter(
-            homeViewModel.selectionList,
-            homeViewModel.setSelectionMode
+            mainViewModel.selectionList,
+            mainViewModel.setSelectionMode
         ) {
             object : OnClickListener {
                 override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
@@ -80,7 +82,7 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
                     position: Int
                 ) {
                     val item = favoritesAdapter.currentList[position]
-                    homeViewModel.setSelectionMode(true)
+                    mainViewModel.setSelectionMode(true)
                     favoritesAdapter.doSelection(holder as BaseViewHolder, item)
                 }
             }
@@ -92,8 +94,7 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    homeViewModel.isSelected.collect { isSelected ->
-                        mainViewModel.changeTab(isSelected)
+                    mainViewModel.isSelected.collect { isSelected ->
                         batchBackup.isVisible = isSelected
                     }
                 }
