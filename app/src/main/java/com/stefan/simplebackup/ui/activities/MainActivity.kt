@@ -150,8 +150,8 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                     mainViewModel.isSelected.collect { isSelected ->
-                        if (!mainViewModel.isAppBarExpanded) appBarLayout.setExpanded(true)
                         if (isSelected) {
+                            if (!mainViewModel.isAppBarExpanded) appBarLayout.setExpanded(true)
                             floatingButton.isVisible = false
                             navigationBar.hide()
                         } else {
