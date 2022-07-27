@@ -33,11 +33,6 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        binding.setActivityCallBacks()
-    }
-
     private fun RecyclerView.setLocalAdapter() {
         _localAdapter = LocalAdapter(
             mainViewModel.selectionList,
@@ -121,12 +116,6 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
         }
     }
 
-    private fun FragmentLocalBinding.setActivityCallBacks() {
-        onMainActivityCallback {
-            localRecyclerView.controlFloatingButton()
-        }
-    }
-
     override fun FragmentLocalBinding.saveRecyclerViewState() {
         localRecyclerView.onSaveRecyclerViewState { stateParcelable ->
             localViewModel.saveRecyclerViewState(stateParcelable)
@@ -134,7 +123,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     }
 
     override fun FragmentLocalBinding.restoreRecyclerViewState() {
-        localRecyclerView.onRestoreRecyclerViewState(localViewModel.savedRecyclerViewState)
+        localRecyclerView.restoreRecyclerViewState(localViewModel.savedRecyclerViewState)
     }
 
     override fun onCleanUp() {

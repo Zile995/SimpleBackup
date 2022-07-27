@@ -7,7 +7,7 @@ import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 
 class SearchViewHolder(
     binding: SearchItemBinding,
-    clickListener: () -> OnClickListener
+    clickListener: OnClickListener
 ) : BaseViewHolder(binding, clickListener) {
 
     override val cardView: MaterialCardView

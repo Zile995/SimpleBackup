@@ -15,7 +15,6 @@ import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -35,11 +34,6 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
             initObservers()
             restoreRecyclerViewState()
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        binding.setActivityCallBacks()
     }
 
     private fun FragmentCloudBinding.bindViews() {
@@ -114,12 +108,6 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
         }
     }
 
-    private fun FragmentCloudBinding.setActivityCallBacks() {
-        onMainActivityCallback {
-            cloudRecyclerView.controlFloatingButton()
-        }
-    }
-
     override fun FragmentCloudBinding.saveRecyclerViewState() {
         cloudRecyclerView.onSaveRecyclerViewState { stateParcelable ->
             homeViewModel.saveRecyclerViewState(stateParcelable)
@@ -127,7 +115,7 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
     }
 
     override fun FragmentCloudBinding.restoreRecyclerViewState() {
-        cloudRecyclerView.onRestoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
+        cloudRecyclerView.restoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
     }
 
     override fun onDestroyView() {

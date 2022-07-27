@@ -17,7 +17,6 @@ import com.stefan.simplebackup.ui.viewmodels.FavoritesViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
 import kotlinx.coroutines.launch
 
@@ -42,11 +41,6 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
             initObservers()
             restoreRecyclerViewState()
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        binding.setActivityCallBacks()
     }
 
     private fun FragmentFavoritesBinding.bindViews() {
@@ -109,12 +103,6 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
         }
     }
 
-    private fun FragmentFavoritesBinding.setActivityCallBacks() {
-        onMainActivityCallback {
-            favoritesRecyclerView.controlFloatingButton()
-        }
-    }
-
     override fun FragmentFavoritesBinding.saveRecyclerViewState() {
         favoritesRecyclerView.onSaveRecyclerViewState { stateParcelable ->
             homeViewModel.saveRecyclerViewState(stateParcelable)
@@ -122,7 +110,7 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     }
 
     override fun FragmentFavoritesBinding.restoreRecyclerViewState() {
-        favoritesRecyclerView.onRestoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
+        favoritesRecyclerView.restoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
     }
 
     override fun onDestroyView() {

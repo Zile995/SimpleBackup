@@ -9,7 +9,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import androidx.annotation.ColorRes
 import androidx.annotation.IdRes
-import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -114,41 +113,52 @@ fun View.moveVertically(animationDuration: Long = 300L, value: Float) {
 
 inline fun View.fadeIn(
     animationDuration: Long = 300L,
-    crossinline onAnimationEnd: () -> Unit = {},
+    crossinline onAnimationCancel: () -> Unit = {},
+    crossinline onAnimationEnd: () -> Unit = {}
 ) {
+    if (isVisible) return
     animate()
         .alpha(1f)
         .setDuration(animationDuration)
         .setListener(object : AnimatorListenerAdapter() {
+
             override fun onAnimationStart(animation: Animator?) {
-                super.onAnimationStart(animation)
                 show()
             }
 
+            override fun onAnimationPause(animation: Animator?) {
+                onAnimationEnd.invoke()
+            }
+
             override fun onAnimationEnd(animation: Animator?) {
-                super.onAnimationEnd(animation)
                 onAnimationEnd.invoke()
             }
 
             override fun onAnimationCancel(animation: Animator?) {
-                super.onAnimationCancel(animation)
                 fadeOut()
+                onAnimationCancel.invoke()
             }
         })
 }
 
 inline fun View.fadeOut(
     animationDuration: Long = 300L,
+    crossinline onAnimationCancel: () -> Unit = {},
     crossinline onAnimationEnd: () -> Unit = {}
 ) {
+    if (!isVisible) return
     animate()
         .alpha(0f)
         .setDuration(animationDuration)
         .setListener(object : AnimatorListenerAdapter() {
+
             override fun onAnimationEnd(animation: Animator?) {
-                super.onAnimationEnd(animation)
                 hide()
                 onAnimationEnd.invoke()
+            }
+
+            override fun onAnimationCancel(animation: Animator?) {
+                onAnimationCancel.invoke()
             }
         })
 }
@@ -160,25 +170,27 @@ inline fun ViewGroup.animateTo(
     toWidthValue: Int,
     duration: Long = 300L,
     interpolator: TimeInterpolator = DecelerateInterpolator(),
-    applyWith: () -> Unit = {}
+    crossinline doOnStart: () -> Unit = {}
 ) {
     val heightAnimator = ValueAnimator.ofInt(fromHeightValue, toHeightValue)
     val widthAnimator = ValueAnimator.ofInt(fromWidthValue, toWidthValue)
+    heightAnimator.repeatMode = ValueAnimator.REVERSE
+    widthAnimator.repeatMode = ValueAnimator.REVERSE
     heightAnimator.duration = duration
     widthAnimator.duration = duration
     heightAnimator.interpolator = interpolator
     widthAnimator.interpolator = interpolator
-    heightAnimator.addUpdateListener { animation ->
-        layoutParams.height = animation.animatedValue as Int
+    heightAnimator.addUpdateListener { valueAnimator ->
+        layoutParams.height = valueAnimator.animatedValue as Int
         requestLayout()
     }
-    widthAnimator.addUpdateListener {
-        layoutParams.width = it.animatedValue as Int
+    widthAnimator.addUpdateListener { valueAnimator ->
+        layoutParams.width = valueAnimator.animatedValue as Int
         requestLayout()
     }
+    doOnStart.invoke()
     heightAnimator.start()
     widthAnimator.start()
-    applyWith()
 }
 
 fun View.showKeyboard() {

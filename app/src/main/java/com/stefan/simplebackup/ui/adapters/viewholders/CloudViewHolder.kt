@@ -12,7 +12,7 @@ import com.stefan.simplebackup.utils.extensions.loadBitmap
 
 class CloudViewHolder(
     private val binding: CloudItemBinding,
-    clickListener: () -> OnClickListener
+    clickListener: OnClickListener
 ) : BaseViewHolder(binding, clickListener) {
 
     override val cardView: MaterialCardView = binding.cloudCardItem

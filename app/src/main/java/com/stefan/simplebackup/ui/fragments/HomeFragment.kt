@@ -2,11 +2,15 @@ package com.stefan.simplebackup.ui.fragments
 
 import android.os.Bundle
 import android.util.Log
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
+import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.FragmentHomeBinding
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.activities.ProgressActivity
@@ -34,11 +38,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
             initObservers()
             restoreRecyclerViewState()
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        binding.setActivityCallBacks()
     }
 
     private fun RecyclerView.setHomeAdapter() {
@@ -98,7 +97,9 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     private fun FragmentHomeBinding.bindBackupChip() {
         batchBackup.setOnClickListener {
             requireContext().apply {
-                passBundleToActivity<ProgressActivity>(SELECTION_EXTRA to mainViewModel.selectionList.toIntArray())
+                passBundleToActivity<ProgressActivity>(
+                    SELECTION_EXTRA to mainViewModel.selectionList.toIntArray()
+                )
             }
         }
     }
@@ -109,6 +110,10 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                 launch {
                     mainViewModel.isSelected.collect { isSelected ->
                         batchBackup.isVisible = isSelected
+                        if (!isSelected) {
+                            homeAdapter.removeAllSelectedItems()
+                            homeAdapter.notifyDataSetChanged()
+                        }
                     }
                 }
                 homeViewModel.spinner.collect { isSpinning ->
@@ -122,12 +127,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         }
     }
 
-    private fun FragmentHomeBinding.setActivityCallBacks() {
-        onMainActivityCallback {
-            homeRecyclerView.controlFloatingButton()
-        }
-    }
-
     override fun FragmentHomeBinding.saveRecyclerViewState() {
         homeRecyclerView.onSaveRecyclerViewState { stateParcelable ->
             homeViewModel.saveRecyclerViewState(stateParcelable)
@@ -135,7 +134,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     }
 
     override fun FragmentHomeBinding.restoreRecyclerViewState() {
-        homeRecyclerView.onRestoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
+        homeRecyclerView.restoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
     }
 
     override fun onCleanUp() {

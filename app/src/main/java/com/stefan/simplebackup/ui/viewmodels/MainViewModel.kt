@@ -7,6 +7,7 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -32,7 +33,7 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     }
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(ioDispatcher) {
             refreshPackageList()
         }
         Log.d("ViewModel", "MainViewModel created")

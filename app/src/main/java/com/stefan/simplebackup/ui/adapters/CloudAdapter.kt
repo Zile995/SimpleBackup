@@ -13,5 +13,5 @@ class CloudAdapter(selectedItems: MutableList<Int>,
 ) : BaseAdapter(selectedItems, onSelectionModeCallback, clickListener) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder =
-        CloudViewHolder(parent.viewBinding(CloudItemBinding::inflate), clickListener)
+        CloudViewHolder(parent.viewBinding(CloudItemBinding::inflate), clickListener())
 }

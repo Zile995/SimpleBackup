@@ -9,7 +9,7 @@ import com.stefan.simplebackup.utils.extensions.loadBitmap
 
 class LocalViewHolder(
     private val binding: LocalItemBinding,
-    clickListener: () -> OnClickListener
+    clickListener: OnClickListener
 ) : BaseViewHolder(binding, clickListener) {
 
     override val cardView = binding.cardRestoreItem

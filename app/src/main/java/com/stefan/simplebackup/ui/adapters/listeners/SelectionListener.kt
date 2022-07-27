@@ -18,5 +18,5 @@ interface SelectionListener<VH : RecyclerView.ViewHolder> {
 
     fun doSelection(holder: VH, item: AppData)
 
-    fun removeSelectedItems() = selectedItems.clear()
+    fun removeAllSelectedItems()
 }

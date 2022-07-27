@@ -42,15 +42,13 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
     private lateinit var workResults: List<WorkResult>
 
-    private val updateForegroundInfo = createForegroundInfo(notificationId)
-
     private val foregroundCallBack: ForegroundCallback = { notificationData ->
         setProgress(workDataOf(WORK_PROGRESS to notificationData.progress))
         progressState.value = notificationData
-        updateForegroundInfo(
-            getUpdatedNotification(notificationData)
-        )
+        updateForegroundInfo(getUpdatedNotification(notificationData))
     }
+
+    private val updateForegroundInfo = createForegroundInfo(notificationId)
 
     override suspend fun doWork(): Result = coroutineScope {
         try {

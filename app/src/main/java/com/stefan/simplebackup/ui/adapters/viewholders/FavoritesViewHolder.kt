@@ -12,7 +12,7 @@ import com.stefan.simplebackup.utils.extensions.loadBitmap
 
 class FavoritesViewHolder(
     private val binding: FavoritesItemBinding,
-    clickListener: () -> OnClickListener
+    clickListener: OnClickListener
 ) : BaseViewHolder(binding, clickListener) {
 
     override val cardView: MaterialCardView = binding.favoritesCardItem

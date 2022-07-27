@@ -4,6 +4,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
+import com.stefan.simplebackup.ui.views.SearchBarAnimator.Companion.animationFinished
 
 class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     override val selectedItems: MutableList<Int>,
@@ -29,7 +30,12 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
         selectedItems.remove(item)
     }
 
+    override fun removeAllSelectedItems() {
+        selectedItems.clear()
+    }
+
     override fun doSelection(holder: VH, item: AppData) {
+        println("Animation finished = $animationFinished")
         holder.apply {
             val context = cardView.context
             if (selectedItems.contains(item.uid)) {
@@ -42,7 +48,7 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
             if (selectedItems.isEmpty()) {
                 onSelectionModeCallback(false)
             }
-            println("Selection list: $selectedItems")
         }
+        println("Selection list: $selectedItems")
     }
 }

@@ -74,7 +74,6 @@
                     android:layout_height="match_parent"
                     android:background="@color/searchBar"
                     android:elevation="2dp"
-                    android:tooltipText="Back"
                     android:visibility="gone"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"

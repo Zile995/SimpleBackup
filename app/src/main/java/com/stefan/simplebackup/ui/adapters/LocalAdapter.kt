@@ -14,5 +14,5 @@ class LocalAdapter(
 ) : BaseAdapter(selectedItems, onSelectionModeCallback, clickListener) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder =
-        LocalViewHolder(parent.viewBinding(LocalItemBinding::inflate), clickListener)
+        LocalViewHolder(parent.viewBinding(LocalItemBinding::inflate), clickListener())
 }

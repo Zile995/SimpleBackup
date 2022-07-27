@@ -14,5 +14,5 @@ class HomeAdapter(
 ) : BaseAdapter(selectedItems, onSelectionModeCallback, clickListener) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder =
-        HomeViewHolder(parent.viewBinding(HomeItemBinding::inflate), clickListener)
+        HomeViewHolder(parent.viewBinding(HomeItemBinding::inflate), clickListener())
 }

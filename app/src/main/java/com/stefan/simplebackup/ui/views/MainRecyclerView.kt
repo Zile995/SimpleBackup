@@ -48,12 +48,8 @@ class MainRecyclerView(
         }
     }
 
-    fun onRestoreRecyclerViewState(parcelable: Parcelable?) =
-        parcelable?.let { stateParcelable ->
+    fun restoreRecyclerViewState(savedState: Parcelable?) =
+        savedState?.let { stateParcelable ->
             layoutManager?.onRestoreInstanceState(stateParcelable)
         }
-
-    override fun onCancelPendingInputEvents() {
-        super.onCancelPendingInputEvents()
-    }
 }
