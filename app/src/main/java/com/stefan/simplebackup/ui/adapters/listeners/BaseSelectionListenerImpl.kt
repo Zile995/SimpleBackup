@@ -35,14 +35,15 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     }
 
     override fun doSelection(holder: VH, item: AppData) {
-        println("Animation finished = $animationFinished")
         holder.apply {
             val context = cardView.context
             if (selectedItems.contains(item.uid)) {
                 removeSelected(item.uid)
+                item.isSelected = false
                 cardView.setCardBackgroundColor(context.getColor(R.color.cardView))
             } else {
                 addSelected(item.uid)
+                item.isSelected = true
                 cardView.setCardBackgroundColor(context.getColor(R.color.cardViewSelected))
             }
             if (selectedItems.isEmpty()) {

@@ -101,6 +101,8 @@ data class AppData(
     @ColumnInfo(name = "should_backup_cache")
     var shouldBackupCache = false
 
+    var isSelected = false
+
     constructor(parcel: Parcel) : this(
         uid = parcel.readInt(),
         name = parcel.readString() ?: "",

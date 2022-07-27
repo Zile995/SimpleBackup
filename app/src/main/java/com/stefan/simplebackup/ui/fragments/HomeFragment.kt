@@ -111,8 +111,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                     mainViewModel.isSelected.collect { isSelected ->
                         batchBackup.isVisible = isSelected
                         if (!isSelected) {
-                            homeAdapter.removeAllSelectedItems()
-                            homeAdapter.notifyDataSetChanged()
+                            homeAdapter.clearSelection()
                         }
                     }
                 }

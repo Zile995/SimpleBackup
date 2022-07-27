@@ -29,8 +29,18 @@ abstract class BaseAdapter(
             is FavoritesViewHolder -> holder.bind(item)
             is SearchViewHolder -> holder.bind(item)
         }
-        if (selectedItems.contains(item.uid))
+        if (item.isSelected)
             holder.setSelected()
+    }
+
+    fun clearSelection() {
+        currentList.forEachIndexed { index, item ->
+            if (item.isSelected) {
+                item.isSelected = false
+                notifyItemChanged(index)
+            }
+        }
+        removeAllSelectedItems()
     }
 
     override fun onViewRecycled(holder: BaseViewHolder) {

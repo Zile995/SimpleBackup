@@ -56,6 +56,7 @@
     <string name="set_manually">Set Manually</string>
     <string name="filter">Filter</string>
     <string name="select_all">Select all</string>
+    <string name="clear_selection">Clear selection</string>
     <string name="scroll_to_top">Scroll to top</string>
     <string name="applications">Applications</string>
     <string name="backups">Backups</string>

@@ -5,11 +5,9 @@ import android.os.Bundle
 import android.os.PersistableBundle
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.TooltipCompat
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
@@ -178,8 +176,8 @@ class MainActivity : AppCompatActivity() {
                             searchBar.isEnabled = false
                             searchBarAnimator.animateOnSelection()
                             materialToolbar.setNavigationIcon(R.drawable.ic_close)
-                            materialToolbar.setNavigationContentDescription(R.string.cloud)
-                            materialToolbar.menu.findItem(R.id.select_all).isVisible = true
+                            materialToolbar.setNavigationContentDescription(R.string.clear_selection)
+                            materialToolbar.menu?.findItem(R.id.select_all)?.isVisible = true
                             materialToolbar.setNavigationOnClickListener {
                                 mainViewModel.setSelectionMode(false)
                             }
@@ -197,6 +195,17 @@ class MainActivity : AppCompatActivity() {
 
     fun expandAppBarLayout(shouldExpand: Boolean) {
         binding.apply {
+            val params = searchBarLayout.layoutParams as AppBarLayout.LayoutParams
+            if (shouldExpand) {
+                params.scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_NO_SCROLL
+                materialToolbar.layoutParams = params
+            } else {
+                params.scrollFlags =
+                    AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS or
+                            AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or
+                            AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP
+                materialToolbar.layoutParams = params
+            }
             if (!mainViewModel.isAppBarExpanded) appBarLayout.setExpanded(shouldExpand)
         }
     }
