@@ -23,6 +23,7 @@ class SearchBarAnimator(
     fun animateOnClick() {
         activity?.apply {
             binding?.apply {
+                searchBar.isEnabled = false
                 expandToParentView(
                     doOnStart = {
                         searchMagIcon.fadeOut(expandDuration)
@@ -52,6 +53,7 @@ class SearchBarAnimator(
     fun animateOnSelection() {
         activity?.apply {
             binding?.apply {
+                searchBar.isEnabled = false
                 expandToParentView(
                     doOnStart = {
                         searchMagIcon.fadeOut(expandDuration)

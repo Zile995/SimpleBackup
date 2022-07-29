@@ -8,9 +8,9 @@ interface SelectionListener<VH : RecyclerView.ViewHolder> {
 
     fun hasSelectedItems(): Boolean
 
-    fun selectMultipleItems(selectedItems: MutableList<Int>)
+    fun selectMultipleItems(selectedItems: List<Int>)
 
-    fun getSelected(): MutableList<Int>
+    fun getSelected(): List<Int>
 
     fun addSelected(item: Int)
 

@@ -115,7 +115,6 @@ class MainActivity : AppCompatActivity() {
         navController = navHostFragment.navController
         navController.addOnDestinationChangedListener { _, destination, _ ->
             if (destination.doesMatchDestination(R.id.search_action)) {
-                searchBar.isEnabled = false
                 mainViewModel.setSearching(true)
             } else {
                 mainViewModel.setSearching(false)
@@ -136,8 +135,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun ActivityMainBinding.bindViews() {
         window.setBackgroundDrawableResource(R.color.background)
-        binAppBarLayout()
-        binSearchView()
+        bindAppBarLayout()
+        bindSearchView()
         bindToolBar()
         bindSearchBar()
         bindBottomNavigationView()
@@ -159,11 +158,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun ActivityMainBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
+            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
                 mainViewModel.apply {
                     launch {
                         isSearching.collect { isSearching ->
                             if (isSearching) {
+                                materialToolbar.menu?.findItem(R.id.select_all)?.isVisible = false
                                 navigationBar.fadeOut(searchBarAnimator.expandDuration)
                                 floatingButton.fadeOut(searchBarAnimator.expandDuration)
                                 floatingButton.setOnClickListener(null)
@@ -173,7 +173,6 @@ class MainActivity : AppCompatActivity() {
                     }
                     isSelected.collect { isSelected ->
                         if (isSelected) {
-                            searchBar.isEnabled = false
                             searchBarAnimator.animateOnSelection()
                             materialToolbar.setNavigationIcon(R.drawable.ic_close)
                             materialToolbar.setNavigationContentDescription(R.string.clear_selection)
@@ -195,22 +194,17 @@ class MainActivity : AppCompatActivity() {
 
     fun expandAppBarLayout(shouldExpand: Boolean) {
         binding.apply {
-            val params = searchBarLayout.layoutParams as AppBarLayout.LayoutParams
-            if (shouldExpand) {
-                params.scrollFlags = AppBarLayout.LayoutParams.SCROLL_FLAG_NO_SCROLL
-                materialToolbar.layoutParams = params
-            } else {
-                params.scrollFlags =
-                    AppBarLayout.LayoutParams.SCROLL_FLAG_ENTER_ALWAYS or
-                            AppBarLayout.LayoutParams.SCROLL_FLAG_SCROLL or
-                            AppBarLayout.LayoutParams.SCROLL_FLAG_SNAP
-                materialToolbar.layoutParams = params
-            }
             if (!mainViewModel.isAppBarExpanded) appBarLayout.setExpanded(shouldExpand)
+            if (shouldExpand)
+                navHostContainer.setPadding(
+                    0, 0, 0, resources.getDimensionPixelSize(R.dimen.toolbar_height)
+                )
+            else
+                navHostContainer.setPadding(0, 0, 0, 0)
         }
     }
 
-    private fun ActivityMainBinding.binAppBarLayout() {
+    private fun ActivityMainBinding.bindAppBarLayout() {
         appBarLayout.setExpanded(mainViewModel.isAppBarExpanded)
         appBarLayout.addOnOffsetChangedListener(object : AppBarLayoutStateChangedListener() {
             override fun onStateChanged(appBarLayout: AppBarLayout, state: AppBarLayoutState) {
@@ -234,7 +228,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun ActivityMainBinding.binSearchView() {
+    private fun ActivityMainBinding.bindSearchView() {
         searchView.setTypeFace(getInterFontTypeFace())
     }
 

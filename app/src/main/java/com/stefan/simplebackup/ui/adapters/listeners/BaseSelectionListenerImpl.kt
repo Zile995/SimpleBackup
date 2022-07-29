@@ -4,7 +4,6 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
-import com.stefan.simplebackup.ui.views.SearchBarAnimator.Companion.animationFinished
 
 class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     override val selectedItems: MutableList<Int>,
@@ -15,12 +14,12 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
         return selectedItems.isNotEmpty()
     }
 
-    override fun selectMultipleItems(selectedItems: MutableList<Int>) {
+    override fun selectMultipleItems(selectedItems: List<Int>) {
         this.selectedItems.clear()
         this.selectedItems.addAll(selectedItems)
     }
 
-    override fun getSelected(): MutableList<Int> = selectedItems
+    override fun getSelected(): List<Int> = selectedItems
 
     override fun addSelected(item: Int) {
         selectedItems.add(item)

@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:background="?attr/colorPrimaryVariant"
         android:clipToPadding="false"
-        android:paddingBottom="8dp"
+        android:paddingBottom="@dimen/recyclerview_bottom_padding"
         android:scrollbarThumbVertical="@drawable/scrollbar_style"
         android:scrollbars="vertical"
         app:layoutManager="LinearLayoutManager"

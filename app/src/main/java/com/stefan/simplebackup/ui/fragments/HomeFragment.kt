@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.FragmentHomeBinding
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
+import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.activities.ProgressActivity
 import com.stefan.simplebackup.ui.adapters.HomeAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
@@ -96,6 +97,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
 
     private fun FragmentHomeBinding.bindBackupChip() {
         batchBackup.setOnClickListener {
+            // Fix passing empty list if user deselect last item quickly and click on backup button
+            if (mainViewModel.selectionList.isEmpty()) return@setOnClickListener
             requireContext().apply {
                 passBundleToActivity<ProgressActivity>(
                     SELECTION_EXTRA to mainViewModel.selectionList.toIntArray()

@@ -4,6 +4,6 @@
     <dimen name="tab_layout_height" tools:override="true">32dp</dimen>
     <dimen name="activity_bar_height" tools:override="true">100dp</dimen>
     <dimen name="toolbar_height" tools:override="true">60dp</dimen>
+    <dimen name="recyclerview_bottom_padding" tools:override="true">8dp</dimen>
     <dimen name="search_bar_height" tools:override="true">48dp</dimen>
-    <dimen name="bottom_card_view_height" tools:override="true">90dp</dimen>
 </resources>

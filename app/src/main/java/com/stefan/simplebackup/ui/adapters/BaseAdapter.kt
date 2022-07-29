@@ -29,8 +29,10 @@ abstract class BaseAdapter(
             is FavoritesViewHolder -> holder.bind(item)
             is SearchViewHolder -> holder.bind(item)
         }
-        if (item.isSelected)
+        if (selectedItems.contains(item.uid)) {
+            item.isSelected = true
             holder.setSelected()
+        }
     }
 
     fun clearSelection() {
