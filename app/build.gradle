@@ -1,7 +1,8 @@
 plugins {
-    id 'com.android.application'
-    id 'kotlin-android'
     id 'kotlin-kapt'
+    id 'kotlin-android'
+    id 'com.android.application'
+    id 'com.google.devtools.ksp' version "$kspVersion"
     id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlinVersion"
 }
 
@@ -98,10 +99,10 @@ dependencies {
     // WorkManager kotlin + coroutines
     implementation "androidx.work:work-runtime-ktx:$work"
 
-    // Kotlin Room + Kotlin annotation processing tool (kapt)
+    // Kotlin Room + Kotlin symbol processing (ksp)
     implementation "androidx.room:room-runtime:$room"
     implementation "androidx.room:room-ktx:$room"
-    kapt "androidx.room:room-compiler:$room"
+    ksp "androidx.room:room-compiler:$room"
 
     // Google Auth
     implementation "com.google.android.gms:play-services-auth:$googleAuth"

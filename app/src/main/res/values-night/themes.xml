@@ -24,6 +24,7 @@
         <item name="android:statusBarColor" >@color/bottomView</item>
         <item name="android:navigationBarColor">@color/bottomView</item>
         <item name="android:windowBackground">@drawable/starting_screen</item>
+        <item name="searchViewStyle">@style/Widget.SimpleBackup.MaterialSearchView</item>
     </style>
 
     <style name="Widget.SimpleBackup.Chip" parent="Widget.MaterialComponents.Chip.Action">
@@ -75,6 +76,8 @@
         <item name="android:textColor">?android:textColorHint</item>
         <item name="searchHintIcon">@null</item>
         <item name="searchIcon">@null</item>
+        <item name="queryHint">@string/search_app</item>
+        <item name="iconifiedByDefault">false</item>
         <item name="queryBackground">@null</item>
     </style>
 

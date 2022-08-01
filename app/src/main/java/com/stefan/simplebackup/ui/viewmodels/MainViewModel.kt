@@ -22,9 +22,9 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     val isSearching get() = _isSearching.asStateFlow()
 
     // Selection properties
-    private var _isSelected = MutableStateFlow(false)
+    private var _isSelected = MutableStateFlow<Boolean?>(null)
     val selectionList = mutableListOf<Int>()
-    val isSelected: StateFlow<Boolean> get() = _isSelected
+    val isSelected: StateFlow<Boolean?> get() = _isSelected
     val setSelectionMode: SelectionModeCallBack =
         { isSelected: Boolean -> _isSelected.value = isSelected }
 

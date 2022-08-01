@@ -101,7 +101,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     mainViewModel.isSelected.collect { isSelected ->
-                        batchRestore.isVisible = isSelected
+                        batchRestore.isVisible = isSelected ?: return@collect
                     }
                 }
                 localViewModel.spinner.collect { isSpinning ->

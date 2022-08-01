@@ -2,9 +2,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_search"
+        android:icon="@drawable/ic_search"
+        android:title="@string/search_app"
+        android:visible="true"
+        app:actionViewClass="com.stefan.simplebackup.ui.views.MaterialSearchView"
+        app:showAsAction="always" />
+
+    <item
         android:id="@+id/select_all"
         android:icon="@drawable/ic_select_all"
         android:title="@string/select_all"
         android:visible="false"
-        app:showAsAction="ifRoom" />
+        app:showAsAction="ifRoom"/>
 </menu>

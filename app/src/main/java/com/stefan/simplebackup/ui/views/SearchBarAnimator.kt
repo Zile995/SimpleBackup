@@ -15,7 +15,7 @@ class SearchBarAnimator(
 ) {
 
     val expandDuration = 300L
-    val shrinkDuration = 250L
+    val shrinkDuration = expandDuration
 
     private val activity get() = activityReference.get()
     private val binding get() = bindingReference.get()
@@ -23,12 +23,9 @@ class SearchBarAnimator(
     fun animateOnClick() {
         activity?.apply {
             binding?.apply {
-                searchBar.isEnabled = false
+                materialSearchBar.isEnabled = false
                 expandToParentView(
                     doOnStart = {
-                        searchMagIcon.fadeOut(expandDuration)
-                        searchText.fadeOut(expandDuration)
-                        searchText.moveHorizontally(expandDuration, -15f)
                         animateStatusBarColor(
                             color = R.color.searchBar,
                             animationDuration = expandDuration
@@ -36,15 +33,6 @@ class SearchBarAnimator(
                     },
                     doOnEnd = {
                         appBarLayout.setExpanded(true)
-                        searchView.requestFocus()
-                        searchView.fadeIn(animationDuration = expandDuration)
-                        materialToolbar.fadeIn(animationDuration = expandDuration,
-                            onAnimationCancel = {
-                                revertToInitialSize(true)
-                            },
-                            onAnimationEnd = {
-                                searchBar.hide()
-                            })
                     })
             }
         }
@@ -53,85 +41,63 @@ class SearchBarAnimator(
     fun animateOnSelection() {
         activity?.apply {
             binding?.apply {
-                searchBar.isEnabled = false
+                materialSearchBar.isEnabled = false
                 expandToParentView(
                     doOnStart = {
-                        searchMagIcon.fadeOut(expandDuration)
-                        searchText.fadeOut(expandDuration)
                         animateStatusBarColor(
                             color = R.color.searchBar,
                             animationDuration = expandDuration
                         )
-                    },
-                    doOnEnd = {
-                        materialToolbar.fadeIn(animationDuration = expandDuration,
-                            onAnimationCancel = {
-                                revertToInitialSize(false)
-                            },
-                            onAnimationEnd = {
-                                searchBar.hide()
-                            })
                     })
             }
         }
     }
 
-    fun revertToInitialSize(isSearching: Boolean) {
+    fun animateToInitialSize() {
         activity?.apply {
             binding?.apply {
-                searchBar.show()
-                if (isSearching) {
-                    searchText.fadeIn(0L)
-                    resetSearchView()
-                }
+                println("Calling animateToInitialSize")
                 appBarLayout.changeBackgroundColor(applicationContext, R.color.bottomView)
-                materialToolbar.fadeOut(animationDuration = 0L) {
-                    searchBar.animateToInitialSize(duration = shrinkDuration,
-                        doOnStart = {
-                            animateStatusBarColor(
-                                color = R.color.bottomView,
-                                animationDuration = shrinkDuration
-                            )
-                            searchMagIcon.fadeIn(shrinkDuration)
-                            if (isSearching)
-                                searchText.moveHorizontally(shrinkDuration, 0f)
-                            else
-                                searchText.fadeIn(shrinkDuration)
-                        },
-                        doOnEnd = {
-                            searchBar.isEnabled = true
-                        })
-                }
+                materialSearchBar.animateToInitialSize(duration = shrinkDuration,
+                    doOnStart = {
+                        animateStatusBarColor(
+                            color = R.color.bottomView,
+                            animationDuration = shrinkDuration
+                        )
+                    },
+                    doOnEnd = {
+                        materialSearchBar.isEnabled = true
+                        materialToolbar.setNavigationIcon(R.drawable.ic_search)
+                        materialToolbar.setNavigationOnClickListener {
+                            materialSearchBar.performClick()
+                        }
+                    })
             }
         }
     }
 
     private inline fun expandToParentView(
-        crossinline doOnStart: () -> Unit,
-        crossinline doOnEnd: () -> Unit
+        crossinline doOnStart: () -> Unit = {},
+        crossinline doOnEnd: () -> Unit = {}
     ) {
-        activity?.apply {
-            binding?.apply {
-                searchBar.animateToParentSize(duration = expandDuration,
-                    doOnStart = {
-                        animationFinished = false
-                        doOnStart.invoke()
-                    },
-                    doOnEnd = {
-                        doOnEnd.invoke()
-                        animationFinished = true
-                    })
-            }
+        binding?.apply {
+            materialSearchBar.animateToParentSize(duration = expandDuration,
+                doOnStart = {
+                    animationFinished = false
+                    doOnStart.invoke()
+                },
+                doOnEnd = {
+                    doOnEnd.invoke()
+                    animationFinished = true
+                })
         }
     }
 
     private fun resetSearchView() {
-        activity?.apply {
-            binding?.apply {
-                searchView.clearFocus()
-                searchView.fadeOut(0L)
-                searchView.setQuery("", false)
-            }
+        binding?.apply {
+//            searchView.clearFocus()
+//            searchView.fadeOut(0L)
+//            searchView.setQuery("", false)
         }
     }
 
@@ -141,30 +107,23 @@ class SearchBarAnimator(
                 if (isSearching) {
                     window.statusBarColor = getColorFromResource(R.color.searchBar)
                     appBarLayout.changeBackgroundColor(applicationContext, R.color.searchBar)
-                    searchText.moveHorizontally(0L, -15f)
-                    materialToolbar.show()
-                    searchView.show()
                     navigationBar.hide()
                 }
             }
         }
     }
 
-    private fun animateStatusBarColor(@ColorRes color: Int, animationDuration: Long) {
+    private fun animateStatusBarColor(@ColorRes color: Int, animationDuration: Long = 300L) {
         activity?.apply {
-            binding?.apply {
-                window.apply {
-                    ObjectAnimator.ofObject(
-                        this,
-                        "statusBarColor",
-                        ArgbEvaluator(),
-                        statusBarColor,
-                        context.getColorFromResource(color)
-                    ).apply {
-                        duration = animationDuration
-                        start()
-                    }
-                }
+            ObjectAnimator.ofObject(
+                window,
+                "statusBarColor",
+                ArgbEvaluator(),
+                window.statusBarColor,
+                getColorFromResource(color)
+            ).apply {
+                duration = animationDuration
+                start()
             }
         }
     }

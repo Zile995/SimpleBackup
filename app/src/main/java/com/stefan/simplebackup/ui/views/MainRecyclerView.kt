@@ -5,6 +5,7 @@ import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.DisplayMetrics
 import androidx.recyclerview.R
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 
@@ -52,4 +53,11 @@ class MainRecyclerView(
         savedState?.let { stateParcelable ->
             layoutManager?.onRestoreInstanceState(stateParcelable)
         }
+
+    fun isLastItemCompletelyVisible(): Boolean {
+        val linearLayoutManager = layoutManager as LinearLayoutManager
+        val lastItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
+        println("Items: $lastItemPosition")
+        return lastItemPosition == linearLayoutManager.itemCount - 1
+    }
 }

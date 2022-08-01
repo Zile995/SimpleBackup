@@ -14,6 +14,7 @@ import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.viewBinding
+import kotlinx.coroutines.delay
 import java.lang.reflect.ParameterizedType
 
 abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB>,
@@ -61,11 +62,25 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
 
     private fun initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
+            repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                 mainViewModel.isSelected.collect { isSelected ->
-                    onMainActivityCallback {
-                        _mainRecyclerView?.isNestedScrollingEnabled = !isSelected
-                        expandAppBarLayout(isSelected)
+                    isSelected?.let {
+                        onMainActivityCallback {
+                            _mainRecyclerView?.apply {
+                                isNestedScrollingEnabled = !isSelected
+                                expandAppBarLayout(
+                                    isSelected,
+                                    isLastItemCompletelyVisible()
+                                ) {
+                                    if (isLastItemCompletelyVisible()) {
+                                        this.adapter?.let { adapter ->
+                                            smoothScrollToPosition(adapter.itemCount)
+                                        }
+                                        false
+                                    } else true
+                                }
+                            }
+                        }
                     }
                 }
             }

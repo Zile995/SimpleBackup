@@ -31,7 +31,7 @@
 -keepclasseswithmembers class com.stefan.simplebackup.data.model.* {
      kotlinx.serialization.KSerializer serializer(...);
 }
-
--keepclassmembers class com.stefan.simplebackup.databinding.**  {
+-keepclasseswithmembers,allowoptimization,allowobfuscation class com.stefan.simplebackup.databinding.** {
     public <methods>;
+    public <fields>;
 }

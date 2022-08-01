@@ -9,7 +9,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import androidx.annotation.ColorRes
 import androidx.annotation.IdRes
-import androidx.core.animation.doOnStart
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -19,6 +18,7 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.stefan.simplebackup.ui.views.MainRecyclerView
+import com.stefan.simplebackup.ui.views.MaterialSearchBar
 
 fun View.show() {
     visibility = View.VISIBLE
@@ -99,13 +99,11 @@ fun View.moveHorizontally(animationDuration: Long = 300L, value: Float) {
     }
 }
 
-fun View.moveVertically(animationDuration: Long = 300L, value: Float) {
-    ObjectAnimator.ofFloat(this, "translationY", value).apply {
+fun MaterialSearchBar.moveVertically(animationDuration: Long = 300L, value: Float) {
+    val layoutParams = this.layoutParams as ViewGroup.LayoutParams
+    ObjectAnimator.ofFloat(layoutParams, "height", value).apply {
         duration = animationDuration
         addUpdateListener {
-            it.doOnStart {
-                if (value > 0) fadeOut(animationDuration) else fadeIn(animationDuration)
-            }
         }
         start()
     }
@@ -174,8 +172,6 @@ inline fun ViewGroup.animateTo(
 ) {
     val heightAnimator = ValueAnimator.ofInt(fromHeightValue, toHeightValue)
     val widthAnimator = ValueAnimator.ofInt(fromWidthValue, toWidthValue)
-    heightAnimator.repeatMode = ValueAnimator.REVERSE
-    widthAnimator.repeatMode = ValueAnimator.REVERSE
     heightAnimator.duration = duration
     widthAnimator.duration = duration
     heightAnimator.interpolator = interpolator
