@@ -27,6 +27,14 @@ class MainRecyclerView(
 
     fun canScrollDown() = canScrollVertically(1)
 
+    fun shouldMoveAtLastCompletelyVisibleItem(): Boolean {
+        val isVisible = isLastItemCompletelyVisible()
+        return if (isVisible) {
+            adapter?.let { smoothSnapToPosition(it.itemCount) }
+            true
+        } else false
+    }
+
     fun smoothSnapToPosition(
         position: Int,
         snapMode: Int = LinearSmoothScroller.SNAP_TO_START
@@ -54,10 +62,9 @@ class MainRecyclerView(
             layoutManager?.onRestoreInstanceState(stateParcelable)
         }
 
-    fun isLastItemCompletelyVisible(): Boolean {
+    private fun isLastItemCompletelyVisible(): Boolean {
         val linearLayoutManager = layoutManager as LinearLayoutManager
         val lastItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
-        println("Items: $lastItemPosition")
         return lastItemPosition == linearLayoutManager.itemCount - 1
     }
 }

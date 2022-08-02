@@ -45,10 +45,14 @@
         <entry key="app/src/main/res/drawable/force_stop_30dp.xml" value="0.163" />
         <entry key="app/src/main/res/drawable/glide_placeholder.xml" value="0.1305" />
         <entry key="app/src/main/res/drawable/home_24dp.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_add_to_drive.xml" value="0.184" />
+        <entry key="app/src/main/res/drawable/ic_android.xml" value="0.184" />
         <entry key="app/src/main/res/drawable/ic_api.xml" value="0.1915" />
+        <entry key="app/src/main/res/drawable/ic_arrow_back.xml" value="0.184" />
         <entry key="app/src/main/res/drawable/ic_arrow_up.xml" value="0.163" />
         <entry key="app/src/main/res/drawable/ic_close.xml" value="0.1905" />
         <entry key="app/src/main/res/drawable/ic_cloud.xml" value="0.1915" />
+        <entry key="app/src/main/res/drawable/ic_cloud_filled.xml" value="0.184" />
         <entry key="app/src/main/res/drawable/ic_cloud_outlined.xml" value="0.1915" />
         <entry key="app/src/main/res/drawable/ic_delete.xml" value="0.1915" />
         <entry key="app/src/main/res/drawable/ic_home.xml" value="0.1915" />

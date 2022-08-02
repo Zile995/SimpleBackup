@@ -1,12 +1,9 @@
 package com.stefan.simplebackup.ui.activities
 
-import android.animation.ValueAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.os.PersistableBundle
-import android.view.Menu
-import android.view.MenuItem
-import android.view.animation.AccelerateInterpolator
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -18,7 +15,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
-import androidx.navigation.ui.setupActionBarWithNavController
 import com.google.android.material.appbar.AppBarLayout
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
@@ -29,12 +25,13 @@ import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
+import com.stefan.simplebackup.ui.views.MainActivityAnimator
+import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
 import com.stefan.simplebackup.ui.views.MainRecyclerView
-import com.stefan.simplebackup.ui.views.SearchBarAnimator
-import com.stefan.simplebackup.ui.views.SearchBarAnimator.Companion.animationFinished
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.root.RootChecker
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
@@ -54,27 +51,8 @@ class MainActivity : AppCompatActivity() {
     private val rootChecker by lazy { RootChecker(applicationContext) }
 
     // Create materialSearchBarAnimator
-    private val searchBarAnimator by lazy {
-        SearchBarAnimator(WeakReference(this), WeakReference(binding))
-    }
-
-    private val bottomPaddingAnimator: ValueAnimator by lazy {
-        val toolbarHeight = resources.getDimensionPixelSize(R.dimen.toolbar_height)
-        ValueAnimator.ofInt(
-            binding.navHostContainer.paddingBottom,
-            toolbarHeight
-        ).apply {
-            interpolator = AccelerateInterpolator()
-            addUpdateListener { valueAnimator ->
-                binding.navHostContainer.setPadding(
-                    0,
-                    0,
-                    0,
-                    valueAnimator.animatedValue as Int
-                )
-                binding.navHostContainer.requestLayout()
-            }
-        }
+    private val mainActivityAnimator by lazy {
+        MainActivityAnimator(WeakReference(this), WeakReference(binding))
     }
 
     // Broadcast receivers
@@ -110,7 +88,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        searchBarAnimator.animateToInitialSize()
+        mainActivityAnimator.shrinkSearchBarToInitialSize()
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
 
@@ -125,7 +103,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun prepareLayoutWhenSearching() {
-        searchBarAnimator.prepareWhenSearching(mainViewModel.isSearching.value)
+        mainActivityAnimator.prepareWhenSearching(mainViewModel.isSearching.value)
     }
 
     private fun setNavController() {
@@ -160,20 +138,6 @@ class MainActivity : AppCompatActivity() {
         bindBottomNavigationView()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.tool_bar, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.itemId) {
-            R.id.select_all -> {
-
-            }
-        }
-        return true
-    }
-
     private fun ActivityMainBinding.initObservers() {
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.CREATED) {
@@ -181,17 +145,16 @@ class MainActivity : AppCompatActivity() {
                     launch {
                         isSearching.collect { isSearching ->
                             if (isSearching) {
-                                materialToolbar.setNavigationOnClickListener {
-                                    onSupportNavigateUp()
-                                }
-                                materialToolbar.menu?.findItem(R.id.select_all)?.isVisible = false
-                                materialToolbar.menu?.findItem(R.id.action_search)?.isVisible = true
-                                navigationBar.fadeOut(searchBarAnimator.expandDuration)
-                                floatingButton.fadeOut(searchBarAnimator.expandDuration)
+                                navigationBar.fadeOut(mainActivityAnimator.expandDuration)
+                                floatingButton.fadeOut(mainActivityAnimator.expandDuration)
                                 floatingButton.setOnClickListener(null)
                             } else {
-                                navigationBar.fadeIn(searchBarAnimator.shrinkDuration)
+                                navigationBar.fadeIn(mainActivityAnimator.shrinkDuration)
                             }
+                            materialToolbar.changeToolbarWhenSearching(isSearching,
+                                setNavigationOnClickListener = {
+                                    onSupportNavigateUp()
+                                })
                         }
                     }
                     isSelected.collect { isSelected ->
@@ -199,23 +162,12 @@ class MainActivity : AppCompatActivity() {
                             if (isSelected) {
                                 navigationBar.hide()
                                 floatingButton.isVisible = false
-                                searchBarAnimator.animateOnSelection()
-                                materialToolbar.setNavigationIcon(R.drawable.ic_close)
-                                materialToolbar.setNavigationContentDescription(R.string.clear_selection)
-                                materialToolbar.menu?.findItem(R.id.action_search)?.isVisible =
-                                    false
-                                materialToolbar.menu?.findItem(R.id.select_all)?.isVisible = true
-                                materialToolbar.setNavigationOnClickListener {
-                                    mainViewModel.setSelectionMode(false)
-                                }
+                                mainActivityAnimator.animateSearchBarOnSelection()
                             } else {
-                                materialToolbar.setNavigationIcon(R.drawable.ic_search)
-                                materialToolbar.menu?.findItem(R.id.select_all)?.isVisible = false
-                                materialToolbar.menu?.findItem(R.id.action_search)?.isVisible =
-                                    true
-                                searchBarAnimator.animateToInitialSize()
                                 navigationBar.show()
+                                mainActivityAnimator.shrinkSearchBarToInitialSize()
                             }
+                            materialToolbar.changeToolbarOnSelection(isSelected, setSelectionMode)
                         }
                     }
                 }
@@ -225,33 +177,29 @@ class MainActivity : AppCompatActivity() {
 
     fun expandAppBarLayout(
         shouldExpand: Boolean,
-        isLastItemVisible: Boolean,
-        onDeselection: () -> Boolean
+        shouldCollapseOnLastVisibleItem: () -> Boolean
     ) {
         binding.apply {
-            launchOnViewLifecycle {
-                launch {
-                    if (!mainViewModel.isAppBarExpanded) appBarLayout.setExpanded(shouldExpand)
+            val shouldCollapse = shouldCollapseOnLastVisibleItem()
+            if (shouldExpand) {
+                when {
+                    !mainViewModel.isAppBarExpanded && !shouldCollapse ->
+                        // Adjust padding slowly with animation when the app bar is not expanded,
+                        // and when we are not at the bottom of the scroll list where app bar should collapse
+                        mainActivityAnimator.setFragmentBottomPadding(duration = 300L)
+                    else ->
+                        // Quickly adjust padding when the app bar is already expanded,
+                        // or at the bottom of the scroll list where it should not be delayed.
+                        mainActivityAnimator.setFragmentBottomPadding(duration = 0L)
                 }
-                if (shouldExpand) {
-                    when {
-                        !(mainViewModel.isAppBarExpanded || isLastItemVisible) -> {
-                            bottomPaddingAnimator.duration = 300L
-                        }
-                        else -> {
-                            bottomPaddingAnimator.duration = 0L
-                        }
-                    }
-                    bottomPaddingAnimator.start()
-                } else {
-                    onDeselection.invoke().let { shouldDo ->
-                        if (mainViewModel.isAppBarExpanded != shouldDo)
-                            appBarLayout.setExpanded(shouldExpand)
-                    }
-                    bottomPaddingAnimator.duration = 0L
-                    bottomPaddingAnimator.reverse()
-                }
+            } else {
+                Log.d("SimpleAnimation", "Calling again onCollapse")
+                appBarLayout.setExpanded(!shouldCollapse)
+                mainActivityAnimator.reverseFragmentBottomPadding(duration = 0L)
+                mainViewModel.setSelectionMode(null)
             }
+            if (!mainViewModel.isAppBarExpanded)
+                appBarLayout.setExpanded(shouldExpand)
         }
     }
 
@@ -283,7 +231,7 @@ class MainActivity : AppCompatActivity() {
         expandTheSearchBarWhenSearching()
         materialSearchBar.setOnClickListener {
             navigateToSearchFragment()
-            searchBarAnimator.animateOnClick()
+            mainActivityAnimator.animateSearchBarOnClick()
         }
     }
 
@@ -297,10 +245,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun ActivityMainBinding.bindToolBar() {
+        materialToolbar.title = null
         materialToolbar.tooltipText = null
-        setSupportActionBar(materialToolbar)
-        setupActionBarWithNavController(navController)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
+        materialToolbar.inflateMenu(R.menu.main_tool_bar)
         materialToolbar.setNavigationIcon(R.drawable.ic_search)
         materialToolbar.setNavigationOnClickListener {
             materialSearchBar.performClick()

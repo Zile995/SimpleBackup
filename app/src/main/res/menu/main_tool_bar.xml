@@ -4,7 +4,7 @@
     <item
         android:id="@+id/action_search"
         android:icon="@drawable/ic_search"
-        android:title="@string/search_app"
+        android:title="@string/search_for_apps"
         android:visible="true"
         app:actionViewClass="com.stefan.simplebackup.ui.views.MaterialSearchView"
         app:showAsAction="always" />

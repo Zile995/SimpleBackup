@@ -2,29 +2,73 @@ package com.stefan.simplebackup.ui.views
 
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
+import android.view.animation.AccelerateInterpolator
 import androidx.annotation.ColorRes
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
-import com.stefan.simplebackup.utils.extensions.*
+import com.stefan.simplebackup.utils.extensions.changeBackgroundColor
+import com.stefan.simplebackup.utils.extensions.getColorFromResource
+import com.stefan.simplebackup.utils.extensions.hide
 import java.lang.ref.WeakReference
 
-class SearchBarAnimator(
+class MainActivityAnimator(
     private val activityReference: WeakReference<MainActivity>,
     private val bindingReference: WeakReference<ActivityMainBinding>
 ) {
 
     val expandDuration = 300L
-    val shrinkDuration = expandDuration
-
+    val shrinkDuration = 250L
     private val activity get() = activityReference.get()
     private val binding get() = bindingReference.get()
 
-    fun animateOnClick() {
+    private var bottomPaddingAnimator: ValueAnimator? = null
+
+    init {
+        bottomPaddingAnimator = getPaddingAnimator()
+    }
+
+    private fun getPaddingAnimator(): ValueAnimator? = binding?.run {
+        val appBarLayoutHeight =
+            activity?.resources?.getDimensionPixelSize(R.dimen.toolbar_height) ?: 0
+        println("AppBarLayout Height = $appBarLayoutHeight")
+        ValueAnimator.ofInt(
+            navHostContainer.paddingBottom,
+            appBarLayoutHeight
+        ).apply {
+            interpolator = AccelerateInterpolator()
+            addUpdateListener { valueAnimator ->
+                navHostContainer.setPadding(
+                    0,
+                    0,
+                    0,
+                    valueAnimator.animatedValue as Int
+                )
+                navHostContainer.requestLayout()
+            }
+        }
+    }
+
+    fun setFragmentBottomPadding(duration: Long = expandDuration) {
+        bottomPaddingAnimator?.apply {
+            this.duration = duration
+            start()
+        }
+    }
+
+    fun reverseFragmentBottomPadding(duration: Long = expandDuration) {
+        bottomPaddingAnimator?.apply {
+            this.duration = duration
+            reverse()
+        }
+    }
+
+    fun animateSearchBarOnClick() {
         activity?.apply {
             binding?.apply {
                 materialSearchBar.isEnabled = false
-                expandToParentView(
+                expandSearchBarToParentView(
                     doOnStart = {
                         animateStatusBarColor(
                             color = R.color.searchBar,
@@ -38,28 +82,35 @@ class SearchBarAnimator(
         }
     }
 
-    fun animateOnSelection() {
+    fun animateSearchBarOnSelection() {
         activity?.apply {
             binding?.apply {
                 materialSearchBar.isEnabled = false
-                expandToParentView(
+                expandSearchBarToParentView(
                     doOnStart = {
                         animateStatusBarColor(
                             color = R.color.searchBar,
                             animationDuration = expandDuration
                         )
+                    },
+                    doOnEnd = {
+                        materialSearchBar.isEnabled = true
                     })
             }
         }
     }
 
-    fun animateToInitialSize() {
+    fun shrinkSearchBarToInitialSize() {
         activity?.apply {
             binding?.apply {
+//                searchView.clearFocus()
+//                searchView.fadeOut(0L)
+//                searchView.setQuery("", false)
                 println("Calling animateToInitialSize")
                 appBarLayout.changeBackgroundColor(applicationContext, R.color.bottomView)
                 materialSearchBar.animateToInitialSize(duration = shrinkDuration,
                     doOnStart = {
+                        animationFinished = false
                         animateStatusBarColor(
                             color = R.color.bottomView,
                             animationDuration = shrinkDuration
@@ -67,16 +118,13 @@ class SearchBarAnimator(
                     },
                     doOnEnd = {
                         materialSearchBar.isEnabled = true
-                        materialToolbar.setNavigationIcon(R.drawable.ic_search)
-                        materialToolbar.setNavigationOnClickListener {
-                            materialSearchBar.performClick()
-                        }
+                        animationFinished = true
                     })
             }
         }
     }
 
-    private inline fun expandToParentView(
+    private inline fun expandSearchBarToParentView(
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
     ) {
@@ -90,14 +138,6 @@ class SearchBarAnimator(
                     doOnEnd.invoke()
                     animationFinished = true
                 })
-        }
-    }
-
-    private fun resetSearchView() {
-        binding?.apply {
-//            searchView.clearFocus()
-//            searchView.fadeOut(0L)
-//            searchView.setQuery("", false)
         }
     }
 

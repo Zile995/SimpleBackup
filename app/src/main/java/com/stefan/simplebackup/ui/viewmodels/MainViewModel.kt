@@ -26,7 +26,7 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     val selectionList = mutableListOf<Int>()
     val isSelected: StateFlow<Boolean?> get() = _isSelected
     val setSelectionMode: SelectionModeCallBack =
-        { isSelected: Boolean -> _isSelected.value = isSelected }
+        { isSelected: Boolean? -> _isSelected.value = isSelected }
 
     fun setSearching(isSearching: Boolean) {
         _isSearching.value = isSearching

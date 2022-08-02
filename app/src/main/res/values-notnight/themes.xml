@@ -76,7 +76,7 @@
         <item name="android:textColor">?android:textColorHint</item>
         <item name="searchHintIcon">@null</item>
         <item name="searchIcon">@null</item>
-        <item name="queryHint">@string/search_app</item>
+        <item name="queryHint">@string/search_for_apps</item>
         <item name="iconifiedByDefault">false</item>
         <item name="queryBackground">@null</item>
     </style>

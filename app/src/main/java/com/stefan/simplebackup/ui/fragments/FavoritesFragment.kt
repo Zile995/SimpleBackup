@@ -89,7 +89,9 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     mainViewModel.isSelected.collect { isSelected ->
-                        batchBackup.isVisible = isSelected ?: return@collect
+                        isSelected?.let {
+                            batchBackup.isVisible = isSelected
+                        }
                     }
                 }
                 homeViewModel.spinner.collect { isSpinning ->
