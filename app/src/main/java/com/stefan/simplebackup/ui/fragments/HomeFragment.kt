@@ -110,11 +110,9 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     mainViewModel.isSelected.collect { isSelected ->
-                        isSelected?.let {
-                            batchBackup.isVisible = isSelected
-                            if (!isSelected) {
-                                homeAdapter.clearSelection()
-                            }
+                        batchBackup.isVisible = isSelected ?: false
+                        if (isSelected == false) {
+                            homeAdapter.clearSelection()
                         }
                     }
                 }

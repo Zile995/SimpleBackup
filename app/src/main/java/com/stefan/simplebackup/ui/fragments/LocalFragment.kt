@@ -12,7 +12,10 @@ import com.stefan.simplebackup.ui.adapters.LocalAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
-import com.stefan.simplebackup.utils.extensions.*
+import com.stefan.simplebackup.utils.extensions.isVisible
+import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.workerDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -101,9 +104,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     mainViewModel.isSelected.collect { isSelected ->
-                        isSelected?.let {
-                            batchRestore.isVisible = isSelected
-                        }
+                        batchRestore.isVisible = isSelected ?: false
                     }
                 }
                 localViewModel.spinner.collect { isSpinning ->

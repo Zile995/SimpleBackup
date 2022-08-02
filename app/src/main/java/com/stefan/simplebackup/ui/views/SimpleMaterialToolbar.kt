@@ -48,7 +48,9 @@ class SimpleMaterialToolbar(
             menu?.findItem(R.id.select_all)?.isVisible = true
             menu?.findItem(R.id.action_search)?.isVisible = false
             setNavigationOnClickListener {
-                selectionModeCallBack.invoke(!isSelected)
+                if (animationFinished) {
+                    selectionModeCallBack.invoke(!isSelected)
+                }
             }
         } else {
             menu?.findItem(R.id.select_all)?.isVisible = false

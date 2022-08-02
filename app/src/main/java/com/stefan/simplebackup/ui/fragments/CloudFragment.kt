@@ -94,9 +94,7 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     mainViewModel.isSelected.collect { isSelected ->
-                        isSelected?.let {
-                            batchBackup.isVisible = isSelected
-                        }
+                        batchBackup.isVisible = isSelected ?: false
                     }
                 }
                 homeViewModel.spinner.collect { isSpinning ->
