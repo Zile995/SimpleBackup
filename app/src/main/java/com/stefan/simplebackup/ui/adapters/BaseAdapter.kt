@@ -8,7 +8,7 @@ import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.adapters.listeners.SelectionListener
 import com.stefan.simplebackup.ui.adapters.viewholders.*
 
-typealias SelectionModeCallBack = (Boolean?) -> Unit
+typealias SelectionModeCallBack = (Boolean) -> Unit
 
 abstract class BaseAdapter(
     override val selectedItems: MutableList<Int>,

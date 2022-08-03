@@ -22,6 +22,7 @@ import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.NotificationReceiver
 import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
+import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
@@ -31,7 +32,6 @@ import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.root.RootChecker
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
@@ -149,41 +149,39 @@ class MainActivity : AppCompatActivity() {
                                 floatingButton.fadeOut(mainActivityAnimator.expandDuration)
                                 floatingButton.setOnClickListener(null)
                             } else {
+                                floatingButton.isVisible = false
                                 navigationBar.fadeIn(mainActivityAnimator.shrinkDuration)
                             }
-                            materialToolbar.changeToolbarWhenSearching(isSearching,
+                            materialToolbar.changeWhenSearching(isSearching,
                                 setNavigationOnClickListener = {
                                     onSupportNavigateUp()
                                 })
                         }
                     }
                     isSelected.collect { isSelected ->
-                        isSelected?.let {
-                            if (isSelected) {
-                                navigationBar.hide()
-                                floatingButton.isVisible = false
-                                mainActivityAnimator.animateSearchBarOnSelection()
-                            } else {
-                                navigationBar.show()
-                                mainActivityAnimator.shrinkSearchBarToInitialSize()
-                            }
-                            materialToolbar.changeToolbarOnSelection(isSelected, setSelectionMode)
-                        }
+                        expandAppBarLayout(isSelected)
+                        navigationBar.isVisible = !isSelected
+                        floatingButton.changeOnSelection(isSelected)
+                        materialToolbar.changeOnSelection(isSelected, setSelectionMode)
+                        if (isSelected)
+                            mainActivityAnimator.animateSearchBarOnSelection()
+                        else
+                            mainActivityAnimator.shrinkSearchBarToInitialSize()
                     }
                 }
             }
         }
     }
 
-    fun expandAppBarLayout(
-        shouldExpand: Boolean,
-        shouldCollapseOnLastVisibleItem: () -> Boolean
-    ) {
+    private fun expandAppBarLayout(shouldExpand: Boolean) {
         binding.apply {
-            val shouldCollapse = shouldCollapseOnLastVisibleItem()
+            val baseFragment =
+                supportFragmentManager.getCurrentFragment() as BaseViewPagerFragment<*>
+            val shouldMoveFragmentUp = baseFragment.shouldMoveFragmentUp() ?: false
+            if (mainViewModel.isAppBarCollapsed) appBarLayout.setExpanded(shouldExpand)
             if (shouldExpand) {
                 when {
-                    !mainViewModel.isAppBarExpanded && !shouldCollapse ->
+                    mainViewModel.isAppBarCollapsed && !shouldMoveFragmentUp ->
                         // Adjust padding slowly with animation when the app bar is not expanded,
                         // and when we are not at the bottom of the scroll list where app bar should collapse
                         mainActivityAnimator.setFragmentBottomPadding(duration = 300L)
@@ -193,13 +191,12 @@ class MainActivity : AppCompatActivity() {
                         mainActivityAnimator.setFragmentBottomPadding(duration = 0L)
                 }
             } else {
-                Log.d("SimpleAnimation", "Calling again onCollapse")
-                appBarLayout.setExpanded(!shouldCollapse)
+                if (shouldMoveFragmentUp) {
+                    Log.d("SimpleAnimation", "Calling again onCollapse")
+                    appBarLayout.setExpanded(!shouldMoveFragmentUp)
+                }
                 mainActivityAnimator.reverseFragmentBottomPadding(duration = 0L)
-                mainViewModel.setSelectionMode(null)
             }
-            if (!mainViewModel.isAppBarExpanded)
-                appBarLayout.setExpanded(shouldExpand)
         }
     }
 
@@ -221,7 +218,7 @@ class MainActivity : AppCompatActivity() {
             layoutParams.behavior = layoutBehavior
             layoutBehavior.setDragCallback(object : AppBarLayout.Behavior.DragCallback() {
                 override fun canDrag(appBarLayout: AppBarLayout): Boolean {
-                    return !(mainViewModel.isSelected.value == true || mainViewModel.isSearching.value)
+                    return !(mainViewModel.isSelected.value || mainViewModel.isSearching.value)
                 }
             })
         }
@@ -237,7 +234,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun ActivityMainBinding.expandTheSearchBarWhenSearching() {
         root.doOnPreDraw {
-            if (mainViewModel.isSearching.value || mainViewModel.isSelected.value == true) {
+            if (mainViewModel.isSearching.value || mainViewModel.isSelected.value) {
                 // If we are searching, fill the parent (we need reverse animations later)
                 materialSearchBar.fillTheParent()
             }

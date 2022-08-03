@@ -35,6 +35,7 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
 
     override fun doSelection(holder: VH, item: AppData) {
         holder.apply {
+            selectionFinished = false
             val context = cardView.context
             if (selectedItems.contains(item.uid)) {
                 removeSelected(item.uid)
@@ -47,8 +48,13 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
             }
             if (selectedItems.isEmpty()) {
                 onSelectionModeCallback(false)
+                selectionFinished = true
             }
         }
         println("Selection list: $selectedItems")
+    }
+
+    companion object {
+        var selectionFinished: Boolean = true
     }
 }

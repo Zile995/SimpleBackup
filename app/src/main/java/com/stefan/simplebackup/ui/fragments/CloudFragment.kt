@@ -94,7 +94,7 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     mainViewModel.isSelected.collect { isSelected ->
-                        batchBackup.isVisible = isSelected ?: false
+                        // TODO: Add floating button action...
                     }
                 }
                 homeViewModel.spinner.collect { isSpinning ->

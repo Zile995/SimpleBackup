@@ -18,7 +18,7 @@ class SimpleMaterialToolbar(
 
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, R.attr.toolbarStyle)
 
-    inline fun changeToolbarWhenSearching(
+    inline fun changeWhenSearching(
         isSearching: Boolean,
         crossinline setNavigationOnClickListener: () -> Unit = {}
     ) {
@@ -38,7 +38,7 @@ class SimpleMaterialToolbar(
 
     }
 
-    inline fun changeToolbarOnSelection(
+    inline fun changeOnSelection(
         isSelected: Boolean,
         crossinline selectionModeCallBack: SelectionModeCallBack = {}
     ) {

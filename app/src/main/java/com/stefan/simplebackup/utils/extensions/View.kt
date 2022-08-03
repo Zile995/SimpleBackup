@@ -9,6 +9,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import androidx.annotation.ColorRes
 import androidx.annotation.IdRes
+import androidx.core.animation.doOnStart
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -52,59 +53,15 @@ fun NavDestination.doesMatchDestination(@IdRes destId: Int): Boolean =
         navDestination.id == destId
     }
 
-fun MainRecyclerView.hideAttachedButton(floatingButton: FloatingActionButton) {
-    var checkOnAttach = true
-    addOnScrollListener(object : RecyclerView.OnScrollListener() {
-        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-            super.onScrolled(recyclerView, dx, dy)
-
-            if (checkOnAttach) {
-                val linearLayoutManager = layoutManager as LinearLayoutManager
-                val firstItemPosition = linearLayoutManager.findFirstCompletelyVisibleItemPosition()
-                val lastItemPosition = linearLayoutManager.findLastCompletelyVisibleItemPosition()
-
-                if ((firstItemPosition == 0 || lastItemPosition == linearLayoutManager.itemCount - 1)
-                    && floatingButton.isShown
-                ) {
-                    floatingButton.hide()
-                }
-                checkOnAttach = false
-            }
-
-            if (dy > 0) {
-                floatingButton.hide()
-
-            } else if (dy < 0) {
-                floatingButton.show()
-            }
-        }
-
-        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-            super.onScrollStateChanged(recyclerView, newState)
-            if (!canScrollUp() || !canScrollDown()) floatingButton.hide()
-        }
-    })
-}
-
 fun View.changeBackgroundColor(context: Context, @ColorRes color: Int) {
     setBackgroundColor(
         context.getColorFromResource(color)
     )
 }
 
-fun View.moveHorizontally(animationDuration: Long = 300L, value: Float) {
-    ObjectAnimator.ofFloat(this, "translationX", value).apply {
+fun View.moveVertically(animationDuration: Long = 300L, value: Float) {
+    ObjectAnimator.ofFloat(this, "translationY", value).apply {
         duration = animationDuration
-        start()
-    }
-}
-
-fun MaterialSearchBar.moveVertically(animationDuration: Long = 300L, value: Float) {
-    val layoutParams = this.layoutParams as ViewGroup.LayoutParams
-    ObjectAnimator.ofFloat(layoutParams, "height", value).apply {
-        duration = animationDuration
-        addUpdateListener {
-        }
         start()
     }
 }
@@ -159,34 +116,6 @@ inline fun View.fadeOut(
                 onAnimationCancel.invoke()
             }
         })
-}
-
-inline fun ViewGroup.animateTo(
-    fromHeightValue: Int,
-    toHeightValue: Int,
-    fromWidthValue: Int,
-    toWidthValue: Int,
-    duration: Long = 300L,
-    interpolator: TimeInterpolator = DecelerateInterpolator(),
-    crossinline doOnStart: () -> Unit = {}
-) {
-    val heightAnimator = ValueAnimator.ofInt(fromHeightValue, toHeightValue)
-    val widthAnimator = ValueAnimator.ofInt(fromWidthValue, toWidthValue)
-    heightAnimator.duration = duration
-    widthAnimator.duration = duration
-    heightAnimator.interpolator = interpolator
-    widthAnimator.interpolator = interpolator
-    heightAnimator.addUpdateListener { valueAnimator ->
-        layoutParams.height = valueAnimator.animatedValue as Int
-        requestLayout()
-    }
-    widthAnimator.addUpdateListener { valueAnimator ->
-        layoutParams.width = valueAnimator.animatedValue as Int
-        requestLayout()
-    }
-    doOnStart.invoke()
-    heightAnimator.start()
-    widthAnimator.start()
 }
 
 fun View.showKeyboard() {

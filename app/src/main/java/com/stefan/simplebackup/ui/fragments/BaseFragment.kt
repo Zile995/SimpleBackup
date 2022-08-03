@@ -59,22 +59,14 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         }
     }
 
+    fun shouldMoveFragmentUp() = _mainRecyclerView?.shouldMoveAtLastCompletelyVisibleItem() ?: false
+
     private fun initObservers() {
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                 mainViewModel.isSelected.collect { isSelected ->
-                    isSelected?.let {
-                        onMainActivityCallback {
-                            _mainRecyclerView?.apply {
-                                isNestedScrollingEnabled = !isSelected
-                                expandAppBarLayout(
-                                    isSelected,
-                                    shouldCollapseOnLastVisibleItem = {
-                                        shouldMoveAtLastCompletelyVisibleItem()
-                                    }
-                                )
-                            }
-                        }
+                    onMainActivityCallback {
+                        _mainRecyclerView?.isNestedScrollingEnabled = !isSelected
                     }
                 }
             }

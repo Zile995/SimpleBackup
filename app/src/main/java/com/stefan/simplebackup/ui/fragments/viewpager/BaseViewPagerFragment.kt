@@ -67,9 +67,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 mainViewModel.isSelected.collect { isInSelectionMode ->
-                    isInSelectionMode?.let {
-                        controlTabs(shouldEnableTabs = !isInSelectionMode)
-                    }
+                    controlTabs(shouldEnableTabs = !isInSelectionMode)
                 }
             }
         }
@@ -89,6 +87,11 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
             }
         }
         setupViewPager()
+    }
+
+    fun shouldMoveFragmentUp() =
+        childFragmentManager.findFragmentByClass<BaseFragment<*>>()?.run {
+            shouldMoveFragmentUp()
     }
 
     private fun getOnPageChangeCallback(): ViewPager2.OnPageChangeCallback =

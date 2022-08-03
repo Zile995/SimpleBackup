@@ -104,7 +104,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     mainViewModel.isSelected.collect { isSelected ->
-                        batchRestore.isVisible = isSelected ?: false
+                        // TODO: Add floating button action...
                     }
                 }
                 localViewModel.spinner.collect { isSpinning ->

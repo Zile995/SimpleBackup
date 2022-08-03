@@ -7,14 +7,15 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.animation.DecelerateInterpolator
 import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnStart
 import androidx.core.view.marginLeft
 import androidx.core.view.marginRight
 import com.google.android.material.card.MaterialCardView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.utils.extensions.animateTo
 
 class MaterialSearchBar(
     context: Context,
@@ -80,7 +81,7 @@ class MaterialSearchBar(
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
     ) {
-        if (height == cachedHeight || width == cachedWidth)
+        if (height == cachedHeight || width == cachedWidth || radius == cachedRadius)
             return
         animateTo(
             toHeightValue = cachedHeight,
@@ -96,13 +97,12 @@ class MaterialSearchBar(
         )
     }
 
-
     inline fun animateToParentSize(
         duration: Long = 300L,
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
     ) {
-        if (height == parentHeight || width == parentWidth)
+        if (height == parentHeight || width == parentWidth || radius == 0f)
             return
         animateTo(
             toHeightValue = parentHeight,
@@ -125,30 +125,39 @@ class MaterialSearchBar(
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
     ) {
-        animateTo(
-            fromHeightValue = height,
-            toHeightValue = toHeightValue,
-            fromWidthValue = width,
-            toWidthValue = toWidthValue,
-            duration = duration,
-            doOnStart = {
-                val radiusAnimator =
-                    if (cachedRadius != radius)
-                        ValueAnimator.ofFloat(radius, cachedRadius)
-                    else
-                        ValueAnimator.ofFloat(radius, 0f)
-                radiusAnimator.duration = duration
-                radiusAnimator.interpolator = interpolator
-                radiusAnimator.addUpdateListener { valueAnimator ->
-                    valueAnimator.doOnEnd {
-                        doOnEnd.invoke()
-                    }
-                    radius = valueAnimator.animatedValue as Float
-                    requestLayout()
-                }
-                doOnStart.invoke()
-                radiusAnimator.start()
+        println("Calling main animateTo from searchBar")
+        val widthAnimator = ValueAnimator.ofInt(width, toWidthValue)
+        val heightAnimator = ValueAnimator.ofInt(height, toHeightValue)
+        val radiusAnimator =
+            if (cachedRadius != radius)
+                ValueAnimator.ofFloat(radius, cachedRadius)
+            else
+                ValueAnimator.ofFloat(radius, 0f)
+        widthAnimator.duration = duration
+        radiusAnimator.duration = duration
+        heightAnimator.duration = duration
+        widthAnimator.interpolator = interpolator
+        heightAnimator.interpolator = interpolator
+        radiusAnimator.interpolator = interpolator
+        widthAnimator.addUpdateListener { valueAnimator ->
+            layoutParams.width = valueAnimator.animatedValue as Int
+            requestLayout()
+        }
+        heightAnimator.addUpdateListener { valueAnimator ->
+            layoutParams.height = valueAnimator.animatedValue as Int
+            requestLayout()
+        }
+        radiusAnimator.addUpdateListener { valueAnimator ->
+            valueAnimator.doOnEnd {
+                doOnEnd.invoke()
             }
-        )
+            radius = valueAnimator.animatedValue as Float
+            requestLayout()
+        }
+        doOnStart.invoke()
+        radiusAnimator.start()
+        heightAnimator.start()
+        widthAnimator.start()
     }
+
 }
