@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import androidx.core.view.doOnPreDraw
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.moveVertically
 
 class MainFloatingButton(
@@ -23,26 +24,19 @@ class MainFloatingButton(
 
     init {
         doOnPreDraw {
-            text = null
-            hide()
             shrink()
+            hide()
+            text = null
         }
     }
 
     fun changeOnSelection(isSelected: Boolean) {
+        if (!isShown) show()
         if (isSelected) {
-            hide()
             setText(R.string.configure)
             setIconResource(R.drawable.ic_configure)
-            show()
         } else {
-            moveVertically(
-                0L,
-                resources.getDimensionPixelSize(R.dimen.bottom_navigation_height).toFloat()
-            )
-            show()
-            moveVertically(300L, 0f)
-            if (isExtended) shrink()
+            shrink()
             if (text != null) text = null
             setIconResource(R.drawable.ic_arrow_up)
         }

@@ -1,25 +1,22 @@
 package com.stefan.simplebackup.utils.extensions
 
-import android.animation.*
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import android.content.Context
 import android.view.View
-import android.view.ViewGroup
-import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import androidx.annotation.ColorRes
 import androidx.annotation.IdRes
+import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnResume
 import androidx.core.animation.doOnStart
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import coil.imageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.stefan.simplebackup.ui.views.MainRecyclerView
-import com.stefan.simplebackup.ui.views.MaterialSearchBar
 
 fun View.show() {
     visibility = View.VISIBLE
@@ -59,9 +56,25 @@ fun View.changeBackgroundColor(context: Context, @ColorRes color: Int) {
     )
 }
 
-fun View.moveVertically(animationDuration: Long = 300L, value: Float) {
+inline fun View.moveVertically(
+    animationDuration: Long = 300L,
+    value: Float,
+    crossinline doOnStart: () -> Unit = {},
+    crossinline doOnEnd: () -> Unit = {}
+) {
+    show()
     ObjectAnimator.ofFloat(this, "translationY", value).apply {
         duration = animationDuration
+        doOnStart {
+            this@moveVertically.postDelayed({
+                doOnStart()
+            }, 1)
+        }
+        doOnEnd {
+            this@moveVertically.postDelayed({
+                doOnEnd()
+            }, 1)
+        }
         start()
     }
 }

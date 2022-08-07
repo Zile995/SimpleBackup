@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.DisplayMetrics
+import android.view.MotionEvent
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
@@ -23,6 +24,15 @@ class MainRecyclerView(
         attrs,
         R.attr.recyclerViewStyle
     )
+
+    init {
+        isMotionEventSplittingEnabled = false
+        addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
+            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+                return super.onInterceptTouchEvent(rv, e)
+            }
+        })
+    }
 
     fun canScrollUp() = canScrollVertically(-1)
 

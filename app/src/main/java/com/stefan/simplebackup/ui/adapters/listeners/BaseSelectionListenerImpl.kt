@@ -4,6 +4,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
+import com.stefan.simplebackup.ui.views.MainActivityAnimator
 
 class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     override val selectedItems: MutableList<Int>,
@@ -36,6 +37,7 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     override fun doSelection(holder: VH, item: AppData) {
         holder.apply {
             selectionFinished = false
+            if (item.isSelected && selectedItems.size == 1 && !MainActivityAnimator.animationFinished) return
             val context = cardView.context
             if (selectedItems.contains(item.uid)) {
                 removeSelected(item.uid)

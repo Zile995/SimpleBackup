@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
+import androidx.core.view.marginBottom
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -32,8 +33,10 @@ import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.root.RootChecker
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
+
 
 class MainActivity : AppCompatActivity() {
     // Binding properties
@@ -145,12 +148,12 @@ class MainActivity : AppCompatActivity() {
                     launch {
                         isSearching.collect { isSearching ->
                             if (isSearching) {
-                                navigationBar.fadeOut(mainActivityAnimator.expandDuration)
-                                floatingButton.fadeOut(mainActivityAnimator.expandDuration)
+                                navigationBar.fadeOut(mainActivityAnimator.animationDuration)
+                                floatingButton.fadeOut(mainActivityAnimator.animationDuration)
                                 floatingButton.setOnClickListener(null)
                             } else {
                                 floatingButton.isVisible = false
-                                navigationBar.fadeIn(mainActivityAnimator.shrinkDuration)
+                                navigationBar.fadeIn(mainActivityAnimator.animationDuration)
                             }
                             materialToolbar.changeWhenSearching(isSearching,
                                 setNavigationOnClickListener = {
@@ -160,13 +163,39 @@ class MainActivity : AppCompatActivity() {
                     }
                     isSelected.collect { isSelected ->
                         expandAppBarLayout(isSelected)
-                        navigationBar.isVisible = !isSelected
+                        if (isSelected) {
+                            navigationBar.moveVertically(
+                                250,
+                                navigationBar.height.toFloat(),
+                                doOnStart = {
+                                    val layoutParams =
+                                        navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
+                                    layoutParams.bottomMargin = appBarLayout.height
+                                    navHostContainer.layoutParams = layoutParams
+                                    navHostContainer.requestLayout()
+                                })
+                        } else {
+                            if (navigationBar.marginBottom == navigationBar.height) return@collect
+                            navigationBar.moveVertically(
+                                250,
+                                0f
+                            ) {
+                                val layoutParams =
+                                    navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
+                                layoutParams.bottomMargin = navigationBar.height
+                                navHostContainer.layoutParams = layoutParams
+                                navHostContainer.requestLayout()
+                            }
+                        }
                         floatingButton.changeOnSelection(isSelected)
                         materialToolbar.changeOnSelection(isSelected, setSelectionMode)
-                        if (isSelected)
+                        if (isSelected) {
+                            if (isAppBarCollapsed) delay(250)
                             mainActivityAnimator.animateSearchBarOnSelection()
-                        else
+                        } else {
+                            if (isAppBarCollapsed) delay(250)
                             mainActivityAnimator.shrinkSearchBarToInitialSize()
+                        }
                     }
                 }
             }
@@ -178,24 +207,14 @@ class MainActivity : AppCompatActivity() {
             val baseFragment =
                 supportFragmentManager.getCurrentFragment() as BaseViewPagerFragment<*>
             val shouldMoveFragmentUp = baseFragment.shouldMoveFragmentUp() ?: false
-            if (mainViewModel.isAppBarCollapsed) appBarLayout.setExpanded(shouldExpand)
+            if (mainViewModel.isAppBarCollapsed) appBarLayout.setExpanded(shouldExpand, true)
             if (shouldExpand) {
-                when {
-                    mainViewModel.isAppBarCollapsed && !shouldMoveFragmentUp ->
-                        // Adjust padding slowly with animation when the app bar is not expanded,
-                        // and when we are not at the bottom of the scroll list where app bar should collapse
-                        mainActivityAnimator.setFragmentBottomPadding(duration = 300L)
-                    else ->
-                        // Quickly adjust padding when the app bar is already expanded,
-                        // or at the bottom of the scroll list where it should not be delayed.
-                        mainActivityAnimator.setFragmentBottomPadding(duration = 0L)
-                }
+                animationFinished = false
             } else {
                 if (shouldMoveFragmentUp) {
                     Log.d("SimpleAnimation", "Calling again onCollapse")
-                    appBarLayout.setExpanded(!shouldMoveFragmentUp)
+                    appBarLayout.setExpanded(!shouldMoveFragmentUp, true)
                 }
-                mainActivityAnimator.reverseFragmentBottomPadding(duration = 0L)
             }
         }
     }
@@ -242,7 +261,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun ActivityMainBinding.bindToolBar() {
-        materialToolbar.title = null
+        materialToolbar.title = getString(R.string.search_for_apps)
         materialToolbar.tooltipText = null
         materialToolbar.inflateMenu(R.menu.main_tool_bar)
         materialToolbar.setNavigationIcon(R.drawable.ic_search)
@@ -254,7 +273,7 @@ class MainActivity : AppCompatActivity() {
     private fun ActivityMainBinding.bindBottomNavigationView() {
         navigationBar.navigateWithAnimation(navController, doBeforeNavigating = {
             floatingButton.setOnClickListener(null)
-            return@navigateWithAnimation !mainViewModel.isSearching.value
+            return@navigateWithAnimation !mainViewModel.isSearching.value || !mainViewModel.isSelected.value
         })
     }
 

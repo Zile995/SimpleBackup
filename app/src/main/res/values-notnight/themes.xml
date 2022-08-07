@@ -52,10 +52,9 @@
 
     <style name="ToolBarFont" parent="TextAppearance.Material3.HeadlineLarge">
         <item name="android:textColor">?android:attr/textColorPrimary</item>
-        <item name="elevation">2dp</item>
         <item name="fontFamily">@font/inter_family</item>
         <item name="android:fontFamily">@font/inter_family</item>
-        <item name="android:textSize">18sp</item>
+        <item name="android:textSize">17sp</item>
     </style>
 
     <style name="Widget.SimpleBackup.CardView" parent="Widget.Material3.CardView.Elevated">

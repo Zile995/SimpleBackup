@@ -18,51 +18,9 @@ class MainActivityAnimator(
     private val bindingReference: WeakReference<ActivityMainBinding>
 ) {
 
-    val expandDuration = 300L
-    val shrinkDuration = 250L
+    val animationDuration = 250L
     private val activity get() = activityReference.get()
     private val binding get() = bindingReference.get()
-
-    private var bottomPaddingAnimator: ValueAnimator? = null
-
-    init {
-        bottomPaddingAnimator = getPaddingAnimator()
-    }
-
-    private fun getPaddingAnimator(): ValueAnimator? = binding?.run {
-        val appBarLayoutHeight =
-            activity?.resources?.getDimensionPixelSize(R.dimen.toolbar_height) ?: 0
-        println("AppBarLayout Height = $appBarLayoutHeight")
-        ValueAnimator.ofInt(
-            navHostContainer.paddingBottom,
-            appBarLayoutHeight
-        ).apply {
-            interpolator = AccelerateInterpolator()
-            addUpdateListener { valueAnimator ->
-                navHostContainer.setPadding(
-                    0,
-                    0,
-                    0,
-                    valueAnimator.animatedValue as Int
-                )
-                navHostContainer.requestLayout()
-            }
-        }
-    }
-
-    fun setFragmentBottomPadding(duration: Long = expandDuration) {
-        bottomPaddingAnimator?.apply {
-            this.duration = duration
-            start()
-        }
-    }
-
-    fun reverseFragmentBottomPadding(duration: Long = expandDuration) {
-        bottomPaddingAnimator?.apply {
-            this.duration = duration
-            reverse()
-        }
-    }
 
     fun animateSearchBarOnClick() {
         activity?.apply {
@@ -70,10 +28,7 @@ class MainActivityAnimator(
                 materialSearchBar.isEnabled = false
                 expandSearchBarToParentView(
                     doOnStart = {
-                        animateStatusBarColor(
-                            color = R.color.searchBar,
-                            animationDuration = expandDuration
-                        )
+                        animateStatusBarColor(color = R.color.searchBar)
                     },
                     doOnEnd = {
                         appBarLayout.setExpanded(true)
@@ -88,10 +43,7 @@ class MainActivityAnimator(
                 materialSearchBar.isEnabled = false
                 expandSearchBarToParentView(
                     doOnStart = {
-                        animateStatusBarColor(
-                            color = R.color.searchBar,
-                            animationDuration = expandDuration
-                        )
+                        animateStatusBarColor(color = R.color.searchBar)
                     },
                     doOnEnd = {
                         materialSearchBar.isEnabled = true
@@ -108,13 +60,10 @@ class MainActivityAnimator(
 //                searchView.setQuery("", false)
                 println("Calling animateToInitialSize")
                 appBarLayout.changeBackgroundColor(applicationContext, R.color.bottomView)
-                materialSearchBar.animateToInitialSize(duration = shrinkDuration,
+                materialSearchBar.animateToInitialSize(duration = animationDuration,
                     doOnStart = {
                         animationFinished = false
-                        animateStatusBarColor(
-                            color = R.color.bottomView,
-                            animationDuration = shrinkDuration
-                        )
+                        animateStatusBarColor(color = R.color.bottomView)
                     },
                     doOnEnd = {
                         materialSearchBar.isEnabled = true
@@ -129,7 +78,7 @@ class MainActivityAnimator(
         crossinline doOnEnd: () -> Unit = {}
     ) {
         binding?.apply {
-            materialSearchBar.animateToParentSize(duration = expandDuration,
+            materialSearchBar.animateToParentSize(duration = animationDuration,
                 doOnStart = {
                     animationFinished = false
                     doOnStart.invoke()
@@ -153,7 +102,7 @@ class MainActivityAnimator(
         }
     }
 
-    private fun animateStatusBarColor(@ColorRes color: Int, animationDuration: Long = 300L) {
+    private fun animateStatusBarColor(@ColorRes color: Int) {
         activity?.apply {
             ObjectAnimator.ofObject(
                 window,

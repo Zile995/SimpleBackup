@@ -10,6 +10,13 @@
         app:showAsAction="always" />
 
     <item
+        android:id="@+id/add_to_favorites"
+        android:icon="@drawable/ic_favorite"
+        android:title="@string/add_to_favorites"
+        android:visible="false"
+        app:showAsAction="ifRoom"/>
+
+    <item
         android:id="@+id/select_all"
         android:icon="@drawable/ic_select_all"
         android:title="@string/select_all"
