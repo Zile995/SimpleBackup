@@ -12,6 +12,7 @@ import androidx.annotation.IdRes
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnResume
 import androidx.core.animation.doOnStart
+import androidx.core.view.postDelayed
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import coil.imageLoader
@@ -66,14 +67,14 @@ inline fun View.moveVertically(
     ObjectAnimator.ofFloat(this, "translationY", value).apply {
         duration = animationDuration
         doOnStart {
-            this@moveVertically.postDelayed({
+            this@moveVertically.postDelayed(50L) {
                 doOnStart()
-            }, 1)
+            }
         }
         doOnEnd {
-            this@moveVertically.postDelayed({
+            this@moveVertically.postDelayed(50L) {
                 doOnEnd()
-            }, 1)
+            }
         }
         start()
     }

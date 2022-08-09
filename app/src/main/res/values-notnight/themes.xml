@@ -50,6 +50,12 @@
         </item>
     </style>
 
+    <style name="ShapeAppearanceOverlay.SimpleBackup.ImageView" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+        <item name="backgroundTint">@color/blueChip</item>
+    </style>
+
     <style name="ToolBarFont" parent="TextAppearance.Material3.HeadlineLarge">
         <item name="android:textColor">?android:attr/textColorPrimary</item>
         <item name="fontFamily">@font/inter_family</item>

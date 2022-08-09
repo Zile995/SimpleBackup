@@ -31,6 +31,12 @@ interface AppDao {
     @Query("DELETE FROM app_table")
     suspend fun clear()
 
+    @Query("SELECT favorite FROM app_table WHERE uid = :uid")
+    suspend fun isFavorite(uid: Int): Boolean
+
+    @Query("UPDATE app_table SET favorite = :setFavorite WHERE uid = :uid ")
+    suspend fun updateFavorite(uid: Int, setFavorite: Boolean): Int
+
     @Query(
         "DELETE FROM app_table" +
                 " WHERE package_name = :packageName AND is_local =1 AND is_local =:selectCloudOnly"

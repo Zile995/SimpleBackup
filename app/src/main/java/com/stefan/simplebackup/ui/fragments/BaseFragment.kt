@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.viewbinding.ViewBinding
+import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
@@ -46,15 +47,22 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         _mainRecyclerView = null
     }
 
+    fun selectAllItems() {
+        _mainRecyclerView?.apply {
+            val currentAdapter = adapter as BaseAdapter
+            currentAdapter.selectAllItems()
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
     fun getRecyclerView() {
         val vbClass =
             (javaClass.genericSuperclass as ParameterizedType).actualTypeArguments[0] as Class<VB>
         val declaredFields = vbClass.declaredFields
-        val mainRecyclerViewField = declaredFields.firstOrNull { declaredField ->
+        val mainRecyclerViewField = declaredFields.first { declaredField ->
             declaredField.type == MainRecyclerView::class.java
         }
-        mainRecyclerViewField?.apply {
+        mainRecyclerViewField.apply {
             _mainRecyclerView = vbClass.getDeclaredField(name).get(binding) as MainRecyclerView
         }
     }

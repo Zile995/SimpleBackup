@@ -12,11 +12,11 @@ class AppRepository(private val appDao: AppDao) {
         }
     val localApps
         get() = appDao.getAllApps().filterBy { app ->
-                app.isLocal
+            app.isLocal
         }
     val cloudApps
         get() = appDao.getAllApps().filterBy { app ->
-                app.isCloud
+            app.isCloud
         }
 
     /**
@@ -27,6 +27,11 @@ class AppRepository(private val appDao: AppDao) {
             list.filter(predicate)
         }
     }
+
+    suspend fun isFavorite(uid: Int) = appDao.isFavorite(uid)
+
+    suspend fun changeFavorites(uid: Int, setFavorite: Boolean) =
+        appDao.updateFavorite(uid, setFavorite)
 
     suspend fun insert(app: AppData) = appDao.insert(app)
     suspend fun delete(packageName: String) = appDao.delete(packageName)

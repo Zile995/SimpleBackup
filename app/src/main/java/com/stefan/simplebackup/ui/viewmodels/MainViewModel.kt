@@ -7,7 +7,6 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
-import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,6 +33,18 @@ class MainViewModel(application: MainApplication) : ViewModel(),
 
     fun setSearching(isSearching: Boolean) {
         _isSearching.value = isSearching
+    }
+
+    fun changeFavorites() {
+        val setFavorite = true
+        viewModelScope.launch(ioDispatcher) {
+            selectionList.forEach { uid ->
+                if (repository.isFavorite(uid))
+                    repository.changeFavorites(uid, !setFavorite)
+                else
+                    repository.changeFavorites(uid, setFavorite)
+            }
+        }
     }
 
     init {

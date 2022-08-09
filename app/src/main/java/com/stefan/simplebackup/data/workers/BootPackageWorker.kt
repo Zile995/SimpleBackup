@@ -4,18 +4,20 @@ import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.stefan.simplebackup.MainApplication.Companion.getDatabaseInstance
+import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
-import kotlinx.coroutines.*
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class BootPackageWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext,
     params
 ) {
-    private val database = appContext.getDatabaseInstance(CoroutineScope(SupervisorJob()))
+    private val database = AppDatabase.getInstance(appContext)
     private val repository = AppRepository(database.appDao())
     private val appManager = AppManager(appContext.applicationContext)
 

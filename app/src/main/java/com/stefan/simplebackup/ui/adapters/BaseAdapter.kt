@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.ui.adapters
 
+import android.util.Log
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.stefan.simplebackup.data.model.AppData
@@ -35,14 +36,26 @@ abstract class BaseAdapter(
         }
     }
 
-    fun clearSelection() {
+    fun selectAllItems() {
+        selectMultipleItems(currentList.map { it.uid })
         currentList.forEachIndexed { index, item ->
-            if (item.isSelected) {
-                item.isSelected = false
+            if (!item.isSelected) {
+                item.isSelected = true
+                Log.d("Adapter", "Notifying changes on position $index")
                 notifyItemChanged(index)
             }
         }
+    }
+
+    fun clearSelection() {
         removeAllSelectedItems()
+        currentList.forEachIndexed { index, item ->
+            if (item.isSelected) {
+                item.isSelected = false
+                Log.d("Adapter", "Notifying changes on position $index")
+                notifyItemChanged(index)
+            }
+        }
     }
 
     override fun onViewRecycled(holder: BaseViewHolder) {

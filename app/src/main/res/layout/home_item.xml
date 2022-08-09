@@ -18,16 +18,36 @@
         android:layout_height="match_parent"
         android:outlineProvider="none">
 
-        <ImageView
-            android:id="@+id/application_image"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+        <FrameLayout
+            android:id="@+id/image_layout"
+            android:layout_width="58dp"
+            android:layout_height="58dp"
             android:layout_marginStart="15dp"
             android:layout_marginBottom="30dp"
-            android:contentDescription="@string/application_image"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" >
+
+            <ImageView
+                android:id="@+id/application_image"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="bottom"
+                android:contentDescription="@string/application_image" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/favorites_badge"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SimpleBackup.ImageView"
+                android:background="@color/blueChip"
+                android:visibility="gone"
+                android:scaleType="centerInside"
+                android:tint="@color/textInBlueChip"
+                app:srcCompat="@drawable/ic_favorite"
+                android:layout_gravity="top|end" />
+
+        </FrameLayout>
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/version_name"
@@ -38,8 +58,8 @@
             android:textColor="@color/textView"
             android:textSize="6pt"
             app:layout_constraintBottom_toTopOf="@+id/application_name"
-            app:layout_constraintStart_toEndOf="@+id/application_image"
-            app:layout_constraintTop_toTopOf="@+id/application_image" />
+            app:layout_constraintStart_toEndOf="@+id/image_layout"
+            app:layout_constraintTop_toTopOf="@+id/image_layout" />
 
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/application_name"
@@ -63,7 +83,7 @@
             android:fontFamily="@font/inter_family"
             android:textColor="@color/textView"
             android:textSize="6pt"
-            app:layout_constraintBottom_toBottomOf="@+id/application_image"
+            app:layout_constraintBottom_toBottomOf="@+id/image_layout"
             app:layout_constraintStart_toStartOf="@+id/application_name"
             app:layout_constraintTop_toBottomOf="@+id/application_name" />
 
@@ -82,7 +102,7 @@
             app:chipEndPadding="2dp"
             app:chipStartPadding="2dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="@id/application_image" />
+            app:layout_constraintStart_toStartOf="@id/image_layout" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/apk_size"

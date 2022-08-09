@@ -7,13 +7,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.showToast
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlin.system.measureTimeMillis
 
 private const val DATABASE_NAME = "app_database"
@@ -77,28 +76,39 @@ abstract class AppDatabase : RoomDatabase() {
     }
 
     companion object {
+
+        /**
+         * - Private singleton [AppDatabase] class instance
+         */
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
-        fun getInstance(
-            context: Context,
-            scope: CoroutineScope
-        ): AppDatabase =
+        /**
+         * - Create or get reference to singleton object of [AppDatabase] class
+         * - Used to create, open, update Room SQL database
+         * - It is controlled by [AppRepository] which uses [AppDao] interface exposed methods
+         */
+        fun getInstance(context: Context): AppDatabase =
             INSTANCE ?: synchronized(this) {
-                INSTANCE ?: buildDatabase(context, scope).also { appDatabase ->
+                INSTANCE ?: buildDatabase(context).also { appDatabase ->
                     INSTANCE = appDatabase
                 }
             }
 
+        /**
+         * - This function should be used for creating [AppDatabase] class instance.
+         * - Main database coroutine scope is using [SupervisorJob] job with [Dispatchers.Default] dispatcher.
+         * - All other child coroutines will be canceled if this scope is canceled, if one child coroutine
+         *   fails, others will not
+         */
         private fun buildDatabase(
-            context: Context,
-            scope: CoroutineScope
+            context: Context
         ) =
             Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java, DATABASE_NAME
             )
-                .addCallback(AppDatabaseCallback(context, scope))
+                .addCallback(AppDatabaseCallback(context, CoroutineScope(SupervisorJob())))
                 .build()
     }
 }

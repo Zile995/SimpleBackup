@@ -1,7 +1,7 @@
 package com.stefan.simplebackup.utils.work.restore
 
 import android.content.Context
-import com.stefan.simplebackup.MainApplication.Companion.getDatabaseInstance
+import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
@@ -21,7 +21,7 @@ class RestoreUtil(
     }
 
     suspend fun restore() = coroutineScope {
-        val database = appContext.getDatabaseInstance(this)
+        val database = AppDatabase.getInstance(appContext)
         val repository = AppRepository(database.appDao())
         restoreItems.forEach { item ->
             repository.getAppData(item).also { app ->

@@ -62,7 +62,7 @@ class SimpleMaterialToolbar(
             menu?.findItem(R.id.action_search)?.isVisible = false
             setNavigationOnClickListener {
                 if (animationFinished) {
-                    selectionModeCallBack.invoke(!isSelected)
+                    selectionModeCallBack.invoke(false)
                 }
             }
         } else {

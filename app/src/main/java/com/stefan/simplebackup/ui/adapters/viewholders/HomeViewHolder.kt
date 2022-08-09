@@ -1,12 +1,12 @@
 package com.stefan.simplebackup.ui.adapters.viewholders
 
-import android.view.View
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.databinding.HomeItemBinding
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.utils.extensions.bytesToString
 import com.stefan.simplebackup.utils.extensions.checkedString
+import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.loadBitmap
 
 class HomeViewHolder(
@@ -23,11 +23,12 @@ class HomeViewHolder(
             versionName.text = item.versionName.checkedString()
             packageName.text = item.packageName.checkedString()
             apkSize.text = item.apkSize.bytesToString()
-            if (item.isSplit) {
-                splitApk.text = binding.root.resources.getString(R.string.split)
-                splitApk.visibility = View.VISIBLE
+            splitApk.isVisible = if (item.isSplit) {
+                splitApk.text = root.resources.getString(R.string.split)
+                true
             } else
-                splitApk.visibility = View.GONE
+                false
+            favoritesBadge.isVisible = item.favorite
         }
     }
 }

@@ -30,6 +30,7 @@ import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
 import com.stefan.simplebackup.ui.views.MainActivityAnimator
 import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
 import com.stefan.simplebackup.ui.views.MainRecyclerView
+import com.stefan.simplebackup.ui.views.MaterialSearchView
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.root.RootChecker
@@ -164,8 +165,9 @@ class MainActivity : AppCompatActivity() {
                     isSelected.collect { isSelected ->
                         expandAppBarLayout(isSelected)
                         if (isSelected) {
+                            navigationBar.isClickable = false
                             navigationBar.moveVertically(
-                                250,
+                                mainActivityAnimator.animationDuration,
                                 navigationBar.height.toFloat(),
                                 doOnStart = {
                                     val layoutParams =
@@ -177,7 +179,7 @@ class MainActivity : AppCompatActivity() {
                         } else {
                             if (navigationBar.marginBottom == navigationBar.height) return@collect
                             navigationBar.moveVertically(
-                                250,
+                                mainActivityAnimator.animationDuration,
                                 0f
                             ) {
                                 val layoutParams =
@@ -207,31 +209,33 @@ class MainActivity : AppCompatActivity() {
             val baseFragment =
                 supportFragmentManager.getCurrentFragment() as BaseViewPagerFragment<*>
             val shouldMoveFragmentUp = baseFragment.shouldMoveFragmentUp() ?: false
-            if (mainViewModel.isAppBarCollapsed) appBarLayout.setExpanded(shouldExpand, true)
             if (shouldExpand) {
                 animationFinished = false
+                appBarLayout.setExpanded(shouldExpand, true)
             } else {
                 if (shouldMoveFragmentUp) {
-                    Log.d("SimpleAnimation", "Calling again onCollapse")
+                    Log.d("AppBarExpanding", "Calling again onCollapse")
                     appBarLayout.setExpanded(!shouldMoveFragmentUp, true)
-                }
+                } else if (mainViewModel.isAppBarExpanded != shouldExpand)
+                    appBarLayout.setExpanded(!shouldExpand, true)
             }
         }
     }
 
     private fun ActivityMainBinding.bindAppBarLayout() {
-        appBarLayout.setExpanded(mainViewModel.isAppBarExpanded)
-        appBarLayout.addOnOffsetChangedListener(object : AppBarLayoutStateChangedListener() {
-            override fun onStateChanged(appBarLayout: AppBarLayout, state: AppBarLayoutState) {
-                when (state) {
-                    AppBarLayoutState.EXPANDED -> mainViewModel.isAppBarExpanded = true
-                    AppBarLayoutState.COLLAPSED -> mainViewModel.isAppBarExpanded = false
-                    else -> mainViewModel.isAppBarExpanded = false
-                }
-            }
-        })
-
+        appBarLayout.setExpanded(mainViewModel.isAppBarExpanded, false)
         root.doOnPreDraw {
+            appBarLayout.addOnOffsetChangedListener(object : AppBarLayoutStateChangedListener() {
+                override fun onStateChanged(appBarLayout: AppBarLayout, state: AppBarLayoutState) {
+                    when (state) {
+                        AppBarLayoutState.EXPANDED -> mainViewModel.isAppBarExpanded = true
+                        AppBarLayoutState.COLLAPSED -> mainViewModel.isAppBarExpanded = false
+                        else -> mainViewModel.isAppBarExpanded = false
+                    }
+                }
+            })
+
+
             val layoutParams = appBarLayout.layoutParams as CoordinatorLayout.LayoutParams
             val layoutBehavior = layoutParams.behavior as AppBarLayout.Behavior
             layoutParams.behavior = layoutBehavior
@@ -267,6 +271,20 @@ class MainActivity : AppCompatActivity() {
         materialToolbar.setNavigationIcon(R.drawable.ic_search)
         materialToolbar.setNavigationOnClickListener {
             materialSearchBar.performClick()
+        }
+        materialToolbar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.action_search -> {
+                    val searchView = menuItem?.actionView as MaterialSearchView
+                }
+                R.id.add_to_favorites -> {
+                    mainViewModel.changeFavorites()
+                }
+                else -> {
+                    return@setOnMenuItemClickListener false
+                }
+            }
+            true
         }
     }
 

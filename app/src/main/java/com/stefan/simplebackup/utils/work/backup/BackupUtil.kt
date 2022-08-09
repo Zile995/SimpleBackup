@@ -3,8 +3,8 @@ package com.stefan.simplebackup.utils.work.backup
 import android.content.Context
 import android.util.Log
 import androidx.annotation.StringRes
-import com.stefan.simplebackup.MainApplication.Companion.getDatabaseInstance
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.NotificationData
@@ -40,7 +40,7 @@ class BackupUtil(
 
     suspend fun backup(): List<WorkResult> = coroutineScope {
         val results = mutableListOf<WorkResult>()
-        val database = appContext.getDatabaseInstance(this)
+        val database = AppDatabase.getInstance(appContext)
         val repository = AppRepository(database.appDao())
         backupItems.forEach { item ->
             repository.getAppData(item).also { app ->

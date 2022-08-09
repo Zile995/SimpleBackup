@@ -86,7 +86,7 @@ inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
 }
 
 fun FragmentManager.getCurrentFragment() =
-    findFragmentById(R.id.nav_host_container)?.childFragmentManager?.primaryNavigationFragment
+    findFragmentById(R.id.nav_host_container)?.childFragmentManager?.fragments?.last()
 
 inline fun <reified T : Fragment> FragmentManager.findFragmentByClass(): T? =
     fragments.firstOrNull { fragment ->
