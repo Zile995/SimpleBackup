@@ -139,22 +139,20 @@ data class AppData(
     suspend inline fun <reified T : AppCompatActivity> passToActivity(
         context: Context?
     ) {
-        context?.let {
-            context.passBundleToActivity<T>(
+        context?.apply {
+            passBundleToActivity<T>(
                 PARCELABLE_EXTRA to withCheckedBitmap(context)
             )
         }
     }
 
-    suspend fun withCheckedBitmap(context: Context): AppData {
-        return run {
-            if (bitmap.size > 200_000) {
-                Log.d("Bitmap", "${bitmap.size}")
-                bitmap.saveByteArray(name, context)
-                copy(bitmap = byteArrayOf())
-            } else {
-                this
-            }
+    suspend fun withCheckedBitmap(context: Context): AppData = run {
+        if (bitmap.size > 200_000) {
+            Log.d("Bitmap", "${bitmap.size}")
+            bitmap.saveByteArray(name, context)
+            copy(bitmap = byteArrayOf())
+        } else {
+            this
         }
     }
 

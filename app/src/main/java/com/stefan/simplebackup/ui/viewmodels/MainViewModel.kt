@@ -12,6 +12,8 @@ import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 class MainViewModel(application: MainApplication) : ViewModel(),
     PackageListener by PackageListenerImpl(application) {
@@ -36,13 +38,14 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     }
 
     fun changeFavorites() {
-        val setFavorite = true
         viewModelScope.launch(ioDispatcher) {
+            val semaphore = Semaphore(4)
             selectionList.forEach { uid ->
-                if (repository.isFavorite(uid))
-                    repository.changeFavorites(uid, !setFavorite)
-                else
-                    repository.changeFavorites(uid, setFavorite)
+                semaphore.withPermit {
+                    launch {
+                        repository.changeFavorites(uid)
+                    }
+                }
             }
         }
     }

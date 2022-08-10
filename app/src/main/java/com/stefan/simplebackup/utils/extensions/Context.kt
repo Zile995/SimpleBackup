@@ -85,8 +85,9 @@ inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     }
 }
 
-fun FragmentManager.getCurrentFragment() =
-    findFragmentById(R.id.nav_host_container)?.childFragmentManager?.fragments?.last()
+fun FragmentManager.getCurrentVisibleViewPagerFragment() =
+    findFragmentById(R.id.nav_host_container)?.childFragmentManager?.fragments?.firstOrNull { it.isVisible }
+            as? BaseViewPagerFragment<*>
 
 inline fun <reified T : Fragment> FragmentManager.findFragmentByClass(): T? =
     fragments.firstOrNull { fragment ->

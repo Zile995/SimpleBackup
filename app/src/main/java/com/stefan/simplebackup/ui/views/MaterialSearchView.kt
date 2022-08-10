@@ -35,7 +35,7 @@ class MaterialSearchView(
     init {
         doOnPreDraw {
             addCloseButton()
-            setSearchViewMargin(-15)
+            setSearchViewMargin(-20)
             setTypeFace(context.getInterFontTypeFace())
         }
         setOnQueryTextFocusChangeListener { view, hasFocus ->

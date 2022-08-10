@@ -11,19 +11,12 @@ interface AppDao {
     @Transaction
     fun getAllApps(): Flow<MutableList<AppData>>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     @Throws(SQLiteException::class)
-    suspend fun insert(app: AppData): Long
+    suspend fun insert(app: AppData)
 
     @Update
     suspend fun update(app: AppData): Int
-
-    @Transaction
-    suspend fun insertOrUpdate(app: AppData) {
-        val result = insert(app)
-        if (result == -1L)
-            update(app)
-    }
 
     @Query("DELETE FROM app_table WHERE package_name = :packageName")
     suspend fun delete(packageName: String): Int
@@ -31,11 +24,13 @@ interface AppDao {
     @Query("DELETE FROM app_table")
     suspend fun clear()
 
-    @Query("SELECT favorite FROM app_table WHERE uid = :uid")
-    suspend fun isFavorite(uid: Int): Boolean
+    @Transaction
+    suspend fun updateFavorite(uid: Int) {
+        setFavorite(uid, !getData(uid).favorite)
+    }
 
     @Query("UPDATE app_table SET favorite = :setFavorite WHERE uid = :uid ")
-    suspend fun updateFavorite(uid: Int, setFavorite: Boolean): Int
+    suspend fun setFavorite(uid: Int, setFavorite: Boolean)
 
     @Query(
         "DELETE FROM app_table" +

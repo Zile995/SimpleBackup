@@ -35,7 +35,7 @@ class PackageListenerImpl(application: MainApplication) : PackageListener {
     override suspend fun insertOrUpdatePackage(packageName: String) {
         Log.d("PackageListener", "Adding or updating the $packageName")
         appManager.apply {
-            repository.insertOrUpdate(build(packageName))
+            repository.insert(build(packageName))
             updateSequenceNumber()
         }
     }

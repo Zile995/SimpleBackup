@@ -30,9 +30,13 @@ abstract class BaseAdapter(
             is FavoritesViewHolder -> holder.bind(item)
             is SearchViewHolder -> holder.bind(item)
         }
+        holder.setSelectedItems(item)
+    }
+
+    private fun BaseViewHolder.setSelectedItems(item: AppData) {
         if (selectedItems.contains(item.uid)) {
             item.isSelected = true
-            holder.setSelected()
+            setSelected()
         }
     }
 
@@ -41,7 +45,7 @@ abstract class BaseAdapter(
         currentList.forEachIndexed { index, item ->
             if (!item.isSelected) {
                 item.isSelected = true
-                Log.d("Adapter", "Notifying changes on position $index")
+                Log.d("Adapter", "New selection on position $index")
                 notifyItemChanged(index)
             }
         }
@@ -52,7 +56,7 @@ abstract class BaseAdapter(
         currentList.forEachIndexed { index, item ->
             if (item.isSelected) {
                 item.isSelected = false
-                Log.d("Adapter", "Notifying changes on position $index")
+                Log.d("Adapter", "Removing selection on position $index")
                 notifyItemChanged(index)
             }
         }

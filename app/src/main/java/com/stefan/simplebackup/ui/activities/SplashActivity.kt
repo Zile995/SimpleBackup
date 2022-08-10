@@ -4,11 +4,14 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import com.stefan.simplebackup.BuildConfig
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
+import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.topjohnwu.superuser.Shell
 
 @SuppressLint("CustomSplashScreen")
-class SplashActivity : Activity() {
+class SplashActivity : AppCompatActivity() {
 
     companion object {
         init {
@@ -28,12 +31,13 @@ class SplashActivity : Activity() {
         // Preheat the main root shell in the splash screen
         // so the app can use it afterwards without interrupting
         // application flow (e.g. root permission prompt)
-        Shell.getShell {
-            // The main shell is now constructed and cached
-            // Exit splash screen and enter main activity
-            val intent = Intent(this@SplashActivity, MainActivity::class.java)
-            startActivity(intent)
-            finish()
+        launchOnViewLifecycle(ioDispatcher) {
+            Shell.getShell()
         }
+        // The main shell is now constructed and cached
+        // Exit splash screen and enter main activity
+        val intent = Intent(this@SplashActivity, MainActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 }

@@ -37,14 +37,15 @@ fun CoroutineScope.launchWithLogging(
 }
 
 inline fun LifecycleOwner.launchOnViewLifecycle(
+    context: CoroutineContext = EmptyCoroutineContext,
     crossinline block: suspend CoroutineScope.() -> Unit
 ) {
     when (this) {
         is ComponentActivity -> {
-            lifecycleScope.launch { block() }
+            lifecycleScope.launch(context) { block() }
         }
         is Fragment -> {
-            viewLifecycleOwner.lifecycleScope.launch { block() }
+            viewLifecycleOwner.lifecycleScope.launch(context) { block() }
         }
         else -> throw IllegalArgumentException("Unsupported LifecycleOwner")
     }

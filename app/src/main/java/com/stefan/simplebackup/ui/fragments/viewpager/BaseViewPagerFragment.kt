@@ -65,7 +65,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
 
     private fun initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
+            repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                 mainViewModel.isSelected.collect { isInSelectionMode ->
                     controlTabs(shouldEnableTabs = !isInSelectionMode)
                 }
@@ -89,10 +89,17 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
         setupViewPager()
     }
 
-    fun shouldMoveFragmentUp() =
-        childFragmentManager.findFragmentByClass<BaseFragment<*>>()?.run {
-            shouldMoveFragmentUp()
+    private fun getVisibleFragment() =
+        childFragmentManager.fragments[viewPager.currentItem] as BaseFragment<*>
+
+    fun selectAllItems() {
+        val childFragment = getVisibleFragment()
+        println("Current child fragment = $childFragment")
+        childFragment.selectAllItems()
     }
+
+    fun shouldMoveFragmentUp() =
+        getVisibleFragment().shouldMoveFragmentUp()
 
     private fun getOnPageChangeCallback(): ViewPager2.OnPageChangeCallback =
         object : ViewPager2.OnPageChangeCallback() {

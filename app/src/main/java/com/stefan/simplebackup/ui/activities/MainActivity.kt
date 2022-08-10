@@ -23,14 +23,12 @@ import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.NotificationReceiver
 import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
-import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
 import com.stefan.simplebackup.ui.views.MainActivityAnimator
 import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
 import com.stefan.simplebackup.ui.views.MainRecyclerView
-import com.stefan.simplebackup.ui.views.MaterialSearchView
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.root.RootChecker
@@ -165,7 +163,6 @@ class MainActivity : AppCompatActivity() {
                     isSelected.collect { isSelected ->
                         expandAppBarLayout(isSelected)
                         if (isSelected) {
-                            navigationBar.isClickable = false
                             navigationBar.moveVertically(
                                 mainActivityAnimator.animationDuration,
                                 navigationBar.height.toFloat(),
@@ -206,9 +203,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun expandAppBarLayout(shouldExpand: Boolean) {
         binding.apply {
-            val baseFragment =
-                supportFragmentManager.getCurrentFragment() as BaseViewPagerFragment<*>
-            val shouldMoveFragmentUp = baseFragment.shouldMoveFragmentUp() ?: false
+            val baseViewPagerFragment =
+                supportFragmentManager.getCurrentVisibleViewPagerFragment()
+            val shouldMoveFragmentUp = baseViewPagerFragment?.shouldMoveFragmentUp() ?: false
             if (shouldExpand) {
                 animationFinished = false
                 appBarLayout.setExpanded(shouldExpand, true)
@@ -216,26 +213,23 @@ class MainActivity : AppCompatActivity() {
                 if (shouldMoveFragmentUp) {
                     Log.d("AppBarExpanding", "Calling again onCollapse")
                     appBarLayout.setExpanded(!shouldMoveFragmentUp, true)
-                } else if (mainViewModel.isAppBarExpanded != shouldExpand)
-                    appBarLayout.setExpanded(!shouldExpand, true)
+                }
             }
         }
     }
 
     private fun ActivityMainBinding.bindAppBarLayout() {
         appBarLayout.setExpanded(mainViewModel.isAppBarExpanded, false)
-        root.doOnPreDraw {
-            appBarLayout.addOnOffsetChangedListener(object : AppBarLayoutStateChangedListener() {
-                override fun onStateChanged(appBarLayout: AppBarLayout, state: AppBarLayoutState) {
-                    when (state) {
-                        AppBarLayoutState.EXPANDED -> mainViewModel.isAppBarExpanded = true
-                        AppBarLayoutState.COLLAPSED -> mainViewModel.isAppBarExpanded = false
-                        else -> mainViewModel.isAppBarExpanded = false
-                    }
+        appBarLayout.addOnOffsetChangedListener(object : AppBarLayoutStateChangedListener() {
+            override fun onStateChanged(appBarLayout: AppBarLayout, state: AppBarLayoutState) {
+                when (state) {
+                    AppBarLayoutState.EXPANDED -> mainViewModel.isAppBarExpanded = true
+                    AppBarLayoutState.COLLAPSED -> mainViewModel.isAppBarExpanded = false
+                    else -> mainViewModel.isAppBarExpanded = false
                 }
-            })
-
-
+            }
+        })
+        root.doOnPreDraw {
             val layoutParams = appBarLayout.layoutParams as CoordinatorLayout.LayoutParams
             val layoutBehavior = layoutParams.behavior as AppBarLayout.Behavior
             layoutParams.behavior = layoutBehavior
@@ -275,10 +269,19 @@ class MainActivity : AppCompatActivity() {
         materialToolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.action_search -> {
-                    val searchView = menuItem?.actionView as MaterialSearchView
+                    //val searchView = menuItem?.actionView as MaterialSearchView
+                }
+                R.id.select_all -> {
+                    val baseViewPagerFragment =
+                        supportFragmentManager.getCurrentVisibleViewPagerFragment()
+                    println("Current fragment = $baseViewPagerFragment")
+                    baseViewPagerFragment?.selectAllItems()
                 }
                 R.id.add_to_favorites -> {
                     mainViewModel.changeFavorites()
+                }
+                R.id.delete_backup -> {
+
                 }
                 else -> {
                     return@setOnMenuItemClickListener false

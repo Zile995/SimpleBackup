@@ -82,52 +82,35 @@ inline fun View.moveVertically(
 
 inline fun View.fadeIn(
     animationDuration: Long = 300L,
-    crossinline onAnimationCancel: () -> Unit = {},
     crossinline onAnimationEnd: () -> Unit = {}
 ) {
-    if (isVisible) return
+    if (isVisible || alpha != 0f) return
     animate()
         .alpha(1f)
         .setDuration(animationDuration)
         .setListener(object : AnimatorListenerAdapter() {
-
             override fun onAnimationStart(animation: Animator?) {
                 show()
             }
 
-            override fun onAnimationPause(animation: Animator?) {
-                onAnimationEnd.invoke()
-            }
-
             override fun onAnimationEnd(animation: Animator?) {
                 onAnimationEnd.invoke()
-            }
-
-            override fun onAnimationCancel(animation: Animator?) {
-                fadeOut()
-                onAnimationCancel.invoke()
             }
         })
 }
 
 inline fun View.fadeOut(
     animationDuration: Long = 300L,
-    crossinline onAnimationCancel: () -> Unit = {},
     crossinline onAnimationEnd: () -> Unit = {}
 ) {
-    if (!isVisible) return
+    if (!isVisible || alpha == 0f) return
     animate()
         .alpha(0f)
         .setDuration(animationDuration)
         .setListener(object : AnimatorListenerAdapter() {
-
             override fun onAnimationEnd(animation: Animator?) {
                 hide()
                 onAnimationEnd.invoke()
-            }
-
-            override fun onAnimationCancel(animation: Animator?) {
-                onAnimationCancel.invoke()
             }
         })
 }

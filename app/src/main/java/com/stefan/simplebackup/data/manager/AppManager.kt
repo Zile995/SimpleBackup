@@ -131,7 +131,6 @@ class AppManager(private val context: Context) {
             PackageManager.GET_META_DATA
         ).versionName?.substringBefore(" (") ?: ""
 
-
         return@coroutineScope AppData(
             name = name,
             bitmap = drawable.toByteArray(),

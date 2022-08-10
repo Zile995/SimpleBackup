@@ -27,11 +27,6 @@ class MainRecyclerView(
 
     init {
         isMotionEventSplittingEnabled = false
-        addOnItemTouchListener(object : RecyclerView.SimpleOnItemTouchListener() {
-            override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
-                return super.onInterceptTouchEvent(rv, e)
-            }
-        })
     }
 
     fun canScrollUp() = canScrollVertically(-1)
