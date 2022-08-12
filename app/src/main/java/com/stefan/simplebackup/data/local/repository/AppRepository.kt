@@ -2,7 +2,6 @@ package com.stefan.simplebackup.data.local.repository
 
 import com.stefan.simplebackup.data.local.database.AppDao
 import com.stefan.simplebackup.data.model.AppData
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -29,8 +28,19 @@ class AppRepository(private val appDao: AppDao) {
         }
     }
 
+    suspend fun insertAppData(app: AppData) {
+        if (isFavorite(app.packageName) == true && !app.isLocal) {
+            app.favorite = true
+            insert(app)
+        } else {
+            insert(app)
+        }
+    }
+
     suspend fun changeFavorites(uid: Int) =
         appDao.updateFavorite(uid)
+
+    suspend fun isFavorite(packageName: String) = appDao.isFavorite(packageName)
 
     suspend fun insert(app: AppData) = appDao.insert(app)
     suspend fun delete(packageName: String) = appDao.delete(packageName)
@@ -38,6 +48,5 @@ class AppRepository(private val appDao: AppDao) {
     suspend fun getAppData(uid: Int) = appDao.getData(uid)
     suspend fun getAppData(packageName: String) = appDao.getData(packageName)
 
-    fun doesExist(packageName: String, checkCloudOnly: Boolean = false) =
-        appDao.doesExist(packageName, checkCloudOnly)
+    fun doesAppDataExist(packageName: String) = appDao.doesAppDataExist(packageName)
 }

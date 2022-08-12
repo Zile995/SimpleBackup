@@ -6,6 +6,7 @@
     <string name="search_button">Search button</string>
     <string name="search_for_apps">Search for apps</string>
     <string name="back">Back</string>
+    <string name="press_back_again">Press BACK again to exit</string>
     <string name="details">App Details</string>
     <string name="delete">Delete</string>
     <string name="delete_backup">Delete backup</string>
@@ -43,6 +44,7 @@
     <string name="work_in_progress">Work in progress</string>
     <string name="backing_up">Backing up</string>
     <string name="backup_progress_dir_info">Creating backup dirs</string>
+    <string name="app_does_not_exist">Application doesn\'t exist!</string>
     <string name="backup_progress_data_info">Backing up app data</string>
     <string name="backup_progress_zip_info">Zipping all data</string>
     <string name="backup_progress_saving_application_data">Saving application data</string>

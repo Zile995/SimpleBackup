@@ -35,7 +35,7 @@ class LocalViewModel(application: MainApplication, private val repository: AppRe
                     findJsonFiles(backupDirPath).collect { jsonFile ->
                         val app = deserializeApp(jsonFile)
                         app?.let {
-                            repository.insert(it)
+                            repository.insertAppData(it)
                         }
                     }
                     delay(1_500)

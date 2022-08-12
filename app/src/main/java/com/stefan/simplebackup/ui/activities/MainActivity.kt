@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.ui.activities
 
-import android.content.Intent
+import android.content.Intent.ACTION_PACKAGE_ADDED
+import android.content.Intent.ACTION_PACKAGE_REMOVED
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
@@ -23,6 +24,7 @@ import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.NotificationReceiver
 import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
+import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
@@ -41,7 +43,7 @@ class MainActivity : AppCompatActivity() {
     // Binding properties
     private val binding by viewBinding(ActivityMainBinding::inflate)
 
-    // NavController for fragments
+    // NavController, used for navigation
     private lateinit var navController: NavController
 
     // ViewModel
@@ -52,7 +54,7 @@ class MainActivity : AppCompatActivity() {
     // Create RootChecker class instance lazily
     private val rootChecker by lazy { RootChecker(applicationContext) }
 
-    // Create materialSearchBarAnimator
+    // Create MainActivityAnimator class instance lazily
     private val mainActivityAnimator by lazy {
         MainActivityAnimator(WeakReference(this), WeakReference(binding))
     }
@@ -69,6 +71,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     // Flags
+    private var shouldExit = false
     private var isSubmitted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,8 +88,27 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (animationFinished)
-            super.onBackPressed()
+        if (!selectionFinished) {
+            mainViewModel.setSelectionMode(false)
+            shouldExit = false
+        }
+        if (animationFinished && selectionFinished) {
+            if (!shouldExit) {
+                launchOnViewLifecycle {
+                    showToast(R.string.press_back_again)
+                    shouldExit = true
+                    launch {
+                        navController.currentDestination?.let { destination ->
+                            if (destination.doesMatchDestination(R.id.home)) {
+                                delay(1500L)
+                                shouldExit = false
+                            }
+                        }
+                    }
+                }
+            } else
+                super.onBackPressed()
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -118,6 +140,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 mainViewModel.setSearching(false)
             }
+            shouldExit = !destination.doesMatchDestination(R.id.home)
         }
     }
 
@@ -294,18 +317,19 @@ class MainActivity : AppCompatActivity() {
     private fun ActivityMainBinding.bindBottomNavigationView() {
         navigationBar.navigateWithAnimation(navController, doBeforeNavigating = {
             floatingButton.setOnClickListener(null)
-            return@navigateWithAnimation !mainViewModel.isSearching.value || !mainViewModel.isSelected.value
+            return@navigateWithAnimation !mainViewModel.isSearching.value
+                    || !mainViewModel.isSelected.value
         })
     }
 
     private fun registerReceivers() {
-        registerReceiver(packageReceiver, intentFilter(
-            Intent.ACTION_PACKAGE_ADDED,
-            Intent.ACTION_PACKAGE_REMOVED,
-            Intent.ACTION_PACKAGE_REPLACED
-        ) {
-            addDataScheme("package")
-        })
+        registerReceiver(
+            packageReceiver, intentFilter(
+                ACTION_PACKAGE_ADDED,
+                ACTION_PACKAGE_REMOVED
+            ) {
+                addDataScheme("package")
+            })
         registerReceiver(notificationReceiver, intentFilter(ACTION_WORK_FINISHED))
     }
 

@@ -10,6 +10,7 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.NotificationData
 import com.stefan.simplebackup.data.workers.ForegroundCallback
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
+import com.stefan.simplebackup.utils.extensions.showToast
 import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.file.FileUtil.createDirectory
 import com.stefan.simplebackup.utils.file.FileUtil.createMainDir
@@ -81,19 +82,35 @@ class BackupUtil(
         }
     }
 
-    private suspend inline fun AppData.runBackup(
+    private suspend inline fun AppData?.runBackup(
         vararg actions: suspend (AppData) -> Unit
     ): WorkResult {
-        return try {
-            actions.forEach { action ->
-                action(this)
-                updateProgress(actions.size)
+        return when {
+            this == null -> {
+                    updateWhenAppDoesNotExists()
             }
-            updateOnSuccess()
-        } catch (exception: IOException) {
-            Log.e("BackupUtil", "Oh, an error occurred: $exception ${exception.localizedMessage}")
-            updateOnFailure()
+            else -> {
+                try {
+                    actions.forEach { action ->
+                        action(this)
+                        updateProgress(actions.size)
+                    }
+                    updateOnSuccess()
+                } catch (exception: IOException) {
+                    Log.e(
+                        "BackupUtil",
+                        "Oh, an error occurred: $exception ${exception.localizedMessage}"
+                    )
+                    updateOnFailure()
+                }
+            }
         }
+    }
+
+    private fun updateWhenAppDoesNotExists(): WorkResult {
+        appContext.showToast(R.string.app_does_not_exist)
+        setNearestItemInterval()
+        return WorkResult.ERROR
     }
 
     private suspend fun AppData.updateOnSuccess(): WorkResult {

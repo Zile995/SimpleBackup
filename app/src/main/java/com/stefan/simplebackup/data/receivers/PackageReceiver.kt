@@ -17,18 +17,16 @@ class PackageReceiver(
      */
     override fun onReceive(context: Context, intent: Intent) {
         scope.launch(ioDispatcher) {
-            intent.data?.let {
-                val packageName = it.encodedSchemeSpecificPart
+            intent.data?.apply {
+                val packageName = encodedSchemeSpecificPart
                 packageListener.apply {
-                    when (intent.action) {
-                        Intent.ACTION_PACKAGE_ADDED -> {
+                    when {
+                        intent.action == Intent.ACTION_PACKAGE_ADDED -> {
                             insertOrUpdatePackage(packageName)
                         }
-                        Intent.ACTION_PACKAGE_REMOVED -> {
+                        intent.action == Intent.ACTION_PACKAGE_REMOVED &&
+                                intent.extras?.getBoolean(Intent.EXTRA_REPLACING) == false -> {
                             deletePackage(packageName)
-                        }
-                        Intent.ACTION_PACKAGE_REPLACED -> {
-                            insertOrUpdatePackage(packageName)
                         }
                     }
                 }

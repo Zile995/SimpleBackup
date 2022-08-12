@@ -24,7 +24,7 @@ class RestoreUtil(
         val database = AppDatabase.getInstance(appContext)
         val repository = AppRepository(database.appDao())
         restoreItems.forEach { item ->
-            repository.getAppData(item).also { app ->
+            repository.getAppData(item)?.also { app ->
                 ZipUtil.extractAllData(app)
             }
         }

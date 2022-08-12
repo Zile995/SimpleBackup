@@ -28,7 +28,7 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) : Corouti
                     PreferenceHelper.resetSequenceNumber()
                     appManager.apply {
                         dataBuilder().collect { app ->
-                            repository.insert(app)
+                            repository.insertAppData(app)
                         }
                     }
                 }

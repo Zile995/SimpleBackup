@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.ui.adapters
 
-import android.util.Log
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import com.stefan.simplebackup.data.model.AppData
@@ -45,7 +44,6 @@ abstract class BaseAdapter(
         currentList.forEachIndexed { index, item ->
             if (!item.isSelected) {
                 item.isSelected = true
-                Log.d("Adapter", "New selection on position $index")
                 notifyItemChanged(index)
             }
         }
@@ -56,7 +54,6 @@ abstract class BaseAdapter(
         currentList.forEachIndexed { index, item ->
             if (item.isSelected) {
                 item.isSelected = false
-                Log.d("Adapter", "Removing selection on position $index")
                 notifyItemChanged(index)
             }
         }

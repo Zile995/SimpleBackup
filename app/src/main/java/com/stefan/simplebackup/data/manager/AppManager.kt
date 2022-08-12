@@ -64,8 +64,6 @@ class AppManager(private val context: Context) {
         val changedPackages = getChangedPackages()
         changedPackages?.let { changed ->
             saveSequenceNumber(changed.sequenceNumber)
-            if (changedPackages.sequenceNumber == PreferenceHelper.getSequenceNumber)
-                return@flow
             changed.packageNames.filter { packageName ->
                 packageName != context.packageName
             }.forEach { packageName ->

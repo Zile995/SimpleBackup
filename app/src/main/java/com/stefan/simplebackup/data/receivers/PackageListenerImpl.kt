@@ -35,14 +35,13 @@ class PackageListenerImpl(application: MainApplication) : PackageListener {
     override suspend fun insertOrUpdatePackage(packageName: String) {
         Log.d("PackageListener", "Adding or updating the $packageName")
         appManager.apply {
-            repository.insert(build(packageName))
-            updateSequenceNumber()
+            val newApp = build(packageName)
+            repository.insertAppData(newApp)
         }
     }
 
     override suspend fun deletePackage(packageName: String) {
         Log.d("PackageListener", "Deleting the $packageName")
         repository.delete(packageName)
-        appManager.updateSequenceNumber()
     }
 }
