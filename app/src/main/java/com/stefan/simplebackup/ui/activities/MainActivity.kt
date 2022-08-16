@@ -76,7 +76,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        prepareLayoutWhenSearching()
         setContentView(binding.root)
         setNavController()
         binding.apply {
@@ -112,7 +111,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        mainActivityAnimator.shrinkSearchBarToInitialSize()
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
 
@@ -124,10 +122,6 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
         super.onSaveInstanceState(outState, outPersistentState)
         outState.putBoolean("isSubmitted", isSubmitted)
-    }
-
-    private fun prepareLayoutWhenSearching() {
-        mainActivityAnimator.prepareWhenSearching(mainViewModel.isSearching.value)
     }
 
     private fun setNavController() {
@@ -158,32 +152,36 @@ class MainActivity : AppCompatActivity() {
     private fun ActivityMainBinding.bindViews() {
         window.setBackgroundDrawableResource(R.color.background)
         bindAppBarLayout()
-        bindToolBar()
         bindSearchBar()
+        bindToolBar()
         bindBottomNavigationView()
     }
 
     private fun ActivityMainBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 mainViewModel.apply {
                     launch {
                         isSearching.collect { isSearching ->
+                            if (isSelected.value) return@collect
+                            Log.d("Observers", "Proceeding with searching stateflow")
                             if (isSearching) {
-                                navigationBar.fadeOut(mainActivityAnimator.animationDuration)
-                                floatingButton.fadeOut(mainActivityAnimator.animationDuration)
                                 floatingButton.setOnClickListener(null)
+                                navigationBar.fadeOut(150L)
+                                floatingButton.fadeOut(150L)
+                                mainActivityAnimator.animateSearchBarOnClick()
                             } else {
-                                floatingButton.isVisible = false
-                                navigationBar.fadeIn(mainActivityAnimator.animationDuration)
+                                navigationBar.fadeIn(150L)
+                                mainActivityAnimator.shrinkSearchBarToInitialSize()
                             }
-                            materialToolbar.changeWhenSearching(isSearching,
+                            materialToolbar.changeOnSearch(isSearching,
                                 setNavigationOnClickListener = {
                                     onSupportNavigateUp()
                                 })
                         }
                     }
                     isSelected.collect { isSelected ->
+                        if (isSearching.value) return@collect
                         expandAppBarLayout(isSelected)
                         if (isSelected) {
                             navigationBar.moveVertically(
@@ -198,6 +196,7 @@ class MainActivity : AppCompatActivity() {
                                 })
                         } else {
                             if (navigationBar.marginBottom == navigationBar.height) return@collect
+                            Log.d("Observers", "Proceeding with !selection stateflow")
                             navigationBar.moveVertically(
                                 mainActivityAnimator.animationDuration,
                                 0f
@@ -209,15 +208,13 @@ class MainActivity : AppCompatActivity() {
                                 navHostContainer.requestLayout()
                             }
                         }
-                        floatingButton.changeOnSelection(isSelected)
-                        materialToolbar.changeOnSelection(isSelected, setSelectionMode)
                         if (isSelected) {
-                            if (isAppBarCollapsed) delay(250)
                             mainActivityAnimator.animateSearchBarOnSelection()
                         } else {
-                            if (isAppBarCollapsed) delay(250)
                             mainActivityAnimator.shrinkSearchBarToInitialSize()
                         }
+                        floatingButton.changeOnSelection(isSelected)
+                        materialToolbar.changeOnSelection(isSelected, setSelectionMode)
                     }
                 }
             }
@@ -234,7 +231,7 @@ class MainActivity : AppCompatActivity() {
                 appBarLayout.setExpanded(shouldExpand, true)
             } else {
                 if (shouldMoveFragmentUp) {
-                    Log.d("AppBarExpanding", "Calling again onCollapse")
+                    Log.d("AppBarLayout", "Collapsing the AppBarLayout")
                     appBarLayout.setExpanded(!shouldMoveFragmentUp, true)
                 }
             }
@@ -265,30 +262,13 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun ActivityMainBinding.bindSearchBar() {
-        expandTheSearchBarWhenSearching()
         materialSearchBar.setOnClickListener {
             navigateToSearchFragment()
-            mainActivityAnimator.animateSearchBarOnClick()
-        }
-    }
-
-    private fun ActivityMainBinding.expandTheSearchBarWhenSearching() {
-        root.doOnPreDraw {
-            if (mainViewModel.isSearching.value || mainViewModel.isSelected.value) {
-                // If we are searching, fill the parent (we need reverse animations later)
-                materialSearchBar.fillTheParent()
-            }
         }
     }
 
     private fun ActivityMainBinding.bindToolBar() {
-        materialToolbar.title = getString(R.string.search_for_apps)
-        materialToolbar.tooltipText = null
         materialToolbar.inflateMenu(R.menu.main_tool_bar)
-        materialToolbar.setNavigationIcon(R.drawable.ic_search)
-        materialToolbar.setNavigationOnClickListener {
-            materialSearchBar.performClick()
-        }
         materialToolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.action_search -> {
@@ -317,8 +297,8 @@ class MainActivity : AppCompatActivity() {
     private fun ActivityMainBinding.bindBottomNavigationView() {
         navigationBar.navigateWithAnimation(navController, doBeforeNavigating = {
             floatingButton.setOnClickListener(null)
-            return@navigateWithAnimation !mainViewModel.isSearching.value
-                    || !mainViewModel.isSelected.value
+            return@navigateWithAnimation !(mainViewModel.isSearching.value
+                    || mainViewModel.isSelected.value)
         })
     }
 

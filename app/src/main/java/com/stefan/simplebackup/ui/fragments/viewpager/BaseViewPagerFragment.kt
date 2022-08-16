@@ -39,15 +39,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
         getOnPageChangeCallback()
     }
 
-    private val tabPositions by lazy {
-        val tabPositions = mutableListOf<Int>()
-        for (position in 0 until tabLayout.tabCount) {
-            tabPositions.add(position)
-        }
-        tabPositions
-    }
-
-    abstract fun createFragments(): ArrayList<BaseFragment<*>>
+    abstract fun createFragments(): ArrayList<BaseFragment<out ViewBinding>>
     abstract fun configureTabText(): ArrayList<String>
 
     override fun onCreateView(
@@ -90,7 +82,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
     }
 
     private fun getVisibleFragment() =
-        childFragmentManager.fragments[viewPager.currentItem] as BaseFragment<*>
+        childFragmentManager.fragments[viewPager.currentItem] as BaseFragment<out ViewBinding>
 
     fun selectAllItems() {
         val childFragment = getVisibleFragment()
@@ -129,17 +121,28 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
         }
 
     private fun setupViewPager() {
-        viewPager.adapter = ViewPagerAdapter(
-            createFragments(),
-            childFragmentManager,
-            viewLifecycleOwner.lifecycle
-        )
-        registerViewPagerCallbacks(cachedPageChangeCallback)
+        viewPager.apply {
+            adapter = ViewPagerAdapter(
+                createFragments(),
+                childFragmentManager,
+                viewLifecycleOwner.lifecycle
+            )
+            viewPager.registerOnPageChangeCallback(cachedPageChangeCallback)
+        }
+    }
+
+    private fun getTabPositions() = run {
+        val tabPositions = mutableListOf<Int>()
+        for (position in 0 until tabLayout.tabCount) {
+            tabPositions.add(position)
+        }
+        tabPositions
     }
 
     private fun controlTabs(shouldEnableTabs: Boolean) {
         // Have to doOnPreDraw because the selectedTabPosition update is slow on configuration change
         binding.root.doOnPreDraw {
+            val tabPositions = getTabPositions()
             tabPositions.filter { position ->
                 position != tabLayout.selectedTabPosition
             }.forEach { notSelectedPosition ->
@@ -149,14 +152,6 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
             viewPager.isUserInputEnabled = shouldEnableTabs
         }
     }
-
-    private fun registerViewPagerCallbacks(
-        callback: ViewPager2.OnPageChangeCallback
-    ) = viewPager.registerOnPageChangeCallback(callback)
-
-    private fun unregisterViewPagerCallbacks(
-        callback: ViewPager2.OnPageChangeCallback
-    ) = viewPager.unregisterOnPageChangeCallback(callback)
 
     private fun stopProgressBarSpinning() {
         childFragmentManager.findFragmentByClass<FavoritesFragment>()?.apply {
@@ -179,7 +174,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
     }
 
     override fun onCleanUp() {
-        unregisterViewPagerCallbacks(cachedPageChangeCallback)
+        viewPager.unregisterOnPageChangeCallback(cachedPageChangeCallback)
         viewPager.adapter = null
         _tabLayout = null
         _viewPager = null

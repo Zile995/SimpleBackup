@@ -5,8 +5,6 @@ import android.util.AttributeSet
 import androidx.core.view.doOnPreDraw
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.utils.extensions.isVisible
-import com.stefan.simplebackup.utils.extensions.moveVertically
 
 class MainFloatingButton(
     context: Context,

@@ -103,7 +103,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
             }
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    mainViewModel.isSelected.collect { isSelected ->
+                    mainViewModel.isSelected.collect {
                         // TODO: Add floating button action...
                     }
                 }

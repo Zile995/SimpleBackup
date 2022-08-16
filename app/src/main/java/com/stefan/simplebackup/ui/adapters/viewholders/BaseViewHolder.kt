@@ -6,7 +6,6 @@ import com.google.android.material.card.MaterialCardView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
-import com.stefan.simplebackup.utils.extensions.isVisible
 
 sealed class BaseViewHolder(
     binding: ViewBinding,

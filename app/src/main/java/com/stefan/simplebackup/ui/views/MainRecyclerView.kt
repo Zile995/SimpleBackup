@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.DisplayMetrics
-import android.view.MotionEvent
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView

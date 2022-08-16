@@ -37,8 +37,9 @@ class AppRepository(private val appDao: AppDao) {
         }
     }
 
-    suspend fun changeFavorites(uid: Int) =
+    suspend fun changeFavorites(uid: Int) {
         appDao.updateFavorite(uid)
+    }
 
     suspend fun isFavorite(packageName: String) = appDao.isFavorite(packageName)
 

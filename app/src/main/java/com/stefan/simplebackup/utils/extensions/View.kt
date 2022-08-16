@@ -10,7 +10,6 @@ import android.widget.ImageView
 import androidx.annotation.ColorRes
 import androidx.annotation.IdRes
 import androidx.core.animation.doOnEnd
-import androidx.core.animation.doOnResume
 import androidx.core.animation.doOnStart
 import androidx.core.view.postDelayed
 import androidx.navigation.NavDestination
@@ -51,32 +50,11 @@ fun NavDestination.doesMatchDestination(@IdRes destId: Int): Boolean =
         navDestination.id == destId
     }
 
-fun View.changeBackgroundColor(context: Context, @ColorRes color: Int) {
-    setBackgroundColor(
-        context.getColorFromResource(color)
-    )
-}
-
-inline fun View.moveVertically(
-    animationDuration: Long = 300L,
-    value: Float,
-    crossinline doOnStart: () -> Unit = {},
-    crossinline doOnEnd: () -> Unit = {}
-) {
-    show()
-    ObjectAnimator.ofFloat(this, "translationY", value).apply {
-        duration = animationDuration
-        doOnStart {
-            this@moveVertically.postDelayed(50L) {
-                doOnStart()
-            }
-        }
-        doOnEnd {
-            this@moveVertically.postDelayed(50L) {
-                doOnEnd()
-            }
-        }
-        start()
+fun View.changeBackgroundColor(context: Context?, @ColorRes color: Int) {
+    context?.let { safeContext ->
+        setBackgroundColor(
+            safeContext.getColorFromResource(color)
+        )
     }
 }
 
@@ -84,7 +62,7 @@ inline fun View.fadeIn(
     animationDuration: Long = 300L,
     crossinline onAnimationEnd: () -> Unit = {}
 ) {
-    if (isVisible || alpha != 0f) return
+    if (isVisible) return
     animate()
         .alpha(1f)
         .setDuration(animationDuration)
@@ -103,7 +81,7 @@ inline fun View.fadeOut(
     animationDuration: Long = 300L,
     crossinline onAnimationEnd: () -> Unit = {}
 ) {
-    if (!isVisible || alpha == 0f) return
+    if (!isVisible) return
     animate()
         .alpha(0f)
         .setDuration(animationDuration)

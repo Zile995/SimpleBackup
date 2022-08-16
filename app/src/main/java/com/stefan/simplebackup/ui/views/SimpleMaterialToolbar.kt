@@ -9,7 +9,6 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
 
-
 class SimpleMaterialToolbar(
     context: Context, attrs: AttributeSet?,
     defStyleAttr: Int
@@ -20,10 +19,10 @@ class SimpleMaterialToolbar(
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, R.attr.toolbarStyle)
 
     init {
-        propagateClickEventsToParent()
+        setDefaultState()
     }
 
-    inline fun changeWhenSearching(
+    inline fun changeOnSearch(
         isSearching: Boolean,
         crossinline setNavigationOnClickListener: () -> Unit = {}
     ) {
@@ -33,18 +32,16 @@ class SimpleMaterialToolbar(
             removeClickListeners()
             setNavigationIcon(R.drawable.ic_arrow_back)
             setNavigationContentDescription(R.string.back)
-            menu?.findItem(R.id.add_to_favorites)?.isVisible = false
             menu?.findItem(R.id.select_all)?.isVisible = false
             menu?.findItem(R.id.action_search)?.isVisible = true
+            menu?.findItem(R.id.add_to_favorites)?.isVisible = false
             setNavigationOnClickListener {
-                if (animationFinished) {
+                if (animationFinished)
                     setNavigationOnClickListener.invoke()
-                }
             }
         } else {
-            resetToSearchState()
+            setDefaultState()
         }
-
     }
 
     inline fun changeOnSelection(
@@ -52,25 +49,24 @@ class SimpleMaterialToolbar(
         crossinline selectionModeCallBack: SelectionModeCallBack = {}
     ) {
         if (isSelected) {
-            removeTitle()
             removeRipple()
+            title = "1 item"
             removeClickListeners()
             setNavigationIcon(R.drawable.ic_close)
             setNavigationContentDescription(R.string.clear_selection)
             menu?.findItem(R.id.select_all)?.isVisible = true
-            menu?.findItem(R.id.add_to_favorites)?.isVisible = true
             menu?.findItem(R.id.action_search)?.isVisible = false
+            menu?.findItem(R.id.add_to_favorites)?.isVisible = true
             setNavigationOnClickListener {
-                if (animationFinished) {
-                    selectionModeCallBack.invoke(false)
-                }
+                if (animationFinished)
+                    selectionModeCallBack(false)
             }
         } else {
-            resetToSearchState()
+            setDefaultState()
         }
     }
 
-    fun resetToSearchState() {
+    fun setDefaultState() {
         addRipple()
         setDefaultTitle()
         propagateClickEventsToParent()
@@ -97,12 +93,12 @@ class SimpleMaterialToolbar(
         }
     }
 
-    fun removeRipple() {
-        setBackgroundResource(0)
-    }
-
     fun removeTitle() {
         title = null
+    }
+
+    fun removeRipple() {
+        setBackgroundResource(0)
     }
 
     private fun setDefaultTitle() {
@@ -128,9 +124,6 @@ class SimpleMaterialToolbar(
             if (animationFinished) {
                 parentView.performClick()
             }
-        }
-        setOnLongClickListener {
-            parentView.performLongClick()
         }
     }
 }

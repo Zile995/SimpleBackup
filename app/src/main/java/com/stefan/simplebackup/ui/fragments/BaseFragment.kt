@@ -54,6 +54,13 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         }
     }
 
+    fun clearSelection() {
+        _mainRecyclerView?.apply {
+            val currentAdapter = adapter as BaseAdapter
+            currentAdapter.clearSelection()
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
     fun getRecyclerView() {
         val vbClass =
@@ -73,6 +80,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                 mainViewModel.isSelected.collect { isSelected ->
+                    if (!isSelected) clearSelection()
                     onMainActivityCallback {
                         _mainRecyclerView?.isNestedScrollingEnabled = !isSelected
                     }

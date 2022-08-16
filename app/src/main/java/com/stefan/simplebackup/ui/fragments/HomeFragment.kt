@@ -110,11 +110,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    mainViewModel.isSelected.collect { isSelected ->
+                    mainViewModel.isSelected.collect {
                         // TODO: Add floating button action...
-                        if (!isSelected) {
-                            homeAdapter.clearSelection()
-                        }
                     }
                 }
                 homeViewModel.spinner.collect { isSpinning ->

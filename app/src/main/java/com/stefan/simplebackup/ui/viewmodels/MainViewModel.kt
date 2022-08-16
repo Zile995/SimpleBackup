@@ -19,7 +19,6 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     PackageListener by PackageListenerImpl(application) {
 
     var isAppBarExpanded = true
-    val isAppBarCollapsed: Boolean get() = !isAppBarExpanded
 
     private var _isSearching = MutableStateFlow(false)
     val isSearching get() = _isSearching.asStateFlow()
@@ -31,6 +30,7 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     val setSelectionMode: SelectionModeCallBack = { isSelected: Boolean ->
         _isSelected.value = isSelected
         if (!isSelected) selectionFinished = true
+        println("selectionList = $selectionList")
     }
 
     fun setSearching(isSearching: Boolean) {
@@ -38,8 +38,9 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     }
 
     fun changeFavorites() {
+        Log.d("ViewModel", "Calling changeFavorites")
         viewModelScope.launch(ioDispatcher) {
-            val semaphore = Semaphore(4)
+            val semaphore = Semaphore(5)
             selectionList.forEach { uid ->
                 semaphore.withPermit {
                     launch {
@@ -51,10 +52,10 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     }
 
     init {
+        Log.d("ViewModel", "MainViewModel created")
         viewModelScope.launch(ioDispatcher) {
             refreshPackageList()
         }
-        Log.d("ViewModel", "MainViewModel created")
     }
 
     override fun onCleared() {

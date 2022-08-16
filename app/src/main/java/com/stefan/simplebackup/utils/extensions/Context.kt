@@ -90,7 +90,7 @@ fun FragmentManager.getCurrentVisibleViewPagerFragment() =
         childFragmentManager.fragments.firstOrNull { childFragment ->
             childFragment.isVisible
         }
-    } as? BaseViewPagerFragment<*>
+    } as? BaseViewPagerFragment<out ViewBinding>
 
 inline fun <reified T : Fragment> FragmentManager.findFragmentByClass(): T? =
     fragments.firstOrNull { fragment ->

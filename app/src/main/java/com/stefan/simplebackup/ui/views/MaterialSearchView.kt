@@ -66,4 +66,9 @@ class MaterialSearchView(
         searchText.typeface = typeface
         searchText.textSize = 17f
     }
+
+    fun resetSearchView() {
+        clearFocus()
+        setQuery("", false)
+    }
 }
