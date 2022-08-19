@@ -57,7 +57,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
 
     private fun initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
+            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
                 mainViewModel.isSelected.collect { isInSelectionMode ->
                     controlTabs(shouldEnableTabs = !isInSelectionMode)
                 }

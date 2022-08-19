@@ -159,7 +159,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun ActivityMainBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
+            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
                 mainViewModel.apply {
                     launch {
                         isSearching.collect { isSearching ->

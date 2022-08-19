@@ -37,13 +37,6 @@ abstract class BaseAdapter(
             setSelected()
     }
 
-    fun setList(list: List<AppData>) {
-        list.getSelectedIndexedValues().forEach { indexedValue ->
-            indexedValue.value.isSelected = true
-        }
-        super.submitList(list)
-    }
-
     private fun List<AppData>.getSelectedIndexedValues() =
         withIndex().filter { indexedValue ->
             selectedItems.contains(indexedValue.value.packageName)

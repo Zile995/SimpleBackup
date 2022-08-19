@@ -97,7 +97,7 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
                     progressBar.isVisible = isSpinning
                     if (!isSpinning)
                         homeViewModel.observableList.collect { appList ->
-                            favoritesAdapter.setList(appList)
+                            favoritesAdapter.submitList(appList)
                         }
                 }
             }

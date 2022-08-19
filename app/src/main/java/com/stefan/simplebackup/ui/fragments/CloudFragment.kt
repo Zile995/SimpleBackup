@@ -101,7 +101,7 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
                     progressBar.isVisible = isSpinning
                     if (!isSpinning)
                         homeViewModel.observableList.collect { appList ->
-                            cloudAdapter.setList(appList)
+                            cloudAdapter.submitList(appList)
                         }
                 }
             }

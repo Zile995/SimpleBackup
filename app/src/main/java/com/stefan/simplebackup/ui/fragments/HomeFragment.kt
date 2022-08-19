@@ -115,7 +115,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                     progressBar.isVisible = isSpinning
                     if (!isSpinning)
                         homeViewModel.observableList.collect { appList ->
-                            homeAdapter.setList(appList)
+                            homeAdapter.submitList(appList)
                         }
                 }
             }
