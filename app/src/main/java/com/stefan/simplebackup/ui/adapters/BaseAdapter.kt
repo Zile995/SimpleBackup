@@ -29,7 +29,12 @@ abstract class BaseAdapter(
             is FavoritesViewHolder -> holder.bind(item)
             is SearchViewHolder -> holder.bind(item)
         }
-        holder.bindSelectedItems(item)
+        holder.setSelectedItem(item)
+    }
+
+    private fun BaseViewHolder.setSelectedItem(item: AppData) {
+        if (selectedItems.contains(item.packageName))
+            setSelected()
     }
 
     fun setList(list: List<AppData>) {

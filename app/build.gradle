@@ -2,6 +2,7 @@ plugins {
     id 'kotlin-kapt'
     id 'kotlin-android'
     id 'com.android.application'
+    id 'org.jetbrains.kotlin.plugin.parcelize'
     id 'com.google.devtools.ksp' version "$kspVersion"
     id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlinVersion"
 }

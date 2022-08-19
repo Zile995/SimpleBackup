@@ -8,6 +8,7 @@ import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
+import android.os.Bundle
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -176,6 +177,17 @@ fun Context.showToast(message: String, longDuration: Boolean = false) {
 
 fun Context.getResourceDrawable(@DrawableRes drawable: Int) =
     ContextCompat.getDrawable(this, drawable)
+
+inline fun <reified T : Enum<T>> Fragment.putEnumExtra(victim: T) {
+    val bundle = Bundle()
+    bundle.putInt(T::class.java.name, victim.ordinal)
+    arguments = bundle
+}
+
+inline fun <reified T: Enum<T>> Fragment.getEnumExtra(): T? =
+    arguments?.getInt(T::class.java.name, -1)
+        .takeUnless { it == -1 }
+        ?.let { T::class.java.enumConstants?.get(it) }
 
 fun Context.workerDialog(
     title: String,

@@ -26,7 +26,7 @@ class CloudViewPagerFragment : BaseViewPagerFragment<FragmentCloudViewPagerBindi
     }
 
     override fun createFragments(): ArrayList<BaseFragment<*>> =
-        arrayListOf(CloudFragment(), FavoritesFragment.newInstance())
+        arrayListOf(CloudFragment(), FavoritesFragment.newInstance(FavoriteType.CLOUD))
 
     override fun configureTabText(): ArrayList<String> =
         arrayListOf(

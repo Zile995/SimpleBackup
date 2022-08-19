@@ -7,9 +7,8 @@ import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import kotlinx.coroutines.CoroutineName
 
 open class HomeViewModel(
-    private val packageListener: PackageListener,
-    shouldControlSpinner: Boolean = true
-) : BaseViewModel(shouldControlSpinner) {
+    private val packageListener: PackageListener
+) : BaseViewModel() {
 
     protected val repository = packageListener.repository
     suspend fun refreshPackages() = packageListener.refreshPackageList()

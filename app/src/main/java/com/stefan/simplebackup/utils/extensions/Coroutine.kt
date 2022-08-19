@@ -8,6 +8,8 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
@@ -27,12 +29,13 @@ val coroutineExceptionHandler =
         }
     }
 
-suspend fun <T, R> Iterable<T>.pmap(f: suspend (T) -> R): List<R> = coroutineScope {
-    map {
-        async {
-            f(it)
-        }
-    }.awaitAll()
+/**
+ * - Filter the given flow list
+ */
+inline fun <T> Flow<List<T>>.filterBy(crossinline predicate: (T) -> Boolean) = run {
+    map { list ->
+        list.filter(predicate)
+    }
 }
 
 fun CoroutineScope.launchWithLogging(

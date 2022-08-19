@@ -55,7 +55,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         }
     }
 
-    private fun clearSelection() {
+    fun clearSelection() {
         _mainRecyclerView?.apply {
             val currentAdapter = adapter as BaseAdapter
             currentAdapter.clearSelection()

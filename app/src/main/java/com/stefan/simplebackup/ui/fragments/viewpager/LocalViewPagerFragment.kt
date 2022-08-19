@@ -26,7 +26,7 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
     }
 
     override fun createFragments(): ArrayList<BaseFragment<*>> =
-        arrayListOf(LocalFragment(), FavoritesFragment.newInstance())
+        arrayListOf(LocalFragment(), FavoritesFragment.newInstance(FavoriteType.LOCAL))
 
     override fun configureTabText(): ArrayList<String> =
         arrayListOf(

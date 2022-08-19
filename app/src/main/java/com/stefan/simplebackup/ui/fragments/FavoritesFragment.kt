@@ -13,11 +13,10 @@ import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.adapters.FavoritesAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
+import com.stefan.simplebackup.ui.fragments.viewpager.FavoriteType
 import com.stefan.simplebackup.ui.viewmodels.FavoritesViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
-import com.stefan.simplebackup.utils.extensions.isVisible
-import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.launch
 
 class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
@@ -25,14 +24,16 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     private val favoritesAdapter get() = _favoritesAdapter!!
 
     private val homeViewModel: FavoritesViewModel by viewModels {
+        val favoriteType = getEnumExtra<FavoriteType>()
         ViewModelFactory(
             requireActivity().application as MainApplication,
-            mainViewModel
+            mainViewModel.repository,
+            favoriteType
         )
     }
 
     fun stopProgressBarSpinning() =
-        homeViewModel.stopSpinning(false)
+        homeViewModel.setSpinning(shouldSpin = false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -134,8 +135,10 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
          * this fragment using the provided parameters.
          *
          */
-        fun newInstance() =
-            FavoritesFragment()
+        fun newInstance(favoriteType: FavoriteType) =
+            FavoritesFragment().apply {
+                putEnumExtra(favoriteType)
+            }
     }
 
 }

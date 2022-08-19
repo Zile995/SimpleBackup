@@ -30,8 +30,8 @@ sealed class BaseViewModel(private val shouldControlSpinner: Boolean = true) : V
         state = parcelable
     }
 
-    fun stopSpinning(shouldStopSpinning: Boolean) {
-        _spinner.value = shouldStopSpinning
+    fun setSpinning(shouldSpin: Boolean) {
+        _spinner.value = shouldSpin
     }
 
     protected suspend fun loadList(repositoryList: () -> Flow<List<AppData>>) {

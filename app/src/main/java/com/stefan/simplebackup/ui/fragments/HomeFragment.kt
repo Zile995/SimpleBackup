@@ -9,15 +9,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.databinding.FragmentHomeBinding
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
-import com.stefan.simplebackup.ui.activities.ProgressActivity
 import com.stefan.simplebackup.ui.adapters.HomeAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
-import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.passBundleToActivity
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -73,7 +70,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     private fun FragmentHomeBinding.bindViews() {
         bindSwipeContainer()
         bindRecyclerView()
-        bindBackupChip()
+        //bindBackupChip()
     }
 
     private fun FragmentHomeBinding.bindSwipeContainer() {
@@ -93,8 +90,8 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         }
     }
 
-    private fun FragmentHomeBinding.bindBackupChip() {
-        // TODO: Add floating button action...
+//    private fun FragmentHomeBinding.bindBackupChip() {
+//        TODO: Add floating button action...
 //        batchBackup.setOnClickListener {
 //            // Fix passing empty list if user deselect last item quickly and click on backup button
 //            if (mainViewModel.selectionList.isEmpty()) return@setOnClickListener
@@ -104,7 +101,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
 //                )
 //            }
 //        }
-    }
+//    }
 
     private fun FragmentHomeBinding.initObservers() {
         launchOnViewLifecycle {

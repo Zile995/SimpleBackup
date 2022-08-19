@@ -2,8 +2,7 @@ package com.stefan.simplebackup.data.local.repository
 
 import com.stefan.simplebackup.data.local.database.AppDao
 import com.stefan.simplebackup.data.model.AppData
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import com.stefan.simplebackup.utils.extensions.filterBy
 
 class AppRepository(private val appDao: AppDao) {
     val installedApps
@@ -18,15 +17,6 @@ class AppRepository(private val appDao: AppDao) {
         get() = appDao.getAllApps().filterBy { app ->
             app.isCloud
         }
-
-    /**
-     * - Filter the given flow list
-     */
-    private inline fun <T> Flow<List<T>>.filterBy(crossinline predicate: (T) -> Boolean) = run {
-        map { list ->
-            list.filter(predicate)
-        }
-    }
 
     suspend fun insertAppData(app: AppData) {
         if (isFavorite(app.packageName) == true) {
