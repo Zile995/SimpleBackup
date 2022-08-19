@@ -27,6 +27,14 @@ val coroutineExceptionHandler =
         }
     }
 
+suspend fun <T, R> Iterable<T>.pmap(f: suspend (T) -> R): List<R> = coroutineScope {
+    map {
+        async {
+            f(it)
+        }
+    }.awaitAll()
+}
+
 fun CoroutineScope.launchWithLogging(
     context: CoroutineContext = EmptyCoroutineContext,
     block: suspend CoroutineScope.() -> Unit

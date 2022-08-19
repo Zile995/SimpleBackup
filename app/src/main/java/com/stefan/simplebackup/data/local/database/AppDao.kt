@@ -25,24 +25,21 @@ interface AppDao {
     suspend fun clear()
 
     @Transaction
-    suspend fun updateFavorite(uid: Int) {
-        setFavorite(uid, !(getData(uid)?.favorite ?: false))
+    suspend fun updateFavorite(packageName: String) {
+        setFavorite(packageName, !(getData(packageName)?.favorite ?: false))
     }
 
     @Query("SELECT favorite FROM app_table WHERE package_name = :packageName")
     suspend fun isFavorite(packageName: String): Boolean?
 
-    @Query("UPDATE app_table SET favorite = :setFavorite WHERE uid = :uid ")
-    suspend fun setFavorite(uid: Int, setFavorite: Boolean)
+    @Query("UPDATE app_table SET favorite = :setFavorite WHERE package_name = :packageName ")
+    suspend fun setFavorite(packageName: String, setFavorite: Boolean)
 
     @Query(
         "DELETE FROM app_table" +
                 " WHERE package_name = :packageName AND is_local =1 AND is_local =:selectCloudOnly"
     )
     suspend fun deleteBackup(packageName: String, selectCloudOnly: Boolean = false)
-
-    @Query("SELECT * FROM app_table WHERE uid = :uid")
-    suspend fun getData(uid: Int): AppData?
 
     @Query("SELECT * FROM app_table WHERE package_name = :packageName")
     suspend fun getData(packageName: String): AppData?

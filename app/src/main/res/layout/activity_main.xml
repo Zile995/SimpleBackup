@@ -81,7 +81,7 @@
         android:backgroundTint="@color/floatingButton"
         android:contentDescription="@string/scroll_to_top"
         android:text="@string/configure"
-        android:visibility="gone"
+        android:visibility="visible"
         app:fabCustomSize="54dp"
         app:icon="@drawable/ic_arrow_up" />
 
@@ -91,6 +91,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/bottom_navigation_height"
         android:layout_gravity="bottom"
+        android:visibility="gone"
         android:background="@color/bottomView"
         app:labelVisibilityMode="labeled"
         app:layout_insetEdge="bottom"

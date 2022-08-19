@@ -11,7 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class ProgressViewModel(
-    private val selectionList: IntArray?,
+    private val selectionList: Array<String>?,
     application: MainApplication
 ) : ViewModel() {
 

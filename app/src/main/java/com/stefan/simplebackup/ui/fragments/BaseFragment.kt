@@ -15,6 +15,7 @@ import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.viewBinding
+import kotlinx.coroutines.delay
 import java.lang.reflect.ParameterizedType
 
 abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB>,
@@ -54,7 +55,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         }
     }
 
-    fun clearSelection() {
+    private fun clearSelection() {
         _mainRecyclerView?.apply {
             val currentAdapter = adapter as BaseAdapter
             currentAdapter.clearSelection()
@@ -80,7 +81,10 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                 mainViewModel.isSelected.collect { isSelected ->
-                    if (!isSelected) clearSelection()
+                    if (!isSelected) {
+                        delay(250L)
+                        clearSelection()
+                    }
                     onMainActivityCallback {
                         _mainRecyclerView?.isNestedScrollingEnabled = !isSelected
                     }

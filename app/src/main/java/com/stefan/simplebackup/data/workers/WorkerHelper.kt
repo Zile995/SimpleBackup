@@ -8,12 +8,12 @@ const val SHOULD_BACKUP = "WORKER_TYPE"
 const val WORK_NAME = "SIMPLE_WORK"
 
 class WorkerHelper(
-    private val workItems: IntArray,
+    private val workItems: Array<String>,
     val workManager: WorkManager
 ) {
 
-    constructor(uid: Int, workManager: WorkManager) : this(
-        intArrayOf(uid),
+    constructor(packageName: String, workManager: WorkManager) : this(
+        arrayOf(packageName),
         workManager
     )
 
@@ -35,7 +35,7 @@ class WorkerHelper(
 
     fun createInputData(shouldBackup: Boolean): Data {
         val builder = Data.Builder()
-        return builder.putIntArray(INPUT_LIST, workItems)
+        return builder.putStringArray(INPUT_LIST, workItems)
             .putBoolean(SHOULD_BACKUP, shouldBackup)
             .build()
     }

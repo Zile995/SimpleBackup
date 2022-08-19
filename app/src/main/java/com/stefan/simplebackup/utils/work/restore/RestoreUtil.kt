@@ -12,7 +12,7 @@ private const val DATA: String = "/data/data"
 
 class RestoreUtil(
     private val appContext: Context,
-    private val restoreItems: IntArray
+    private val restoreItems: Array<String>
 ) {
 
     private var currentProgress = 0

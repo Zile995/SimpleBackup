@@ -29,7 +29,7 @@ class ViewModelFactory(
                 additionalProperty as AppRepository
             )
             ProgressViewModel::class.java -> ProgressViewModel(
-                additionalProperty as? IntArray?,
+                additionalProperty as? Array<String>?,
                 application
             )
             DetailsViewModel::class.java -> DetailsViewModel(
@@ -37,7 +37,7 @@ class ViewModelFactory(
                 application
             )
             ProgressViewModel::class.java -> ProgressViewModel(
-                additionalProperty as? IntArray?,
+                additionalProperty as? Array<String>?,
                 application
             )
             else -> modelClass.newInstance()

@@ -63,12 +63,12 @@ class AppManager(private val context: Context) {
     fun getChangedPackageNames(): Flow<String> = flow {
         val changedPackages = getChangedPackages()
         changedPackages?.let { changed ->
-            saveSequenceNumber(changed.sequenceNumber)
             changed.packageNames.filter { packageName ->
                 packageName != context.packageName
             }.forEach { packageName ->
                 emit(packageName)
             }
+            saveSequenceNumber(changed.sequenceNumber)
         }
     }
 

@@ -24,7 +24,7 @@ import java.io.IOException
 @Suppress("BlockingMethodInNonBlockingContext")
 class BackupUtil(
     private val appContext: Context,
-    private val backupItems: IntArray,
+    private val backupItems: Array<String>,
     private val updateForegroundInfo: ForegroundCallback
 ) {
     // Progress variables
@@ -87,7 +87,7 @@ class BackupUtil(
     ): WorkResult {
         return when {
             this == null -> {
-                    updateWhenAppDoesNotExists()
+                updateWhenAppDoesNotExists()
             }
             else -> {
                 try {

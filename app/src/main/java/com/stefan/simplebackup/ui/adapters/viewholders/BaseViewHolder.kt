@@ -26,7 +26,13 @@ sealed class BaseViewHolder(
         }
     }
 
-    fun setSelected() {
+    fun bindSelectedItems(item: AppData) {
+        if (item.isSelected) {
+            setSelected()
+        }
+    }
+
+    private fun setSelected() {
         cardView.apply {
             setCardBackgroundColor(
                 context.getColor(R.color.cardViewSelected)

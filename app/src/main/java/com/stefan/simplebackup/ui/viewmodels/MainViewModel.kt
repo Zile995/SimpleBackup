@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlin.system.measureTimeMillis
 
 class MainViewModel(application: MainApplication) : ViewModel(),
     PackageListener by PackageListenerImpl(application) {
@@ -25,7 +26,7 @@ class MainViewModel(application: MainApplication) : ViewModel(),
 
     // Selection properties
     private var _isSelected = MutableStateFlow(false)
-    val selectionList = mutableListOf<Int>()
+    val selectionList = mutableListOf<String>()
     val isSelected = _isSelected.asStateFlow()
     val setSelectionMode: SelectionModeCallBack = { isSelected: Boolean ->
         _isSelected.value = isSelected
@@ -40,14 +41,17 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     fun changeFavorites() {
         Log.d("ViewModel", "Calling changeFavorites")
         viewModelScope.launch(ioDispatcher) {
-            val semaphore = Semaphore(5)
-            selectionList.forEach { uid ->
-                semaphore.withPermit {
-                    launch {
-                        repository.changeFavorites(uid)
+            val time = measureTimeMillis {
+                val semaphore = Semaphore(5)
+                selectionList.forEach { packageName ->
+                    semaphore.withPermit {
+                        launch {
+                            repository.changeFavorites(packageName)
+                        }
                     }
                 }
             }
+            Log.d("ViewModel", "Finished changing favorites in $time ms")
         }
     }
 

@@ -22,11 +22,11 @@ class PackageReceiver(
                 packageListener.apply {
                     when {
                         intent.action == Intent.ACTION_PACKAGE_ADDED -> {
-                            insertOrUpdatePackage(packageName)
+                            onActionPackageAdded(packageName)
                         }
                         intent.action == Intent.ACTION_PACKAGE_REMOVED &&
                                 intent.extras?.getBoolean(Intent.EXTRA_REPLACING) == false -> {
-                            deletePackage(packageName)
+                            onActionPackageRemoved(packageName)
                         }
                     }
                 }

@@ -85,9 +85,11 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
         childFragmentManager.fragments[viewPager.currentItem] as BaseFragment<out ViewBinding>
 
     fun selectAllItems() {
-        val childFragment = getVisibleFragment()
-        println("Current child fragment = $childFragment")
-        childFragment.selectAllItems()
+        launchOnViewLifecycle {
+            val childFragment = getVisibleFragment()
+            println("Current child fragment = $childFragment")
+            childFragment.selectAllItems()
+        }
     }
 
     fun shouldMoveFragmentUp() =

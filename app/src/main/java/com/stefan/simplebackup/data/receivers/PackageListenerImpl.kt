@@ -44,4 +44,14 @@ class PackageListenerImpl(application: MainApplication) : PackageListener {
         Log.d("PackageListener", "Deleting the $packageName")
         repository.delete(packageName)
     }
+
+    override suspend fun onActionPackageAdded(packageName: String) {
+        insertOrUpdatePackage(packageName)
+        appManager.updateSequenceNumber()
+    }
+
+    override suspend fun onActionPackageRemoved(packageName: String) {
+        deletePackage(packageName)
+        appManager.updateSequenceNumber()
+    }
 }

@@ -8,7 +8,7 @@ import com.stefan.simplebackup.ui.adapters.viewholders.SearchViewHolder
 import com.stefan.simplebackup.utils.extensions.viewBinding
 
 class SearchAdapter(
-    selectedItems: MutableList<Int>,
+    selectedItems: MutableList<String>,
     onSelectionModeCallback: SelectionModeCallBack,
     clickListener: () -> OnClickListener
 ) : BaseAdapter(selectedItems, onSelectionModeCallback, clickListener) {

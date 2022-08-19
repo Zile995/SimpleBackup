@@ -35,8 +35,8 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     params
 ), WorkNotificationHelper by WorkNotificationBuilder(appContext) {
 
-    private val items: IntArray?
-        get() = inputData.getIntArray(INPUT_LIST)
+    private val items: Array<String>?
+        get() = inputData.getStringArray(INPUT_LIST)
     private val shouldBackup: Boolean
         get() = inputData.getBoolean(SHOULD_BACKUP, true)
 

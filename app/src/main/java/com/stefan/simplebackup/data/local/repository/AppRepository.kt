@@ -29,7 +29,7 @@ class AppRepository(private val appDao: AppDao) {
     }
 
     suspend fun insertAppData(app: AppData) {
-        if (isFavorite(app.packageName) == true && !app.isLocal) {
+        if (isFavorite(app.packageName) == true) {
             app.favorite = true
             insert(app)
         } else {
@@ -37,8 +37,8 @@ class AppRepository(private val appDao: AppDao) {
         }
     }
 
-    suspend fun changeFavorites(uid: Int) {
-        appDao.updateFavorite(uid)
+    suspend fun changeFavorites(packageName: String) {
+        appDao.updateFavorite(packageName)
     }
 
     suspend fun isFavorite(packageName: String) = appDao.isFavorite(packageName)
@@ -46,7 +46,6 @@ class AppRepository(private val appDao: AppDao) {
     suspend fun insert(app: AppData) = appDao.insert(app)
     suspend fun delete(packageName: String) = appDao.delete(packageName)
 
-    suspend fun getAppData(uid: Int) = appDao.getData(uid)
     suspend fun getAppData(packageName: String) = appDao.getData(packageName)
 
     fun doesAppDataExist(packageName: String) = appDao.doesAppDataExist(packageName)

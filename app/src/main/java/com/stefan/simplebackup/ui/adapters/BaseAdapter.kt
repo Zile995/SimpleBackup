@@ -11,7 +11,7 @@ import com.stefan.simplebackup.ui.adapters.viewholders.*
 typealias SelectionModeCallBack = (Boolean) -> Unit
 
 abstract class BaseAdapter(
-    override val selectedItems: MutableList<Int>,
+    override val selectedItems: MutableList<String>,
     private val onSelectionModeCallback: SelectionModeCallBack,
     val clickListener: () -> OnClickListener
 ) : ListAdapter<AppData, BaseViewHolder>(DiffCallback()),
@@ -29,34 +29,39 @@ abstract class BaseAdapter(
             is FavoritesViewHolder -> holder.bind(item)
             is SearchViewHolder -> holder.bind(item)
         }
-        holder.setSelectedItems(item)
+        holder.bindSelectedItems(item)
     }
 
-    private fun BaseViewHolder.setSelectedItems(item: AppData) {
-        if (selectedItems.contains(item.uid)) {
-            item.isSelected = true
-            setSelected()
+    fun setList(list: List<AppData>) {
+        list.getSelectedIndexedValues().forEach { indexedValue ->
+            indexedValue.value.isSelected = true
         }
+        super.submitList(list)
     }
+
+    private fun List<AppData>.getSelectedIndexedValues() =
+        withIndex().filter { indexedValue ->
+            selectedItems.contains(indexedValue.value.packageName)
+        }
 
     fun selectAllItems() {
-        selectMultipleItems(currentList.map { it.uid })
+        if (selectedItems.size == currentList.size) return
+        val transformedList = currentList.map {
+            it.packageName
+        }
+        selectMultipleItems(transformedList)
         currentList.forEachIndexed { index, item ->
-            if (!item.isSelected) {
-                item.isSelected = true
-                notifyItemChanged(index)
-            }
+            item.isSelected = true
+            notifyItemChanged(index)
         }
     }
 
     fun clearSelection() {
-        removeAllSelectedItems()
-        currentList.forEachIndexed { index, item ->
-            if (item.isSelected) {
-                item.isSelected = false
-                notifyItemChanged(index)
-            }
+        currentList.getSelectedIndexedValues().forEach { indexedValue ->
+            indexedValue.value.isSelected = false
+            notifyItemChanged(indexedValue.index)
         }
+        removeAllSelectedItems()
     }
 
     override fun onViewRecycled(holder: BaseViewHolder) {

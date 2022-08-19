@@ -7,7 +7,7 @@ import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.views.MainActivityAnimator
 
 class BaseSelectionListenerImpl<VH : BaseViewHolder>(
-    override val selectedItems: MutableList<Int>,
+    override val selectedItems: MutableList<String>,
     private val onSelectionModeCallback: SelectionModeCallBack
 ) : SelectionListener<VH> {
 
@@ -15,18 +15,18 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
         return selectedItems.isNotEmpty()
     }
 
-    override fun selectMultipleItems(selectedItems: List<Int>) {
+    override fun selectMultipleItems(selectedItems: List<String>) {
         this.selectedItems.clear()
         this.selectedItems.addAll(selectedItems)
     }
 
-    override fun getSelected(): List<Int> = selectedItems
+    override fun getSelected(): List<String> = selectedItems
 
-    override fun addSelected(item: Int) {
+    override fun addSelected(item: String) {
         selectedItems.add(item)
     }
 
-    override fun removeSelected(item: Int) {
+    override fun removeSelected(item: String) {
         selectedItems.remove(item)
     }
 
@@ -39,12 +39,12 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
             selectionFinished = false
             if (item.isSelected && selectedItems.size == 1 && !MainActivityAnimator.animationFinished) return
             val context = cardView.context
-            if (selectedItems.contains(item.uid)) {
-                removeSelected(item.uid)
+            if (selectedItems.contains(item.packageName)) {
+                removeSelected(item.packageName)
                 item.isSelected = false
                 cardView.setCardBackgroundColor(context.getColor(R.color.cardView))
             } else {
-                addSelected(item.uid)
+                addSelected(item.packageName)
                 item.isSelected = true
                 cardView.setCardBackgroundColor(context.getColor(R.color.cardViewSelected))
             }

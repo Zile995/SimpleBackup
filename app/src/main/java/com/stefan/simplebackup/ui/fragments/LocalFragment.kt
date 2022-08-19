@@ -54,7 +54,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
                             positiveButtonText = getString(R.string.yes),
                             negativeButtonText = getString(R.string.no)
                         ) {
-                            localViewModel.startRestoreWorker(item.uid)
+                            localViewModel.startRestoreWorker(item.packageName)
                         }
                     }
                 }
@@ -111,7 +111,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
                     progressBar.isVisible = isSpinning
                     if (!isSpinning) {
                         localViewModel.observableList.collect { appList ->
-                            localAdapter.submitList(appList)
+                            localAdapter.setList(appList)
                         }
                     }
                 }

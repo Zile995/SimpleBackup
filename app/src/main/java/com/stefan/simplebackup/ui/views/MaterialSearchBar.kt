@@ -82,14 +82,10 @@ class MaterialSearchBar(
             toWidthValue = cachedWidth,
             duration = duration,
             doOnStart = {
-                isEnabled = false
-                animationFinished = false
                 doOnStart.invoke()
             },
             doOnEnd = {
                 doOnEnd.invoke()
-                isEnabled = true
-                animationFinished = true
             }
         )
     }
@@ -107,14 +103,11 @@ class MaterialSearchBar(
                 toWidthValue = parentWidth,
                 duration = duration,
                 doOnStart = {
-                    isEnabled = false
-                    animationFinished = false
                     doOnStart.invoke()
                 },
                 doOnEnd = {
                     doOnEnd.invoke()
-                    isEnabled = true
-                    animationFinished = true
+
                 }
             )
         }
@@ -151,9 +144,13 @@ class MaterialSearchBar(
         radiusAnimator.addUpdateListener { valueAnimator ->
             valueAnimator.doOnEnd {
                 doOnEnd.invoke()
+                isEnabled = true
+                animationFinished = true
             }
             radius = valueAnimator.animatedValue as Float
         }
+        isEnabled = false
+        animationFinished = false
         doOnStart.invoke()
         radiusAnimator.start()
         heightAnimator.start()

@@ -44,9 +44,9 @@ class LocalViewModel(application: MainApplication, private val repository: AppRe
         }
     }
 
-    fun startRestoreWorker(uid: Int) {
+    fun startRestoreWorker(packageName: String) {
         viewModelScope.launch(Dispatchers.Default) {
-            val workerHelper = WorkerHelper(uid, workManager)
+            val workerHelper = WorkerHelper(packageName = packageName, workManager)
             workerHelper.beginUniqueWork<MainWorker>(shouldBackup = false)
         }
     }
