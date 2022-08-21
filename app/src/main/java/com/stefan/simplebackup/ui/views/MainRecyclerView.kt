@@ -4,9 +4,11 @@ import android.content.Context
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.DisplayMetrics
+import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SimpleItemAnimator
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
 
@@ -15,6 +17,14 @@ class MainRecyclerView(
     attrs: AttributeSet?,
     defStyleAttr: Int
 ) : RecyclerView(context, attrs, defStyleAttr) {
+
+    private var areAllItemsVisible = false
+    private val linearLayoutManager get() = layoutManager as LinearLayoutManager
+
+    var itemAnimation: Boolean get() = (itemAnimator as SimpleItemAnimator).supportsChangeAnimations
+        set(value) {
+            (itemAnimator as SimpleItemAnimator).supportsChangeAnimations = value
+        }
 
     constructor(context: Context) : this(context, null)
 
@@ -26,6 +36,9 @@ class MainRecyclerView(
 
     init {
         isMotionEventSplittingEnabled = false
+        addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+            areAllItemsVisible = !canScrollUp() && !canScrollDown()
+        }
     }
 
     fun canScrollUp() = canScrollVertically(-1)
@@ -33,11 +46,15 @@ class MainRecyclerView(
     fun canScrollDown() = canScrollVertically(1)
 
     fun shouldMoveAtLastCompletelyVisibleItem(): Boolean {
-        val isVisible = isLastItemCompletelyVisible()
-        return if (isVisible) {
-            adapter?.let { smoothSnapToPosition(it.itemCount) }
-            true
-        } else false
+        val isLastItemVisible = isLastItemCompletelyVisible()
+        return !areAllItemsVisible && isLastItemVisible
+    }
+
+    fun slowlyScrollToLastItem() {
+        smoothSnapToPosition(
+            linearLayoutManager.itemCount - 1,
+            (computeVerticalScrollRange() + 4_000).toFloat()
+        )
     }
 
     fun hideAttachedButton(floatingButton: MainFloatingButton) {
@@ -57,7 +74,6 @@ class MainRecyclerView(
                 }
 
                 if (checkOnAttach) {
-                    val linearLayoutManager = layoutManager as LinearLayoutManager
                     val firstItemPosition =
                         linearLayoutManager.findFirstCompletelyVisibleItemPosition()
                     val lastItemPosition =
@@ -88,9 +104,10 @@ class MainRecyclerView(
 
     fun smoothSnapToPosition(
         position: Int,
+        scrollDuration: Float = 380f,
         snapMode: Int = LinearSmoothScroller.SNAP_TO_START
     ) {
-        val scrollDuration = 380f
+        Log.d("Recycler", "Scroll range = ${computeVerticalScrollRange()}")
         val smoothScroller = object : LinearSmoothScroller(context) {
             override fun getVerticalSnapPreference(): Int = snapMode
             override fun getHorizontalSnapPreference(): Int = snapMode
@@ -114,7 +131,6 @@ class MainRecyclerView(
         }
 
     private fun isLastItemCompletelyVisible(): Boolean {
-        val linearLayoutManager = layoutManager as LinearLayoutManager
         val lastItemPosition =
             linearLayoutManager.findLastCompletelyVisibleItemPosition()
         return lastItemPosition == linearLayoutManager.itemCount - 1

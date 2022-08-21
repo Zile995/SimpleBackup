@@ -6,6 +6,7 @@ import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.databinding.FragmentHomeBinding
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
@@ -13,6 +14,7 @@ import com.stefan.simplebackup.ui.adapters.HomeAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
+import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
@@ -36,7 +38,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         }
     }
 
-    private fun RecyclerView.setHomeAdapter() {
+    private fun MainRecyclerView.setHomeAdapter() {
         _homeAdapter =
             HomeAdapter(
                 mainViewModel.selectionList,
@@ -44,6 +46,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
             ) {
                 object : OnClickListener {
                     override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
+                        itemAnimation = false
                         val item = homeAdapter.currentList[position]
                         if (homeAdapter.hasSelectedItems()) {
                             homeAdapter.doSelection(holder as BaseViewHolder, item)
@@ -52,15 +55,18 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                                 item.passToActivity<AppDetailActivity>(context)
                             }
                         }
+                        itemAnimation = true
                     }
 
                     override fun onLongItemViewClick(
                         holder: RecyclerView.ViewHolder,
                         position: Int
                     ) {
+                        itemAnimation = false
                         val item = homeAdapter.currentList[position]
                         mainViewModel.setSelectionMode(true)
                         homeAdapter.doSelection(holder as BaseViewHolder, item)
+                        itemAnimation = true
                     }
                 }
             }

@@ -25,6 +25,7 @@ import com.stefan.simplebackup.data.receivers.NotificationReceiver
 import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
+import com.stefan.simplebackup.ui.fragments.BaseFragment
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
@@ -88,14 +89,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         if (!selectionFinished) {
-            mainViewModel.setSelectionMode(false)
             shouldExit = false
+            mainViewModel.setSelectionMode(false)
         }
         if (animationFinished && selectionFinished) {
             if (!shouldExit) {
                 launchOnViewLifecycle {
-                    showToast(R.string.press_back_again)
                     shouldExit = true
+                    showToast(R.string.press_back_again)
                     launch {
                         navController.currentDestination?.let { destination ->
                             if (destination.doesMatchDestination(R.id.home)) {
@@ -164,7 +165,6 @@ class MainActivity : AppCompatActivity() {
                     launch {
                         isSearching.collect { isSearching ->
                             if (isSelected.value) return@collect
-                            Log.d("Observers", "Proceeding with searching stateflow")
                             if (isSearching) {
                                 floatingButton.setOnClickListener(null)
                                 navigationBar.fadeOut(150L)
@@ -184,8 +184,15 @@ class MainActivity : AppCompatActivity() {
                         if (isSearching.value) return@collect
                         expandAppBarLayout(isSelected)
                         if (isSelected) {
+                            mainActivityAnimator.animateSearchBarOnSelection()
+                        } else {
+                            mainActivityAnimator.shrinkSearchBarToInitialSize()
+                        }
+                        floatingButton.changeOnSelection(isSelected)
+                        materialToolbar.changeOnSelection(isSelected, setSelectionMode)
+                        if (isSelected) {
                             navigationBar.moveVertically(
-                                mainActivityAnimator.animationDuration,
+                                200,
                                 navigationBar.height.toFloat(),
                                 doOnStart = {
                                     val layoutParams =
@@ -196,9 +203,8 @@ class MainActivity : AppCompatActivity() {
                                 })
                         } else {
                             if (navigationBar.marginBottom == navigationBar.height) return@collect
-                            Log.d("Observers", "Proceeding with !selection stateflow")
                             navigationBar.moveVertically(
-                                mainActivityAnimator.animationDuration,
+                                200,
                                 0f
                             ) {
                                 val layoutParams =
@@ -206,15 +212,9 @@ class MainActivity : AppCompatActivity() {
                                 layoutParams.bottomMargin = navigationBar.height
                                 navHostContainer.layoutParams = layoutParams
                                 navHostContainer.requestLayout()
+                                getVisibleFragment()?.fixRecyclerViewScrollPosition()
                             }
                         }
-                        if (isSelected) {
-                            mainActivityAnimator.animateSearchBarOnSelection()
-                        } else {
-                            mainActivityAnimator.shrinkSearchBarToInitialSize()
-                        }
-                        floatingButton.changeOnSelection(isSelected)
-                        materialToolbar.changeOnSelection(isSelected, setSelectionMode)
                     }
                 }
             }
@@ -223,19 +223,21 @@ class MainActivity : AppCompatActivity() {
 
     private fun expandAppBarLayout(shouldExpand: Boolean) {
         binding.apply {
-            val baseViewPagerFragment =
-                supportFragmentManager.getCurrentVisibleViewPagerFragment()
-            val shouldMoveFragmentUp = baseViewPagerFragment?.shouldMoveFragmentUp() ?: false
             if (shouldExpand) {
                 animationFinished = false
                 appBarLayout.setExpanded(shouldExpand, true)
             } else {
-                if (shouldMoveFragmentUp) {
+                if (getVisibleFragment()?.shouldMoveFragmentUp() == true) {
                     Log.d("AppBarLayout", "Collapsing the AppBarLayout")
-                    appBarLayout.setExpanded(!shouldMoveFragmentUp, true)
+                    appBarLayout.setExpanded(false, true)
                 }
             }
         }
+    }
+
+    private fun getVisibleFragment(): BaseFragment<*>? {
+        val viewPagerFragment = supportFragmentManager.getCurrentVisibleViewPagerFragment()
+        return viewPagerFragment?.getVisibleFragment()
     }
 
     private fun ActivityMainBinding.bindAppBarLayout() {

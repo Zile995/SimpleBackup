@@ -18,6 +18,7 @@ import com.stefan.simplebackup.utils.extensions.viewBinding
 import kotlinx.coroutines.delay
 import java.lang.reflect.ParameterizedType
 
+
 abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB>,
     ViewReferenceCleaner {
     protected val binding by viewBinding()
@@ -50,15 +51,19 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
 
     fun selectAllItems() {
         _mainRecyclerView?.apply {
+            itemAnimation = false
             val currentAdapter = adapter as BaseAdapter
             currentAdapter.selectAllItems()
+            itemAnimation = true
         }
     }
 
-    fun clearSelection() {
+    private fun clearSelection() {
         _mainRecyclerView?.apply {
+            itemAnimation = false
             val currentAdapter = adapter as BaseAdapter
             currentAdapter.clearSelection()
+            itemAnimation = true
         }
     }
 
@@ -77,14 +82,15 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
 
     fun shouldMoveFragmentUp() = _mainRecyclerView?.shouldMoveAtLastCompletelyVisibleItem() ?: false
 
+    fun fixRecyclerViewScrollPosition() {
+        if (shouldMoveFragmentUp()) _mainRecyclerView?.slowlyScrollToLastItem()
+    }
+
     private fun initObservers() {
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                 mainViewModel.isSelected.collect { isSelected ->
-                    if (!isSelected) {
-                        delay(250L)
-                        clearSelection()
-                    }
+                    if (!isSelected) clearSelection()
                     onMainActivityCallback {
                         _mainRecyclerView?.isNestedScrollingEnabled = !isSelected
                     }

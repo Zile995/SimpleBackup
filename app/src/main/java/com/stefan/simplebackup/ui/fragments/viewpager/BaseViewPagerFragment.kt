@@ -81,7 +81,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
         setupViewPager()
     }
 
-    private fun getVisibleFragment() =
+    fun getVisibleFragment() =
         childFragmentManager.fragments[viewPager.currentItem] as BaseFragment<out ViewBinding>
 
     fun selectAllItems() {
@@ -91,9 +91,6 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
             childFragment.selectAllItems()
         }
     }
-
-    fun shouldMoveFragmentUp() =
-        getVisibleFragment().shouldMoveFragmentUp()
 
     private fun getOnPageChangeCallback(): ViewPager2.OnPageChangeCallback =
         object : ViewPager2.OnPageChangeCallback() {

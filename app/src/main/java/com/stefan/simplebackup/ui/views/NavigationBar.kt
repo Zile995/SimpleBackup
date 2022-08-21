@@ -5,6 +5,9 @@ import android.content.Context
 import android.os.Bundle
 import android.util.AttributeSet
 import android.view.View
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.LinearInterpolator
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.view.forEach
@@ -49,15 +52,12 @@ class NavigationBar(
     ) {
         ObjectAnimator.ofFloat(this, "translationY", value).apply {
             duration = animationDuration
+            interpolator = LinearInterpolator()
             doOnStart {
-                postDelayed(50L) {
                     doOnStart()
-                }
             }
             doOnEnd {
-                postDelayed(50L) {
                     doOnEnd()
-                }
             }
             start()
         }
