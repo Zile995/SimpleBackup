@@ -14,13 +14,11 @@ class SimpleMaterialToolbar(
     defStyleAttr: Int
 ) : MaterialToolbar(context, attrs, defStyleAttr) {
 
+    var inSearchState = false
+
     constructor(context: Context) : this(context, null)
 
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, R.attr.toolbarStyle)
-
-    init {
-        setDefaultState()
-    }
 
     inline fun changeOnSearch(
         isSearching: Boolean,
@@ -39,6 +37,7 @@ class SimpleMaterialToolbar(
                 if (animationFinished)
                     setNavigationOnClickListener.invoke()
             }
+            inSearchState = false
         } else {
             setDefaultState()
         }
@@ -61,12 +60,14 @@ class SimpleMaterialToolbar(
                 if (animationFinished)
                     selectionModeCallBack(false)
             }
+            inSearchState = false
         } else {
             setDefaultState()
         }
     }
 
     fun setDefaultState() {
+        if (inSearchState) return
         addRipple()
         setDefaultTitle()
         propagateClickEventsToParent()
@@ -80,6 +81,7 @@ class SimpleMaterialToolbar(
                 (parent as View).performClick()
             }
         }
+        inSearchState = true
     }
 
     private fun addRipple() {
