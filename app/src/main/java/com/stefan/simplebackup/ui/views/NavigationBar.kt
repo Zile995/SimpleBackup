@@ -4,22 +4,16 @@ import android.animation.ObjectAnimator
 import android.content.Context
 import android.os.Bundle
 import android.util.AttributeSet
-import android.view.View
-import android.view.animation.AccelerateInterpolator
-import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.view.forEach
-import androidx.core.view.postDelayed
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavOptions
 import com.google.android.material.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.stefan.simplebackup.utils.extensions.doesMatchDestination
-import com.stefan.simplebackup.utils.extensions.isVisible
-import com.stefan.simplebackup.utils.extensions.show
 import java.lang.ref.WeakReference
 
 class NavigationBar(
@@ -45,19 +39,20 @@ class NavigationBar(
     )
 
     inline fun moveVertically(
-        animationDuration: Long = 300L,
         value: Float,
+        animationDuration: Long = 300L,
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
     ) {
+        if (!isLaidOut) return
         ObjectAnimator.ofFloat(this, "translationY", value).apply {
             duration = animationDuration
             interpolator = LinearInterpolator()
             doOnStart {
-                    doOnStart()
+                doOnStart()
             }
             doOnEnd {
-                    doOnEnd()
+                doOnEnd()
             }
             start()
         }

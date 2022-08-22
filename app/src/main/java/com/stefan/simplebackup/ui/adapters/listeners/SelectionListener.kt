@@ -10,8 +10,6 @@ interface SelectionListener<VH : RecyclerView.ViewHolder> {
 
     fun selectMultipleItems(selectedItems: List<String>)
 
-    fun getSelected(): List<String>
-
     fun addSelected(item: String)
 
     fun removeSelected(item: String)

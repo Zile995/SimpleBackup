@@ -1,8 +1,10 @@
 package com.stefan.simplebackup.ui.adapters.viewholders
 
+import androidx.core.view.doOnPreDraw
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.card.MaterialCardView.CHECKED_ICON_GRAVITY_TOP_START
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
@@ -24,10 +26,14 @@ sealed class BaseViewHolder(
             clickListener.onLongItemViewClick(this, adapterPosition)
             true
         }
+        binding.root.doOnPreDraw {
+            cardView.checkedIconGravity = CHECKED_ICON_GRAVITY_TOP_START
+        }
     }
 
     fun setSelected() {
         cardView.apply {
+            isChecked = true
             setCardBackgroundColor(
                 context.getColor(R.color.cardViewSelected)
             )
@@ -36,6 +42,7 @@ sealed class BaseViewHolder(
 
     fun unsetSelected() {
         cardView.apply {
+            isChecked = false
             setCardBackgroundColor(
                 context.getColor(R.color.cardView)
             )

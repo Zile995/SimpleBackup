@@ -53,7 +53,7 @@ class MainRecyclerView(
     fun slowlyScrollToLastItem() {
         smoothSnapToPosition(
             linearLayoutManager.itemCount - 1,
-            (computeVerticalScrollRange() + 4_000).toFloat()
+            computeVerticalScrollRange().toFloat()
         )
     }
 

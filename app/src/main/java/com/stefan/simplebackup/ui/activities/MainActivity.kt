@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
-import androidx.core.view.marginBottom
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -24,6 +23,7 @@ import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.NotificationReceiver
 import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
+import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.numberOfSelected
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
 import com.stefan.simplebackup.ui.fragments.BaseFragment
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
@@ -182,6 +182,9 @@ class MainActivity : AppCompatActivity() {
                     }
                     isSelected.collect { isSelected ->
                         if (isSearching.value) return@collect
+                        launch {
+                            observeNumberOfSelected(isSelected)
+                        }
                         expandAppBarLayout(isSelected)
                         if (isSelected) {
                             mainActivityAnimator.animateSearchBarOnSelection()
@@ -192,8 +195,8 @@ class MainActivity : AppCompatActivity() {
                         materialToolbar.changeOnSelection(isSelected, setSelectionMode)
                         if (isSelected) {
                             navigationBar.moveVertically(
-                                200,
                                 navigationBar.height.toFloat(),
+                                200,
                                 doOnStart = {
                                     val layoutParams =
                                         navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
@@ -202,10 +205,9 @@ class MainActivity : AppCompatActivity() {
                                     navHostContainer.requestLayout()
                                 })
                         } else {
-                            if (navigationBar.marginBottom == navigationBar.height) return@collect
                             navigationBar.moveVertically(
-                                200,
-                                0f
+                                0f,
+                                200
                             ) {
                                 val layoutParams =
                                     navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
@@ -217,6 +219,17 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private suspend fun ActivityMainBinding.observeNumberOfSelected(isSelected: Boolean) {
+        if (!isSelected) return
+        numberOfSelected.collect { numberOfItems ->
+            when (numberOfItems) {
+                1 -> materialToolbar.title = "$numberOfItems item"
+                0 -> {}
+                else -> materialToolbar.title = "$numberOfItems items"
             }
         }
     }

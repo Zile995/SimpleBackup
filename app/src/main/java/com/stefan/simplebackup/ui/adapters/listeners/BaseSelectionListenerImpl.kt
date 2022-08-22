@@ -5,6 +5,8 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.views.MainActivityAnimator
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     override val selectedItems: MutableList<String>,
@@ -18,9 +20,8 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     override fun selectMultipleItems(selectedItems: List<String>) {
         this.selectedItems.clear()
         this.selectedItems.addAll(selectedItems)
+        mNumberOfSelected.value = selectedItems.size
     }
-
-    override fun getSelected(): List<String> = selectedItems
 
     override fun addSelected(item: String) {
         selectedItems.add(item)
@@ -43,20 +44,26 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
                 removeSelected(item.packageName)
                 item.isSelected = false
                 cardView.setCardBackgroundColor(context.getColor(R.color.cardView))
+                cardView.isChecked = false
             } else {
                 addSelected(item.packageName)
                 item.isSelected = true
                 cardView.setCardBackgroundColor(context.getColor(R.color.cardViewSelected))
+                cardView.isChecked = true
             }
             if (selectedItems.isEmpty()) {
                 onSelectionModeCallback(false)
                 selectionFinished = true
             }
+            mNumberOfSelected.value = selectedItems.size
         }
         println("Selection list: $selectedItems")
     }
 
     companion object {
+        private var mNumberOfSelected = MutableStateFlow(0)
+        val numberOfSelected = mNumberOfSelected.asStateFlow()
+
         var selectionFinished: Boolean = true
     }
 }
