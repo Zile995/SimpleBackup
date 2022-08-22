@@ -189,6 +189,8 @@ inline fun <reified T: Enum<T>> Fragment.getEnumExtra(): T? =
         .takeUnless { it == -1 }
         ?.let { T::class.java.enumConstants?.get(it) }
 
+
+// TODO: Move dialogs to specific classes
 fun Context.workerDialog(
     title: String,
     message: String,
@@ -250,3 +252,20 @@ fun Context.permissionDialog(
     }
     alert.show()
 }
+
+fun Context.rootDialog(title: String, message: String) {
+    val builder = AlertDialog.Builder(this, R.style.DialogTheme).apply {
+        setTitle(title)
+        setMessage(message)
+        setPositiveButton(getString(R.string.OK)) { dialog, _ ->
+            dialog.cancel()
+        }
+    }
+    val alert = builder.create()
+    alert.setOnShowListener {
+        alert.getButton(AlertDialog.BUTTON_POSITIVE)
+            .setTextColor(ContextCompat.getColor(this, R.color.positiveDialog))
+    }
+    alert.show()
+}
+

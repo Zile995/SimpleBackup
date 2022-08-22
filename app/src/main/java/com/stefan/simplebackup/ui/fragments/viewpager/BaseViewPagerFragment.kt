@@ -84,14 +84,6 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
     fun getVisibleFragment() =
         childFragmentManager.fragments[viewPager.currentItem] as BaseFragment<out ViewBinding>
 
-    fun selectAllItems() {
-        launchOnViewLifecycle {
-            val childFragment = getVisibleFragment()
-            println("Current child fragment = $childFragment")
-            childFragment.selectAllItems()
-        }
-    }
-
     private fun getOnPageChangeCallback(): ViewPager2.OnPageChangeCallback =
         object : ViewPager2.OnPageChangeCallback() {
             var shouldStopSpinning = false

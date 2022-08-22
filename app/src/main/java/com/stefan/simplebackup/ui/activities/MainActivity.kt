@@ -3,13 +3,10 @@ package com.stefan.simplebackup.ui.activities
 import android.content.Intent.ACTION_PACKAGE_ADDED
 import android.content.Intent.ACTION_PACKAGE_REMOVED
 import android.os.Bundle
-import android.os.PersistableBundle
 import android.util.Log
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewModelScope
@@ -32,9 +29,7 @@ import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
 import com.stefan.simplebackup.ui.views.MainActivityAnimator
 import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
 import com.stefan.simplebackup.ui.views.MainRecyclerView
-import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
-import com.stefan.simplebackup.utils.root.RootChecker
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
@@ -51,9 +46,6 @@ class MainActivity : AppCompatActivity() {
     private val mainViewModel: MainViewModel by viewModels {
         ViewModelFactory(application as MainApplication)
     }
-
-    // Create RootChecker class instance lazily
-    private val rootChecker by lazy { RootChecker(applicationContext) }
 
     // Create MainActivityAnimator class instance lazily
     private val mainActivityAnimator by lazy {
@@ -73,7 +65,6 @@ class MainActivity : AppCompatActivity() {
 
     // Flags
     private var shouldExit = false
-    private var isSubmitted = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,16 +104,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
-    }
-
-    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        super.onRestoreInstanceState(savedInstanceState)
-        isSubmitted = savedInstanceState.getBoolean("isSubmitted")
-    }
-
-    override fun onSaveInstanceState(outState: Bundle, outPersistentState: PersistableBundle) {
-        super.onSaveInstanceState(outState, outPersistentState)
-        outState.putBoolean("isSubmitted", isSubmitted)
     }
 
     private fun setNavController() {
@@ -186,14 +167,10 @@ class MainActivity : AppCompatActivity() {
                             observeNumberOfSelected(isSelected)
                         }
                         expandAppBarLayout(isSelected)
-                        if (isSelected) {
-                            mainActivityAnimator.animateSearchBarOnSelection()
-                        } else {
-                            mainActivityAnimator.shrinkSearchBarToInitialSize()
-                        }
                         floatingButton.changeOnSelection(isSelected)
                         materialToolbar.changeOnSelection(isSelected, setSelectionMode)
                         if (isSelected) {
+                            mainActivityAnimator.animateSearchBarOnSelection()
                             navigationBar.moveVertically(
                                 navigationBar.height.toFloat(),
                                 200,
@@ -205,6 +182,7 @@ class MainActivity : AppCompatActivity() {
                                     navHostContainer.requestLayout()
                                 })
                         } else {
+                            mainActivityAnimator.shrinkSearchBarToInitialSize()
                             navigationBar.moveVertically(
                                 0f,
                                 200
@@ -287,13 +265,10 @@ class MainActivity : AppCompatActivity() {
         materialToolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.action_search -> {
-                    //val searchView = menuItem?.actionView as MaterialSearchView
+
                 }
                 R.id.select_all -> {
-                    val baseViewPagerFragment =
-                        supportFragmentManager.getCurrentVisibleViewPagerFragment()
-                    println("Current fragment = $baseViewPagerFragment")
-                    baseViewPagerFragment?.selectAllItems()
+                    getVisibleFragment()?.selectAllItems()
                 }
                 R.id.add_to_favorites -> {
                     mainViewModel.changeFavorites()
@@ -330,50 +305,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun setRootDialogs() {
         launchOnViewLifecycle {
-            if (!isSubmitted) {
-                hasRootAccess()
-                isSubmitted = true
-            }
-            if (!PreferenceHelper.isRootChecked && rootChecker.isRooted()
-                && !PreferenceHelper.isRootGranted
-            ) {
-                rootDialog(
-                    getString(R.string.root_detected),
-                    getString(R.string.not_granted)
-                )
-            } else if (!PreferenceHelper.isRootChecked && !rootChecker.isRooted()
-            ) {
-                rootDialog(
-                    getString(R.string.not_rooted),
-                    getString(R.string.not_rooted_info)
-                )
-            }
+            mainViewModel.onRootCheck(
+                onRootNotGranted = {
+                    rootDialog(
+                        getString(R.string.root_detected),
+                        getString(R.string.not_granted)
+                    )
+                },
+                onDeviceNotRooted = {
+                    rootDialog(
+                        getString(R.string.not_rooted),
+                        getString(R.string.not_rooted_info)
+                    )
+                })
         }
-    }
-
-    private suspend fun hasRootAccess() {
-        if (rootChecker.hasRootAccess() == true) {
-            PreferenceHelper.setRootGranted(true)
-        } else {
-            PreferenceHelper.setRootGranted(false)
-        }
-    }
-
-    private suspend fun rootDialog(title: String, message: String) {
-        val builder = AlertDialog.Builder(this, R.style.DialogTheme).apply {
-            setTitle(title)
-            setMessage(message)
-            setPositiveButton(getString(R.string.OK)) { dialog, _ ->
-                dialog.cancel()
-            }
-        }
-        PreferenceHelper.setRootChecked(true)
-        val alert = builder.create()
-        alert.setOnShowListener {
-            alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setTextColor(ContextCompat.getColor(this, R.color.positiveDialog))
-        }
-        alert.show()
     }
 
     fun MainRecyclerView.controlFloatingButton() {
@@ -388,5 +333,3 @@ class MainActivity : AppCompatActivity() {
         unregisterReceivers(packageReceiver, notificationReceiver)
     }
 }
-
-

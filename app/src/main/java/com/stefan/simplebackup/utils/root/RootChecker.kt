@@ -12,13 +12,11 @@ class RootChecker(private val rootContext: Context) {
 
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 
-    suspend fun isRooted(): Boolean {
+    suspend fun isDeviceRooted(): Boolean {
         return hasSuBinary() || hasRootManagerApp(rootContext)
     }
 
-    fun hasRootAccess(): Boolean? {
-        return Shell.isAppGrantedRoot()
-    }
+    fun hasRootAccess(): Boolean? = Shell.isAppGrantedRoot()
 
     private fun hasRootManagerApp(context: Context): Boolean {
         val rootPackageName = "com.topjohnwu.magisk"
@@ -47,9 +45,6 @@ class RootChecker(private val rootContext: Context) {
                     "/system/bin/failsafe/",
                     "/data/local/"
                 )
-                // Vrati prvi koji postoji (ako je true za exist()). Takva vrednost je != null, funkcija vraća true
-                // Ako ne postoji (false je za exist()) onda vrati null, pošto null nije != null, funkcija vraća false
-                // it predstavlja izabranu putanju, a su binary fajl.
                 binaryPath.firstOrNull { File(it, "su").exists() } != null
             }
         }

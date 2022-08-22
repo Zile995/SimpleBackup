@@ -8,7 +8,9 @@ import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
+import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
+import com.stefan.simplebackup.utils.root.RootChecker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -18,8 +20,10 @@ import kotlin.system.measureTimeMillis
 
 class MainViewModel(application: MainApplication) : ViewModel(),
     PackageListener by PackageListenerImpl(application) {
-
     var isAppBarExpanded = true
+
+    private var rootChecked = PreferenceHelper.isRootChecked
+    private val rootChecker = RootChecker(application.applicationContext)
 
     private var _isSearching = MutableStateFlow(false)
     val isSearching get() = _isSearching.asStateFlow()
@@ -32,6 +36,25 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         _isSelected.value = isSelected
         if (!isSelected) selectionFinished = true
         println("selectionList = $selectionList")
+    }
+
+    init {
+        Log.d("ViewModel", "MainViewModel created")
+        viewModelScope.launch(ioDispatcher) {
+            refreshPackageList()
+        }
+    }
+
+    suspend fun onRootCheck(
+        onRootNotGranted: () -> Unit,
+        onDeviceNotRooted: () -> Unit
+    ) {
+        if (rootChecked) return
+        if (rootChecker.hasRootAccess() == false && rootChecker.isDeviceRooted())
+            onRootNotGranted()
+        if (!rootChecker.isDeviceRooted()) onDeviceNotRooted()
+        rootChecked = true
+        PreferenceHelper.setRootChecked(true)
     }
 
     fun setSearching(isSearching: Boolean) {
@@ -52,13 +75,6 @@ class MainViewModel(application: MainApplication) : ViewModel(),
                 }
             }
             Log.d("ViewModel", "Finished changing favorites in $time ms")
-        }
-    }
-
-    init {
-        Log.d("ViewModel", "MainViewModel created")
-        viewModelScope.launch(ioDispatcher) {
-            refreshPackageList()
         }
     }
 
