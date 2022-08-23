@@ -75,19 +75,21 @@ class MaterialSearchBar(
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
     ) {
-        if (height == cachedHeight || width == cachedWidth || radius == cachedRadius) return
-        Log.d("MainAnimatorSearchBar", "Animating to initial size")
-        animateTo(
-            toHeightValue = cachedHeight,
-            toWidthValue = cachedWidth,
-            duration = duration,
-            doOnStart = {
-                doOnStart.invoke()
-            },
-            doOnEnd = {
-                doOnEnd.invoke()
-            }
-        )
+        doOnPreDraw {
+            if (height == cachedHeight || width == cachedWidth || radius == cachedRadius) return@doOnPreDraw
+            Log.d("MainAnimatorSearchBar", "Animating to initial size")
+            animateTo(
+                toHeightValue = cachedHeight,
+                toWidthValue = cachedWidth,
+                duration = duration,
+                doOnStart = {
+                    doOnStart.invoke()
+                },
+                doOnEnd = {
+                    doOnEnd.invoke()
+                }
+            )
+        }
     }
 
     inline fun animateToParentSize(

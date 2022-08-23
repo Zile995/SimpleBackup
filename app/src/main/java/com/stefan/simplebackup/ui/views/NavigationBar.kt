@@ -39,7 +39,7 @@ class NavigationBar(
     )
 
     inline fun moveVertically(
-        value: Float,
+        value: Float = height.toFloat(),
         animationDuration: Long = 300L,
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}

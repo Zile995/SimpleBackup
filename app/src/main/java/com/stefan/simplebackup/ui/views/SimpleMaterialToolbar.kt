@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
+import androidx.core.view.postDelayed
 import com.google.android.material.appbar.MaterialToolbar
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
@@ -39,7 +40,9 @@ class SimpleMaterialToolbar(
             }
             inSearchState = false
         } else {
-            setDefaultState()
+            postDelayed(50L) {
+                setDefaultState()
+            }
         }
     }
 
@@ -52,17 +55,20 @@ class SimpleMaterialToolbar(
             title = "1 item"
             removeClickListeners()
             setNavigationIcon(R.drawable.ic_close)
+            setNavigationOnClickListener(null)
             setNavigationContentDescription(R.string.clear_selection)
             menu?.findItem(R.id.select_all)?.isVisible = true
             menu?.findItem(R.id.action_search)?.isVisible = false
             menu?.findItem(R.id.add_to_favorites)?.isVisible = true
             setNavigationOnClickListener {
                 if (animationFinished)
-                    selectionModeCallBack(false)
+                        selectionModeCallBack(false)
             }
             inSearchState = false
         } else {
-            setDefaultState()
+            postDelayed(50L) {
+                setDefaultState()
+            }
         }
     }
 
@@ -71,16 +77,17 @@ class SimpleMaterialToolbar(
         addRipple()
         setDefaultTitle()
         propagateClickEventsToParent()
+        setNavigationOnClickListener(null)
         setNavigationIcon(R.drawable.ic_search)
         setNavigationContentDescription(R.string.search_for_apps)
         menu?.findItem(R.id.select_all)?.isVisible = false
         menu?.findItem(R.id.action_search)?.isVisible = false
         menu?.findItem(R.id.add_to_favorites)?.isVisible = false
-        setNavigationOnClickListener {
-            if (animationFinished) {
-                (parent as View).performClick()
+            setNavigationOnClickListener {
+                if (animationFinished) {
+                    (parent as View).performClick()
+                }
             }
-        }
         inSearchState = true
     }
 

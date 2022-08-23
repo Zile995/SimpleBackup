@@ -12,8 +12,16 @@ class MainFloatingButton(
     defStyleAttr: Int
 ) : ExtendedFloatingActionButton(context, attrs, defStyleAttr) {
 
-    constructor(context: Context) : this(context, null)
+    var hidePermanently = false
+        set(value) {
+            field = value
+            if (value) {
+                setOnClickListener(null)
+                hide()
+            }
+        }
 
+    constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(
         context,
         attrs,
@@ -26,6 +34,11 @@ class MainFloatingButton(
             hide()
             text = null
         }
+    }
+
+    override fun show() {
+        if (hidePermanently) return
+        super.show()
     }
 
     fun changeOnSelection(isSelected: Boolean) {

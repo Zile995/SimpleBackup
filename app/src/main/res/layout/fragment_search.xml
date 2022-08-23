@@ -1,9 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
     tools:context=".ui.fragments.SearchFragment">
+
+    <HorizontalScrollView
+        android:id="@+id/horizontal_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:scrollbars="none"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/search_chip_group"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:animateLayoutChanges="true"
+            android:orientation="horizontal"
+            app:chipSpacingHorizontal="10dp"
+            app:singleLine="true"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="Installed apps"
+                android:textAlignment="center"
+                android:textColor="@color/textColorPrimary"
+                app:checkedIcon="@drawable/ic_checked"
+                app:checkedIconTint="@color/textColorPrimary"
+                app:checkedIconVisible="true" />
+
+            <com.google.android.material.chip.Chip
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="Local backups"
+                android:textAlignment="center"
+                android:textColor="@color/textColorPrimary"
+                app:checkedIcon="@drawable/ic_checked"
+                app:checkedIconTint="@color/textColorPrimary"
+                app:checkedIconVisible="true" />
+
+            <com.google.android.material.chip.Chip
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:text="@string/cloud_backups"
+                android:textAlignment="center"
+                android:textColor="@color/textColorPrimary"
+                app:checkedIcon="@drawable/ic_checked"
+                app:checkedIconTint="@color/textColorPrimary"
+                app:checkedIconVisible="true" />
+
+        </com.google.android.material.chip.ChipGroup>
+
+    </HorizontalScrollView>
+
+    <com.stefan.simplebackup.ui.views.MainRecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/horizontal_view" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

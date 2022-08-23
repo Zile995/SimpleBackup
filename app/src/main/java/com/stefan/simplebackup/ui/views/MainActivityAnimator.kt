@@ -50,10 +50,6 @@ class MainActivityAnimator(
             Log.d("MainAnimator", "Shrinking SearchBar to initial size")
             materialSearchBar.animateToInitialSize(duration = animationDuration,
                 doOnStart = {
-                    appBarLayout.changeBackgroundColor(
-                        activity?.applicationContext,
-                        R.color.bottomView
-                    )
                     animateStatusBarColor(color = R.color.bottomView)
                 })
         }

@@ -124,9 +124,9 @@ class MainActivity : AppCompatActivity() {
         navController.navigate(R.id.search_action, null, navOptions {
             anim {
                 enter = R.anim.fade_enter
-                exit = R.anim.fade_exit
+                exit = R.anim.fragment_exit
                 popEnter = R.anim.fade_enter_pop
-                popExit = R.anim.fade_exit_pop
+                popExit = R.anim.fragment_exit_pop
             }
         })
     }
@@ -139,96 +139,15 @@ class MainActivity : AppCompatActivity() {
         bindBottomNavigationView()
     }
 
-    private fun ActivityMainBinding.initObservers() {
-        launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
-                mainViewModel.apply {
-                    launch {
-                        isSearching.collect { isSearching ->
-                            if (isSelected.value) return@collect
-                            if (isSearching) {
-                                floatingButton.setOnClickListener(null)
-                                navigationBar.fadeOut(150L)
-                                floatingButton.fadeOut(150L)
-                                mainActivityAnimator.animateSearchBarOnClick()
-                            } else {
-                                navigationBar.fadeIn(150L)
-                                mainActivityAnimator.shrinkSearchBarToInitialSize()
-                            }
-                            materialToolbar.changeOnSearch(isSearching,
-                                setNavigationOnClickListener = {
-                                    onSupportNavigateUp()
-                                })
-                        }
-                    }
-                    isSelected.collect { isSelected ->
-                        if (isSearching.value) return@collect
-                        launch {
-                            observeNumberOfSelected(isSelected)
-                        }
-                        expandAppBarLayout(isSelected)
-                        floatingButton.changeOnSelection(isSelected)
-                        materialToolbar.changeOnSelection(isSelected, setSelectionMode)
-                        if (isSelected) {
-                            mainActivityAnimator.animateSearchBarOnSelection()
-                            navigationBar.moveVertically(
-                                navigationBar.height.toFloat(),
-                                200,
-                                doOnStart = {
-                                    val layoutParams =
-                                        navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
-                                    layoutParams.bottomMargin = appBarLayout.height
-                                    navHostContainer.layoutParams = layoutParams
-                                    navHostContainer.requestLayout()
-                                })
-                        } else {
-                            mainActivityAnimator.shrinkSearchBarToInitialSize()
-                            navigationBar.moveVertically(
-                                0f,
-                                200
-                            ) {
-                                val layoutParams =
-                                    navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
-                                layoutParams.bottomMargin = navigationBar.height
-                                navHostContainer.layoutParams = layoutParams
-                                navHostContainer.requestLayout()
-                                getVisibleFragment()?.fixRecyclerViewScrollPosition()
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     private suspend fun ActivityMainBinding.observeNumberOfSelected(isSelected: Boolean) {
         if (!isSelected) return
         numberOfSelected.collect { numberOfItems ->
             when (numberOfItems) {
-                1 -> materialToolbar.title = "$numberOfItems item"
                 0 -> {}
+                1 -> materialToolbar.title = "$numberOfItems item"
                 else -> materialToolbar.title = "$numberOfItems items"
             }
         }
-    }
-
-    private fun expandAppBarLayout(shouldExpand: Boolean) {
-        binding.apply {
-            if (shouldExpand) {
-                animationFinished = false
-                appBarLayout.setExpanded(shouldExpand, true)
-            } else {
-                if (getVisibleFragment()?.shouldMoveFragmentUp() == true) {
-                    Log.d("AppBarLayout", "Collapsing the AppBarLayout")
-                    appBarLayout.setExpanded(false, true)
-                }
-            }
-        }
-    }
-
-    private fun getVisibleFragment(): BaseFragment<*>? {
-        val viewPagerFragment = supportFragmentManager.getCurrentVisibleViewPagerFragment()
-        return viewPagerFragment?.getVisibleFragment()
     }
 
     private fun ActivityMainBinding.bindAppBarLayout() {
@@ -268,7 +187,9 @@ class MainActivity : AppCompatActivity() {
 
                 }
                 R.id.select_all -> {
-                    getVisibleFragment()?.selectAllItems()
+                    launchPostDelayed(50L) {
+                        getVisibleFragment()?.selectAllItems()
+                    }
                 }
                 R.id.add_to_favorites -> {
                     mainViewModel.changeFavorites()
@@ -290,6 +211,88 @@ class MainActivity : AppCompatActivity() {
             return@navigateWithAnimation !(mainViewModel.isSearching.value
                     || mainViewModel.isSelected.value)
         })
+    }
+
+    private fun ActivityMainBinding.initObservers() {
+        launchOnViewLifecycle {
+            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+                mainViewModel.apply {
+                    launch {
+                        isSearching.collect { isSearching ->
+                            if (isSelected.value) return@collect
+                            if (isSearching) {
+                                floatingButton.hidePermanently = true
+                                navigationBar.moveVertically(animationDuration = 200)
+                                mainActivityAnimator.animateSearchBarOnClick()
+                            } else {
+                                floatingButton.hidePermanently = false
+                                launchPostDelayed(100L) {
+                                    navigationBar.moveVertically(0f, animationDuration = 200)
+                                    mainActivityAnimator.shrinkSearchBarToInitialSize()
+                                }
+                            }
+                            materialToolbar.changeOnSearch(isSearching,
+                                setNavigationOnClickListener = {
+                                    onSupportNavigateUp()
+                                })
+                        }
+                    }
+                    isSelected.collect { isSelected ->
+                        if (isSearching.value) return@collect
+                        launch {
+                            observeNumberOfSelected(isSelected)
+                        }
+                        if (isSelected) {
+                            mainActivityAnimator.animateSearchBarOnSelection()
+                            navigationBar.moveVertically(
+                                animationDuration = 200,
+                                doOnStart = {
+                                    val layoutParams =
+                                        navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
+                                    layoutParams.bottomMargin = appBarLayout.height
+                                    navHostContainer.layoutParams = layoutParams
+                                    navHostContainer.requestLayout()
+                                })
+                        } else {
+                            navigationBar.moveVertically(
+                                0f,
+                                200
+                            ) {
+                                val layoutParams =
+                                    navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
+                                layoutParams.bottomMargin = navigationBar.height
+                                navHostContainer.layoutParams = layoutParams
+                                navHostContainer.requestLayout()
+                                getVisibleFragment()?.fixRecyclerViewScrollPosition()
+                            }
+                            mainActivityAnimator.shrinkSearchBarToInitialSize()
+                        }
+                        expandAppBarLayout(isSelected)
+                        floatingButton.changeOnSelection(isSelected)
+                        materialToolbar.changeOnSelection(isSelected, setSelectionMode)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun expandAppBarLayout(shouldExpand: Boolean) {
+        binding.apply {
+            if (shouldExpand) {
+                animationFinished = false
+                appBarLayout.setExpanded(shouldExpand, true)
+            } else {
+                if (getVisibleFragment()?.shouldMoveFragmentUp() == true) {
+                    Log.d("AppBarLayout", "Collapsing the AppBarLayout")
+                    appBarLayout.setExpanded(false, true)
+                }
+            }
+        }
+    }
+
+    private fun getVisibleFragment(): BaseFragment<*>? {
+        val viewPagerFragment = supportFragmentManager.getCurrentVisibleViewPagerFragment()
+        return viewPagerFragment?.getVisibleFragment()
     }
 
     private fun registerReceivers() {

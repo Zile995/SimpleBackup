@@ -20,17 +20,16 @@ class MaterialSearchView(
     defStyleAttr: Int
 ) : SearchView(context, attrs, defStyleAttr) {
 
-    constructor(context: Context) : this(context, null)
+    private val searchText: TextView = findViewById(R.id.search_src_text)
+    private val searchEditFrame: View = findViewById(R.id.search_edit_frame)
+    private val closeButton: ImageView? = findViewById(R.id.search_close_btn)
 
+    constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(
         context,
         attrs,
         R.attr.searchViewStyle
     )
-
-    private val searchText: TextView = findViewById(R.id.search_src_text)
-    private val searchEditFrame: View = findViewById(R.id.search_edit_frame)
-    private val closeButton: ImageView? = findViewById(R.id.search_close_btn)
 
     init {
         doOnPreDraw {

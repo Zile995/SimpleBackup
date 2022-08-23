@@ -47,6 +47,16 @@ fun CoroutineScope.launchWithLogging(
     }
 }
 
+inline fun LifecycleOwner.launchPostDelayed(
+    delay: Long,
+    crossinline block: suspend CoroutineScope.() -> Unit
+) {
+    launchOnViewLifecycle {
+        delay(delay)
+        block()
+    }
+}
+
 inline fun LifecycleOwner.launchOnViewLifecycle(
     context: CoroutineContext = EmptyCoroutineContext,
     crossinline block: suspend CoroutineScope.() -> Unit
