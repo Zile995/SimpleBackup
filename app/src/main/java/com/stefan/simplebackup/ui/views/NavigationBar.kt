@@ -11,8 +11,8 @@ import androidx.core.view.forEach
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.NavOptions
-import com.google.android.material.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.stefan.simplebackup.R
 import com.stefan.simplebackup.utils.extensions.doesMatchDestination
 import java.lang.ref.WeakReference
 
@@ -69,10 +69,10 @@ class NavigationBar(
             val navOptions = NavOptions.Builder().apply {
                 setLaunchSingleTop(true)
                 setRestoreState(true)
-                setEnterAnim(com.stefan.simplebackup.R.anim.fragment_enter)
-                setExitAnim(com.stefan.simplebackup.R.anim.fragment_exit)
-                setPopEnterAnim(com.stefan.simplebackup.R.anim.fragment_enter_pop)
-                setPopExitAnim(com.stefan.simplebackup.R.anim.fragment_exit_pop)
+                setEnterAnim(R.anim.fragment_enter)
+                setExitAnim(R.anim.fragment_exit)
+                setPopEnterAnim(R.anim.fragment_enter_pop)
+                setPopExitAnim(R.anim.fragment_exit_pop)
                 setPopUpTo(
                     navController.graph.startDestinationId,
                     inclusive = false,

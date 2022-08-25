@@ -16,10 +16,17 @@ class SimpleMaterialToolbar(
 ) : MaterialToolbar(context, attrs, defStyleAttr) {
 
     var inSearchState = false
+    private val searchActionView
+        get() =
+            menu?.findItem(R.id.action_search)?.actionView as? MaterialSearchView
 
     constructor(context: Context) : this(context, null)
-
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, R.attr.toolbarStyle)
+
+    fun removeTitle() { title = null }
+    fun removeRipple() = setBackgroundResource(0)
+    fun showKeyboard() = searchActionView?.requestFocus()
+    fun hideKeyboard() = searchActionView?.resetSearchView()
 
     inline fun changeOnSearch(
         isSearching: Boolean,
@@ -34,6 +41,7 @@ class SimpleMaterialToolbar(
             menu?.findItem(R.id.select_all)?.isVisible = false
             menu?.findItem(R.id.action_search)?.isVisible = true
             menu?.findItem(R.id.add_to_favorites)?.isVisible = false
+            showKeyboard()
             setNavigationOnClickListener {
                 if (animationFinished)
                     setNavigationOnClickListener.invoke()
@@ -52,7 +60,6 @@ class SimpleMaterialToolbar(
     ) {
         if (isSelected) {
             removeRipple()
-            title = "1 item"
             removeClickListeners()
             setNavigationIcon(R.drawable.ic_close)
             setNavigationOnClickListener(null)
@@ -62,7 +69,7 @@ class SimpleMaterialToolbar(
             menu?.findItem(R.id.add_to_favorites)?.isVisible = true
             setNavigationOnClickListener {
                 if (animationFinished)
-                        selectionModeCallBack(false)
+                    selectionModeCallBack(false)
             }
             inSearchState = false
         } else {
@@ -74,6 +81,7 @@ class SimpleMaterialToolbar(
 
     fun setDefaultState() {
         if (inSearchState) return
+        hideKeyboard()
         addRipple()
         setDefaultTitle()
         propagateClickEventsToParent()
@@ -83,15 +91,15 @@ class SimpleMaterialToolbar(
         menu?.findItem(R.id.select_all)?.isVisible = false
         menu?.findItem(R.id.action_search)?.isVisible = false
         menu?.findItem(R.id.add_to_favorites)?.isVisible = false
-            setNavigationOnClickListener {
-                if (animationFinished) {
-                    (parent as View).performClick()
-                }
+        setNavigationOnClickListener {
+            if (animationFinished) {
+                (parent as View).performClick()
             }
+        }
         inSearchState = true
     }
 
-    private fun addRipple() {
+    private fun addRipple() =
         with(TypedValue()) {
             context.theme.resolveAttribute(
                 android.R.attr.selectableItemBackgroundBorderless,
@@ -100,15 +108,6 @@ class SimpleMaterialToolbar(
             )
             setBackgroundResource(resourceId)
         }
-    }
-
-    fun removeTitle() {
-        title = null
-    }
-
-    fun removeRipple() {
-        setBackgroundResource(0)
-    }
 
     private fun setDefaultTitle() {
         title = context.getString(R.string.search_for_apps)

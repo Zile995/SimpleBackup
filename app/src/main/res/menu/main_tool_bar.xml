@@ -5,7 +5,7 @@
         android:id="@+id/action_search"
         android:icon="@drawable/ic_search"
         android:title="@string/search_for_apps"
-        android:visible="true"
+        android:visible="false"
         app:actionViewClass="com.stefan.simplebackup.ui.views.MaterialSearchView"
         app:showAsAction="always" />
 

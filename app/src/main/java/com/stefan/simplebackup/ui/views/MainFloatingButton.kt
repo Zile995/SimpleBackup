@@ -30,8 +30,8 @@ class MainFloatingButton(
 
     init {
         doOnPreDraw {
-            shrink()
             hide()
+            shrink()
             text = null
         }
     }
@@ -42,10 +42,10 @@ class MainFloatingButton(
     }
 
     fun changeOnSelection(isSelected: Boolean) {
-        if (!isShown) show()
         if (isSelected) {
             setText(R.string.configure)
             setIconResource(R.drawable.ic_configure)
+            show()
         } else {
             shrink()
             if (text != null) text = null

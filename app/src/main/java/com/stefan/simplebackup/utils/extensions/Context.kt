@@ -179,16 +179,13 @@ fun Context.getResourceDrawable(@DrawableRes drawable: Int) =
     ContextCompat.getDrawable(this, drawable)
 
 inline fun <reified T : Enum<T>> Fragment.putEnumExtra(victim: T) {
-    val bundle = Bundle()
-    bundle.putInt(T::class.java.name, victim.ordinal)
-    arguments = bundle
+    arguments = Bundle().apply { putInt(T::class.java.name, victim.ordinal) }
 }
 
 inline fun <reified T: Enum<T>> Fragment.getEnumExtra(): T? =
     arguments?.getInt(T::class.java.name, -1)
-        .takeUnless { it == -1 }
+        .takeUnless { ordinal -> ordinal == -1 }
         ?.let { T::class.java.enumConstants?.get(it) }
-
 
 // TODO: Move dialogs to specific classes
 fun Context.workerDialog(

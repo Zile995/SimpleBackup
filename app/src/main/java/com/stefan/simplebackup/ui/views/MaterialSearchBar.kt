@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.ui.views
 
+import android.animation.AnimatorSet
 import android.animation.TimeInterpolator
 import android.animation.ValueAnimator
 import android.content.Context
@@ -123,6 +124,9 @@ class MaterialSearchBar(
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
     ) {
+        isEnabled = false
+        animationFinished = false
+
         val widthAnimator = ValueAnimator.ofInt(width, toWidthValue)
         val heightAnimator = ValueAnimator.ofInt(height, toHeightValue)
         val radiusAnimator =
@@ -130,12 +134,7 @@ class MaterialSearchBar(
                 ValueAnimator.ofFloat(radius, cachedRadius)
             else
                 ValueAnimator.ofFloat(radius, 0f)
-        widthAnimator.duration = duration
-        radiusAnimator.duration = duration
-        heightAnimator.duration = duration
-        widthAnimator.interpolator = interpolator
-        heightAnimator.interpolator = interpolator
-        radiusAnimator.interpolator = interpolator
+
         widthAnimator.addUpdateListener { valueAnimator ->
             layoutParams.width = valueAnimator.animatedValue as Int
         }
@@ -151,12 +150,14 @@ class MaterialSearchBar(
             }
             radius = valueAnimator.animatedValue as Float
         }
-        isEnabled = false
-        animationFinished = false
+
         doOnStart.invoke()
-        radiusAnimator.start()
-        heightAnimator.start()
-        widthAnimator.start()
+        val animatorSet = AnimatorSet().apply {
+            this.interpolator = interpolator
+            this.duration = duration
+            playTogether(widthAnimator, heightAnimator, radiusAnimator)
+        }
+        animatorSet.start()
     }
 
 }

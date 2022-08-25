@@ -39,22 +39,14 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:rippleColor="@color/cardViewRipple">
 
-                <ImageView
-                    android:id="@+id/search_mag_icon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:src="@drawable/ic_search"
-                    android:layout_marginStart="16dp"
-                    android:visibility="gone"
-                    />
-
                 <com.stefan.simplebackup.ui.views.SimpleMaterialToolbar
                     android:id="@+id/material_toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    app:title="@string/search_for_apps"
                     android:background="?android:attr/selectableItemBackgroundBorderless"
                     android:visibility="visible"
-                    app:navigationIcon="@null"
+                    app:navigationIcon="@drawable/ic_search"
                     app:titleTextAppearance="@style/ToolBarFont"
                     app:titleTextColor="?android:textColorHint">
 

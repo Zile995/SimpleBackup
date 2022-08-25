@@ -82,6 +82,7 @@ class MainActivity : AppCompatActivity() {
         if (!selectionFinished) {
             shouldExit = false
             mainViewModel.setSelectionMode(false)
+            return
         }
         if (animationFinished && selectionFinished) {
             if (!shouldExit) {
@@ -114,19 +115,29 @@ class MainActivity : AppCompatActivity() {
             if (destination.doesMatchDestination(R.id.search_action)) {
                 mainViewModel.setSearching(true)
             } else {
-                mainViewModel.setSearching(false)
+                launchPostDelayed(50L) {
+                    mainViewModel.setSearching(false)
+                }
             }
             shouldExit = !destination.doesMatchDestination(R.id.home)
         }
     }
 
     private fun navigateToSearchFragment() {
+        val currentDestination = navController.currentDestination
         navController.navigate(R.id.search_action, null, navOptions {
+            launchSingleTop = true
             anim {
-                enter = R.anim.fade_enter
-                exit = R.anim.fragment_exit
-                popEnter = R.anim.fade_enter_pop
-                popExit = R.anim.fragment_exit_pop
+                enter = R.animator.fragment_fade_enter
+                exit = R.animator.fragment_fade_exit
+                popEnter = R.animator.fragment_fade_enter
+                popExit = R.animator.fragment_fade_exit
+            }
+            popUpTo(
+                currentDestination?.id ?: navController.graph.startDestinationId
+            ) {
+                inclusive = false
+                saveState = true
             }
         })
     }
@@ -144,8 +155,8 @@ class MainActivity : AppCompatActivity() {
         numberOfSelected.collect { numberOfItems ->
             when (numberOfItems) {
                 0 -> {}
-                1 -> materialToolbar.title = "$numberOfItems item"
-                else -> materialToolbar.title = "$numberOfItems items"
+                1 -> materialToolbar.title = "$numberOfItems ${getString(R.string.item)}"
+                else -> materialToolbar.title = "$numberOfItems ${getString(R.string.items)}"
             }
         }
     }
@@ -173,10 +184,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun ActivityMainBinding.bindSearchBar() {
-        materialSearchBar.setOnClickListener {
-            navigateToSearchFragment()
-        }
+    private fun ActivityMainBinding.bindSearchBar() = materialSearchBar.setOnClickListener {
+        navigateToSearchFragment()
     }
 
     private fun ActivityMainBinding.bindToolBar() {
@@ -187,9 +196,7 @@ class MainActivity : AppCompatActivity() {
 
                 }
                 R.id.select_all -> {
-                    launchPostDelayed(50L) {
-                        getVisibleFragment()?.selectAllItems()
-                    }
+                    getVisibleFragment()?.selectAllItems()
                 }
                 R.id.add_to_favorites -> {
                     mainViewModel.changeFavorites()
@@ -205,13 +212,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun ActivityMainBinding.bindBottomNavigationView() {
+    private fun ActivityMainBinding.bindBottomNavigationView() =
         navigationBar.navigateWithAnimation(navController, doBeforeNavigating = {
             floatingButton.setOnClickListener(null)
             return@navigateWithAnimation !(mainViewModel.isSearching.value
                     || mainViewModel.isSelected.value)
         })
-    }
 
     private fun ActivityMainBinding.initObservers() {
         launchOnViewLifecycle {
@@ -222,14 +228,12 @@ class MainActivity : AppCompatActivity() {
                             if (isSelected.value) return@collect
                             if (isSearching) {
                                 floatingButton.hidePermanently = true
-                                navigationBar.moveVertically(animationDuration = 200)
+                                navigationBar.moveVertically(animationDuration = 250)
                                 mainActivityAnimator.animateSearchBarOnClick()
                             } else {
                                 floatingButton.hidePermanently = false
-                                launchPostDelayed(100L) {
-                                    navigationBar.moveVertically(0f, animationDuration = 200)
-                                    mainActivityAnimator.shrinkSearchBarToInitialSize()
-                                }
+                                navigationBar.moveVertically(0f, animationDuration = 250)
+                                mainActivityAnimator.shrinkSearchBarToInitialSize()
                             }
                             materialToolbar.changeOnSearch(isSearching,
                                 setNavigationOnClickListener = {
@@ -276,7 +280,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun expandAppBarLayout(shouldExpand: Boolean) {
+    private fun expandAppBarLayout(shouldExpand: Boolean) =
         binding.apply {
             if (shouldExpand) {
                 animationFinished = false
@@ -288,7 +292,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-    }
 
     private fun getVisibleFragment(): BaseFragment<*>? {
         val viewPagerFragment = supportFragmentManager.getCurrentVisibleViewPagerFragment()

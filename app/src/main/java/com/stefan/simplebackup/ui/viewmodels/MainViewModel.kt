@@ -35,7 +35,6 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     val setSelectionMode: SelectionModeCallBack = { isSelected: Boolean ->
         _isSelected.value = isSelected
         if (!isSelected) selectionFinished = true
-        println("selectionList = $selectionList")
     }
 
     init {
