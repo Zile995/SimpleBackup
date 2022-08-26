@@ -61,9 +61,9 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     }
 
     companion object {
+        var selectionFinished: Boolean = true
+
         private var mNumberOfSelected = MutableStateFlow(0)
         val numberOfSelected = mNumberOfSelected.asStateFlow()
-
-        var selectionFinished: Boolean = true
     }
 }

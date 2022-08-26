@@ -51,7 +51,8 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         if (rootChecked) return
         if (rootChecker.hasRootAccess() == false && rootChecker.isDeviceRooted())
             onRootNotGranted()
-        if (!rootChecker.isDeviceRooted()) onDeviceNotRooted()
+        if (!rootChecker.isDeviceRooted())
+            onDeviceNotRooted()
         rootChecked = true
         PreferenceHelper.setRootChecked(true)
     }

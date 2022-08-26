@@ -50,27 +50,25 @@ fun CoroutineScope.launchWithLogging(
 inline fun LifecycleOwner.launchPostDelayed(
     delay: Long = 0L,
     crossinline block: suspend CoroutineScope.() -> Unit
-) {
-    launchOnViewLifecycle {
+) = launchOnViewLifecycle {
         delay(delay)
         block()
     }
-}
 
 inline fun LifecycleOwner.launchOnViewLifecycle(
     context: CoroutineContext = EmptyCoroutineContext,
     crossinline block: suspend CoroutineScope.() -> Unit
-) {
-    when (this) {
+): Job = when (this) {
         is ComponentActivity -> {
             lifecycleScope.launch(context) { block() }
         }
         is Fragment -> {
             viewLifecycleOwner.lifecycleScope.launch(context) { block() }
         }
-        else -> throw IllegalArgumentException("Unsupported LifecycleOwner")
+        else -> {
+            throw IllegalArgumentException("Unsupported LifecycleOwner")
+        }
     }
-}
 
 suspend fun LifecycleOwner.repeatOnViewLifecycle(
     state: Lifecycle.State,

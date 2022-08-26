@@ -30,6 +30,7 @@ import com.stefan.simplebackup.ui.views.MainActivityAnimator
 import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.*
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
@@ -66,6 +67,9 @@ class MainActivity : AppCompatActivity() {
     // Flags
     private var shouldExit = false
 
+    // Jobs
+    private var delayedExitJob: Job? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -80,27 +84,22 @@ class MainActivity : AppCompatActivity() {
 
     override fun onBackPressed() {
         if (!selectionFinished) {
-            shouldExit = false
+            shouldExit = true
             mainViewModel.setSelectionMode(false)
             return
         }
-        if (animationFinished && selectionFinished) {
-            if (!shouldExit) {
+        if (animationFinished)
+            if (shouldExit) {
                 launchOnViewLifecycle {
-                    shouldExit = true
+                    shouldExit = false
                     showToast(R.string.press_back_again)
-                    launch {
-                        navController.currentDestination?.let { destination ->
-                            if (destination.doesMatchDestination(R.id.home)) {
-                                delay(1500L)
-                                shouldExit = false
-                            }
-                        }
+                    delayedExitJob = launch {
+                        delay(1500L)
+                        shouldExit = true
                     }
                 }
             } else
                 super.onBackPressed()
-        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -112,14 +111,18 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.nav_host_container) as NavHostFragment
         navController = navHostFragment.navController
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            if (destination.doesMatchDestination(R.id.search_action)) {
+            if (destination.doesMatchDestination(R.id.search_action))
                 mainViewModel.setSearching(true)
-            } else {
-                launchPostDelayed(50L) {
-                    mainViewModel.setSearching(false)
+            else launchPostDelayed(50L) {
+                mainViewModel.setSearching(false)
+            }
+            destination.doesMatchDestination(R.id.home).let { isHomeDestination ->
+                shouldExit = isHomeDestination
+                if (!isHomeDestination) {
+                    delayedExitJob?.cancel()
+                    delayedExitJob = null
                 }
             }
-            shouldExit = !destination.doesMatchDestination(R.id.home)
         }
     }
 
