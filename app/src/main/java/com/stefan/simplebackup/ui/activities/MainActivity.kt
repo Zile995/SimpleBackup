@@ -93,8 +93,7 @@ class MainActivity : AppCompatActivity() {
                 launchOnViewLifecycle {
                     shouldExit = false
                     showToast(R.string.press_back_again)
-                    delayedExitJob = launch {
-                        delay(1500L)
+                    delayedExitJob = launchPostDelayed(1500L) {
                         shouldExit = true
                     }
                 }

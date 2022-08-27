@@ -55,7 +55,7 @@ abstract class BaseAdapter(
     }
 
     fun clearSelection() {
-        if (selectedItems.isEmpty()) return
+        if (!hasSelectedItems()) return
         currentList.getSelectedIndexedValues().forEach { indexedValue ->
             indexedValue.value.isSelected = false
             notifyItemChanged(indexedValue.index)
