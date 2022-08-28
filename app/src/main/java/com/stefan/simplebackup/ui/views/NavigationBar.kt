@@ -4,9 +4,11 @@ import android.animation.ObjectAnimator
 import android.content.Context
 import android.os.Bundle
 import android.util.AttributeSet
-import android.view.animation.LinearInterpolator
+import android.util.Log
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
+import androidx.core.view.doOnLayout
+import androidx.core.view.doOnPreDraw
 import androidx.core.view.forEach
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -14,6 +16,9 @@ import androidx.navigation.NavOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.utils.extensions.doesMatchDestination
+import com.stefan.simplebackup.utils.extensions.hide
+import com.stefan.simplebackup.utils.extensions.isVisible
+import com.stefan.simplebackup.utils.extensions.show
 import java.lang.ref.WeakReference
 
 class NavigationBar(
@@ -23,14 +28,15 @@ class NavigationBar(
     defStyleRes: Int
 ) : BottomNavigationView(context, attrs, defStyleAttr, defStyleRes) {
 
-    constructor(context: Context) : this(context, null)
+    var initialHeight: Int = 0
+        private set
 
+    constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(
         context,
         attrs,
         R.attr.bottomNavigationStyle
     )
-
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : this(
         context,
         attrs,
@@ -38,23 +44,52 @@ class NavigationBar(
         R.style.Widget_Design_BottomNavigationView
     )
 
-    inline fun moveVertically(
-        value: Float = height.toFloat(),
-        animationDuration: Long = 300L,
+    init {
+        doOnLayout {
+            initialHeight = height
+        }
+    }
+
+    inline fun moveUp(
+        animationDuration: Long = 250L,
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
     ) {
-        if (!isLaidOut) return
-        ObjectAnimator.ofFloat(this, "translationY", value).apply {
-            duration = animationDuration
-            interpolator = LinearInterpolator()
-            doOnStart {
-                doOnStart()
+        doOnPreDraw {
+            if (isVisible) return@doOnPreDraw
+            ObjectAnimator.ofFloat(this, "translationY", 0f).apply {
+                duration = animationDuration
+                doOnStart {
+                    show()
+                    doOnStart()
+                }
+                doOnEnd {
+                    doOnEnd()
+                }
+                Log.d("NavigationBar", "Moving up")
+                start()
             }
-            doOnEnd {
-                doOnEnd()
+        }
+    }
+
+    inline fun moveDown(
+        animationDuration: Long = 250L,
+        crossinline doOnStart: () -> Unit = {},
+        crossinline doOnEnd: () -> Unit = {}
+    ) {
+        doOnPreDraw {
+            ObjectAnimator.ofFloat(this, "translationY", initialHeight.toFloat()).apply {
+                duration = animationDuration
+                doOnStart {
+                    doOnStart()
+                }
+                doOnEnd {
+                    doOnEnd()
+                    hide()
+                }
+                Log.d("NavigationBar", "Moving down")
+                start()
             }
-            start()
         }
     }
 

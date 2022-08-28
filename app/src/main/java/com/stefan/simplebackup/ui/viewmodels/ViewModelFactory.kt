@@ -43,6 +43,7 @@ class ViewModelFactory(
                 additionalProperty as? Array<String>?,
                 application
             )
+            SearchViewModel::class.java -> SearchViewModel()
             else -> modelClass.newInstance()
         } as T
     }

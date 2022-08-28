@@ -27,7 +27,6 @@ class MainRecyclerView(
         }
 
     constructor(context: Context) : this(context, null)
-
     constructor(context: Context, attrs: AttributeSet?) : this(
         context,
         attrs,
@@ -107,7 +106,6 @@ class MainRecyclerView(
         scrollDuration: Float = 380f,
         snapMode: Int = LinearSmoothScroller.SNAP_TO_START
     ) {
-        Log.d("Recycler", "Scroll range = ${computeVerticalScrollRange()}")
         val smoothScroller = object : LinearSmoothScroller(context) {
             override fun getVerticalSnapPreference(): Int = snapMode
             override fun getHorizontalSnapPreference(): Int = snapMode

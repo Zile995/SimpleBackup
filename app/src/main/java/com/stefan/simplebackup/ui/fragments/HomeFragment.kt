@@ -6,7 +6,6 @@ import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.databinding.FragmentHomeBinding
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
@@ -38,7 +37,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         }
     }
 
-    private fun MainRecyclerView.setHomeAdapter() {
+    override fun MainRecyclerView.setMainAdapter() {
         _homeAdapter =
             HomeAdapter(
                 mainViewModel.selectionList,
@@ -75,8 +74,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
 
     private fun FragmentHomeBinding.bindViews() {
         bindSwipeContainer()
-        bindRecyclerView()
-        //bindBackupChip()
     }
 
     private fun FragmentHomeBinding.bindSwipeContainer() {
@@ -86,13 +83,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                 delay(250)
                 swipeRefresh.isRefreshing = false
             }
-        }
-    }
-
-    private fun FragmentHomeBinding.bindRecyclerView() {
-        homeRecyclerView.apply {
-            setHomeAdapter()
-            setHasFixedSize(true)
         }
     }
 

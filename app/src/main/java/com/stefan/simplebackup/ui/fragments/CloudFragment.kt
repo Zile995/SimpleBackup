@@ -13,6 +13,7 @@ import com.stefan.simplebackup.ui.adapters.CloudAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
+import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
@@ -38,7 +39,6 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
 
     private fun FragmentCloudBinding.bindViews() {
         bindSwipeContainer()
-        bindRecyclerView()
     }
 
     private fun FragmentCloudBinding.bindSwipeContainer() {
@@ -51,14 +51,7 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
         }
     }
 
-    private fun FragmentCloudBinding.bindRecyclerView() {
-        cloudRecyclerView.apply {
-            setCloudAdapter()
-            setHasFixedSize(true)
-        }
-    }
-
-    private fun RecyclerView.setCloudAdapter() {
+    override fun MainRecyclerView.setMainAdapter() {
         _cloudAdapter =
             CloudAdapter(
                 mainViewModel.selectionList,

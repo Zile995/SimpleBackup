@@ -24,6 +24,8 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
     protected val mainViewModel: MainViewModel by activityViewModels()
     private var _mainRecyclerView: MainRecyclerView? = null
 
+    abstract fun MainRecyclerView.setMainAdapter()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -32,7 +34,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        getRecyclerView()
+        setMainRecyclerView()
         initObservers()
     }
 
@@ -67,7 +69,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun getRecyclerView() {
+    fun setMainRecyclerView() {
         val vbClass =
             (javaClass.genericSuperclass as ParameterizedType).actualTypeArguments[0] as Class<VB>
         val declaredFields = vbClass.declaredFields
@@ -76,6 +78,10 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         }
         mainRecyclerViewField.apply {
             _mainRecyclerView = vbClass.getDeclaredField(name).get(binding) as MainRecyclerView
+        }
+        _mainRecyclerView?.apply {
+            setMainAdapter()
+            setHasFixedSize(true)
         }
     }
 

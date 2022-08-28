@@ -16,6 +16,7 @@ import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.fragments.viewpager.FavoriteType
 import com.stefan.simplebackup.ui.viewmodels.FavoritesViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
+import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.launch
 
@@ -38,24 +39,12 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.apply {
-            bindViews()
             initObservers()
             restoreRecyclerViewState()
         }
     }
 
-    private fun FragmentFavoritesBinding.bindViews() {
-        bindRecyclerView()
-    }
-
-    private fun FragmentFavoritesBinding.bindRecyclerView() {
-        favoritesRecyclerView.apply {
-            setFavoritesAdapter()
-            setHasFixedSize(true)
-        }
-    }
-
-    private fun RecyclerView.setFavoritesAdapter() {
+    override fun MainRecyclerView.setMainAdapter() {
         _favoritesAdapter = FavoritesAdapter(
             mainViewModel.selectionList,
             mainViewModel.setSelectionMode

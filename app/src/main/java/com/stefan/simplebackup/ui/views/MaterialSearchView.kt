@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.doOnLayout
 import androidx.core.view.doOnPreDraw
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.utils.extensions.getInterFontTypeFace
@@ -32,7 +33,7 @@ class MaterialSearchView(
     )
 
     init {
-        doOnPreDraw {
+        doOnLayout {
             addCloseButton()
             setSearchViewMargin(-20)
             setTypeFace(context.getInterFontTypeFace())

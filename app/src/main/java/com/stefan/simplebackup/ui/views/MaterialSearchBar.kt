@@ -9,14 +9,10 @@ import android.graphics.Color
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
-import android.view.ViewTreeObserver
-import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import androidx.core.animation.doOnEnd
+import androidx.core.view.doOnLayout
 import androidx.core.view.doOnPreDraw
-import androidx.core.view.marginLeft
-import androidx.core.view.marginRight
 import com.google.android.material.card.MaterialCardView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
@@ -27,15 +23,11 @@ class MaterialSearchBar(
     defStyleAttr: Int
 ) : MaterialCardView(context, attrs, defStyleAttr) {
 
-    var cachedHeight: Int = 0
+    var initialWidth: Int = 0
         private set
-    var cachedWidth: Int = 0
+    var initialHeight: Int = 0
         private set
-    var cachedRadius: Float = 0f
-        private set
-    var cachedLeftMargin: Int = 0
-        private set
-    var cachedRightMargin: Int = 0
+    var initialRadius: Float = 0f
         private set
 
     val parentWidth get() = (parent as View).width
@@ -50,17 +42,11 @@ class MaterialSearchBar(
     constructor(context: Context) : this(context, null)
 
     init {
-        viewTreeObserver.addOnGlobalLayoutListener(object :
-            ViewTreeObserver.OnGlobalLayoutListener {
-            override fun onGlobalLayout() {
-                cachedHeight = height
-                cachedWidth = width
-                cachedRadius = radius
-                cachedLeftMargin = marginLeft
-                cachedRightMargin = marginRight
-                viewTreeObserver.removeOnGlobalLayoutListener(this)
-            }
-        })
+        doOnLayout {
+            initialWidth = width
+            initialHeight = height
+            initialRadius = radius
+        }
     }
 
     override fun setEnabled(enabled: Boolean) {
@@ -77,11 +63,11 @@ class MaterialSearchBar(
         crossinline doOnEnd: () -> Unit = {}
     ) {
         doOnPreDraw {
-            if (height == cachedHeight || width == cachedWidth || radius == cachedRadius) return@doOnPreDraw
-            Log.d("MainAnimatorSearchBar", "Animating to initial size")
+            if (height == initialHeight || width == initialWidth || radius == initialRadius) return@doOnPreDraw
+            Log.d("SearchBarAnimation", "Animating to initial size")
             animateTo(
-                toHeightValue = cachedHeight,
-                toWidthValue = cachedWidth,
+                toHeightValue = initialHeight,
+                toWidthValue = initialWidth,
                 duration = duration,
                 doOnStart = {
                     doOnStart.invoke()
@@ -100,7 +86,7 @@ class MaterialSearchBar(
     ) {
         doOnPreDraw {
             if (height == parentHeight || width == parentWidth) return@doOnPreDraw
-            Log.d("MainAnimatorSearchBar", "Animating to parent size")
+            Log.d("SearchBarAnimation", "Animating to parent size")
             animateTo(
                 toHeightValue = parentHeight,
                 toWidthValue = parentWidth,
@@ -110,7 +96,6 @@ class MaterialSearchBar(
                 },
                 doOnEnd = {
                     doOnEnd.invoke()
-
                 }
             )
         }
@@ -130,8 +115,8 @@ class MaterialSearchBar(
         val widthAnimator = ValueAnimator.ofInt(width, toWidthValue)
         val heightAnimator = ValueAnimator.ofInt(height, toHeightValue)
         val radiusAnimator =
-            if (cachedRadius != radius)
-                ValueAnimator.ofFloat(radius, cachedRadius)
+            if (initialRadius != radius)
+                ValueAnimator.ofFloat(radius, initialRadius)
             else
                 ValueAnimator.ofFloat(radius, 0f)
 
