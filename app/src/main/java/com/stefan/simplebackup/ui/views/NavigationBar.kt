@@ -8,7 +8,6 @@ import android.util.Log
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.view.doOnLayout
-import androidx.core.view.doOnPreDraw
 import androidx.core.view.forEach
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -37,6 +36,7 @@ class NavigationBar(
         attrs,
         R.attr.bottomNavigationStyle
     )
+
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : this(
         context,
         attrs,
@@ -54,21 +54,18 @@ class NavigationBar(
         animationDuration: Long = 250L,
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
-    ) {
-        doOnPreDraw {
-            if (isVisible) return@doOnPreDraw
-            ObjectAnimator.ofFloat(this, "translationY", 0f).apply {
-                duration = animationDuration
-                doOnStart {
-                    show()
-                    doOnStart()
-                }
-                doOnEnd {
-                    doOnEnd()
-                }
-                Log.d("NavigationBar", "Moving up")
-                start()
+    ): ObjectAnimator? {
+        if (isVisible) return null
+        return ObjectAnimator.ofFloat(this, "translationY", 0f).apply {
+            duration = animationDuration
+            doOnStart {
+                show()
+                doOnStart()
             }
+            doOnEnd {
+                doOnEnd()
+            }
+            Log.d("NavigationBar", "Moving up")
         }
     }
 
@@ -76,20 +73,17 @@ class NavigationBar(
         animationDuration: Long = 250L,
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
-    ) {
-        doOnPreDraw {
-            ObjectAnimator.ofFloat(this, "translationY", initialHeight.toFloat()).apply {
-                duration = animationDuration
-                doOnStart {
-                    doOnStart()
-                }
-                doOnEnd {
-                    doOnEnd()
-                    hide()
-                }
-                Log.d("NavigationBar", "Moving down")
-                start()
+    ): ObjectAnimator {
+        return ObjectAnimator.ofFloat(this, "translationY", initialHeight.toFloat()).apply {
+            duration = animationDuration
+            doOnStart {
+                doOnStart()
             }
+            doOnEnd {
+                doOnEnd()
+                hide()
+            }
+            Log.d("NavigationBar", "Moving down")
         }
     }
 

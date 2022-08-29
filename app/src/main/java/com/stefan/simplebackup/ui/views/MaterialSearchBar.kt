@@ -1,7 +1,5 @@
 package com.stefan.simplebackup.ui.views
 
-import android.animation.AnimatorSet
-import android.animation.TimeInterpolator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.ColorStateList
@@ -9,10 +7,8 @@ import android.graphics.Color
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
-import android.view.animation.DecelerateInterpolator
 import androidx.core.animation.doOnEnd
 import androidx.core.view.doOnLayout
-import androidx.core.view.doOnPreDraw
 import com.google.android.material.card.MaterialCardView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
@@ -58,57 +54,47 @@ class MaterialSearchBar(
     }
 
     inline fun animateToInitialSize(
-        duration: Long = 300L,
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
-    ) {
-        doOnPreDraw {
-            if (height == initialHeight || width == initialWidth || radius == initialRadius) return@doOnPreDraw
-            Log.d("SearchBarAnimation", "Animating to initial size")
-            animateTo(
-                toHeightValue = initialHeight,
-                toWidthValue = initialWidth,
-                duration = duration,
-                doOnStart = {
-                    doOnStart.invoke()
-                },
-                doOnEnd = {
-                    doOnEnd.invoke()
-                }
-            )
-        }
+    ): Array<ValueAnimator> {
+        if (height == initialHeight || width == initialWidth || radius == initialRadius) return arrayOf()
+        Log.d("SearchBarAnimation", "Animating to initial size")
+        return animateTo(
+            toHeightValue = initialHeight,
+            toWidthValue = initialWidth,
+            doOnStart = {
+                doOnStart.invoke()
+            },
+            doOnEnd = {
+                doOnEnd.invoke()
+            }
+        )
     }
 
     inline fun animateToParentSize(
-        duration: Long = 300L,
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
-    ) {
-        doOnPreDraw {
-            if (height == parentHeight || width == parentWidth) return@doOnPreDraw
-            Log.d("SearchBarAnimation", "Animating to parent size")
-            animateTo(
-                toHeightValue = parentHeight,
-                toWidthValue = parentWidth,
-                duration = duration,
-                doOnStart = {
-                    doOnStart.invoke()
-                },
-                doOnEnd = {
-                    doOnEnd.invoke()
-                }
-            )
-        }
+    ): Array<ValueAnimator> {
+        if (height == parentHeight || width == parentWidth) return arrayOf()
+        Log.d("SearchBarAnimation", "Animating to parent size")
+        return animateTo(
+            toHeightValue = parentHeight,
+            toWidthValue = parentWidth,
+            doOnStart = {
+                doOnStart.invoke()
+            },
+            doOnEnd = {
+                doOnEnd.invoke()
+            }
+        )
     }
 
     inline fun animateTo(
         toHeightValue: Int,
         toWidthValue: Int,
-        duration: Long = 300L,
-        interpolator: TimeInterpolator = DecelerateInterpolator(),
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
-    ) {
+    ): Array<ValueAnimator> {
         isEnabled = false
         animationFinished = false
 
@@ -137,12 +123,6 @@ class MaterialSearchBar(
         }
 
         doOnStart.invoke()
-        val animatorSet = AnimatorSet().apply {
-            this.interpolator = interpolator
-            this.duration = duration
-            playTogether(widthAnimator, heightAnimator, radiusAnimator)
-        }
-        animatorSet.start()
+        return arrayOf(widthAnimator, heightAnimator, radiusAnimator)
     }
-
 }

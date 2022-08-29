@@ -1,10 +1,14 @@
 package com.stefan.simplebackup.ui.views
 
+import android.animation.AnimatorSet
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.util.Log
+import android.view.animation.DecelerateInterpolator
 import androidx.annotation.ColorRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.view.doOnPreDraw
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
@@ -29,18 +33,31 @@ class MainActivityAnimator(
     ) {
         activity?.apply {
             binding?.apply {
+                val animatorSet = AnimatorSet().apply {
+                    duration = animationDuration
+                    interpolator = DecelerateInterpolator()
+                }
                 if (isSelected) {
-                    navigationBar.moveDown()
-                    animateSearchBarOnSelection()
+                    root.doOnPreDraw {
+                        animatorSet.playTogether(
+                            navigationBar.moveDown(),
+                            *animateSearchBarOnSelection()
+                        )
+                        animatorSet.start()
+                    }
                     launchPostDelayed(50L) {
                         setFragmentContainerMargin(appBarLayout.height)
                     }
                 } else {
-                    navigationBar.moveUp {
-                        setFragmentContainerMargin(navigationBar.height)
-                        getVisibleFragment()?.fixRecyclerViewScrollPosition()
+                    root.doOnPreDraw {
+                        animatorSet.playTogether(
+                            navigationBar.moveUp {
+                                setFragmentContainerMargin(navigationBar.height)
+                                getVisibleFragment()?.fixRecyclerViewScrollPosition()
+                            }, *shrinkSearchBarToInitialSize()
+                        )
+                        animatorSet.start()
                     }
-                    shrinkSearchBarToInitialSize()
                 }
                 expandAppBarLayout(isSelected)
                 floatingButton.changeOnSelection(isSelected)
@@ -51,15 +68,30 @@ class MainActivityAnimator(
 
     fun animateOnSearch(isSearching: Boolean) {
         binding?.apply {
+            val animatorSet = AnimatorSet().apply {
+                duration = animationDuration
+                interpolator = DecelerateInterpolator()
+            }
             if (isSearching) {
-                navigationBar.moveDown()
-                animateSearchBarOnClick()
                 floatingButton.hidePermanently = true
                 setFragmentContainerMargin(appBarLayout.height)
+                root.doOnPreDraw {
+                    animatorSet.playTogether(
+                        navigationBar.moveDown(),
+                        *animateSearchBarOnClick()
+                    )
+                    animatorSet.start()
+                }
             } else {
-                shrinkSearchBarToInitialSize()
                 floatingButton.hidePermanently = false
-                navigationBar.moveUp { setFragmentContainerMargin(navigationBar.height) }
+                root.doOnPreDraw {
+                    animatorSet.playTogether(navigationBar.moveUp {
+                        setFragmentContainerMargin(
+                            navigationBar.height
+                        )
+                    }, *shrinkSearchBarToInitialSize())
+                    animatorSet.start()
+                }
             }
             materialToolbar.changeOnSearch(isSearching,
                 setNavigationOnClickListener = {
@@ -91,40 +123,35 @@ class MainActivityAnimator(
         }
     }
 
-    private fun animateSearchBarOnClick() {
-        binding?.apply {
-            Log.d("MainAnimator", "Expanding SearchBar on click")
-            materialSearchBar.animateToParentSize(
-                duration = animationDuration,
+    private fun animateSearchBarOnClick(): Array<ValueAnimator> =
+        binding?.run {
+            return@run materialSearchBar.animateToParentSize(
                 doOnStart = {
+                    Log.d("MainAnimator", "Expanding SearchBar on click")
                     animateStatusBarColor(color = R.color.searchBar)
                 },
                 doOnEnd = {
                     appBarLayout.setExpanded(true)
                 })
-        }
-    }
+        } ?: arrayOf()
 
-    private fun animateSearchBarOnSelection() {
-        binding?.apply {
-            Log.d("MainAnimator", "Expanding SearchBar on selection")
-            materialSearchBar.animateToParentSize(
-                duration = animationDuration,
+    private fun animateSearchBarOnSelection(): Array<ValueAnimator> =
+        binding?.run {
+            return@run materialSearchBar.animateToParentSize(
                 doOnStart = {
+                    Log.d("MainAnimator", "Expanding SearchBar on selection")
                     animateStatusBarColor(color = R.color.searchBar)
                 })
-        }
-    }
+        } ?: arrayOf()
 
-    private fun shrinkSearchBarToInitialSize() {
-        binding?.apply {
-            Log.d("MainAnimator", "Shrinking SearchBar to initial size")
-            materialSearchBar.animateToInitialSize(duration = animationDuration,
+    private fun shrinkSearchBarToInitialSize(): Array<ValueAnimator> =
+        binding?.run {
+            return@run materialSearchBar.animateToInitialSize(
                 doOnStart = {
+                    Log.d("MainAnimator", "Shrinking SearchBar to initial size")
                     animateStatusBarColor(color = R.color.bottomView)
                 })
-        }
-    }
+        } ?: arrayOf()
 
     private fun animateStatusBarColor(@ColorRes color: Int) {
         activity?.apply {

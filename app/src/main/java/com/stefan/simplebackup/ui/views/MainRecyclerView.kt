@@ -99,7 +99,7 @@ class MainRecyclerView(
             override fun getVerticalSnapPreference(): Int = SNAP_TO_START
             override fun getHorizontalSnapPreference(): Int = SNAP_TO_START
             override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics?): Float {
-                return 1.6f
+                return 1.5f
             }
         }
         smoothScroller.targetPosition = linearLayoutManager.itemCount - 1
