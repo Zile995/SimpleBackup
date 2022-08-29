@@ -2,7 +2,6 @@ package com.stefan.simplebackup.ui.activities
 
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.PersistableBundle
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -10,7 +9,6 @@ import androidx.core.content.ContextCompat
 import com.stefan.simplebackup.R
 
 abstract class BaseActivity : AppCompatActivity() {
-
     // TODO: Handle all shared permissions requests here
     private var isGranted = false
 
@@ -46,5 +44,4 @@ abstract class BaseActivity : AppCompatActivity() {
             }
         }
     }
-
 }

@@ -1,12 +1,9 @@
 package com.stefan.simplebackup.ui.views
 
 import android.animation.AnimatorSet
-import android.animation.ArgbEvaluator
-import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.util.Log
 import android.view.animation.DecelerateInterpolator
-import androidx.annotation.ColorRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnPreDraw
 import com.stefan.simplebackup.R
@@ -85,11 +82,13 @@ class MainActivityAnimator(
             } else {
                 floatingButton.hidePermanently = false
                 root.doOnPreDraw {
-                    animatorSet.playTogether(navigationBar.moveUp {
-                        setFragmentContainerMargin(
-                            navigationBar.height
-                        )
-                    }, *shrinkSearchBarToInitialSize())
+                    animatorSet.playTogether(
+                        navigationBar.moveUp {
+                            setFragmentContainerMargin(
+                                navigationBar.height
+                            )
+                        }, *shrinkSearchBarToInitialSize()
+                    )
                     animatorSet.start()
                 }
             }
@@ -128,7 +127,10 @@ class MainActivityAnimator(
             return@run materialSearchBar.animateToParentSize(
                 doOnStart = {
                     Log.d("MainAnimator", "Expanding SearchBar on click")
-                    animateStatusBarColor(color = R.color.searchBar)
+                    //animateStatusBarColor(color = R.color.searchBar)
+                    activity?.apply {
+                        window.statusBarColor = getColorFromResource(R.color.searchBar)
+                    }
                 },
                 doOnEnd = {
                     appBarLayout.setExpanded(true)
@@ -140,7 +142,9 @@ class MainActivityAnimator(
             return@run materialSearchBar.animateToParentSize(
                 doOnStart = {
                     Log.d("MainAnimator", "Expanding SearchBar on selection")
-                    animateStatusBarColor(color = R.color.searchBar)
+                    activity?.apply {
+                        window.statusBarColor = getColorFromResource(R.color.searchBar)
+                    }
                 })
         } ?: arrayOf()
 
@@ -149,24 +153,11 @@ class MainActivityAnimator(
             return@run materialSearchBar.animateToInitialSize(
                 doOnStart = {
                     Log.d("MainAnimator", "Shrinking SearchBar to initial size")
-                    animateStatusBarColor(color = R.color.bottomView)
+                    activity?.apply {
+                        window.statusBarColor = getColorFromResource(R.color.bottomView)
+                    }
                 })
         } ?: arrayOf()
-
-    private fun animateStatusBarColor(@ColorRes color: Int) {
-        activity?.apply {
-            ObjectAnimator.ofObject(
-                window,
-                "statusBarColor",
-                ArgbEvaluator(),
-                window.statusBarColor,
-                getColorFromResource(color)
-            ).apply {
-                duration = animationDuration
-                start()
-            }
-        }
-    }
 
     companion object {
         var animationFinished: Boolean = true
