@@ -3,11 +3,10 @@ package com.stefan.simplebackup.ui.activities
 import android.content.Intent.ACTION_PACKAGE_ADDED
 import android.content.Intent.ACTION_PACKAGE_REMOVED
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.view.doOnPreDraw
+import androidx.core.view.doOnLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -22,7 +21,6 @@ import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.numberOfSelected
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
-import com.stefan.simplebackup.ui.fragments.BaseFragment
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
@@ -109,6 +107,7 @@ class MainActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentById(R.id.nav_host_container) as NavHostFragment
         navController = navHostFragment.navController
         navController.addOnDestinationChangedListener { _, destination, _ ->
+            binding.appBarLayout.setExpanded(true)
             if (destination.doesMatchDestination(R.id.search_action))
                 mainViewModel.setSearching(true)
             else launchPostDelayed(50L) {
@@ -178,7 +177,7 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
-        root.doOnPreDraw {
+        root.doOnLayout {
             val layoutParams = appBarLayout.layoutParams as CoordinatorLayout.LayoutParams
             val layoutBehavior = layoutParams.behavior as AppBarLayout.Behavior
             layoutParams.behavior = layoutBehavior
@@ -232,77 +231,17 @@ class MainActivity : AppCompatActivity() {
                     launch {
                         isSearching.collect { isSearching ->
                             if (isSelected.value) return@collect
-                            if (isSearching) {
-                                floatingButton.hidePermanently = true
-                                setFragmentContainerMargin(appBarLayout.height)
-                                navigationBar.moveDown()
-                                mainActivityAnimator.animateSearchBarOnClick()
-                            } else {
-                                floatingButton.hidePermanently = false
-                                navigationBar.moveUp {
-                                    setFragmentContainerMargin(navigationBar.height)
-                                }
-                                mainActivityAnimator.shrinkSearchBarToInitialSize()
-                            }
-                            materialToolbar.changeOnSearch(isSearching,
-                                setNavigationOnClickListener = {
-                                    onSupportNavigateUp()
-                                })
+                            mainActivityAnimator.animateOnSearch(isSearching)
                         }
                     }
                     isSelected.collect { isSelected ->
                         if (isSearching.value) return@collect
-                        launch {
-                            observeNumberOfSelected(isSelected)
-                        }
-                        if (isSelected) {
-                            navigationBar.moveDown()
-                            mainActivityAnimator.animateSearchBarOnSelection()
-                            launchPostDelayed(50L) {
-                                setFragmentContainerMargin(appBarLayout.height)
-                            }
-                        } else {
-                            navigationBar.moveUp {
-                                setFragmentContainerMargin(navigationBar.height)
-                                getVisibleFragment()?.fixRecyclerViewScrollPosition()
-                            }
-                            mainActivityAnimator.shrinkSearchBarToInitialSize()
-                        }
-                        expandAppBarLayout(isSelected)
-                        floatingButton.changeOnSelection(isSelected)
-                        materialToolbar.changeOnSelection(isSelected, setSelectionMode)
+                        launch { observeNumberOfSelected(isSelected) }
+                        mainActivityAnimator.animateOnSelection(isSelected, setSelectionMode)
                     }
                 }
             }
         }
-    }
-
-    private fun setFragmentContainerMargin(margin: Int) {
-        binding.apply {
-            val layoutParams =
-                navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
-            layoutParams.bottomMargin = margin
-            navHostContainer.layoutParams = layoutParams
-            navHostContainer.requestLayout()
-        }
-    }
-
-    private fun expandAppBarLayout(shouldExpand: Boolean) =
-        binding.apply {
-            if (shouldExpand) {
-                animationFinished = false
-                appBarLayout.setExpanded(shouldExpand, true)
-            } else {
-                if (getVisibleFragment()?.shouldMoveFragmentUp() == true) {
-                    Log.d("AppBarLayout", "Collapsing the AppBarLayout")
-                    appBarLayout.setExpanded(false, true)
-                }
-            }
-        }
-
-    private fun getVisibleFragment(): BaseFragment<*>? {
-        val viewPagerFragment = supportFragmentManager.getCurrentVisibleViewPagerFragment()
-        return viewPagerFragment?.getVisibleFragment()
     }
 
     private fun registerReceivers() {

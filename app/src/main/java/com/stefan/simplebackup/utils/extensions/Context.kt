@@ -93,6 +93,11 @@ fun FragmentManager.getCurrentVisibleViewPagerFragment() =
         }
     } as? BaseViewPagerFragment<out ViewBinding>
 
+fun AppCompatActivity.getVisibleFragment(): BaseFragment<*>? {
+    val viewPagerFragment = supportFragmentManager.getCurrentVisibleViewPagerFragment()
+    return viewPagerFragment?.getVisibleFragment()
+}
+
 inline fun <reified T : Fragment> FragmentManager.findFragmentByClass(): T? =
     fragments.firstOrNull { fragment ->
         fragment is T
@@ -182,7 +187,7 @@ inline fun <reified T : Enum<T>> Fragment.putEnumExtra(victim: T) {
     arguments = Bundle().apply { putInt(T::class.java.name, victim.ordinal) }
 }
 
-inline fun <reified T: Enum<T>> Fragment.getEnumExtra(): T? =
+inline fun <reified T : Enum<T>> Fragment.getEnumExtra(): T? =
     arguments?.getInt(T::class.java.name, -1)
         .takeUnless { ordinal -> ordinal == -1 }
         ?.let { T::class.java.enumConstants?.get(it) }

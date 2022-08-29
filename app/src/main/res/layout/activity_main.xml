@@ -12,8 +12,8 @@
         android:id="@+id/app_bar_layout"
         android:layout_width="match_parent"
         android:layout_height="@dimen/toolbar_height"
-        app:liftOnScroll="true"
-        android:background="@color/bottomView">
+        android:background="@color/bottomView"
+        app:liftOnScroll="true">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/search_bar_layout"
@@ -43,10 +43,10 @@
                     android:id="@+id/material_toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    app:title="@string/search_for_apps"
                     android:background="?android:attr/selectableItemBackgroundBorderless"
                     android:visibility="visible"
                     app:navigationIcon="@drawable/ic_search"
+                    app:title="@string/search_for_apps"
                     app:titleTextAppearance="@style/ToolBarFont"
                     app:titleTextColor="?android:textColorHint">
 
@@ -64,12 +64,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="@dimen/bottom_navigation_height"
-        android:paddingBottom="-30dp"
         app:defaultNavHost="true"
-        app:layout_anchor="@id/app_bar_layout"
-        app:layout_anchorGravity="bottom"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:layout_dodgeInsetEdges="top"
         app:navGraph="@navigation/nav_graph" />
 
     <com.stefan.simplebackup.ui.views.MainFloatingButton
@@ -92,8 +88,8 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/bottom_navigation_height"
         android:layout_gravity="bottom"
-        android:visibility="visible"
         android:background="@color/bottomView"
+        android:visibility="visible"
         app:labelVisibilityMode="labeled"
         app:layout_insetEdge="bottom"
         app:menu="@menu/nav_bar" />

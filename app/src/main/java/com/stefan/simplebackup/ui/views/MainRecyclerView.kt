@@ -49,13 +49,6 @@ class MainRecyclerView(
         return !areAllItemsVisible && isLastItemVisible
     }
 
-    fun slowlyScrollToLastItem() {
-        smoothSnapToPosition(
-            linearLayoutManager.itemCount - 1,
-            computeVerticalScrollRange().toFloat()
-        )
-    }
-
     fun hideAttachedButton(floatingButton: MainFloatingButton) {
         var showAction: () -> Unit
         var hideAction: () -> Unit
@@ -86,7 +79,7 @@ class MainRecyclerView(
                     checkOnAttach = false
                 }
 
-                if (dy > 0) {
+                if (dy > 0 && floatingButton.isShown) {
                     hideAction()
                 } else if (dy < 0) {
                     showAction()
@@ -101,16 +94,29 @@ class MainRecyclerView(
         })
     }
 
+    fun slowlyScrollToLastItem() {
+        val smoothScroller = object : LinearSmoothScroller(context) {
+            override fun getVerticalSnapPreference(): Int = SNAP_TO_START
+            override fun getHorizontalSnapPreference(): Int = SNAP_TO_START
+            override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics?): Float {
+                return 1.6f
+            }
+        }
+        smoothScroller.targetPosition = linearLayoutManager.itemCount - 1
+        layoutManager?.startSmoothScroll(smoothScroller)
+    }
+
     fun smoothSnapToPosition(
         position: Int,
         scrollDuration: Float = 380f,
         snapMode: Int = LinearSmoothScroller.SNAP_TO_START
     ) {
+        val scrollSpeed = scrollDuration / computeVerticalScrollRange()
         val smoothScroller = object : LinearSmoothScroller(context) {
             override fun getVerticalSnapPreference(): Int = snapMode
             override fun getHorizontalSnapPreference(): Int = snapMode
             override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics?): Float {
-                return scrollDuration / computeVerticalScrollRange()
+                return scrollSpeed
             }
         }
         smoothScroller.targetPosition = position

@@ -45,7 +45,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
             ) {
                 object : OnClickListener {
                     override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
-                        itemAnimation = false
                         val item = homeAdapter.currentList[position]
                         if (homeAdapter.hasSelectedItems()) {
                             homeAdapter.doSelection(holder as BaseViewHolder, item)
@@ -54,18 +53,15 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                                 item.passToActivity<AppDetailActivity>(context)
                             }
                         }
-                        itemAnimation = true
                     }
 
                     override fun onLongItemViewClick(
                         holder: RecyclerView.ViewHolder,
                         position: Int
                     ) {
-                        itemAnimation = false
                         val item = homeAdapter.currentList[position]
                         mainViewModel.setSelectionMode(true)
                         homeAdapter.doSelection(holder as BaseViewHolder, item)
-                        itemAnimation = true
                     }
                 }
             }

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.doOnLayout
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -22,6 +23,7 @@ import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.viewBinding
 import kotlinx.coroutines.delay
+import java.lang.IndexOutOfBoundsException
 import java.lang.reflect.ParameterizedType
 
 abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
@@ -81,8 +83,11 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
         setupViewPager()
     }
 
-    fun getVisibleFragment() =
-        childFragmentManager.fragments[viewPager.currentItem] as BaseFragment<out ViewBinding>
+    fun getVisibleFragment() = try {
+            childFragmentManager.fragments[viewPager.currentItem] as BaseFragment<*>
+        } catch (e: IndexOutOfBoundsException) {
+            null
+        }
 
     private fun getOnPageChangeCallback(): ViewPager2.OnPageChangeCallback =
         object : ViewPager2.OnPageChangeCallback() {
@@ -131,8 +136,8 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
     }
 
     private fun controlTabs(shouldEnableTabs: Boolean) {
-        // Have to doOnPreDraw because the selectedTabPosition update is slow on configuration change
-        binding.root.doOnPreDraw {
+        // Have to doOnLayout because the selectedTabPosition update is slow on configuration change
+        tabLayout.doOnLayout {
             val tabPositions = getTabPositions()
             tabPositions.filter { position ->
                 position != tabLayout.selectedTabPosition

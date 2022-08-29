@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.ui.adapters.listeners
 
+import android.util.Log
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
@@ -57,7 +58,7 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
             }
             mNumberOfSelected.value = selectedItems.size
         }
-        println("Selection list: $selectedItems")
+        Log.d("SelectionListener", "Selection list: $selectedItems")
     }
 
     companion object {

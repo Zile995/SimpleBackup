@@ -33,9 +33,6 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
         )
     }
 
-    fun stopProgressBarSpinning() =
-        homeViewModel.setSpinning(shouldSpin = false)
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.apply {
@@ -92,6 +89,9 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
             }
         }
     }
+
+    fun stopProgressBarSpinning() =
+        homeViewModel.setSpinning(shouldSpin = false)
 
     override fun FragmentFavoritesBinding.saveRecyclerViewState() {
         favoritesRecyclerView.onSaveRecyclerViewState { stateParcelable ->
