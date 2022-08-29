@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
     // Binding properties
     private val binding by viewBinding(ActivityMainBinding::inflate)
 
@@ -143,7 +143,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun ActivityMainBinding.bindViews() {
-        window.setBackgroundDrawableResource(R.color.background)
         bindToolBar()
         bindSearchBar()
         bindAppBarLayout()

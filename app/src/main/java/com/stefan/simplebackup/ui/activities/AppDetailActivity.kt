@@ -6,9 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -32,7 +30,7 @@ import java.util.*
 private const val TAG: String = "AppDetailActivity"
 private const val REQUEST_CODE_SIGN_IN: Int = 400
 
-class AppDetailActivity : AppCompatActivity() {
+class AppDetailActivity : BaseActivity() {
     private val binding by viewBinding(ActivityDetailBinding::inflate)
 
     private val detailsViewModel: DetailsViewModel by viewModels {
@@ -40,20 +38,10 @@ class AppDetailActivity : AppCompatActivity() {
         ViewModelFactory(application as MainApplication, selectedApp)
     }
 
-    private val requestPermissionLauncher by lazy {
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-                detailsViewModel.createLocalBackup()
-            }
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_detail)
         setContentView(binding.root)
-
-        lifecycleScope.launch {
+        launchOnViewLifecycle {
             detailsViewModel.selectedApp?.let {
                 binding.apply {
                     bindViews()
@@ -67,8 +55,8 @@ class AppDetailActivity : AppCompatActivity() {
         bindToolBar()
         bindCardViews()
         bindBackupButton()
-        bindBackupDriveButton()
         bindDeleteButton()
+        bindBackupDriveButton()
     }
 
     private fun ActivityDetailBinding.bindToolBar() {
