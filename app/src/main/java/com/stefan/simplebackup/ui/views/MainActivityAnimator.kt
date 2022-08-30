@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.animation.DecelerateInterpolator
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnPreDraw
+import androidx.core.view.marginBottom
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
@@ -84,9 +85,7 @@ class MainActivityAnimator(
                 root.doOnPreDraw {
                     animatorSet.playTogether(
                         navigationBar.moveUp {
-                            setFragmentContainerMargin(
-                                navigationBar.height
-                            )
+                            setFragmentContainerMargin(navigationBar.height)
                         }, *shrinkSearchBarToInitialSize()
                     )
                     animatorSet.start()
@@ -101,19 +100,22 @@ class MainActivityAnimator(
 
     private fun expandAppBarLayout(shouldExpand: Boolean) =
         binding?.apply {
-            if (shouldExpand) {
-                animationFinished = false
-                appBarLayout.setExpanded(shouldExpand, true)
-            } else {
-                if (activity?.getVisibleFragment()?.shouldMoveFragmentUp() == true) {
-                    Log.d("AppBarLayout", "Collapsing the AppBarLayout")
-                    appBarLayout.setExpanded(false, true)
+            root.doOnPreDraw {
+                if (shouldExpand) {
+                    animationFinished = false
+                    appBarLayout.setExpanded(shouldExpand, true)
+                } else {
+                    if (activity?.getVisibleFragment()?.shouldMoveFragmentUp() == true) {
+                        Log.d("AppBarLayout", "Collapsing the AppBarLayout")
+                        appBarLayout.setExpanded(false, true)
+                    }
                 }
             }
         }
 
     private fun setFragmentContainerMargin(margin: Int) {
         binding?.apply {
+            if (navHostContainer.marginBottom == margin) return@apply
             val layoutParams =
                 navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
             layoutParams.bottomMargin = margin
@@ -127,7 +129,6 @@ class MainActivityAnimator(
             return@run materialSearchBar.animateToParentSize(
                 doOnStart = {
                     Log.d("MainAnimator", "Expanding SearchBar on click")
-                    //animateStatusBarColor(color = R.color.searchBar)
                     activity?.apply {
                         window.statusBarColor = getColorFromResource(R.color.searchBar)
                     }

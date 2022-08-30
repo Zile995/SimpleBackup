@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.view.doOnLayout
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -18,12 +17,8 @@ import com.stefan.simplebackup.ui.fragments.BaseFragment
 import com.stefan.simplebackup.ui.fragments.FavoritesFragment
 import com.stefan.simplebackup.ui.fragments.ViewReferenceCleaner
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
-import com.stefan.simplebackup.utils.extensions.findFragmentByClass
-import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.viewBinding
+import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.delay
-import java.lang.IndexOutOfBoundsException
 import java.lang.reflect.ParameterizedType
 
 abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
@@ -83,11 +78,8 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
         setupViewPager()
     }
 
-    fun getVisibleFragment() = try {
-            childFragmentManager.fragments[viewPager.currentItem] as BaseFragment<*>
-        } catch (e: IndexOutOfBoundsException) {
-            null
-        }
+    fun getCurrentFragment() =
+        viewPager.findCurrentFragment(childFragmentManager) as BaseFragment<*>
 
     private fun getOnPageChangeCallback(): ViewPager2.OnPageChangeCallback =
         object : ViewPager2.OnPageChangeCallback() {
@@ -136,14 +128,13 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
     }
 
     private fun controlTabs(shouldEnableTabs: Boolean) {
-        // Have to doOnLayout because the selectedTabPosition update is slow on configuration change
-        tabLayout.doOnLayout {
+        // Have to doOnPreDraw because the selectedTabPosition update is slow on configuration change
+        tabLayout.doOnPreDraw {
             val tabPositions = getTabPositions()
             tabPositions.filter { position ->
                 position != tabLayout.selectedTabPosition
             }.forEach { notSelectedPosition ->
-                (tabLayout.getChildAt(0) as ViewGroup).getChildAt(notSelectedPosition)
-                    .isEnabled = shouldEnableTabs
+                tabLayout.getTabAt(notSelectedPosition)?.view?.isEnabled = shouldEnableTabs
             }
             viewPager.isUserInputEnabled = shouldEnableTabs
         }

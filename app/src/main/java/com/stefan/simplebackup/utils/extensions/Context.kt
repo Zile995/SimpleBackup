@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
@@ -86,16 +87,16 @@ inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     }
 }
 
-fun FragmentManager.getCurrentVisibleViewPagerFragment() =
+private fun FragmentManager.getCurrentVisibleViewPagerFragment() =
     findFragmentById(R.id.nav_host_container)?.run {
-        childFragmentManager.fragments.firstOrNull { childFragment ->
+        childFragmentManager.fragments.first { childFragment ->
             childFragment.isVisible
         }
-    } as? BaseViewPagerFragment<out ViewBinding>
+    } as? BaseViewPagerFragment<*>
 
 fun AppCompatActivity.getVisibleFragment(): BaseFragment<*>? {
     val viewPagerFragment = supportFragmentManager.getCurrentVisibleViewPagerFragment()
-    return viewPagerFragment?.getVisibleFragment()
+    return viewPagerFragment?.getCurrentFragment()
 }
 
 inline fun <reified T : Fragment> FragmentManager.findFragmentByClass(): T? =

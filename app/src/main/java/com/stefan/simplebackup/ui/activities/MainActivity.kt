@@ -4,7 +4,6 @@ import android.content.Intent.ACTION_PACKAGE_ADDED
 import android.content.Intent.ACTION_PACKAGE_REMOVED
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnLayout
 import androidx.lifecycle.Lifecycle
@@ -110,9 +109,8 @@ class MainActivity : BaseActivity() {
             binding.appBarLayout.setExpanded(true)
             if (destination.doesMatchDestination(R.id.search_action))
                 mainViewModel.setSearching(true)
-            else launchPostDelayed(50L) {
+            else
                 mainViewModel.setSearching(false)
-            }
             destination.doesMatchDestination(R.id.home).let { isHomeDestination ->
                 shouldExit = isHomeDestination
                 if (!isHomeDestination) {
@@ -281,7 +279,7 @@ class MainActivity : BaseActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        mainViewModel.changeButtonVisibility(binding.floatingButton.isVisible)
         unregisterReceivers(packageReceiver, notificationReceiver)
+        mainViewModel.changeButtonVisibility(binding.floatingButton.isVisible)
     }
 }

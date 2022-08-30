@@ -8,8 +8,11 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import androidx.annotation.ColorRes
 import androidx.annotation.IdRes
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.viewpager2.widget.ViewPager2
 import coil.imageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
@@ -41,6 +44,9 @@ fun ImageView.loadBitmap(byteArray: ByteArray) {
         .build()
     imageLoader.enqueue(request)
 }
+
+fun ViewPager2.findCurrentFragment(fragmentManager: FragmentManager): Fragment? =
+    fragmentManager.findFragmentByTag("f$currentItem")
 
 fun NavDestination.doesMatchDestination(@IdRes destId: Int): Boolean =
     hierarchy.any { navDestination ->

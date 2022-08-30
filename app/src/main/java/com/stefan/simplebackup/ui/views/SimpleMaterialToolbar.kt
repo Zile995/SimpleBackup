@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
+import androidx.core.view.doOnLayout
 import androidx.core.view.postDelayed
 import com.google.android.material.appbar.MaterialToolbar
 import com.stefan.simplebackup.R
@@ -23,10 +24,19 @@ class SimpleMaterialToolbar(
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, R.attr.toolbarStyle)
 
-    fun removeTitle() { title = null }
+    fun removeTitle() {
+        title = null
+    }
+
     fun removeRipple() = setBackgroundResource(0)
     fun showKeyboard() = searchActionView?.requestFocus()
     fun hideKeyboard() = searchActionView?.resetSearchView()
+
+    init {
+        doOnLayout {
+            setDefaultTitleTextColor()
+        }
+    }
 
     inline fun changeOnSearch(
         isSearching: Boolean,
@@ -62,7 +72,6 @@ class SimpleMaterialToolbar(
             removeRipple()
             removeClickListeners()
             setNavigationIcon(R.drawable.ic_close)
-            setNavigationOnClickListener(null)
             setNavigationContentDescription(R.string.clear_selection)
             menu?.findItem(R.id.select_all)?.isVisible = true
             menu?.findItem(R.id.action_search)?.isVisible = false
@@ -109,8 +118,7 @@ class SimpleMaterialToolbar(
             setBackgroundResource(resourceId)
         }
 
-    private fun setDefaultTitle() {
-        title = context.getString(R.string.search_for_apps)
+    private fun setDefaultTitleTextColor() =
         with(TypedValue()) {
             context.theme.resolveAttribute(
                 android.R.attr.textColorHint,
@@ -119,6 +127,10 @@ class SimpleMaterialToolbar(
             )
             setTitleTextColor(context.getColor(resourceId))
         }
+
+
+    private fun setDefaultTitle() {
+        title = context.getString(R.string.search_for_apps)
     }
 
     fun removeClickListeners() {
