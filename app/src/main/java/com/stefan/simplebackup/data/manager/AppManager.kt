@@ -12,7 +12,6 @@ import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
@@ -34,20 +33,15 @@ class AppManager(private val context: Context) {
             getAppData(appInfo = getAppInfo(packageName))
         }
 
-    private fun printSequence() {
-        Log.d(
-            "AppManager", "Sequence number:" +
-                    " ${PreferenceHelper.getSequenceNumber}"
-        )
-    }
+    private fun printSequence() =
+        Log.d("AppManager", "Sequence number: ${PreferenceHelper.savedSequenceNumber}")
 
     private fun getChangedPackages() =
-        packageManager.getChangedPackages(PreferenceHelper.getSequenceNumber)
+        packageManager.getChangedPackages(PreferenceHelper.savedSequenceNumber)
 
     private suspend fun saveSequenceNumber(newSequenceNumber: Int) {
-        if (newSequenceNumber != PreferenceHelper.getSequenceNumber) {
+        if (newSequenceNumber != PreferenceHelper.savedSequenceNumber)
             PreferenceHelper.updateSequenceNumber(newSequenceNumber)
-        }
         printSequence()
     }
 
@@ -60,7 +54,7 @@ class AppManager(private val context: Context) {
         }
     }
 
-    fun getChangedPackageNames(): Flow<String> = flow {
+    fun getChangedPackageNames() = flow {
         val changedPackages = getChangedPackages()
         changedPackages?.let { changed ->
             changed.packageNames.filter { packageName ->
@@ -129,7 +123,7 @@ class AppManager(private val context: Context) {
             PackageManager.GET_META_DATA
         ).versionName?.substringBefore(" (") ?: ""
 
-        return@coroutineScope AppData(
+        AppData(
             name = name,
             bitmap = drawable.toByteArray(),
             packageName = packageName,

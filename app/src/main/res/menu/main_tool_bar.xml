@@ -17,9 +17,9 @@
         app:showAsAction="ifRoom"/>
 
     <item
-        android:id="@+id/delete_backup"
+        android:id="@+id/delete"
         android:icon="@drawable/ic_delete"
-        android:title="@string/add_to_favorites"
+        android:title="@string/delete"
         android:visible="false"
         app:showAsAction="ifRoom"/>
 

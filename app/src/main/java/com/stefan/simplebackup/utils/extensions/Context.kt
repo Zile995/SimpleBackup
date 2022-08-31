@@ -10,7 +10,6 @@ import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
@@ -89,7 +88,7 @@ inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
 
 private fun FragmentManager.getCurrentVisibleViewPagerFragment() =
     findFragmentById(R.id.nav_host_container)?.run {
-        childFragmentManager.fragments.first { childFragment ->
+        childFragmentManager.fragments.firstOrNull { childFragment ->
             childFragment.isVisible
         }
     } as? BaseViewPagerFragment<*>

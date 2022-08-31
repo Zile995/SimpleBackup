@@ -3,15 +3,18 @@ package com.stefan.simplebackup.ui.activities
 import android.content.Intent.ACTION_PACKAGE_ADDED
 import android.content.Intent.ACTION_PACKAGE_REMOVED
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnLayout
+import androidx.core.view.doOnPreDraw
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.google.android.material.appbar.AppBarLayout
+import com.google.android.material.snackbar.Snackbar
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
@@ -20,6 +23,8 @@ import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.numberOfSelected
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
+import com.stefan.simplebackup.ui.fragments.FavoritesFragment
+import com.stefan.simplebackup.ui.fragments.HomeFragment
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
@@ -74,8 +79,8 @@ class MainActivity : BaseActivity() {
             bindViews()
             initObservers()
         }
-        registerReceivers()
         setRootDialogs()
+        registerReceivers()
     }
 
     override fun onBackPressed() {
@@ -84,17 +89,17 @@ class MainActivity : BaseActivity() {
             mainViewModel.setSelectionMode(false)
             return
         }
-        if (animationFinished)
+        if (animationFinished) {
             if (shouldExit) {
                 launchOnViewLifecycle {
                     shouldExit = false
                     showToast(R.string.press_back_again)
-                    delayedExitJob = launchPostDelayed(1500L) {
-                        shouldExit = true
-                    }
+                    delayedExitJob = launchPostDelayed(1500L) { shouldExit = true }
+                    delayedExitJob?.invokeOnCompletion { delayedExitJob = null }
                 }
             } else
                 super.onBackPressed()
+        }
     }
 
     override fun onSupportNavigateUp(): Boolean {
@@ -113,10 +118,7 @@ class MainActivity : BaseActivity() {
                 mainViewModel.setSearching(false)
             destination.doesMatchDestination(R.id.home).let { isHomeDestination ->
                 shouldExit = isHomeDestination
-                if (!isHomeDestination) {
-                    delayedExitJob?.cancel()
-                    delayedExitJob = null
-                }
+                if (!isHomeDestination) delayedExitJob?.cancel()
             }
         }
     }
@@ -131,9 +133,7 @@ class MainActivity : BaseActivity() {
                 popEnter = R.animator.fragment_fade_enter
                 popExit = R.animator.fragment_fade_exit
             }
-            popUpTo(
-                currentDestination?.id ?: navController.graph.startDestinationId
-            ) {
+            popUpTo(currentDestination?.id ?: navController.graph.startDestinationId) {
                 inclusive = false
                 saveState = true
             }
@@ -153,7 +153,10 @@ class MainActivity : BaseActivity() {
         numberOfSelected.collect { numberOfItems ->
             when (numberOfItems) {
                 0 -> {}
-                1 -> materialToolbar.title = "$numberOfItems ${getString(R.string.item)}"
+                1 -> {
+                    setDeleteMenuItem()
+                    materialToolbar.title = "$numberOfItems ${getString(R.string.item)}"
+                }
                 else -> materialToolbar.title = "$numberOfItems ${getString(R.string.items)}"
             }
         }
@@ -161,6 +164,15 @@ class MainActivity : BaseActivity() {
 
     private fun ActivityMainBinding.bindFloatingButton() {
         floatingButton.isVisible = mainViewModel.isButtonVisible
+    }
+
+    private fun ActivityMainBinding.setDeleteMenuItem() {
+        root.doOnPreDraw {
+            if (materialToolbar.deleteMenuItem?.isVisible == false &&
+                getVisibleFragment() !is FavoritesFragment?
+            )
+                materialToolbar.deleteMenuItem?.isVisible = true
+        }
     }
 
     private fun ActivityMainBinding.bindAppBarLayout() {
@@ -199,12 +211,21 @@ class MainActivity : BaseActivity() {
                 }
                 R.id.select_all -> {
                     getVisibleFragment()?.selectAllItems()
+                    Snackbar.make(
+                        binding.navigationBar,
+                        "Selected ${mainViewModel.selectionList.size} apps",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
                 }
                 R.id.add_to_favorites -> {
                     mainViewModel.changeFavorites()
                 }
-                R.id.delete_backup -> {
-
+                R.id.delete -> {
+                    Log.d("Activity", "Setting up the delete action")
+                    val visibleFragment = getVisibleFragment()
+                    if (visibleFragment is HomeFragment && !mainViewModel.hasRootAccess()) {
+                        visibleFragment.deleteSelectedItems()
+                    }
                 }
                 else -> {
                     return@setOnMenuItemClickListener false

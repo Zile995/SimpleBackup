@@ -21,6 +21,9 @@ class SimpleMaterialToolbar(
         get() =
             menu?.findItem(R.id.action_search)?.actionView as? MaterialSearchView
 
+    val deleteMenuItem
+        get() = menu?.findItem(R.id.delete)
+
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, R.attr.toolbarStyle)
 
@@ -97,6 +100,7 @@ class SimpleMaterialToolbar(
         setNavigationOnClickListener(null)
         setNavigationIcon(R.drawable.ic_search)
         setNavigationContentDescription(R.string.search_for_apps)
+        deleteMenuItem?.isVisible = false
         menu?.findItem(R.id.select_all)?.isVisible = false
         menu?.findItem(R.id.action_search)?.isVisible = false
         menu?.findItem(R.id.add_to_favorites)?.isVisible = false

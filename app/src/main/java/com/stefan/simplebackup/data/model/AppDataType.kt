@@ -1,9 +1,9 @@
-package com.stefan.simplebackup.ui.fragments.viewpager
+package com.stefan.simplebackup.data.model
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-enum class FavoriteType : Parcelable {
+enum class AppDataType : Parcelable {
     USER, LOCAL, CLOUD
 }

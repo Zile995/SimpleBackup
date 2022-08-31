@@ -13,7 +13,7 @@ import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.adapters.FavoritesAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
-import com.stefan.simplebackup.ui.fragments.viewpager.FavoriteType
+import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.ui.viewmodels.FavoritesViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
@@ -25,11 +25,11 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     private val favoritesAdapter get() = _favoritesAdapter!!
 
     private val homeViewModel: FavoritesViewModel by viewModels {
-        val favoriteType = getEnumExtra<FavoriteType>()
+        val appDataType = getEnumExtra<AppDataType>()
         ViewModelFactory(
             requireActivity().application as MainApplication,
             mainViewModel.repository,
-            favoriteType
+            appDataType
         )
     }
 
@@ -124,9 +124,9 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
          * this fragment using the provided parameters.
          *
          */
-        fun newInstance(favoriteType: FavoriteType) =
+        fun newInstance(appDataType: AppDataType) =
             FavoritesFragment().apply {
-                putEnumExtra(favoriteType)
+                putEnumExtra(appDataType)
             }
     }
 

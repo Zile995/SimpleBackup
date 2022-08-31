@@ -5,6 +5,7 @@ import android.view.View
 import androidx.fragment.app.viewModels
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentHomeViewPagerBinding
 import com.stefan.simplebackup.ui.fragments.BaseFragment
 import com.stefan.simplebackup.ui.fragments.FavoritesFragment
@@ -26,7 +27,7 @@ class HomeViewPagerFragment : BaseViewPagerFragment<FragmentHomeViewPagerBinding
     }
 
     override fun createFragments(): ArrayList<BaseFragment<*>> =
-        arrayListOf(HomeFragment(), FavoritesFragment.newInstance(FavoriteType.USER))
+        arrayListOf(HomeFragment(), FavoritesFragment.newInstance(AppDataType.USER))
 
     override fun configureTabText(): ArrayList<String> =
         arrayListOf(

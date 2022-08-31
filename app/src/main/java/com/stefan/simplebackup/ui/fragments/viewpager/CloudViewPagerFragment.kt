@@ -5,6 +5,7 @@ import android.view.View
 import androidx.fragment.app.viewModels
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentCloudViewPagerBinding
 import com.stefan.simplebackup.ui.fragments.BaseFragment
 import com.stefan.simplebackup.ui.fragments.CloudFragment
@@ -26,7 +27,7 @@ class CloudViewPagerFragment : BaseViewPagerFragment<FragmentCloudViewPagerBindi
     }
 
     override fun createFragments(): ArrayList<BaseFragment<*>> =
-        arrayListOf(CloudFragment(), FavoritesFragment.newInstance(FavoriteType.CLOUD))
+        arrayListOf(CloudFragment(), FavoritesFragment.newInstance(AppDataType.CLOUD))
 
     override fun configureTabText(): ArrayList<String> =
         arrayListOf(

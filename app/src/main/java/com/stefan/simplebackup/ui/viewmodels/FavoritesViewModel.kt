@@ -3,36 +3,36 @@ package com.stefan.simplebackup.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.data.local.repository.AppRepository
-import com.stefan.simplebackup.ui.fragments.viewpager.FavoriteType
+import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.utils.extensions.filterBy
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.launch
 
 class FavoritesViewModel(
     repository: AppRepository,
-    favoriteType: FavoriteType?,
+    appDataType: AppDataType?,
     shouldControlSpinner: Boolean = false
 ) : BaseViewModel(shouldControlSpinner) {
 
     init {
         viewModelScope.launch(ioDispatcher) {
-            favoriteType?.let {
-                when (favoriteType) {
-                    FavoriteType.USER -> {
+            appDataType?.let {
+                when (appDataType) {
+                    AppDataType.USER -> {
                         loadList {
                             repository.installedApps.filterBy {
                                 it.favorite
                             }
                         }
                     }
-                    FavoriteType.LOCAL -> {
+                    AppDataType.LOCAL -> {
                         loadList {
                             repository.localApps.filterBy {
                                 it.favorite
                             }
                         }
                     }
-                    FavoriteType.CLOUD -> {
+                    AppDataType.CLOUD -> {
                         loadList {
                             repository.cloudApps.filterBy {
                                 it.favorite

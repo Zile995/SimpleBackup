@@ -11,10 +11,7 @@ import androidx.viewbinding.ViewBinding
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.views.MainRecyclerView
-import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
-import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.viewBinding
+import com.stefan.simplebackup.utils.extensions.*
 import java.lang.reflect.ParameterizedType
 
 
@@ -48,6 +45,16 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
     override fun onCleanUp() {
         binding.saveRecyclerViewState()
         _mainRecyclerView = null
+    }
+
+    fun deleteSelectedItems() {
+        _mainRecyclerView?.apply {
+            val currentAdapter = adapter as BaseAdapter
+            currentAdapter.selectedItems.forEach { packageName ->
+                requireContext().deletePackage(packageName)
+            }
+            mainViewModel.setSelectionMode(false)
+        }
     }
 
     fun selectAllItems() {

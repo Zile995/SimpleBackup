@@ -20,17 +20,18 @@ import kotlin.system.measureTimeMillis
 
 class MainViewModel(application: MainApplication) : ViewModel(),
     PackageListener by PackageListenerImpl(application) {
+    // View saved states
     var isAppBarExpanded = true
         private set
-
     var isButtonVisible = false
         private set
 
+    // Root checking
+    private val rootChecker = RootChecker(application.applicationContext)
     private val hasCheckedRootGranted get() = PreferenceHelper.hasCheckedRootGranted
     private val hasCheckedDeviceRooted get() = PreferenceHelper.hasCheckedDeviceRooted
 
-    private val rootChecker = RootChecker(application.applicationContext)
-
+    // Search
     private var _isSearching = MutableStateFlow(false)
     val isSearching get() = _isSearching.asStateFlow()
 
@@ -62,16 +63,20 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         onRootNotGranted: () -> Unit,
         onDeviceNotRooted: () -> Unit
     ) {
-        if (hasCheckedDeviceRooted && hasCheckedRootGranted) return
-        if (rootChecker.hasRootAccess() == false && rootChecker.isDeviceRooted() && !hasCheckedRootGranted) {
+        val hasRootAccess = rootChecker.hasRootAccess()
+        if (hasRootAccess == true) return
+        val isDeviceRooted = rootChecker.isDeviceRooted()
+        if (hasRootAccess == false && isDeviceRooted && !hasCheckedRootGranted) {
             onRootNotGranted()
             PreferenceHelper.setCheckedRootGranted(true)
         }
-        if (!rootChecker.isDeviceRooted() && !hasCheckedDeviceRooted) {
+        if (!isDeviceRooted && !hasCheckedDeviceRooted) {
             onDeviceNotRooted()
             PreferenceHelper.setCheckedDeviceRooted(true)
         }
     }
+
+    fun hasRootAccess() = rootChecker.hasRootAccess() == true
 
     fun setSearching(isSearching: Boolean) {
         _isSearching.value = isSearching

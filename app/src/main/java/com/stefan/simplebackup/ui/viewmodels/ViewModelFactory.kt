@@ -6,7 +6,7 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.receivers.PackageListener
-import com.stefan.simplebackup.ui.fragments.viewpager.FavoriteType
+import com.stefan.simplebackup.data.model.AppDataType
 
 @Suppress("UNCHECKED_CAST")
 
@@ -25,7 +25,7 @@ class ViewModelFactory(
             )
             FavoritesViewModel::class.java -> FavoritesViewModel(
                 additionalProperty as AppRepository,
-                secondProperty as FavoriteType?
+                secondProperty as AppDataType?
             )
             LocalViewModel::class.java -> LocalViewModel(
                 application,
