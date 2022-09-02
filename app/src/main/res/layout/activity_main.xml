@@ -46,6 +46,8 @@
                     android:background="?android:attr/selectableItemBackgroundBorderless"
                     android:visibility="visible"
                     app:navigationIcon="@drawable/ic_search"
+                    app:contentInsetStartWithNavigation="0dp"
+                    app:contentInsetEndWithActions="0dp"
                     app:title="@string/search_for_apps"
                     app:titleTextAppearance="@style/ToolBarFont"
                     app:titleTextColor="?android:textColorHint">

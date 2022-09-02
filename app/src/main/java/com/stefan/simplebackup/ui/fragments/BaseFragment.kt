@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.viewbinding.ViewBinding
+import com.google.android.material.snackbar.Snackbar
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.views.MainRecyclerView
@@ -37,13 +38,12 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
 
     override fun onResume() {
         super.onResume()
-        onMainActivityCallback {
-            _mainRecyclerView?.controlFloatingButton()
-        }
+        onMainActivityCallback { _mainRecyclerView?.controlFloatingButton() }
     }
 
     override fun onCleanUp() {
         binding.saveRecyclerViewState()
+        _mainRecyclerView?.adapter = null
         _mainRecyclerView = null
     }
 
@@ -63,6 +63,11 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
             val currentAdapter = adapter as BaseAdapter
             currentAdapter.selectAllItems()
             itemAnimation = true
+            Snackbar.make(
+                binding.root,
+                "Selected ${mainViewModel.selectionList.size} apps",
+                Snackbar.LENGTH_SHORT
+            ).show()
         }
     }
 

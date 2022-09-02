@@ -66,16 +66,13 @@
         </activity>
         <activity
             android:name=".ui.activities.MainActivity"
-            android:configChanges="screenLayout|keyboard"
             android:exported="false"
             android:imeOptions="flagNoFullscreen"
-            android:windowSoftInputMode="stateUnchanged|adjustPan" />
+            android:windowSoftInputMode="stateAlwaysHidden|adjustPan" />
         <activity
             android:name=".ui.activities.AppDetailActivity"
             android:exported="false"
-            android:parentActivityName=".ui.activities.MainActivity"
-            android:screenOrientation="portrait"
-            tools:ignore="LockedOrientationActivity" />
+            android:parentActivityName=".ui.activities.MainActivity" />
         <activity
             android:name=".ui.activities.ProgressActivity"
             android:exported="false" />

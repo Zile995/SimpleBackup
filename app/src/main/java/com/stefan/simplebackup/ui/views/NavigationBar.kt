@@ -98,10 +98,10 @@ class NavigationBar(
             val navOptions = NavOptions.Builder().apply {
                 setLaunchSingleTop(true)
                 setRestoreState(true)
-                setEnterAnim(R.anim.fragment_enter)
-                setExitAnim(R.anim.fragment_exit)
-                setPopEnterAnim(R.anim.fragment_enter_pop)
-                setPopExitAnim(R.anim.fragment_exit_pop)
+                setEnterAnim(R.animator.fragment_nav_enter)
+                setExitAnim(R.animator.fragment_nav_exit)
+                setPopEnterAnim(R.animator.fragment_nav_enter_pop)
+                setPopExitAnim(R.animator.fragment_nav_exit_pop)
                 setPopUpTo(
                     navController.graph.startDestinationId,
                     inclusive = false,

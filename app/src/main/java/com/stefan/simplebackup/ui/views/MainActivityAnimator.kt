@@ -24,43 +24,75 @@ class MainActivityAnimator(
     private val animationDuration = 250L
     private val binding get() = bindingReference.get()
     private val activity get() = activityReference.get()
+    private val visibleFragment get() = activity?.getVisibleFragment()
+
+    fun animateOnSettings(isInSettings: Boolean) {
+        binding?.apply {
+            floatingButton.hidePermanently = isInSettings
+            materialToolbar.changeOnSettings(isInSettings) {
+                activity?.onSupportNavigateUp()
+            }
+            if (isInSettings) {
+                root.doOnPreDraw {
+                    val animatorSet = AnimatorSet().apply {
+                        duration = animationDuration
+                        interpolator = DecelerateInterpolator()
+                    }
+                    animatorSet.playTogether(*animateSearchBarOnClick())
+                    animatorSet.start()
+                }
+            } else {
+                animateOnNavigateFromSettings()
+            }
+        }
+    }
+
+    private fun animateOnNavigateFromSettings() {
+        binding?.apply {
+            if (materialSearchBar.height == materialSearchBar.initialHeight) return@apply
+            val animatorSet = AnimatorSet().apply {
+                duration = animationDuration
+                interpolator = DecelerateInterpolator()
+            }
+            animatorSet.playTogether(*shrinkSearchBarToInitialSize())
+            animatorSet.start()
+        }
+    }
 
     fun animateOnSelection(
         isSelected: Boolean,
         selectionModeCallBack: SelectionModeCallBack
     ) {
-        activity?.apply {
-            binding?.apply {
-                val animatorSet = AnimatorSet().apply {
-                    duration = animationDuration
-                    interpolator = DecelerateInterpolator()
-                }
-                if (isSelected) {
-                    root.doOnPreDraw {
-                        animatorSet.playTogether(
-                            navigationBar.moveDown(),
-                            *animateSearchBarOnSelection()
-                        )
-                        animatorSet.start()
-                    }
-                    launchPostDelayed(50L) {
-                        setFragmentContainerMargin(appBarLayout.height)
-                    }
-                } else {
-                    root.doOnPreDraw {
-                        animatorSet.playTogether(
-                            navigationBar.moveUp {
-                                setFragmentContainerMargin(navigationBar.height)
-                                getVisibleFragment()?.fixRecyclerViewScrollPosition()
-                            }, *shrinkSearchBarToInitialSize()
-                        )
-                        animatorSet.start()
-                    }
-                }
-                expandAppBarLayout(isSelected)
-                floatingButton.changeOnSelection(isSelected)
-                materialToolbar.changeOnSelection(isSelected, selectionModeCallBack)
+        binding?.apply {
+            val animatorSet = AnimatorSet().apply {
+                duration = animationDuration
+                interpolator = DecelerateInterpolator()
             }
+            if (isSelected) {
+                root.doOnPreDraw {
+                    animatorSet.playTogether(
+                        navigationBar.moveDown(),
+                        *animateSearchBarOnSelection()
+                    )
+                    animatorSet.start()
+                }
+                activity?.launchPostDelayed(50L) {
+                    setFragmentContainerMargin(appBarLayout.height)
+                }
+            } else {
+                root.doOnPreDraw {
+                    animatorSet.playTogether(
+                        navigationBar.moveUp {
+                            setFragmentContainerMargin(navigationBar.height)
+                            visibleFragment?.fixRecyclerViewScrollPosition()
+                        }, *shrinkSearchBarToInitialSize()
+                    )
+                    animatorSet.start()
+                }
+            }
+            expandAppBarLayout(isSelected)
+            floatingButton.changeOnSelection(isSelected)
+            materialToolbar.changeOnSelection(isSelected, selectionModeCallBack)
         }
     }
 
@@ -71,7 +103,6 @@ class MainActivityAnimator(
                 interpolator = DecelerateInterpolator()
             }
             if (isSearching) {
-                floatingButton.hidePermanently = true
                 setFragmentContainerMargin(appBarLayout.height)
                 root.doOnPreDraw {
                     animatorSet.playTogether(
@@ -81,7 +112,6 @@ class MainActivityAnimator(
                     animatorSet.start()
                 }
             } else {
-                floatingButton.hidePermanently = false
                 root.doOnPreDraw {
                     animatorSet.playTogether(
                         navigationBar.moveUp {
@@ -91,6 +121,7 @@ class MainActivityAnimator(
                     animatorSet.start()
                 }
             }
+            floatingButton.hidePermanently = isSearching
             materialToolbar.changeOnSearch(isSearching,
                 setNavigationOnClickListener = {
                     activity?.onSupportNavigateUp()
@@ -103,11 +134,11 @@ class MainActivityAnimator(
             root.doOnPreDraw {
                 if (shouldExpand) {
                     animationFinished = false
-                    appBarLayout.setExpanded(shouldExpand, true)
+                    appBarLayout.setExpanded(shouldExpand)
                 } else {
-                    if (activity?.getVisibleFragment()?.shouldMoveFragmentUp() == true) {
+                    if (visibleFragment?.shouldMoveFragmentUp() == true) {
                         Log.d("AppBarLayout", "Collapsing the AppBarLayout")
-                        appBarLayout.setExpanded(false, true)
+                        appBarLayout.setExpanded(false)
                     }
                 }
             }

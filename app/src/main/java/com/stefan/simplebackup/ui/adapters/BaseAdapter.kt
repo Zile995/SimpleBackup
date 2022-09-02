@@ -32,9 +32,13 @@ abstract class BaseAdapter(
         holder.setSelectedItem(item)
     }
 
+    private fun getOnlySelectedItems() = currentList.filter { it.isSelected }
+
     private fun BaseViewHolder.setSelectedItem(item: AppData) {
-        if (selectedItems.contains(item.packageName))
+        if (selectedItems.contains(item.packageName)) {
+            item.isSelected = true
             setSelected()
+        }
     }
 
     private fun List<AppData>.getSelectedIndexedValues() =

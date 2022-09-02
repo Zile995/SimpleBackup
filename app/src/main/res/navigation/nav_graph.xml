@@ -20,6 +20,11 @@
         android:label="fragment_cloud_view_pager"
         tools:layout="@layout/fragment_cloud_view_pager" />
     <fragment
+        android:id="@+id/settings"
+        android:name="com.stefan.simplebackup.ui.fragments.SettingsFragment"
+        android:label="fragment_settings"
+        tools:layout="@layout/fragment_settings" />
+    <fragment
         android:id="@+id/search_action"
         android:name="com.stefan.simplebackup.ui.fragments.SearchFragment"
         android:label="fragment_search"

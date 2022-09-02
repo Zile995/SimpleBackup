@@ -2,8 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/settings_info"
+        android:title="@string/settings_info"
+        app:showAsAction="collapseActionView"/>
+    <item
         android:id="@+id/force_stop"
-        android:icon="@drawable/ic_force_stop"
         android:title="@string/force_stop"
-        app:showAsAction="always"/>
+        app:showAsAction="collapseActionView"/>
 </menu>

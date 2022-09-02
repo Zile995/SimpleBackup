@@ -97,12 +97,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
 
     private fun FragmentHomeBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    mainViewModel.isSelected.collect {
-                        // TODO: Add floating button action...
-                    }
-                }
+            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
                 homeViewModel.spinner.collect { isSpinning ->
                     progressBar.isVisible = isSpinning
                     if (!isSpinning)

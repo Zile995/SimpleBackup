@@ -3,8 +3,10 @@ package com.stefan.simplebackup.ui.views
 import android.content.Context
 import android.graphics.Typeface
 import android.util.AttributeSet
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -13,7 +15,7 @@ import androidx.core.view.doOnLayout
 import androidx.core.view.doOnPreDraw
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.utils.extensions.getInterFontTypeFace
-import com.stefan.simplebackup.utils.extensions.showKeyboard
+import com.stefan.simplebackup.utils.extensions.showSoftKeyboard
 
 class MaterialSearchView(
     context: Context,
@@ -35,12 +37,13 @@ class MaterialSearchView(
     init {
         doOnLayout {
             addCloseButton()
-            setSearchViewMargin(-20)
             setTypeFace(context.getInterFontTypeFace())
         }
+        setSearchViewMargin()
+        preventFullScreenKeyboard()
         setOnQueryTextFocusChangeListener { view, hasFocus ->
             if (hasFocus) {
-                view.showKeyboard()
+                view.showSoftKeyboard()
             }
         }
     }
@@ -52,14 +55,17 @@ class MaterialSearchView(
         layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
     }
 
+    private fun preventFullScreenKeyboard() {
+        searchText.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or EditorInfo.IME_ACTION_SEARCH
+    }
+
     @Suppress("SameParameterValue")
-    fun setSearchViewMargin(leftMargin: Int) {
-        val params = LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT,
-            LinearLayout.LayoutParams.MATCH_PARENT
-        )
-        params.setMargins(leftMargin, 0, 0, 0)
+    fun setSearchViewMargin() {
+        val params = searchEditFrame.layoutParams as LinearLayout.LayoutParams
+        params.gravity = Gravity.START
+        params.setMargins(-30, 0, 30, 0)
         searchEditFrame.layoutParams = params
+        maxWidth = Integer.MAX_VALUE
     }
 
     private fun setTypeFace(typeface: Typeface?) {

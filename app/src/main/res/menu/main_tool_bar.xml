@@ -14,19 +14,19 @@
         android:icon="@drawable/ic_favorite"
         android:title="@string/add_to_favorites"
         android:visible="false"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/delete"
         android:icon="@drawable/ic_delete"
         android:title="@string/delete"
         android:visible="false"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/select_all"
         android:icon="@drawable/ic_select_all"
         android:title="@string/select_all"
         android:visible="false"
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
 </menu>

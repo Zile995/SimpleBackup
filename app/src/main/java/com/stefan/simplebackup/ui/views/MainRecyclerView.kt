@@ -95,6 +95,7 @@ class MainRecyclerView(
     }
 
     fun slowlyScrollToLastItem() {
+        if (linearLayoutManager.itemCount == 0) return
         val smoothScroller = object : LinearSmoothScroller(context) {
             override fun getVerticalSnapPreference(): Int = SNAP_TO_START
             override fun getHorizontalSnapPreference(): Int = SNAP_TO_START

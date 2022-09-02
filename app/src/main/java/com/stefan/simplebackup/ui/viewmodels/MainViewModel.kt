@@ -11,6 +11,8 @@ import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.C
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.root.RootChecker
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -43,6 +45,9 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         _isSelected.value = isSelected
         if (!isSelected) selectionFinished = true
     }
+
+    private var _isSettingsDestination = MutableStateFlow(false)
+    val isSettingsDestination = _isSettingsDestination.asStateFlow()
 
     init {
         Log.d("ViewModel", "MainViewModel created")
@@ -82,9 +87,13 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         _isSearching.value = isSearching
     }
 
-    fun changeFavorites() {
-        Log.d("ViewModel", "Calling changeFavorites")
+    fun setSettingsDestination(isSettingsDestination: Boolean) {
+        _isSettingsDestination.value = isSettingsDestination
+    }
+
+    fun changeFavorites() =
         viewModelScope.launch(ioDispatcher) {
+            Log.d("ViewModel", "Calling changeFavorites")
             val time = measureTimeMillis {
                 val semaphore = Semaphore(5)
                 selectionList.forEach { packageName ->
@@ -96,6 +105,17 @@ class MainViewModel(application: MainApplication) : ViewModel(),
                 }
             }
             Log.d("ViewModel", "Finished changing favorites in $time ms")
+        }
+
+    fun removeFavorites() {
+        viewModelScope.launch {
+            val removeFavoritesJob = changeFavorites()
+            removeFavoritesJob.invokeOnCompletion {
+                launch(Job()) {
+                    delay(200)
+                    setSelectionMode(false)
+                }
+            }
         }
     }
 

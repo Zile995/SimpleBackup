@@ -34,12 +34,6 @@ class MainFloatingButton(
         R.attr.extendedFloatingActionButtonStyle
     )
 
-    init {
-        doOnLayout {
-            setDefaultState()
-        }
-    }
-
     override fun show() {
         if (hidePermanently) return
         super.show()

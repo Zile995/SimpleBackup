@@ -94,12 +94,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
                     localViewModel.startPackagePolling()
                 }
             }
-            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    mainViewModel.isSelected.collect {
-                        // TODO: Add floating button action...
-                    }
-                }
+            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
                 localViewModel.spinner.collect { isSpinning ->
                     progressBar.isVisible = isSpinning
                     if (!isSpinning) {

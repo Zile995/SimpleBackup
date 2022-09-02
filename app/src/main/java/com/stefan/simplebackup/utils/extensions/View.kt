@@ -96,7 +96,7 @@ inline fun View.fadeOut(
         })
 }
 
-fun View.showKeyboard() {
+fun View.showSoftKeyboard() {
     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     imm.showSoftInput(findFocus(), 0)
 }

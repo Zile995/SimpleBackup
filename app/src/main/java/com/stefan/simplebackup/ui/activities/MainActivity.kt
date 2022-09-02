@@ -7,14 +7,12 @@ import android.util.Log
 import androidx.activity.viewModels
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnLayout
-import androidx.core.view.doOnPreDraw
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.google.android.material.appbar.AppBarLayout
-import com.google.android.material.snackbar.Snackbar
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
@@ -23,6 +21,7 @@ import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.numberOfSelected
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
+import com.stefan.simplebackup.ui.fragments.ConfigureSheetFragment
 import com.stefan.simplebackup.ui.fragments.FavoritesFragment
 import com.stefan.simplebackup.ui.fragments.HomeFragment
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
@@ -31,6 +30,7 @@ import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
 import com.stefan.simplebackup.ui.views.MainActivityAnimator
 import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
 import com.stefan.simplebackup.ui.views.MainRecyclerView
+import com.stefan.simplebackup.ui.views.SimpleMaterialToolbar
 import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -40,6 +40,8 @@ import java.lang.ref.WeakReference
 class MainActivity : BaseActivity() {
     // Binding properties
     private val binding by viewBinding(ActivityMainBinding::inflate)
+
+    private val visibleFragment get() = getVisibleFragment()
 
     // NavController, used for navigation
     private lateinit var navController: NavController
@@ -111,11 +113,10 @@ class MainActivity : BaseActivity() {
             supportFragmentManager.findFragmentById(R.id.nav_host_container) as NavHostFragment
         navController = navHostFragment.navController
         navController.addOnDestinationChangedListener { _, destination, _ ->
-            binding.appBarLayout.setExpanded(true)
-            if (destination.doesMatchDestination(R.id.search_action))
-                mainViewModel.setSearching(true)
-            else
-                mainViewModel.setSearching(false)
+            val isSearchDestination = destination.doesMatchDestination(R.id.search_action)
+            val isSettingsDestination = destination.doesMatchDestination(R.id.settings)
+            mainViewModel.setSearching(isSearchDestination)
+            mainViewModel.setSettingsDestination(isSettingsDestination)
             destination.doesMatchDestination(R.id.home).let { isHomeDestination ->
                 shouldExit = isHomeDestination
                 if (!isHomeDestination) delayedExitJob?.cancel()
@@ -154,7 +155,7 @@ class MainActivity : BaseActivity() {
             when (numberOfItems) {
                 0 -> {}
                 1 -> {
-                    setDeleteMenuItem()
+                    materialToolbar.changeMenuItems()
                     materialToolbar.title = "$numberOfItems ${getString(R.string.item)}"
                 }
                 else -> materialToolbar.title = "$numberOfItems ${getString(R.string.items)}"
@@ -166,12 +167,9 @@ class MainActivity : BaseActivity() {
         floatingButton.isVisible = mainViewModel.isButtonVisible
     }
 
-    private fun ActivityMainBinding.setDeleteMenuItem() {
-        root.doOnPreDraw {
-            if (materialToolbar.deleteMenuItem?.isVisible == false &&
-                getVisibleFragment() !is FavoritesFragment?
-            )
-                materialToolbar.deleteMenuItem?.isVisible = true
+    private fun SimpleMaterialToolbar.changeMenuItems() {
+        doOnLayout {
+            changeOnFavorite(visibleFragment is FavoritesFragment)
         }
     }
 
@@ -192,7 +190,9 @@ class MainActivity : BaseActivity() {
             layoutParams.behavior = layoutBehavior
             layoutBehavior.setDragCallback(object : AppBarLayout.Behavior.DragCallback() {
                 override fun canDrag(appBarLayout: AppBarLayout): Boolean {
-                    return !(mainViewModel.isSelected.value || mainViewModel.isSearching.value)
+                    return !(mainViewModel.isSelected.value
+                            || mainViewModel.isSearching.value
+                            || navController.currentDestination?.doesMatchDestination(R.id.settings) == true)
                 }
             })
         }
@@ -209,23 +209,20 @@ class MainActivity : BaseActivity() {
                 R.id.action_search -> {
 
                 }
-                R.id.select_all -> {
-                    getVisibleFragment()?.selectAllItems()
-                    Snackbar.make(
-                        binding.navigationBar,
-                        "Selected ${mainViewModel.selectionList.size} apps",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
-                }
                 R.id.add_to_favorites -> {
-                    mainViewModel.changeFavorites()
+                    if (visibleFragment !is FavoritesFragment)
+                        mainViewModel.changeFavorites()
+                    else
+                        mainViewModel.removeFavorites()
                 }
                 R.id.delete -> {
                     Log.d("Activity", "Setting up the delete action")
-                    val visibleFragment = getVisibleFragment()
-                    if (visibleFragment is HomeFragment && !mainViewModel.hasRootAccess()) {
-                        visibleFragment.deleteSelectedItems()
+                    if (visibleFragment is HomeFragment && mainViewModel.hasRootAccess()) {
+                        visibleFragment?.deleteSelectedItems()
                     }
+                }
+                R.id.select_all -> {
+                    visibleFragment?.selectAllItems()
                 }
                 else -> {
                     return@setOnMenuItemClickListener false
@@ -239,7 +236,7 @@ class MainActivity : BaseActivity() {
         navigationBar.navigateWithAnimation(navController, doBeforeNavigating = {
             floatingButton.setOnClickListener(null)
             return@navigateWithAnimation !(mainViewModel.isSearching.value
-                    || mainViewModel.isSelected.value)
+                    || mainViewModel.isSelected.value || !animationFinished)
         })
 
     private fun ActivityMainBinding.initObservers() {
@@ -250,6 +247,11 @@ class MainActivity : BaseActivity() {
                         isSearching.collect { isSearching ->
                             if (isSelected.value) return@collect
                             mainActivityAnimator.animateOnSearch(isSearching)
+                        }
+                    }
+                    launch {
+                        isSettingsDestination.collect { isSettingsDestination ->
+                            mainActivityAnimator.animateOnSettings(isSettingsDestination)
                         }
                     }
                     isSelected.collect { isSelected ->
@@ -293,7 +295,11 @@ class MainActivity : BaseActivity() {
 
     fun MainRecyclerView.controlFloatingButton() {
         binding.floatingButton.setOnClickListener {
-            smoothSnapToPosition(0)
+            if (selectionFinished)
+                smoothSnapToPosition(0)
+            else {
+                ConfigureSheetFragment().show(supportFragmentManager, "configureSheetTag")
+            }
         }
         hideAttachedButton(binding.floatingButton)
     }

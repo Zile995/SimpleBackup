@@ -31,6 +31,7 @@
     <string name="OK">OK</string>
     <string name="split">SPLIT</string>
     <string name="non_split">NON-SPLIT</string>
+    <string name="settings_info">App info</string>
     <string name="root_detected">Root detected, but…</string>
     <string name="not_granted">You did not grant root access.
         \nRoot access is needed, in order to
@@ -72,6 +73,7 @@
     <string name="items">items</string>
     <string name="favorites">Favorites</string>
     <string name="add_to_favorites">Add to favorites</string>
+    <string name="remove_from_favorites">Remove from favorites</string>
     <string name="target_sdk">Target SDK</string>
     <string name="min_sdk">Min SDK</string>
     <string name="notification_channel_name">Backup notification</string>

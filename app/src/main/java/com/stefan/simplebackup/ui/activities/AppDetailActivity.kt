@@ -1,13 +1,11 @@
 package com.stefan.simplebackup.ui.activities
 
-import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import androidx.activity.viewModels
-import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
@@ -23,8 +21,10 @@ import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
 import com.stefan.simplebackup.databinding.ActivityDetailBinding
 import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
-import com.stefan.simplebackup.utils.extensions.*
-import kotlinx.coroutines.launch
+import com.stefan.simplebackup.utils.extensions.forceStopPackage
+import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.openPackageSettingsInfo
+import com.stefan.simplebackup.utils.extensions.viewBinding
 import java.util.*
 
 private const val TAG: String = "AppDetailActivity"
@@ -60,85 +60,68 @@ class AppDetailActivity : BaseActivity() {
     }
 
     private fun ActivityDetailBinding.bindToolBar() {
-        setSupportActionBar(toolbarBackup)
+
+        setSupportActionBar(detailsToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         supportActionBar?.setDisplayShowHomeEnabled(true)
     }
 
     private fun ActivityDetailBinding.bindCardViews() {
-        setCardViewSize()
-        bindPackageDetails()
-        backupCardView.setOnClickListener {
-            detailsViewModel.selectedApp?.let { app ->
-                launchPackage(app.packageName)
-            }
-        }
-    }
-
-    private fun ActivityDetailBinding.setCardViewSize() {
-        backupCardViewButtons.layoutParams
-            .height = parentView.height -
-                toolbarBackup.height -
-                backupCardView.height -
-                backupCardViewPackage.height
+//        backupCardView.setOnClickListener {
+//            detailsViewModel.selectedApp?.let { app ->
+//                launchPackage(app.packageName)
+//            }
+//        }
     }
 
     private fun ActivityDetailBinding.bindBackupButton() {
-        backupButton.setOnClickListener {
-            requestPermission(
-                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                requestPermissionLauncher,
-                continuationCallBack = {
-                    detailsViewModel.createLocalBackup()
-                },
-                dialogCallBack = {
-                    permissionDialog(
-                        title = getString(R.string.storage_permission),
-                        message = getString(R.string.storage_perm_info),
-                        positiveButtonText = getString(R.string.OK),
-                        negativeButtonText = getString(R.string.set_manually)
-                    )
-                })
-        }
-    }
-
-    private fun ActivityDetailBinding.bindPackageDetails() {
-        packageDetails.setOnClickListener {
-            detailsViewModel.selectedApp?.apply {
-                openPackageSettingsInfo(packageName)
-            }
-        }
+//        backupButton.setOnClickListener {
+//            requestPermission(
+//                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+//                requestPermissionLauncher,
+//                continuationCallBack = {
+//                    detailsViewModel.createLocalBackup()
+//                },
+//                dialogCallBack = {
+//                    permissionDialog(
+//                        title = getString(R.string.storage_permission),
+//                        message = getString(R.string.storage_perm_info),
+//                        positiveButtonText = getString(R.string.OK),
+//                        negativeButtonText = getString(R.string.set_manually)
+//                    )
+//                })
+//        }
     }
 
     private fun ActivityDetailBinding.bindBackupDriveButton() {
-        backupDriveButton.setOnClickListener {
-            requestSignIn()
-        }
+//        backupDriveButton.setOnClickListener {
+//            requestSignIn()
+//        }
     }
 
     private fun ActivityDetailBinding.bindDeleteButton() {
-        floatingDeleteButton.setOnClickListener {
-            lifecycleScope.launch {
-                detailsViewModel.selectedApp?.apply {
-                    onBackPressed()
-                    deletePackage(packageName)
-                }
-            }
-        }
+//        floatingDeleteButton.setOnClickListener {
+//            lifecycleScope.launch {
+//                detailsViewModel.selectedApp?.apply {
+//                    onBackPressed()
+//                    deletePackage(packageName)
+//                }
+//            }
+//        }
     }
 
     private suspend fun ActivityDetailBinding.setData() {
         detailsViewModel.selectedApp?.let { app ->
             app.setBitmap(applicationContext)
-            applicationImageBackup.loadBitmap(app.bitmap)
-            textItemBackup.text = app.name
-            chipPackageBackup.text = (app.packageName as CharSequence).toString()
-            chipVersionBackup.text = (app.versionName as CharSequence).toString()
-            chipDirBackup.text = (app.dataDir as CharSequence).toString()
-            textApkSize.text = app.apkSize.bytesToString()
-            targetSdk.text = app.targetSdk.toString()
-            minSdk.text = app.minSdk.toString()
-            dataSize.text = app.dataSize.bytesToString()
+//            applicationImageDetails.loadBitmap(app.bitmap)
+//            textItemBackup.text = app.name
+//            chipPackageBackup.text = (app.packageName as CharSequence).toString()
+//            chipVersionBackup.text = (app.versionName as CharSequence).toString()
+//            chipDirBackup.text = (app.dataDir as CharSequence).toString()
+//            textApkSize.text = app.apkSize.bytesToString()
+//            targetSdk.text = app.targetSdk.toString()
+//            minSdk.text = app.minSdk.toString()
+//            dataSize.text = app.dataSize.bytesToString()
         }
     }
 
@@ -152,6 +135,12 @@ class AppDetailActivity : BaseActivity() {
             R.id.force_stop -> {
                 detailsViewModel.selectedApp?.apply {
                     forceStopPackage(packageName)
+                }
+                true
+            }
+            R.id.settings_info -> {
+                detailsViewModel.selectedApp?.apply {
+                    openPackageSettingsInfo(packageName)
                 }
                 true
             }
