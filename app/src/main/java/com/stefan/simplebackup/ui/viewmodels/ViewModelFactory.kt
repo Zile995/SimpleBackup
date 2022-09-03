@@ -44,6 +44,7 @@ class ViewModelFactory(
                 application
             )
             SearchViewModel::class.java -> SearchViewModel()
+            SettingsViewModel::class.java -> SettingsViewModel(application)
             else -> modelClass.newInstance()
         } as T
     }

@@ -2,31 +2,34 @@ package com.stefan.simplebackup.utils
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.annotation.FloatRange
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.withContext
 
-private const val SEQUENCE_NUMBER = "sequence_number"
 private const val MAIN_PREFERENCE = "main_preference"
+private const val SEQUENCE_NUMBER = "sequence_number"
 private const val DATABASE_CREATED = "database_created"
+private const val EXCLUDE_APPS_CACHE = "exclude_apps_cache"
 private const val CHECKED_ROOT_GRANTED = "checked_root_granted"
 private const val CHECKED_DEVICE_ROOTED = "checked_device_rooted"
+private const val ZIP_COMPRESSION_LEVEL = "zip_compression_level"
 
 object PreferenceHelper {
     private lateinit var sharedPreferences: SharedPreferences
 
-    val savedSequenceNumber: Int get() = sharedPreferences.getPreference(SEQUENCE_NUMBER, 0)
-    val isDatabaseCreated: Boolean get() = sharedPreferences.getPreference(DATABASE_CREATED, false)
+    val savedSequenceNumber: Int
+        get() = sharedPreferences.getPreference(SEQUENCE_NUMBER, 0)
+    val isDatabaseCreated: Boolean
+        get() = sharedPreferences.getPreference(DATABASE_CREATED, false)
+    val shouldExcludeAppsCache: Boolean
+        get() = sharedPreferences.getPreference(EXCLUDE_APPS_CACHE, true)
+    val savedZipCompressionLevel: Float
+        get() = sharedPreferences.getPreference(ZIP_COMPRESSION_LEVEL, 1f)
 
     val hasCheckedRootGranted: Boolean
-        get() = sharedPreferences.getPreference(
-            CHECKED_ROOT_GRANTED,
-            false
-        )
+        get() = sharedPreferences.getPreference(CHECKED_ROOT_GRANTED, false)
     val hasCheckedDeviceRooted: Boolean
-        get() = sharedPreferences.getPreference(
-            CHECKED_DEVICE_ROOTED,
-            false
-        )
+        get() = sharedPreferences.getPreference(CHECKED_DEVICE_ROOTED, false)
 
     fun Context.initPreferences() {
         sharedPreferences =
@@ -58,6 +61,19 @@ object PreferenceHelper {
                 apply()
             }
         }
+    }
+
+    suspend fun setExcludeAppsCache(shouldExclude: Boolean) {
+        sharedPreferences.editPreference(EXCLUDE_APPS_CACHE, shouldExclude)
+    }
+
+    suspend fun saveZipCompressionLevel(
+        @FloatRange(
+            from = 0.0,
+            to = 10.0
+        ) compressionLevel: Float
+    ) {
+        sharedPreferences.editPreference(ZIP_COMPRESSION_LEVEL, compressionLevel)
     }
 
     suspend fun resetSequenceNumber() {

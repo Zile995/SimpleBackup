@@ -2,6 +2,7 @@ package com.stefan.simplebackup.utils.work.archive
 
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.file.FileUtil.getApkZipFile
@@ -117,7 +118,8 @@ object ZipUtil {
             ZipParameters().apply {
                 isEncryptFiles = true
                 compressionMethod = CompressionMethod.DEFLATE
-                compressionLevel = CompressionLevel.FASTEST
+                compressionLevel =
+                    enumValues<CompressionLevel>()[PreferenceHelper.savedZipCompressionLevel.toInt()]
                 encryptionMethod = EncryptionMethod.AES
                 aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256
             }

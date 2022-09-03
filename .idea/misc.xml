@@ -5,6 +5,7 @@
       <map>
         <entry key="../../../../layout/custom_preview.xml" value="0.18177083333333333" />
         <entry key="../../.gradle/caches/transforms-3/c306ff6207b8a35a6a6ee0c09da254f2/transformed/appcompat-1.4.2/res/drawable/abc_ic_clear_material.xml" value="0.163" />
+        <entry key="../../.gradle/caches/transforms-3/e3e670bc41178f745d7ae5222f2bdf8f/transformed/material-1.7.0-beta01/res/drawable/mtrl_switch_track_decoration.xml" value="0.1655" />
         <entry key="app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.20208333333333334" />
         <entry key="app/src/main/res/drawable-xxxhdpi/ic_cloud_outlined.xml" value="0.1915" />
         <entry key="app/src/main/res/drawable-xxxhdpi/ic_settings_filled.xml" value="0.1915" />
@@ -121,7 +122,7 @@
         <entry key="app/src/main/res/layout/fragment_local_view_pager.xml" value="0.2774690038477982" />
         <entry key="app/src/main/res/layout/fragment_restore_list.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_search.xml" value="0.5" />
-        <entry key="app/src/main/res/layout/fragment_settings.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/fragment_settings.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_view_pager.xml" value="0.1" />
         <entry key="app/src/main/res/layout/home_item.xml" value="0.33" />
         <entry key="app/src/main/res/layout/list_item.xml" value="0.25" />

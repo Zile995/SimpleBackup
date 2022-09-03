@@ -17,7 +17,7 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) : Corouti
     appContext,
     params
 ) {
-    private val database = AppDatabase.getInstance(appContext)
+    private val database = AppDatabase.getInstance(appContext.applicationContext)
     private val repository = AppRepository(database.appDao())
     private val appManager = AppManager(appContext.applicationContext)
 

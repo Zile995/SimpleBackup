@@ -1,7 +1,5 @@
 package com.stefan.simplebackup.data.manager
 
-import android.app.usage.StorageStats
-import android.app.usage.StorageStatsManager
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
@@ -24,8 +22,8 @@ class AppManager(private val context: Context) {
      * - [PackageManager]
      */
     private val packageManager: PackageManager = context.packageManager
-    private val storageStatsManager by lazy {
-        context.getSystemService(Context.STORAGE_STATS_SERVICE) as StorageStatsManager
+    private val appStorageManager by lazy {
+        AppStorageManager(context.applicationContext)
     }
 
     suspend fun build(packageName: String) =
@@ -109,10 +107,7 @@ class AppManager(private val context: Context) {
     private fun ApplicationInfo.loadLabel() = loadLabel(packageManager).toString()
 
     private suspend fun getAppData(appInfo: ApplicationInfo): AppData = coroutineScope {
-        val storageStats: StorageStats =
-            storageStatsManager.queryStatsForUid(appInfo.storageUuid, appInfo.uid)
-        val cacheSize = storageStats.cacheBytes
-        val dataSize = storageStats.dataBytes
+        val apkSizeStats = appStorageManager.getApkSizeStats(appInfo)
         val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }
         val apkInfo = async { getApkInfo(apkDir) }
         val name = appInfo.loadLabel(packageManager).toString()
@@ -134,8 +129,8 @@ class AppManager(private val context: Context) {
             apkDir = apkDir,
             apkSize = apkInfo.await()!!.first,
             isSplit = apkInfo.await()!!.second,
-            dataSize = dataSize,
-            cacheSize = cacheSize,
+            dataSize = apkSizeStats.dataSize,
+            cacheSize = apkSizeStats.cacheSize,
             isUserApp = appInfo.isUserApp(),
             favorite = false
         )

@@ -18,12 +18,4 @@
         android:valueFrom="1"
         android:valueTo="1.15"
         android:valueType="floatType"/>
-    <objectAnimator
-        android:propertyName="transformPivotX"
-        android:valueTo="0.5"
-        android:valueType="floatType" />
-    <objectAnimator
-        android:propertyName="transformPivotY"
-        android:valueTo="0.5"
-        android:valueType="floatType" />
 </set>
