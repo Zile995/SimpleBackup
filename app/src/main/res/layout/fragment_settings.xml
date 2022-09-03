@@ -1,15 +1,257 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="?attr/colorPrimaryVariant"
     tools:context=".ui.fragments.SettingsFragment">
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-    </ScrollView>
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" >
 
-</FrameLayout>
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/storage_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginStart="20dp"
+                android:text="@string/storage"
+                android:textColor="@color/selectedTab"
+                android:textSize="14sp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                />
+
+            <LinearLayout
+                android:id="@+id/storage_info_field"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="4dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground"
+                app:layout_constraintTop_toBottomOf="@+id/storage_label"
+                app:layout_constraintStart_toStartOf="parent"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="20dp"
+                    android:src="@drawable/ic_smartphone"/>
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/storage_info_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="14dp"
+                    android:text="@string/storage_info"
+                    android:textSize="16sp"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                    />
+
+            </LinearLayout>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/notifications_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="20dp"
+                android:text="@string/notifications"
+                android:textColor="@color/selectedTab"
+                android:textSize="14sp"
+                app:layout_constraintTop_toBottomOf="@+id/storage_info_field"
+                app:layout_constraintStart_toStartOf="parent"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                />
+
+            <LinearLayout
+                android:id="@+id/notification_settings_field"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="4dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground"
+                app:layout_constraintTop_toBottomOf="@+id/notifications_label"
+                app:layout_constraintStart_toStartOf="parent"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_edit_notifications"
+                    />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/notification_settings_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="14dp"
+                    android:text="@string/notification_settings"
+                    android:textSize="16sp"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                    />
+
+            </LinearLayout>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/theme_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/selectedTab"
+                android:text="@string/theme"
+                android:textSize="14sp"
+                app:layout_constraintTop_toBottomOf="@+id/notification_settings_field"
+                app:layout_constraintStart_toStartOf="parent"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                />
+
+            <LinearLayout
+                android:id="@+id/choose_theme_filed"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="4dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground"
+                app:layout_constraintTop_toBottomOf="@+id/theme_label"
+                app:layout_constraintStart_toStartOf="parent"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_theme"
+                    tools:ignore="ContentDescription" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/choose_theme_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="14dp"
+                    android:text="@string/choose_theme"
+                    android:textSize="16sp"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                    />
+
+            </LinearLayout>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/zip_compression_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/selectedTab"
+                android:text="@string/zip_compression_level"
+                android:textSize="14sp"
+                app:layout_constraintTop_toBottomOf="@+id/choose_theme_filed"
+                app:layout_constraintStart_toStartOf="parent"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                />
+
+            <LinearLayout
+                android:id="@+id/zip_compression_field"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="4dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground"
+                app:layout_constraintTop_toBottomOf="@+id/zip_compression_label"
+                app:layout_constraintStart_toStartOf="parent"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_zip_compression" />
+
+                <com.google.android.material.slider.Slider
+                    style="@style/Widget.Material3.Slider"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:layout_marginEnd="20dp"
+                    android:layout_gravity="center"
+                    android:value="1.0"
+                    app:tickColorActive="@color/blueChip"
+                    app:trackColorInactive="@color/blueChip"
+                    android:valueFrom="0.0"
+                    android:valueTo="10.0"
+                    android:stepSize="1.0"
+                    />
+
+            </LinearLayout>
+
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/exclude_cache_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/selectedTab"
+                android:text="@string/exclude_app_cache"
+                android:textSize="14sp"
+                app:layout_constraintTop_toBottomOf="@+id/zip_compression_field"
+                app:layout_constraintStart_toStartOf="parent"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                />
+
+            <LinearLayout
+                android:id="@+id/exclude_cache_field"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="4dp"
+                android:clickable="true"
+                android:background="?attr/selectableItemBackground"
+                app:layout_constraintTop_toBottomOf="@+id/exclude_cache_label"
+                app:layout_constraintStart_toStartOf="parent"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_exclude_cache" />
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:text="@string/exclude_app_cache_info"
+                    android:textColor="@color/textColorPrimary"
+                    android:textSize="16sp"
+                    app:thumbTint="@color/selectedTab"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.TitleMedium"
+                    android:layout_gravity="center"
+                    />
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

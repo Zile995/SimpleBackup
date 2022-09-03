@@ -12,8 +12,7 @@
         android:id="@+id/app_bar_layout"
         android:layout_width="match_parent"
         android:layout_height="@dimen/toolbar_height"
-        android:background="@color/bottomView"
-        app:liftOnScroll="true">
+        android:background="@color/bottomView">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/search_bar_layout"
@@ -28,10 +27,7 @@
                 android:layout_height="@dimen/search_bar_height"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
-                android:clickable="true"
                 android:elevation="2dp"
-                android:focusable="true"
-                android:visibility="visible"
                 app:cardBackgroundColor="@color/searchBar"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -42,14 +38,10 @@
                 <com.stefan.simplebackup.ui.views.SimpleMaterialToolbar
                     android:id="@+id/material_toolbar"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="?android:attr/selectableItemBackgroundBorderless"
-                    android:visibility="visible"
+                    android:layout_height="wrap_content"
                     app:navigationIcon="@drawable/ic_search"
-                    app:contentInsetStartWithNavigation="0dp"
-                    app:contentInsetEndWithActions="0dp"
                     app:title="@string/search_for_apps"
-                    app:titleTextAppearance="@style/ToolBarFont"
+                    app:titleTextAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
                     app:titleTextColor="?android:textColorHint">
 
                 </com.stefan.simplebackup.ui.views.SimpleMaterialToolbar>
@@ -91,7 +83,6 @@
         android:layout_height="@dimen/bottom_navigation_height"
         android:layout_gravity="bottom"
         android:background="@color/bottomView"
-        android:visibility="visible"
         app:labelVisibilityMode="labeled"
         app:layout_insetEdge="bottom"
         app:menu="@menu/nav_bar" />

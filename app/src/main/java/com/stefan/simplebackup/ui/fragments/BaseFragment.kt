@@ -47,6 +47,15 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         _mainRecyclerView = null
     }
 
+    fun stopScrolling() {
+        _mainRecyclerView?.suppressLayout(true)
+        _mainRecyclerView?.suppressLayout(false)
+    }
+
+    private fun enableRecyclerViewScrolling(shouldEnable: Boolean) {
+        _mainRecyclerView?.isNestedScrollingEnabled = shouldEnable
+    }
+
     fun deleteSelectedItems() {
         _mainRecyclerView?.apply {
             val currentAdapter = adapter as BaseAdapter
@@ -108,7 +117,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
             repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                 mainViewModel.isSelected.collect { isSelected ->
                     if (!isSelected) clearSelection()
-                    _mainRecyclerView?.isNestedScrollingEnabled = !isSelected
+                    enableRecyclerViewScrolling(!isSelected)
                 }
             }
         }

@@ -12,7 +12,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.doOnLayout
-import androidx.core.view.doOnPreDraw
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.utils.extensions.getInterFontTypeFace
 import com.stefan.simplebackup.utils.extensions.showSoftKeyboard
@@ -59,8 +58,7 @@ class MaterialSearchView(
         searchText.imeOptions = EditorInfo.IME_FLAG_NO_FULLSCREEN or EditorInfo.IME_ACTION_SEARCH
     }
 
-    @Suppress("SameParameterValue")
-    fun setSearchViewMargin() {
+    private fun setSearchViewMargin() {
         val params = searchEditFrame.layoutParams as LinearLayout.LayoutParams
         params.gravity = Gravity.START
         params.setMargins(-30, 0, 30, 0)

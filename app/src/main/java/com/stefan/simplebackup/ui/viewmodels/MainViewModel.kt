@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
@@ -46,8 +47,12 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         if (!isSelected) selectionFinished = true
     }
 
+    // Settings destination
     private var _isSettingsDestination = MutableStateFlow(false)
     val isSettingsDestination = _isSettingsDestination.asStateFlow()
+
+    private var _searchResults = MutableStateFlow(mutableListOf<AppData>())
+    val searchResults = _searchResults.asStateFlow()
 
     init {
         Log.d("ViewModel", "MainViewModel created")
@@ -89,6 +94,10 @@ class MainViewModel(application: MainApplication) : ViewModel(),
 
     fun setSettingsDestination(isSettingsDestination: Boolean) {
         _isSettingsDestination.value = isSettingsDestination
+    }
+
+    fun setSearchResults(searchResults: MutableList<AppData>) {
+        _searchResults.value = searchResults
     }
 
     fun changeFavorites() =

@@ -57,6 +57,8 @@
         <entry key="app/src/main/res/drawable/ic_cloud_outlined.xml" value="0.1915" />
         <entry key="app/src/main/res/drawable/ic_configure.xml" value="0.183" />
         <entry key="app/src/main/res/drawable/ic_delete.xml" value="0.1915" />
+        <entry key="app/src/main/res/drawable/ic_edit_notifications.xml" value="0.1645" />
+        <entry key="app/src/main/res/drawable/ic_exclude_cache.xml" value="0.2245" />
         <entry key="app/src/main/res/drawable/ic_favorite.xml" value="0.16" />
         <entry key="app/src/main/res/drawable/ic_home.xml" value="0.1915" />
         <entry key="app/src/main/res/drawable/ic_home_outlined.xml" value="0.1915" />
@@ -69,7 +71,10 @@
         <entry key="app/src/main/res/drawable/ic_search.xml" value="0.163" />
         <entry key="app/src/main/res/drawable/ic_select_all.xml" value="0.163" />
         <entry key="app/src/main/res/drawable/ic_settings.xml" value="0.18" />
+        <entry key="app/src/main/res/drawable/ic_smartphone.xml" value="0.1645" />
+        <entry key="app/src/main/res/drawable/ic_theme.xml" value="0.1645" />
         <entry key="app/src/main/res/drawable/ic_unstar.xml" value="0.1645" />
+        <entry key="app/src/main/res/drawable/ic_zip_compression.xml" value="0.1645" />
         <entry key="app/src/main/res/drawable/info_24dp.xml" value="0.295" />
         <entry key="app/src/main/res/drawable/local_24dp.xml" value="0.252" />
         <entry key="app/src/main/res/drawable/navigation_bar_ripple_color.xml" value="0.2375" />
@@ -98,8 +103,8 @@
         <entry key="app/src/main/res/font/meslo_family.xml" value="0.215625" />
         <entry key="app/src/main/res/font/sailec_font.xml" value="0.215625" />
         <entry key="app/src/main/res/layout/activity_backup.xml" value="0.25" />
-        <entry key="app/src/main/res/layout/activity_detail.xml" value="0.33" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_detail.xml" value="0.12345679012345678" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.21" />
         <entry key="app/src/main/res/layout/activity_progress.xml" value="0.11594202898550725" />
         <entry key="app/src/main/res/layout/activity_restore.xml" value="0.22" />
         <entry key="app/src/main/res/layout/activity_search.xml" value="0.3375" />
@@ -116,7 +121,7 @@
         <entry key="app/src/main/res/layout/fragment_local_view_pager.xml" value="0.2774690038477982" />
         <entry key="app/src/main/res/layout/fragment_restore_list.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_search.xml" value="0.5" />
-        <entry key="app/src/main/res/layout/fragment_settings.xml" value="0.115861479264643" />
+        <entry key="app/src/main/res/layout/fragment_settings.xml" value="0.25" />
         <entry key="app/src/main/res/layout/fragment_view_pager.xml" value="0.1" />
         <entry key="app/src/main/res/layout/home_item.xml" value="0.33" />
         <entry key="app/src/main/res/layout/list_item.xml" value="0.25" />

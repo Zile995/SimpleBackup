@@ -8,7 +8,9 @@ import android.view.View
 import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
 import androidx.annotation.StringRes
+import androidx.annotation.StyleRes
 import androidx.core.content.ContextCompat
+import androidx.core.view.doOnLayout
 import androidx.core.view.postDelayed
 import com.google.android.material.appbar.MaterialToolbar
 import com.stefan.simplebackup.R
@@ -19,6 +21,10 @@ class SimpleMaterialToolbar(
     context: Context, attrs: AttributeSet?,
     defStyleAttr: Int
 ) : MaterialToolbar(context, attrs, defStyleAttr) {
+
+    private var inSearchState = false
+    private var inSettingsState = false
+    private var inSelectionState = false
 
     private val deleteItem
         get() = findMenuItem(R.id.delete)
@@ -38,10 +44,6 @@ class SimpleMaterialToolbar(
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, R.attr.toolbarStyle)
-
-    init {
-        setDefaultTitleTextColor()
-    }
 
     fun changeOnSearch(
         isSearching: Boolean,
@@ -97,7 +99,7 @@ class SimpleMaterialToolbar(
             removeRipple()
             setDefaultMenuItems()
             removeOnClickListener()
-            setCustomTitle(R.string.settings)
+            setCustomTitle(R.string.settings, R.style.TextAppearance_SimpleBackup_TitleMedium)
             setNavigationIcon(R.drawable.ic_arrow_back)
             setNavigationContentDescription(R.string.back)
             setNavigationOnClickListener {
@@ -143,6 +145,22 @@ class SimpleMaterialToolbar(
         }
     }
 
+    fun setCustomTitle(
+        titleText: String,
+        @StyleRes resId: Int = R.style.TextAppearance_SimpleBackup_TitleSmall
+    ) {
+        title = titleText
+        setTitleTextAppearance(context, resId)
+    }
+
+    private fun setCustomTitle(
+        @StringRes customTitle: Int,
+        @StyleRes resId: Int
+    ) {
+        title = context.getString(customTitle)
+        setTitleTextAppearance(context, resId)
+    }
+
     private fun setMenuItemsOnSearch() {
         deleteItem?.isVisible = false
         searchViewItem?.isVisible = true
@@ -169,8 +187,6 @@ class SimpleMaterialToolbar(
     private fun removeTitle() = run { title = null }
     private fun removeRipple() = setBackgroundResource(0)
     private fun removeOnClickListener() = setOnClickListener(null)
-    private fun setCustomTitle(@StringRes customTitle: Int) =
-        run { title = context.getString(customTitle) }
 
     private fun getDrawable(@DrawableRes resourceId: Int) =
         ContextCompat.getDrawable(context, resourceId)
@@ -200,7 +216,8 @@ class SimpleMaterialToolbar(
 
 
     private fun setDefaultTitle() {
-        title = context.getString(R.string.search_for_apps)
+        setCustomTitle(R.string.search_for_apps, R.style.TextAppearance_SimpleBackup_TitleSmall)
+        setDefaultTitleTextColor()
     }
 
 
@@ -211,11 +228,5 @@ class SimpleMaterialToolbar(
                 parentView.performClick()
             }
         }
-    }
-
-    private companion object {
-        var inSearchState = false
-        var inSettingsState = false
-        var inSelectionState = false
     }
 }

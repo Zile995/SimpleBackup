@@ -5,6 +5,7 @@ import android.animation.ValueAnimator
 import android.util.Log
 import android.view.animation.DecelerateInterpolator
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.marginBottom
 import com.stefan.simplebackup.R

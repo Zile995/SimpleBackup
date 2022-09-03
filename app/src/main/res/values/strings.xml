@@ -77,6 +77,15 @@
     <string name="target_sdk">Target SDK</string>
     <string name="min_sdk">Min SDK</string>
     <string name="notification_channel_name">Backup notification</string>
+    <string name="notifications">Notifications</string>
+    <string name="notification_settings">Notification settings</string>
+    <string name="theme">Theme</string>
+    <string name="choose_theme">Choose theme</string>
+    <string name="exclude_app_cache">Exclude app\'s cache</string>
+    <string name="exclude_app_cache_info">Exclude app\'s cache \nfrom data backup</string>
+    <string name="storage">Storage</string>
+    <string name="storage_info">34.6GB of 46GB used</string>
+    <string name="zip_compression_level">Zip compression level</string>
     <string name="notification_channel_description">Backup notification progress</string>
     <string name="done">Done!</string>
 </resources>

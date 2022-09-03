@@ -4,6 +4,7 @@
     <color name="error">#D35151</color>
     <color name="textColorPrimary">#FFFFFFFF</color>
     <color name="colorAccent">#213B61</color>
+    <color name="outline">#6C8ABD</color>
 
     <!-- Backgrounds -->
     <color name="background">#172641</color>
@@ -48,5 +49,8 @@
     <color name="bottomLabelInactive">#929FB6</color>
     <color name="scrollBar">#274570</color>
     <color name="searchBar">#1C2E4C</color>
+
+    <!-- Switch disabled -->
+    <color name="switchDisabled">#3E5070</color>
 
 </resources>

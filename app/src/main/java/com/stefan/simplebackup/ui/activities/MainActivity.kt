@@ -156,9 +156,9 @@ class MainActivity : BaseActivity() {
                 0 -> {}
                 1 -> {
                     materialToolbar.changeMenuItems()
-                    materialToolbar.title = "$numberOfItems ${getString(R.string.item)}"
+                    materialToolbar.setCustomTitle("$numberOfItems ${getString(R.string.item)}")
                 }
-                else -> materialToolbar.title = "$numberOfItems ${getString(R.string.items)}"
+                else -> materialToolbar.setCustomTitle("$numberOfItems ${getString(R.string.items)}")
             }
         }
     }
@@ -235,6 +235,7 @@ class MainActivity : BaseActivity() {
     private fun ActivityMainBinding.bindBottomNavigationView() =
         navigationBar.navigateWithAnimation(navController, doBeforeNavigating = {
             floatingButton.setOnClickListener(null)
+            visibleFragment?.stopScrolling()
             return@navigateWithAnimation !(mainViewModel.isSearching.value
                     || mainViewModel.isSelected.value || !animationFinished)
         })
