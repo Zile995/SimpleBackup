@@ -8,13 +8,13 @@
     tools:context=".ui.fragments.SettingsFragment">
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/settings_scroll_view"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:layout_height="wrap_content" >
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent" >
+            android:layout_height="wrap_content" >
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/storage_label"
@@ -173,7 +173,6 @@
                 android:layout_height="60dp"
                 android:layout_marginTop="4dp"
                 android:clickable="true"
-                android:background="?attr/selectableItemBackground"
                 app:layout_constraintTop_toBottomOf="@+id/zip_compression_label"
                 app:layout_constraintStart_toStartOf="parent"
                 android:orientation="horizontal">
@@ -222,7 +221,6 @@
                 android:layout_height="60dp"
                 android:layout_marginTop="4dp"
                 android:clickable="true"
-                android:background="?attr/selectableItemBackground"
                 app:layout_constraintTop_toBottomOf="@+id/exclude_cache_label"
                 app:layout_constraintStart_toStartOf="parent"
                 android:orientation="horizontal">

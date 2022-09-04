@@ -2,6 +2,7 @@ package com.stefan.simplebackup.utils.work.archive
 
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.topjohnwu.superuser.Shell
@@ -13,12 +14,18 @@ object TarUtil {
     @Throws(IOException::class)
     suspend fun backupData(app: AppData) {
         withContext(ioDispatcher) {
+            val shouldExcludeCache = PreferenceHelper.shouldExcludeAppsCache
+            val excludeCommand =
+                if (shouldExcludeCache)
+                    "--exclude={\"cache\",\"lib\",\"code_cache\"}"
+                else
+                    "--exclude={\"lib\"}"
             Log.d("TarUtil", "Creating the ${app.packageName} data archive")
             val tarArchivePath =
                 getTempDirPath(app) + "/${app.packageName}.tar"
             val result = Shell.cmd(
                 "tar -cf $tarArchivePath" +
-                        " --exclude={\"cache\",\"lib\",\"code_cache\"}" +
+                        " $excludeCommand" +
                         " -C ${app.dataDir} . "
             ).exec()
             when {

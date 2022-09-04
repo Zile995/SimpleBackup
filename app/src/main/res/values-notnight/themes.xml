@@ -1,5 +1,4 @@
 <resources>
-
     <!-- Base application theme. -->
     <style name="Theme.SimpleBackup" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->

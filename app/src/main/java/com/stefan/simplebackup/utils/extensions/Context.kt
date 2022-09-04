@@ -155,6 +155,19 @@ fun Context.forceStopPackage(packageName: String) {
     showToast(R.string.application_stopped)
 }
 
+fun Context.openAppNotificationSettings() {
+    startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+        putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+        addCategory(Intent.CATEGORY_DEFAULT)
+    })
+}
+
+fun Context.openStorageSettings() {
+    startActivity(Intent(Settings.ACTION_INTERNAL_STORAGE_SETTINGS).apply {
+        addCategory(Intent.CATEGORY_DEFAULT)
+    })
+}
+
 fun Context.openPackageSettingsInfo(packageName: String) {
     startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
         addCategory(Intent.CATEGORY_DEFAULT)

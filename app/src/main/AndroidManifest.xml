@@ -41,7 +41,6 @@
         <profileable
             android:shell="true"
             tools:targetApi="q" />
-
         <receiver
             android:name=".data.receivers.NotificationReceiver"
             android:enabled="true"

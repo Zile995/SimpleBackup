@@ -43,7 +43,9 @@ class MainActivityAnimator(
                     animatorSet.start()
                 }
             } else {
-                animateOnNavigateFromSettings()
+                root.doOnPreDraw {
+                    animateOnNavigateFromSettings()
+                }
             }
         }
     }

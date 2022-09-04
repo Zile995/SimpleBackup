@@ -11,24 +11,28 @@ import java.io.IOException
 
 class AppStorageManager(context: Context) {
 
-    private val storageManager by lazy {
-        context.applicationContext.getSystemService(Context.STORAGE_SERVICE) as StorageManager
-    }
     private val storageStatsManager by lazy {
-        context.getSystemService(Context.STORAGE_STATS_SERVICE) as StorageStatsManager
+        context.applicationContext.getSystemService(Context.STORAGE_STATS_SERVICE) as StorageStatsManager
     }
 
-    fun freeStorage() = try {
+    fun getFreeStorageSize() = try {
         storageStatsManager.getFreeBytes(StorageManager.UUID_DEFAULT).convertBytesToMegaBytes()
     } catch (exception: IOException) {
         Log.e("AppStorageManager", "Unable to read storage free space")
         0.0
     }
 
-    fun getTotalBytes() = try {
+    fun getTotalStorageSize() = try {
         storageStatsManager.getTotalBytes(StorageManager.UUID_DEFAULT).convertBytesToMegaBytes()
     } catch (exception: IOException) {
         Log.e("AppStorageManager", "Unable to read storage total space")
+        0.0
+    }
+
+    fun getUsedStorage() = try {
+        getTotalStorageSize() - getFreeStorageSize()
+    } catch (exception: IOException) {
+        Log.e("AppStorageManager", "Unable to calculate used storage space")
         0.0
     }
 

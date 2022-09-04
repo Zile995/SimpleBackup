@@ -4,16 +4,20 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.data.manager.AppStorageManager
 import com.stefan.simplebackup.utils.PreferenceHelper
 import kotlinx.coroutines.launch
 
 class SettingsViewModel(application: MainApplication) : ViewModel() {
 
-    //private val appStorageManager = AppStorageManager(application.applicationContext)
+    private val appStorageManager = AppStorageManager(application.applicationContext)
 
     init {
         Log.d("ViewModel", "SettingsViewModel created")
     }
+
+    fun getUsedStorage() = appStorageManager.getUsedStorage()
+    fun getTotalStorage() = appStorageManager.getTotalStorageSize()
 
     fun saveZipCompressionLevel(value: Float) {
         viewModelScope.launch {

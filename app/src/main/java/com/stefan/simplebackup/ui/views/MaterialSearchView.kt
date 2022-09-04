@@ -61,7 +61,7 @@ class MaterialSearchView(
     private fun setSearchViewMargin() {
         val params = searchEditFrame.layoutParams as LinearLayout.LayoutParams
         params.gravity = Gravity.START
-        params.setMargins(-30, 0, 30, 0)
+        params.setMargins(-20, 0, 30, 0)
         searchEditFrame.layoutParams = params
         maxWidth = Integer.MAX_VALUE
     }
