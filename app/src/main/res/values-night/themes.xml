@@ -71,6 +71,13 @@
         <item name="android:textSize">18sp</item>
     </style>
 
+    <style name="TextAppearance.SimpleBackup.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+        <item name="fontFamily">@font/inter_family</item>
+        <item name="android:fontFamily">@font/inter_family</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+
     <style name="Widget.SimpleBackup.CardView" parent="Widget.Material3.CardView.Elevated">
         <item name="cardCornerRadius">8dp</item>
         <item name="cardElevation">1dp</item>

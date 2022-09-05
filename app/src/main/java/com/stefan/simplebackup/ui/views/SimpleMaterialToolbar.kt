@@ -10,7 +10,6 @@ import androidx.annotation.IdRes
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import androidx.core.content.ContextCompat
-import androidx.core.view.doOnLayout
 import androidx.core.view.postDelayed
 import com.google.android.material.appbar.MaterialToolbar
 import com.stefan.simplebackup.R
@@ -96,15 +95,17 @@ class SimpleMaterialToolbar(
     ) {
         inSettingsState = isInSettings
         if (isInSettings) {
-            removeRipple()
-            setDefaultMenuItems()
-            removeOnClickListener()
-            setCustomTitle(R.string.settings, R.style.TextAppearance_SimpleBackup_TitleMedium)
-            setNavigationIcon(R.drawable.ic_arrow_back)
-            setNavigationContentDescription(R.string.back)
-            setNavigationOnClickListener {
-                if (animationFinished) {
-                    setNavigationOnClickListener()
+            postDelayed(50L) {
+                removeRipple()
+                setDefaultMenuItems()
+                removeOnClickListener()
+                setCustomTitle(R.string.settings, R.style.TextAppearance_SimpleBackup_TitleMedium)
+                setNavigationIcon(R.drawable.ic_arrow_back)
+                setNavigationContentDescription(R.string.back)
+                setNavigationOnClickListener {
+                    if (animationFinished) {
+                        setNavigationOnClickListener()
+                    }
                 }
             }
         } else {
@@ -139,6 +140,7 @@ class SimpleMaterialToolbar(
                 addToFavoritesItem?.tooltipText = context.getString(R.string.remove_from_favorites)
             }
             else -> {
+                deleteItem?.isVisible = true
                 addToFavoritesItem?.icon = getDrawable(R.drawable.ic_favorite)
                 addToFavoritesItem?.tooltipText = context.getString(R.string.add_to_favorites)
             }
@@ -149,16 +151,16 @@ class SimpleMaterialToolbar(
         titleText: String,
         @StyleRes resId: Int = R.style.TextAppearance_SimpleBackup_TitleSmall
     ) {
-        title = titleText
         setTitleTextAppearance(context, resId)
+        title = titleText
     }
 
     private fun setCustomTitle(
         @StringRes customTitle: Int,
-        @StyleRes resId: Int
+        @StyleRes styleResId: Int
     ) {
+        setTitleTextAppearance(context, styleResId)
         title = context.getString(customTitle)
-        setTitleTextAppearance(context, resId)
     }
 
     private fun setMenuItemsOnSearch() {
@@ -170,7 +172,7 @@ class SimpleMaterialToolbar(
     }
 
     private fun setMenuItemsOnSelection() {
-        deleteItem?.isVisible = true
+        deleteItem?.isVisible = false
         selectAllItem?.isVisible = true
         searchViewItem?.isVisible = false
         addToFavoritesItem?.isVisible = true

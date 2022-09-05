@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.ImageView
 import androidx.activity.viewModels
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -21,10 +22,7 @@ import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
 import com.stefan.simplebackup.databinding.ActivityDetailBinding
 import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
-import com.stefan.simplebackup.utils.extensions.forceStopPackage
-import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.openPackageSettingsInfo
-import com.stefan.simplebackup.utils.extensions.viewBinding
+import com.stefan.simplebackup.utils.extensions.*
 import java.util.*
 
 private const val TAG: String = "AppDetailActivity"
@@ -42,36 +40,33 @@ class AppDetailActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         launchOnViewLifecycle {
-            detailsViewModel.selectedApp?.let {
-                binding.apply {
-                    bindViews()
-                    setData()
-                }
+            binding.apply {
+                bindViews()
+                setData()
             }
         }
     }
 
-    private fun ActivityDetailBinding.bindViews() {
+    private suspend fun ActivityDetailBinding.bindViews() {
         bindToolBar()
         bindCardViews()
-        bindBackupButton()
-        bindDeleteButton()
-        bindBackupDriveButton()
     }
 
     private fun ActivityDetailBinding.bindToolBar() {
-
-        setSupportActionBar(detailsToolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayShowHomeEnabled(true)
+        detailsViewModel.selectedApp?.let {
+            setSupportActionBar(detailsToolbar)
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            supportActionBar?.setDisplayShowHomeEnabled(true)
+            collapsingToolbar.title = it.name
+        }
     }
 
-    private fun ActivityDetailBinding.bindCardViews() {
-//        backupCardView.setOnClickListener {
-//            detailsViewModel.selectedApp?.let { app ->
-//                launchPackage(app.packageName)
-//            }
-//        }
+    private suspend fun ActivityDetailBinding.bindCardViews() {
+        detailsViewModel.selectedApp?.let { app ->
+            val appImage = collapsingToolbar.findViewById<ImageView>(R.id.application_image)
+            app.setBitmap(applicationContext)
+            appImage.loadBitmap(app.bitmap)
+        }
     }
 
     private fun ActivityDetailBinding.bindBackupButton() {

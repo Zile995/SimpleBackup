@@ -55,7 +55,7 @@
                     android:layout_gravity="center"
                     android:layout_marginStart="14dp"
                     android:text="@string/storage_info"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
                     />
 
@@ -101,7 +101,7 @@
                     android:layout_gravity="center"
                     android:layout_marginStart="14dp"
                     android:text="@string/notification_settings"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
                     />
 
@@ -147,7 +147,7 @@
                     android:layout_gravity="center"
                     android:layout_marginStart="14dp"
                     android:text="@string/choose_theme"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
                     />
 
@@ -167,10 +167,10 @@
                 android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
                 />
 
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/zip_compression_field"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_height="80dp"
                 android:layout_marginTop="4dp"
                 android:clickable="true"
                 app:layout_constraintTop_toBottomOf="@+id/zip_compression_label"
@@ -178,28 +178,62 @@
                 android:orientation="horizontal">
 
                 <ImageView
+                    android:id="@+id/zip_image"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
                     android:layout_marginStart="20dp"
                     android:layout_gravity="center"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     android:src="@drawable/ic_zip_compression" />
 
                 <com.google.android.material.slider.Slider
                     style="@style/Widget.Material3.Slider"
                     android:id="@+id/zip_compression_slider"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_marginBottom="20dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="2dp"
+                    android:layout_marginStart="5dp"
                     android:layout_marginEnd="30dp"
-                    android:layout_gravity="center"
                     app:tickColorActive="@color/blueChip"
                     app:trackColorInactive="@color/blueChip"
                     android:valueFrom="0.0"
                     android:valueTo="10.0"
                     android:stepSize="1.0"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/zip_image"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    />
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/fastest_compression"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:textColor="@color/textColorPrimary"
+                    app:layout_constraintTop_toBottomOf="@+id/zip_compression_slider"
+                    app:layout_constraintStart_toStartOf="@id/zip_compression_slider"
+                    android:text="@string/fastest"
+                    android:textSize="13sp"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
                     />
 
-            </LinearLayout>
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/slowest_compression"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:layout_marginEnd="6dp"
+                    android:text="@string/slowest"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                    android:textColor="@color/textColorPrimary"
+                    android:textSize="13sp"
+                    app:layout_constraintEnd_toEndOf="@id/zip_compression_slider"
+                    app:layout_constraintTop_toBottomOf="@+id/zip_compression_slider" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/exclude_cache_label"
@@ -240,7 +274,7 @@
                     android:layout_marginStart="14dp"
                     android:text="@string/exclude_app_cache_info"
                     android:textColor="@color/textColorPrimary"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     app:thumbTint="@color/selectedTab"
                     android:textAppearance="@style/TextAppearance.SimpleBackup.TitleMedium"
                     android:layout_gravity="center"

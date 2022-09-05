@@ -36,6 +36,7 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
 
     override fun removeAllSelectedItems() {
         selectedItems.clear()
+        mNumberOfSelected.value = 0
     }
 
     override fun doSelection(holder: VH, item: AppData) {

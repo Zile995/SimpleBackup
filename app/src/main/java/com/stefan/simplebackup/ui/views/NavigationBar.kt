@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Bundle
 import android.util.AttributeSet
 import android.util.Log
+import android.view.MenuItem
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.core.view.doOnLayout
@@ -90,7 +91,8 @@ class NavigationBar(
     inline fun navigateWithAnimation(
         navController: NavController,
         args: Bundle? = null,
-        crossinline doBeforeNavigating: () -> Boolean = { true }
+        crossinline doBeforeNavigating: () -> Boolean = { true },
+        noinline setCustomNavigationOptions: (NavOptions.Builder.(MenuItem) -> Unit)? = null
     ) {
         setOnItemSelectedListener { item ->
             val shouldNavigate = doBeforeNavigating()
@@ -98,15 +100,18 @@ class NavigationBar(
             val navOptions = NavOptions.Builder().apply {
                 setLaunchSingleTop(true)
                 setRestoreState(true)
-                setEnterAnim(R.animator.fragment_nav_enter)
-                setExitAnim(R.animator.fragment_nav_exit)
-                setPopEnterAnim(R.animator.fragment_nav_enter_pop)
-                setPopExitAnim(R.animator.fragment_nav_exit_pop)
                 setPopUpTo(
                     navController.graph.startDestinationId,
                     inclusive = false,
                     saveState = true
                 )
+                setEnterAnim(R.animator.fragment_nav_enter)
+                setExitAnim(R.animator.fragment_nav_exit)
+                setPopEnterAnim(R.animator.fragment_nav_enter_pop)
+                setPopExitAnim(R.animator.fragment_nav_exit_pop)
+                if (setCustomNavigationOptions != null) {
+                    setCustomNavigationOptions(item)
+                }
             }
             navController.navigate(item.itemId, args, navOptions.build())
             true

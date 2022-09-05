@@ -88,4 +88,6 @@
     <string name="zip_compression_level">Zip compression level</string>
     <string name="notification_channel_description">Backup notification progress</string>
     <string name="done">Done!</string>
+    <string name="fastest">Fastest</string>
+    <string name="slowest">Slowest</string>
 </resources>

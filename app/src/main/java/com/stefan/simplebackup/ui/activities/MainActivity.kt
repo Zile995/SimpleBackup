@@ -149,13 +149,12 @@ class MainActivity : BaseActivity() {
         bindBottomNavigationView()
     }
 
-    private suspend fun ActivityMainBinding.observeNumberOfSelected(isSelected: Boolean) {
-        if (!isSelected) return
+    private suspend fun ActivityMainBinding.observeNumberOfSelected() {
         numberOfSelected.collect { numberOfItems ->
+            if (numberOfItems >= 1) materialToolbar.changeMenuItems()
             when (numberOfItems) {
                 0 -> {}
                 1 -> {
-                    materialToolbar.changeMenuItems()
                     materialToolbar.setCustomTitle("$numberOfItems ${getString(R.string.item)}")
                 }
                 else -> materialToolbar.setCustomTitle("$numberOfItems ${getString(R.string.items)}")
@@ -233,17 +232,38 @@ class MainActivity : BaseActivity() {
     }
 
     private fun ActivityMainBinding.bindBottomNavigationView() =
-        navigationBar.navigateWithAnimation(navController, doBeforeNavigating = {
-            floatingButton.setOnClickListener(null)
-            visibleFragment?.stopScrolling()
-            return@navigateWithAnimation !(mainViewModel.isSearching.value
-                    || mainViewModel.isSelected.value || !animationFinished)
-        })
+        navigationBar.navigateWithAnimation(navController,
+            doBeforeNavigating = {
+                floatingButton.setOnClickListener(null)
+                visibleFragment?.stopScrolling()
+                return@navigateWithAnimation !(mainViewModel.isSearching.value
+                        || mainViewModel.isSelected.value || !animationFinished)
+            },
+            setCustomNavigationOptions = { menuItem ->
+                if (menuItem.itemId == R.id.settings) {
+                    setEnterAnim(R.anim.nav_default_enter_anim)
+                    setExitAnim(R.anim.nav_default_exit_anim)
+                    setPopEnterAnim(R.animator.fragment_nav_enter_pop)
+                    setPopExitAnim(R.animator.fragment_nav_exit_pop)
+                }
+            })
 
     private fun ActivityMainBinding.initObservers() {
         launchOnViewLifecycle {
+            launch {
+                Log.d("Activity", "Number of selected = ${numberOfSelected.value}")
+                repeatOnViewLifecycle(Lifecycle.State.STARTED) {
+                    observeNumberOfSelected()
+                }
+            }
             repeatOnViewLifecycle(Lifecycle.State.CREATED) {
                 mainViewModel.apply {
+                    launch {
+                        isSelected.collect { isSelected ->
+                            if (isSearching.value) return@collect
+                            mainActivityAnimator.animateOnSelection(isSelected, setSelectionMode)
+                        }
+                    }
                     launch {
                         isSearching.collect { isSearching ->
                             if (isSelected.value) return@collect
@@ -254,11 +274,6 @@ class MainActivity : BaseActivity() {
                         isSettingsDestination.collect { isSettingsDestination ->
                             mainActivityAnimator.animateOnSettings(isSettingsDestination)
                         }
-                    }
-                    isSelected.collect { isSelected ->
-                        if (isSearching.value) return@collect
-                        launch { observeNumberOfSelected(isSelected) }
-                        mainActivityAnimator.animateOnSelection(isSelected, setSelectionMode)
                     }
                 }
             }

@@ -3,9 +3,10 @@ package com.stefan.simplebackup.ui.views
 import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.util.Log
+import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
+import android.view.animation.LinearInterpolator
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.marginBottom
 import com.stefan.simplebackup.R
@@ -29,23 +30,21 @@ class MainActivityAnimator(
 
     fun animateOnSettings(isInSettings: Boolean) {
         binding?.apply {
-            floatingButton.hidePermanently = isInSettings
-            materialToolbar.changeOnSettings(isInSettings) {
-                activity?.onSupportNavigateUp()
-            }
-            if (isInSettings) {
-                root.doOnPreDraw {
+            root.doOnPreDraw {
+                if (isInSettings) {
                     val animatorSet = AnimatorSet().apply {
-                        duration = animationDuration
-                        interpolator = DecelerateInterpolator()
+                        duration = 100L
+                        interpolator = LinearInterpolator()
                     }
                     animatorSet.playTogether(*animateSearchBarOnClick())
                     animatorSet.start()
-                }
-            } else {
-                root.doOnPreDraw {
+                } else {
                     animateOnNavigateFromSettings()
                 }
+            }
+            floatingButton.hidePermanently = isInSettings
+            materialToolbar.changeOnSettings(isInSettings) {
+                activity?.onSupportNavigateUp()
             }
         }
     }
@@ -54,7 +53,7 @@ class MainActivityAnimator(
         binding?.apply {
             if (materialSearchBar.height == materialSearchBar.initialHeight) return@apply
             val animatorSet = AnimatorSet().apply {
-                duration = animationDuration
+                duration = 250L
                 interpolator = DecelerateInterpolator()
             }
             animatorSet.playTogether(*shrinkSearchBarToInitialSize())

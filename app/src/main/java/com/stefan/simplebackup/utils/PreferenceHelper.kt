@@ -10,6 +10,7 @@ private const val MAIN_PREFERENCE = "main_preference"
 private const val SEQUENCE_NUMBER = "sequence_number"
 private const val DATABASE_CREATED = "database_created"
 private const val EXCLUDE_APPS_CACHE = "exclude_apps_cache"
+private const val DOUBLE_PRESS_TO_EXIT = "double_press_to_exit"
 private const val CHECKED_ROOT_GRANTED = "checked_root_granted"
 private const val CHECKED_DEVICE_ROOTED = "checked_device_rooted"
 private const val ZIP_COMPRESSION_LEVEL = "zip_compression_level"
@@ -26,6 +27,8 @@ object PreferenceHelper {
     val savedZipCompressionLevel: Float
         get() = sharedPreferences.getPreference(ZIP_COMPRESSION_LEVEL, 1f)
 
+    val shouldDoublePressToExit
+        get() = sharedPreferences.getPreference(DOUBLE_PRESS_TO_EXIT, true)
     val hasCheckedRootGranted: Boolean
         get() = sharedPreferences.getPreference(CHECKED_ROOT_GRANTED, false)
     val hasCheckedDeviceRooted: Boolean
@@ -61,6 +64,10 @@ object PreferenceHelper {
                 apply()
             }
         }
+    }
+
+    suspend fun setDoublePressToExit(shouldDoublePress: Boolean) {
+        sharedPreferences.editPreference(DOUBLE_PRESS_TO_EXIT, shouldDoublePress)
     }
 
     suspend fun setExcludeAppsCache(shouldExclude: Boolean) {

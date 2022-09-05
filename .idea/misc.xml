@@ -104,7 +104,7 @@
         <entry key="app/src/main/res/font/meslo_family.xml" value="0.215625" />
         <entry key="app/src/main/res/font/sailec_font.xml" value="0.215625" />
         <entry key="app/src/main/res/layout/activity_backup.xml" value="0.25" />
-        <entry key="app/src/main/res/layout/activity_detail.xml" value="0.12345679012345678" />
+        <entry key="app/src/main/res/layout/activity_detail.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.21" />
         <entry key="app/src/main/res/layout/activity_progress.xml" value="0.11594202898550725" />
         <entry key="app/src/main/res/layout/activity_restore.xml" value="0.22" />
@@ -122,7 +122,7 @@
         <entry key="app/src/main/res/layout/fragment_local_view_pager.xml" value="0.2774690038477982" />
         <entry key="app/src/main/res/layout/fragment_restore_list.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_search.xml" value="0.5" />
-        <entry key="app/src/main/res/layout/fragment_settings.xml" value="0.33" />
+        <entry key="app/src/main/res/layout/fragment_settings.xml" value="0.4491017964071856" />
         <entry key="app/src/main/res/layout/fragment_view_pager.xml" value="0.1" />
         <entry key="app/src/main/res/layout/home_item.xml" value="0.33" />
         <entry key="app/src/main/res/layout/list_item.xml" value="0.25" />
@@ -155,12 +155,5 @@
   </component>
   <component name="ProjectType">
     <option name="id" value="Android" />
-  </component>
-  <component name="VisualizationToolProject">
-    <option name="state">
-      <ProjectState>
-        <option name="scale" value="0.1" />
-      </ProjectState>
-    </option>
   </component>
 </project>
