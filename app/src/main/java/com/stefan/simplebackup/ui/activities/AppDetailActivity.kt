@@ -1,5 +1,7 @@
 package com.stefan.simplebackup.ui.activities
 
+import android.animation.ArgbEvaluator
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -7,6 +9,9 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.ImageView
 import androidx.activity.viewModels
+import androidx.annotation.ColorRes
+import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnStart
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
@@ -24,12 +29,15 @@ import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
 import java.util.*
+import kotlin.math.abs
 
 private const val TAG: String = "AppDetailActivity"
 private const val REQUEST_CODE_SIGN_IN: Int = 400
 
 class AppDetailActivity : BaseActivity() {
     private val binding by viewBinding(ActivityDetailBinding::inflate)
+
+    private var isAnimating = false
 
     private val detailsViewModel: DetailsViewModel by viewModels {
         val selectedApp: AppData? = intent?.extras?.getParcelable(PARCELABLE_EXTRA)
@@ -39,33 +47,86 @@ class AppDetailActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        launchOnViewLifecycle {
-            binding.apply {
-                bindViews()
-                setData()
-            }
+        window.statusBarColor = getColorFromResource(R.color.background)
+        binding.apply {
+            bindViews()
         }
     }
 
-    private suspend fun ActivityDetailBinding.bindViews() {
-        bindToolBar()
-        bindCardViews()
+    private fun ActivityDetailBinding.bindViews() {
+        launchOnViewLifecycle {
+            bindToolBar()
+            bindAppBarLayout()
+            bindCollapsingToolbarLayout()
+        }
+    }
+
+    private fun ActivityDetailBinding.bindAppBarLayout() {
+        var previousOffset = 0
+        appBarDetailsLayout.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
+            val absoluteOffsetValue = abs(verticalOffset)
+            val totalScrollRange = appBarLayout.totalScrollRange
+            when (absoluteOffsetValue) {
+                in 1 until totalScrollRange -> {
+                    val offsetFactor = abs(verticalOffset) / totalScrollRange.toFloat()
+                    val scaleFactor = 1f - offsetFactor * 0.5f
+                    val alphaScaleFactor = 1f - offsetFactor * 0.95f
+                    applicationImage.scaleX = scaleFactor
+                    applicationImage.scaleY = scaleFactor
+                    applicationImage.alpha = alphaScaleFactor
+                }
+                0 -> {
+                    applicationImage.alpha = 1f
+                    applicationImage.scaleX = 1f
+                    applicationImage.scaleY = 1f
+                    animateStatusBarColor(R.color.background)
+                }
+                totalScrollRange -> {
+                    animateStatusBarColor(R.color.bottomView)
+                }
+            }
+            if (absoluteOffsetValue < (totalScrollRange) && absoluteOffsetValue < previousOffset) {
+                animateStatusBarColor(R.color.background)
+            }
+            previousOffset = absoluteOffsetValue
+        }
+    }
+
+    private fun animateStatusBarColor(
+        @ColorRes color: Int
+    ) {
+        if (window.statusBarColor == getColorFromResource(color) || isAnimating) return
+        ObjectAnimator.ofObject(
+            window,
+            "statusBarColor",
+            ArgbEvaluator(),
+            window.statusBarColor,
+            getColorFromResource(color)
+        ).apply {
+            startDelay = 10
+            duration = binding.collapsingToolbar.scrimAnimationDuration
+            doOnStart {
+                isAnimating = true
+            }
+            doOnEnd {
+                isAnimating = false
+            }
+            start()
+        }
     }
 
     private fun ActivityDetailBinding.bindToolBar() {
-        detailsViewModel.selectedApp?.let {
-            setSupportActionBar(detailsToolbar)
-            supportActionBar?.setDisplayHomeAsUpEnabled(true)
-            supportActionBar?.setDisplayShowHomeEnabled(true)
-            collapsingToolbar.title = it.name
-        }
+        setSupportActionBar(detailsToolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
     }
 
-    private suspend fun ActivityDetailBinding.bindCardViews() {
+    private suspend fun ActivityDetailBinding.bindCollapsingToolbarLayout() {
         detailsViewModel.selectedApp?.let { app ->
             val appImage = collapsingToolbar.findViewById<ImageView>(R.id.application_image)
             app.setBitmap(applicationContext)
             appImage.loadBitmap(app.bitmap)
+            collapsingToolbar.title = app.name
         }
     }
 
@@ -103,21 +164,6 @@ class AppDetailActivity : BaseActivity() {
 //                }
 //            }
 //        }
-    }
-
-    private suspend fun ActivityDetailBinding.setData() {
-        detailsViewModel.selectedApp?.let { app ->
-            app.setBitmap(applicationContext)
-//            applicationImageDetails.loadBitmap(app.bitmap)
-//            textItemBackup.text = app.name
-//            chipPackageBackup.text = (app.packageName as CharSequence).toString()
-//            chipVersionBackup.text = (app.versionName as CharSequence).toString()
-//            chipDirBackup.text = (app.dataDir as CharSequence).toString()
-//            textApkSize.text = app.apkSize.bytesToString()
-//            targetSdk.text = app.targetSdk.toString()
-//            minSdk.text = app.minSdk.toString()
-//            dataSize.text = app.dataSize.bytesToString()
-        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {

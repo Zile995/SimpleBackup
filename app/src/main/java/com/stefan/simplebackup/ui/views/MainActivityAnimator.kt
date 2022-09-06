@@ -33,10 +33,15 @@ class MainActivityAnimator(
             root.doOnPreDraw {
                 if (isInSettings) {
                     val animatorSet = AnimatorSet().apply {
-                        duration = 100L
-                        interpolator = LinearInterpolator()
+                        duration = 50L
+                        interpolator = DecelerateInterpolator()
                     }
-                    animatorSet.playTogether(*animateSearchBarOnClick())
+                    animatorSet.playTogether(*materialSearchBar.animateToParentSize(doOnEnd = {
+                        activity?.apply {
+                            window.statusBarColor = getColorFromResource(R.color.searchBar)
+                        }
+                        appBarLayout.setExpanded(true)
+                    }))
                     animatorSet.start()
                 } else {
                     animateOnNavigateFromSettings()

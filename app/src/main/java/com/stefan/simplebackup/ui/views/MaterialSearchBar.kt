@@ -111,7 +111,6 @@ class MaterialSearchBar(
         }
         heightAnimator.addUpdateListener { valueAnimator ->
             layoutParams.height = valueAnimator.animatedValue as Int
-            requestLayout()
         }
         radiusAnimator.addUpdateListener { valueAnimator ->
             valueAnimator.doOnEnd {
@@ -120,6 +119,7 @@ class MaterialSearchBar(
                 animationFinished = true
             }
             radius = valueAnimator.animatedValue as Float
+            requestLayout()
         }
 
         doOnStart.invoke()

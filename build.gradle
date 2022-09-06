@@ -24,7 +24,7 @@ ext {
     junit = '4.13.2'
     espresso = '3.4.0'
     fragment = '1.5.2'
-    material = '1.7.0-beta01'
+    material = '1.8.0-alpha01'
     appCompat = '1.5.0'
     lifecycle = '2.5.1'
     leakCanary = '2.9.1'

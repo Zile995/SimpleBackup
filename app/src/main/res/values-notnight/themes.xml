@@ -26,6 +26,7 @@
         <item name="android:navigationBarColor">@color/bottomView</item>
         <item name="android:windowBackground">@drawable/starting_screen</item>
         <item name="searchViewStyle">@style/Widget.SimpleBackup.MaterialSearchView</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 
     <style name="Widget.SimpleBackup.Chip" parent="Widget.MaterialComponents.Chip.Action">
