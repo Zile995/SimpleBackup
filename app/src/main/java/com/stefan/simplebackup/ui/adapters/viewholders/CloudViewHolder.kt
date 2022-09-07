@@ -6,7 +6,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.databinding.CloudItemBinding
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
-import com.stefan.simplebackup.utils.extensions.bytesToString
+import com.stefan.simplebackup.utils.extensions.bytesToMegaBytesString
 import com.stefan.simplebackup.utils.extensions.checkedString
 import com.stefan.simplebackup.utils.extensions.loadBitmap
 
@@ -23,7 +23,7 @@ class CloudViewHolder(
             cloudApplicationName.text = item.name.checkedString()
             cloudVersionName.text = item.versionName.checkedString()
             cloudPackageName.text = item.packageName.checkedString()
-            cloudApkSize.text = item.apkSize.bytesToString()
+            cloudApkSize.text = item.apkSize.bytesToMegaBytesString()
             if (item.isSplit) {
                 cloudSplitApk.text = binding.root.resources.getString(R.string.split)
                 cloudSplitApk.visibility = View.VISIBLE

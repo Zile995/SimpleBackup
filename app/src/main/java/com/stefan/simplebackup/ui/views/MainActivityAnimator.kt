@@ -3,9 +3,7 @@ package com.stefan.simplebackup.ui.views
 import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.util.Log
-import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
-import android.view.animation.LinearInterpolator
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.marginBottom

@@ -2,7 +2,7 @@ package com.stefan.simplebackup.utils.extensions
 
 import kotlin.math.pow
 
-fun Number.bytesToString(): String {
+fun Number.bytesToMegaBytesString(): String {
     return String.format("%3.1f %s", convertBytesToMegaBytes(), "MB")
 }
 

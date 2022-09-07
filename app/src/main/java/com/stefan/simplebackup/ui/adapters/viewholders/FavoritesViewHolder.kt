@@ -6,7 +6,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.databinding.FavoritesItemBinding
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
-import com.stefan.simplebackup.utils.extensions.bytesToString
+import com.stefan.simplebackup.utils.extensions.bytesToMegaBytesString
 import com.stefan.simplebackup.utils.extensions.checkedString
 import com.stefan.simplebackup.utils.extensions.loadBitmap
 
@@ -23,7 +23,7 @@ class FavoritesViewHolder(
             favoritesApplicationName.text = item.name.checkedString()
             favoritesVersionName.text = item.versionName.checkedString()
             favoritesPackageName.text = item.packageName.checkedString()
-            favoritesApkSize.text = item.apkSize.bytesToString()
+            favoritesApkSize.text = item.apkSize.bytesToMegaBytesString()
             if (item.isSplit) {
                 favoritesSplitApk.text = binding.root.resources.getString(R.string.split)
                 favoritesSplitApk.visibility = View.VISIBLE

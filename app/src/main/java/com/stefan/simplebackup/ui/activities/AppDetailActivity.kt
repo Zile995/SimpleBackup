@@ -31,6 +31,7 @@ import com.stefan.simplebackup.utils.extensions.*
 import java.util.*
 import kotlin.math.abs
 
+
 private const val TAG: String = "AppDetailActivity"
 private const val REQUEST_CODE_SIGN_IN: Int = 400
 
@@ -50,6 +51,7 @@ class AppDetailActivity : BaseActivity() {
         window.statusBarColor = getColorFromResource(R.color.background)
         binding.apply {
             bindViews()
+            setData()
         }
     }
 
@@ -69,8 +71,8 @@ class AppDetailActivity : BaseActivity() {
             when (absoluteOffsetValue) {
                 in 1 until totalScrollRange -> {
                     val offsetFactor = abs(verticalOffset) / totalScrollRange.toFloat()
-                    val scaleFactor = 1f - offsetFactor * 0.5f
-                    val alphaScaleFactor = 1f - offsetFactor * 0.95f
+                    val scaleFactor = 1f - offsetFactor * 0.7f
+                    val alphaScaleFactor = 1f - offsetFactor
                     applicationImage.scaleX = scaleFactor
                     applicationImage.scaleY = scaleFactor
                     applicationImage.alpha = alphaScaleFactor
@@ -79,14 +81,16 @@ class AppDetailActivity : BaseActivity() {
                     applicationImage.alpha = 1f
                     applicationImage.scaleX = 1f
                     applicationImage.scaleY = 1f
-                    animateStatusBarColor(R.color.background)
+                    animateStatusBarColor(android.R.color.transparent)
                 }
                 totalScrollRange -> {
                     animateStatusBarColor(R.color.bottomView)
                 }
             }
-            if (absoluteOffsetValue < (totalScrollRange) && absoluteOffsetValue < previousOffset) {
-                animateStatusBarColor(R.color.background)
+            if (absoluteOffsetValue < (totalScrollRange - (collapsingToolbar.scrimVisibleHeightTrigger - detailsToolbar.height))
+                && absoluteOffsetValue < previousOffset
+            ) {
+                animateStatusBarColor(android.R.color.transparent)
             }
             previousOffset = absoluteOffsetValue
         }
@@ -103,8 +107,10 @@ class AppDetailActivity : BaseActivity() {
             window.statusBarColor,
             getColorFromResource(color)
         ).apply {
-            startDelay = 10
             duration = binding.collapsingToolbar.scrimAnimationDuration
+            addUpdateListener {
+                binding.detailsToolbar.setBackgroundColor(it.animatedValue as Int)
+            }
             doOnStart {
                 isAnimating = true
             }
@@ -124,9 +130,27 @@ class AppDetailActivity : BaseActivity() {
     private suspend fun ActivityDetailBinding.bindCollapsingToolbarLayout() {
         detailsViewModel.selectedApp?.let { app ->
             val appImage = collapsingToolbar.findViewById<ImageView>(R.id.application_image)
+            appImage.setOnClickListener {
+                launchPackage(app.packageName)
+            }
             app.setBitmap(applicationContext)
             appImage.loadBitmap(app.bitmap)
             collapsingToolbar.title = app.name
+        }
+    }
+
+    private fun ActivityDetailBinding.setData() {
+        detailsViewModel.selectedApp?.let { app ->
+            appTypeChip.text =
+                when {
+                    app.isCloud -> resources.getString(R.string.cloud_backup)
+                    app.isLocal -> resources.getString(R.string.local_backup)
+                    else -> resources.getString(R.string.user_app)
+                }
+            packageNameLabel.text = app.packageName
+            apkSizeLabel.text = getString(R.string.apk_size, app.apkSize.bytesToMegaBytesString())
+            targetApiLabel.text = getString(R.string.target_sdk, app.targetSdk)
+            minApiLabel.text = getString(R.string.min_sdk, app.minSdk)
         }
     }
 

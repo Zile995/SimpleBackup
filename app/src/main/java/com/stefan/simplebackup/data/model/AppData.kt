@@ -79,21 +79,21 @@ data class AppData(
     @ColumnInfo(name = "cache_size")
     var cacheSize: Long,
 
+    @ColumnInfo(name = "favorite")
+    var favorite: Boolean,
+
     @ColumnInfo(name = "is_user_app")
     var isUserApp: Boolean,
 
-    @ColumnInfo(name = "favorite")
-    var favorite: Boolean
+    @ColumnInfo(name = "is_local")
+    var isLocal: Boolean = false,
+
+    @ColumnInfo(name = "is_cloud")
+    var isCloud: Boolean = false
 ) : Parcelable {
 
     @ColumnInfo(name = "date")
     var date: String = ""
-
-    @ColumnInfo(name = "is_local")
-    var isLocal: Boolean = false
-
-    @ColumnInfo(name = "is_cloud")
-    var isCloud: Boolean = false
 
     @ColumnInfo(name = "should_backup_data")
     var shouldBackupData = false
@@ -119,8 +119,10 @@ data class AppData(
         isSplit = parcel.readBooleanValue() ?: false,
         dataSize = parcel.readLong(),
         cacheSize = parcel.readLong(),
+        favorite = parcel.readBooleanValue() ?: false,
         isUserApp = parcel.readBooleanValue() ?: false,
-        favorite = parcel.readBooleanValue() ?: false
+        isLocal = parcel.readBooleanValue() ?: false,
+        isCloud = parcel.readBooleanValue() ?: false
     )
 
     suspend fun serializeApp() {
@@ -190,7 +192,9 @@ data class AppData(
         dest.writeLong(dataSize)
         dest.writeLong(cacheSize)
         dest.writeBooleanValue(favorite)
-        dest.writeString(date)
+        dest.writeBooleanValue(isUserApp)
+        dest.writeBooleanValue(isLocal)
+        dest.writeBooleanValue(isCloud)
     }
 
     /**
