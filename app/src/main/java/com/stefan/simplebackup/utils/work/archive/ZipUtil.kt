@@ -20,6 +20,7 @@ import net.lingala.zip4j.model.enums.CompressionLevel
 import net.lingala.zip4j.model.enums.CompressionMethod
 import net.lingala.zip4j.model.enums.EncryptionMethod
 import java.io.File
+import java.io.IOException
 
 @Suppress("BlockingMethodInNonBlockingContext")
 object ZipUtil {
@@ -107,6 +108,43 @@ object ZipUtil {
         }
         Log.d("ZipUtil", "Got the apk list for ${app.name}: ${apkList.map { it.name }}")
         return apkList
+    }
+
+    suspend fun getApkFileSizeWithSplitInfo(apkDirPath: String): Pair<Float, Boolean> = coroutineScope {
+        val isSplit: Boolean
+        File(apkDirPath).listFiles()?.let { apkDirFiles ->
+            apkDirFiles.filter { dirFile ->
+                dirFile.isFile && dirFile.name.endsWith(".apk")
+            }.also { apkFiles ->
+                isSplit = apkFiles.size > 1
+            }.sumOf { apkFile ->
+                apkFile.length()
+            }.toFloat() to isSplit
+        } ?: (0f to false)
+    }
+
+    suspend fun listApkLibs(apkFile: File) = coroutineScope {
+        val abiList = mutableListOf<String>()
+        try {
+            val zipFile = ZipFile(apkFile)
+            val headerList = zipFile.fileHeaders
+            abiList.addAll(headerList.map { fileHeader ->
+                fileHeader.fileName
+            }.filter { fileName ->
+                fileName.contains("lib") && fileName.endsWith(".so")
+            }.map {
+                it.substringAfter("/").substringBeforeLast("/")
+            }.distinct())
+        } catch (e: IOException) {
+            e.message?.let { message ->
+                Log.e(
+                    "AppManager",
+                    "${apkFile.name}: $message"
+                )
+            }
+            abiList.clear()
+        }
+        abiList
     }
 
     private fun getZipParameters(isApk: Boolean = true): ZipParameters {

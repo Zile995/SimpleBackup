@@ -4,6 +4,8 @@ import com.stefan.simplebackup.data.local.database.AppDao
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.extensions.filterBy
 
+typealias RepositoryPackageNameAction = suspend AppRepository.(String) -> Unit
+
 class AppRepository(private val appDao: AppDao) {
     val installedApps
         get() = appDao.getAllApps().filterBy { app ->
@@ -27,16 +29,10 @@ class AppRepository(private val appDao: AppDao) {
         }
     }
 
-    suspend fun changeFavorites(packageName: String) {
-        appDao.updateFavorite(packageName)
-    }
-
-    suspend fun isFavorite(packageName: String) = appDao.isFavorite(packageName)
-
     suspend fun insert(app: AppData) = appDao.insert(app)
     suspend fun delete(packageName: String) = appDao.delete(packageName)
-
     suspend fun getAppData(packageName: String) = appDao.getData(packageName)
-
-    fun doesAppDataExist(packageName: String) = appDao.doesAppDataExist(packageName)
+    suspend fun isFavorite(packageName: String) = appDao.isFavorite(packageName)
+    suspend fun addToFavorites(packageName: String) = appDao.addToFavorites(packageName)
+    suspend fun removeFromFavorites(packageName: String) = appDao.removeFromFavorites(packageName)
 }

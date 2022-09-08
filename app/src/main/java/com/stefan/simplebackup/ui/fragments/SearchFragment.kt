@@ -14,6 +14,7 @@ import com.google.android.material.chip.Chip
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.databinding.FragmentSearchBinding
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
+import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.SearchAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
@@ -24,9 +25,6 @@ import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
 import kotlinx.coroutines.launch
 
 class SearchFragment : BaseFragment<FragmentSearchBinding>() {
-    private var _searchAdapter: SearchAdapter? = null
-    private val searchAdapter get() = _searchAdapter!!
-
     private val searchViewModel: SearchViewModel by viewModels {
         ViewModelFactory(requireActivity().application as MainApplication)
     }
@@ -72,40 +70,11 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
         searchRecyclerView.restoreRecyclerViewState(searchViewModel.savedRecyclerViewState)
     }
 
-    override fun MainRecyclerView.setMainAdapter() {
-        _searchAdapter = SearchAdapter(
+    override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =
+        SearchAdapter(
             mainViewModel.selectionList,
             mainViewModel.setSelectionMode
-        ) {
-            object : OnClickListener {
-                override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
-                    val item = searchAdapter.currentList[position]
-                    if (searchAdapter.hasSelectedItems()) {
-                        searchAdapter.doSelection(holder as BaseViewHolder, item)
-                    } else {
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            item.passToActivity<AppDetailActivity>(context)
-                        }
-                    }
-                }
-
-                override fun onLongItemViewClick(
-                    holder: RecyclerView.ViewHolder,
-                    position: Int
-                ) {
-                    val item = searchAdapter.currentList[position]
-                    mainViewModel.setSelectionMode(true)
-                    searchAdapter.doSelection(holder as BaseViewHolder, item)
-                }
-            }
-        }
-        adapter = searchAdapter
-    }
-
-    override fun onCleanUp() {
-        super.onCleanUp()
-        _searchAdapter = null
-    }
+        ) { onClickListener }
 
     override fun onDestroyView() {
         super.onDestroyView()

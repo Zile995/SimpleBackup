@@ -12,12 +12,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class DetailsViewModel(
-    private val app: AppData?,
+    val app: AppData?,
     application: MainApplication
 ) : ViewModel() {
 
     private val workManager = WorkManager.getInstance(application)
-    val selectedApp get() = app
 
     init {
         Log.d("ViewModel", "DetailsViewModel created")

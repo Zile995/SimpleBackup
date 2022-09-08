@@ -6,6 +6,12 @@
         android:title="@string/settings_info"
         app:showAsAction="collapseActionView"/>
     <item
+        android:id="@+id/add_to_favorites"
+        android:icon="@drawable/ic_favorite"
+        android:title="@string/add_to_favorites"
+        android:visible="true"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/force_stop"
         android:title="@string/force_stop"
         app:showAsAction="collapseActionView"/>

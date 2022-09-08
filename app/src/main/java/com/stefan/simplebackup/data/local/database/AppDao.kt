@@ -25,9 +25,10 @@ interface AppDao {
     suspend fun clear()
 
     @Transaction
-    suspend fun updateFavorite(packageName: String) {
-        setFavorite(packageName, !(getData(packageName)?.favorite ?: false))
-    }
+    suspend fun removeFromFavorites(packageName: String) = setFavorite(packageName, false)
+
+    @Transaction
+    suspend fun addToFavorites(packageName: String) = setFavorite(packageName, true)
 
     @Query("SELECT favorite FROM app_table WHERE package_name = :packageName")
     suspend fun isFavorite(packageName: String): Boolean?

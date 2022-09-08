@@ -8,27 +8,29 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
-import kotlinx.coroutines.async
+import com.stefan.simplebackup.utils.work.archive.ZipUtil.getApkFileSizeWithSplitInfo
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import net.lingala.zip4j.ZipFile
-import java.io.File
 
 class AppManager(private val context: Context) {
+
+    private val metaDataFlag = PackageManager.GET_META_DATA
 
     /**
      * - [PackageManager]
      */
     private val packageManager: PackageManager = context.packageManager
-    private val appStorageManager by lazy {
-        AppStorageManager(context.applicationContext)
+
+    // Helper manager classes
+    private val appInfoManager: AppInfoManager by lazy {
+        AppInfoManager(packageManager, metaDataFlag)
     }
 
     suspend fun build(packageName: String) =
         withContext(ioDispatcher) {
-            getAppData(appInfo = getAppInfo(packageName))
+            getAppData(appInfo = appInfoManager.getAppInfo(packageName, metaDataFlag))
         }
 
     private fun printSequence() =
@@ -66,113 +68,44 @@ class AppManager(private val context: Context) {
 
     fun doesPackageExists(packageName: String): Boolean {
         try {
-            packageManager.getPackageInfo(packageName, PackageManager.GET_META_DATA)
+            packageManager.getPackageInfo(packageName, metaDataFlag)
         } catch (e: PackageManager.NameNotFoundException) {
             return false
         }
         return true
     }
 
-    private fun getAppInfo(packageName: String) =
-        packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
-
-    private fun ApplicationInfo.isUserApp() =
-        flags and ApplicationInfo.FLAG_SYSTEM == 0
-
     // Simple flow which sends data
     fun dataBuilder(includeSystemApps: Boolean = false) = flow {
-        val completeAppsInfo = getCompleteAppsInfo()
-        completeAppsInfo.apply {
-            getFilteredInfo(includeSystemApps).forEach { userAppsInfo ->
-                emit(getAppData(userAppsInfo))
-            }
+        appInfoManager.getFilteredInfo(filterSystemApps = includeSystemApps) { appInfo ->
+            appInfo.packageName != context.packageName
+        }.forEach { filteredAppsInfo ->
+            val app = getAppData(filteredAppsInfo)
+            emit(app)
         }
     }.flowOn(ioDispatcher)
 
-    private fun getCompleteAppsInfo(): List<ApplicationInfo> {
-        return packageManager
-            .getInstalledApplications(PackageManager.GET_META_DATA)
-            .filter { appInfo ->
-                appInfo.packageName != context.packageName
-            }.sortedBy { appInfo ->
-                appInfo.loadLabel()
-            }
-    }
-
-    private fun List<ApplicationInfo>.getFilteredInfo(filterSystemApps: Boolean = false) =
-        filter { appInfo ->
-            if (filterSystemApps) !appInfo.isUserApp() else appInfo.isUserApp()
-        }
-
-    private fun ApplicationInfo.loadLabel() = loadLabel(packageManager).toString()
-
     private suspend fun getAppData(appInfo: ApplicationInfo): AppData = coroutineScope {
-        val apkSizeStats = appStorageManager.getApkSizeStats(appInfo)
-        val apkDir = appInfo.publicSourceDir.run { substringBeforeLast("/") }
-        val apkInfo = async { getApkInfo(apkDir) }
-        val name = appInfo.loadLabel(packageManager).toString()
-        val packageName = appInfo.packageName
-        val drawable = appInfo.loadIcon(packageManager)
-        val versionName = packageManager.getPackageInfo(
-            appInfo.packageName,
-            PackageManager.GET_META_DATA
-        ).versionName?.substringBefore(" (") ?: ""
+        appInfoManager.run {
+            getApkDir(appInfo)
+            val apkDir = getApkDir(appInfo)
+            val packageName = getPackageName(appInfo)
+            val apkInfo = getApkFileSizeWithSplitInfo(apkDir)
 
-        AppData(
-            name = name,
-            bitmap = drawable.toByteArray(),
-            packageName = packageName,
-            versionName = versionName,
-            targetSdk = appInfo.targetSdkVersion,
-            minSdk = appInfo.minSdkVersion,
-            dataDir = appInfo.dataDir,
-            apkDir = apkDir,
-            apkSize = apkInfo.await()!!.first,
-            isSplit = apkInfo.await()!!.second,
-            dataSize = apkSizeStats.dataSize,
-            cacheSize = apkSizeStats.cacheSize,
-            isUserApp = appInfo.isUserApp(),
-            favorite = false
-        )
-    }
-
-    private suspend fun getApkInfo(apkDirPath: String): Pair<Float, Boolean>? {
-        return withContext(ioDispatcher) {
-            val isSplit: Boolean
-            File(apkDirPath).listFiles()?.let { apkDirFiles ->
-                apkDirFiles.filter { dirFile ->
-                    dirFile.isFile && dirFile.name.endsWith(".apk")
-                }.also { apkFiles ->
-                    isSplit = apkFiles.size > 1
-                }.sumOf { apkFile ->
-                    apkFile.length()
-                }.toFloat() to isSplit
-            }
-        }
-    }
-
-    private suspend fun listApkLibs(apkFile: File): List<String> {
-        return withContext(ioDispatcher) {
-            val abiList = mutableListOf<String>()
-            runCatching {
-                val zipFile = ZipFile(apkFile)
-                val headerList = zipFile.fileHeaders
-                abiList.addAll(headerList.map { fileHeader ->
-                    fileHeader.fileName
-                }.filter { fileName ->
-                    fileName.contains("lib") && fileName.endsWith(".so")
-                }.map {
-                    it.substringAfter("/").substringBeforeLast("/")
-                }.distinct())
-            }.onFailure { throwable ->
-                throwable.message?.let { message ->
-                    Log.e(
-                        "AppManager",
-                        "${apkFile.name}: $message"
-                    )
-                }
-            }
-            abiList.toList()
+            AppData(
+                name = getAppName(appInfo),
+                bitmap = getDrawable(appInfo).toByteArray(),
+                packageName = packageName,
+                versionName = getVersionName(appInfo),
+                date = getFirstInstallTime(packageName),
+                targetSdk = getTargetSDK(appInfo),
+                minSdk = getMinSDK(appInfo),
+                dataDir = getDataDir(appInfo),
+                apkDir = getApkDir(appInfo),
+                apkSize = apkInfo.first,
+                isSplit = apkInfo.second,
+                isUserApp = isUserApp(appInfo)
+            )
         }
     }
 }

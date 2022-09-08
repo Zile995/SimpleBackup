@@ -8,7 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import com.stefan.simplebackup.BuildConfig
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.openUsageAccessSettings
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.runBlocking
 
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
@@ -31,7 +33,9 @@ class SplashActivity : AppCompatActivity() {
         // Preheat the main root shell in the splash screen
         // so the app can use it afterwards without interrupting
         // application flow (e.g. root permission prompt)
-        launchOnViewLifecycle(ioDispatcher) {
+        //openUsageAccessSettings()
+
+        runBlocking {
             Shell.getShell()
         }
         // The main shell is now constructed and cached

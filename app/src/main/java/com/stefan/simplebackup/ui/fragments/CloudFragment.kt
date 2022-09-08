@@ -6,12 +6,10 @@ import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.databinding.FragmentCloudBinding
-import com.stefan.simplebackup.ui.activities.AppDetailActivity
+import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.CloudAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
-import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.isVisible
@@ -21,9 +19,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class CloudFragment : BaseFragment<FragmentCloudBinding>() {
-    private var _cloudAdapter: CloudAdapter? = null
-    private val cloudAdapter get() = _cloudAdapter!!
-
     private val homeViewModel: HomeViewModel by viewModels(
         ownerProducer = { requireParentFragment() }
     )
@@ -51,45 +46,20 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
         }
     }
 
-    override fun MainRecyclerView.setMainAdapter() {
-        _cloudAdapter =
-            CloudAdapter(
-                mainViewModel.selectionList,
-                mainViewModel.setSelectionMode
-            ) {
-                object : OnClickListener {
-                    override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
-                        val item = cloudAdapter.currentList[position]
-                        if (cloudAdapter.hasSelectedItems()) {
-                            cloudAdapter.doSelection(holder as BaseViewHolder, item)
-                        } else {
-                            viewLifecycleOwner.lifecycleScope.launch {
-                                item.passToActivity<AppDetailActivity>(context)
-                            }
-                        }
-                    }
-
-                    override fun onLongItemViewClick(
-                        holder: RecyclerView.ViewHolder,
-                        position: Int
-                    ) {
-                        val item = cloudAdapter.currentList[position]
-                        mainViewModel.setSelectionMode(true)
-                        cloudAdapter.doSelection(holder as BaseViewHolder, item)
-                    }
-                }
-            }
-        adapter = cloudAdapter
-    }
+    override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =
+        CloudAdapter(
+            mainViewModel.selectionList,
+            mainViewModel.setSelectionMode
+        ) { onClickListener }
 
     private fun FragmentCloudBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 homeViewModel.spinner.collect { isSpinning ->
                     progressBar.isVisible = isSpinning
                     if (!isSpinning)
                         homeViewModel.observableList.collect { appList ->
-                            cloudAdapter.submitList(appList)
+                            adapter.submitList(appList)
                         }
                 }
             }
@@ -114,10 +84,5 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d("Fragments", "Destroyed CloudFragment completely")
-    }
-
-    override fun onCleanUp() {
-        super.onCleanUp()
-        _cloudAdapter = null
     }
 }

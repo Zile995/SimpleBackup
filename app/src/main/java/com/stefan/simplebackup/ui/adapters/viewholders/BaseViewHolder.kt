@@ -28,7 +28,6 @@ sealed class BaseViewHolder(
 
     fun setSelected() {
         cardView.apply {
-            isChecked = true
             setCardBackgroundColor(
                 context.getColor(R.color.cardViewSelected)
             )
@@ -37,7 +36,6 @@ sealed class BaseViewHolder(
 
     fun unsetSelected() {
         cardView.apply {
-            isChecked = false
             setCardBackgroundColor(
                 context.getColor(R.color.cardView)
             )

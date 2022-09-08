@@ -109,8 +109,9 @@ class SimpleMaterialToolbar(
         }
     }
 
+    @Synchronized
     private fun setDefaultState() {
-        if (!(inSearchState || inSelectionState || inSettingsState)) {
+        if (!inSearchState && !inSelectionState && !inSettingsState && !hasOnClickListeners()) {
             Log.d("SimpleMaterialToolbar", "Setting to default state")
             addRipple()
             setDefaultTitle()

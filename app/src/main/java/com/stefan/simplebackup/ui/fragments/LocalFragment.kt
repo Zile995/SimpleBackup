@@ -5,25 +5,19 @@ import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.recyclerview.widget.RecyclerView
-import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.FragmentLocalBinding
+import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.LocalAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
-import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.workerDialog
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class LocalFragment : BaseFragment<FragmentLocalBinding>() {
-    private var _localAdapter: LocalAdapter? = null
-    private val localAdapter get() = _localAdapter!!
-
     private val localViewModel: LocalViewModel by viewModels(
         ownerProducer = { requireParentFragment() }
     )
@@ -37,38 +31,11 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
         }
     }
 
-    override fun MainRecyclerView.setMainAdapter() {
-        _localAdapter = LocalAdapter(
+    override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =
+        LocalAdapter(
             mainViewModel.selectionList,
             mainViewModel.setSelectionMode
-        ) {
-            val context = requireContext()
-            object : OnClickListener {
-                override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
-                    val item = localAdapter.currentList[position]
-                    if (localAdapter.hasSelectedItems()) {
-                        localAdapter.doSelection(holder as BaseViewHolder, item)
-                    } else {
-                        context.workerDialog(
-                            title = getString(R.string.confirm_restore),
-                            message = getString(R.string.restore_confirmation_message),
-                            positiveButtonText = getString(R.string.yes),
-                            negativeButtonText = getString(R.string.no)
-                        ) {
-                            localViewModel.startRestoreWorker(item.packageName)
-                        }
-                    }
-                }
-
-                override fun onLongItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
-                    val item = localAdapter.currentList[position]
-                    mainViewModel.setSelectionMode(true)
-                    localAdapter.doSelection(holder as BaseViewHolder, item)
-                }
-            }
-        }
-        adapter = localAdapter
-    }
+        ) { onClickListener }
 
     private fun FragmentLocalBinding.bindViews() {
         bindSwipeContainer()
@@ -94,12 +61,12 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
                     localViewModel.startPackagePolling()
                 }
             }
-            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 localViewModel.spinner.collect { isSpinning ->
                     progressBar.isVisible = isSpinning
                     if (!isSpinning) {
                         localViewModel.observableList.collect { appList ->
-                            localAdapter.submitList(appList)
+                            adapter.submitList(appList)
                         }
                     }
                 }
@@ -115,11 +82,6 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
 
     override fun FragmentLocalBinding.restoreRecyclerViewState() {
         localRecyclerView.restoreRecyclerViewState(localViewModel.savedRecyclerViewState)
-    }
-
-    override fun onCleanUp() {
-        super.onCleanUp()
-        _localAdapter = null
     }
 
     override fun onDestroyView() {

@@ -4,19 +4,15 @@ package com.stefan.simplebackup.data.model
 import android.content.Context
 import android.os.Parcel
 import android.os.Parcelable
-import android.util.Log
 import androidx.annotation.Keep
 import androidx.appcompat.app.AppCompatActivity
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.stefan.simplebackup.R
-import com.stefan.simplebackup.utils.extensions.getResourceDrawable
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.extensions.passBundleToActivity
 import com.stefan.simplebackup.utils.file.BitmapUtil.saveByteArray
-import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.stefan.simplebackup.utils.file.JsonUtil
 import kotlinx.coroutines.withContext
@@ -55,11 +51,14 @@ data class AppData(
     @ColumnInfo(name = "version_name")
     val versionName: String,
 
-    @ColumnInfo(name = "target_sdk")
-    val targetSdk: Int,
+    @ColumnInfo(name = "date")
+    var date: Long,
 
     @ColumnInfo(name = "min_sdk")
     val minSdk: Int,
+
+    @ColumnInfo(name = "target_sdk")
+    val targetSdk: Int,
 
     @ColumnInfo(name = "data_dir")
     val dataDir: String,
@@ -74,16 +73,16 @@ data class AppData(
     val isSplit: Boolean,
 
     @ColumnInfo(name = "data_size")
-    var dataSize: Long,
+    var dataSize: Long = 0,
 
     @ColumnInfo(name = "cache_size")
-    var cacheSize: Long,
+    var cacheSize: Long = 0,
 
     @ColumnInfo(name = "favorite")
-    var favorite: Boolean,
+    var favorite: Boolean = false,
 
     @ColumnInfo(name = "is_user_app")
-    var isUserApp: Boolean,
+    var isUserApp: Boolean = true,
 
     @ColumnInfo(name = "is_local")
     var isLocal: Boolean = false,
@@ -91,15 +90,6 @@ data class AppData(
     @ColumnInfo(name = "is_cloud")
     var isCloud: Boolean = false
 ) : Parcelable {
-
-    @ColumnInfo(name = "date")
-    var date: String = ""
-
-    @ColumnInfo(name = "should_backup_data")
-    var shouldBackupData = false
-
-    @ColumnInfo(name = "should_backup_cache")
-    var shouldBackupCache = false
 
     var isSelected = false
 
@@ -111,6 +101,7 @@ data class AppData(
         },
         packageName = parcel.readString() ?: "",
         versionName = parcel.readString() ?: "",
+        date = parcel.readLong(),
         targetSdk = parcel.readInt(),
         minSdk = parcel.readInt(),
         dataDir = parcel.readString() ?: "",
@@ -125,17 +116,23 @@ data class AppData(
         isCloud = parcel.readBooleanValue() ?: false
     )
 
+    fun getDateString() = convertDateToString()
+
+    fun setCurrentDate() {
+        date = System.currentTimeMillis()
+    }
+
     suspend fun serializeApp() {
         isLocal = true
         JsonUtil.serializeApp(this, getTempDirPath(this))
     }
 
-    fun setBackupTime() {
+    private fun convertDateToString(): String {
         val locale = Locale.getDefault()
         val time = SimpleDateFormat(
-            "dd.MM.yy-HH:mm", locale
+            "EEE, dd MMM yyyy hh:mm", locale
         )
-        date = time.format(Date())
+        return time.format(date)
     }
 
     suspend inline fun <reified T : AppCompatActivity> passToActivity(
@@ -150,7 +147,6 @@ data class AppData(
 
     suspend fun withCheckedBitmap(context: Context): AppData = run {
         if (bitmap.size > 200_000) {
-            Log.d("Bitmap", "${bitmap.size}")
             bitmap.saveByteArray(name, context)
             copy(bitmap = byteArrayOf())
         } else {
@@ -159,7 +155,7 @@ data class AppData(
     }
 
     @Suppress("BlockingMethodInNonBlockingContext")
-    suspend fun setBitmap(context: Context) {
+    suspend fun setBitmap(context: Context, onFailure: suspend (Context) -> ByteArray) {
         withContext(ioDispatcher) {
             try {
                 if (bitmap.isNotEmpty())
@@ -168,10 +164,10 @@ data class AppData(
                     bitmap = stream.readBytes()
                 }
                 context.deleteFile(name)
+                if (bitmap.isEmpty())
+                    onFailure(context)
             } catch (exception: IOException) {
-                bitmap =
-                    context.getResourceDrawable(R.drawable.ic_error)?.toByteArray()
-                        ?: byteArrayOf()
+                bitmap = onFailure(context)
             }
         }
     }
@@ -183,6 +179,7 @@ data class AppData(
         dest.writeByteArray(bitmap)
         dest.writeString(packageName)
         dest.writeString(versionName)
+        dest.writeLong(date)
         dest.writeInt(targetSdk)
         dest.writeInt(minSdk)
         dest.writeString(dataDir)
@@ -211,6 +208,7 @@ data class AppData(
         if (!bitmap.contentEquals(other.bitmap)) return false
         if (packageName != other.packageName) return false
         if (versionName != other.versionName) return false
+        if (date != other.date) return false
         if (targetSdk != other.targetSdk) return false
         if (minSdk != other.minSdk) return false
         if (dataDir != other.dataDir) return false
@@ -221,7 +219,6 @@ data class AppData(
         if (cacheSize != other.cacheSize) return false
         if (isUserApp != other.isUserApp) return false
         if (favorite != other.favorite) return false
-        if (date != other.date) return false
         if (isLocal != other.isLocal) return false
         if (isCloud != other.isCloud) return false
 
@@ -235,6 +232,7 @@ data class AppData(
         result = 31 * result + bitmap.contentHashCode()
         result = 31 * result + packageName.hashCode()
         result = 31 * result + versionName.hashCode()
+        result = 31 * result + date.hashCode()
         result = 31 * result + targetSdk
         result = 31 * result + minSdk
         result = 31 * result + dataDir.hashCode()
@@ -245,11 +243,8 @@ data class AppData(
         result = 31 * result + cacheSize.hashCode()
         result = 31 * result + isUserApp.hashCode()
         result = 31 * result + favorite.hashCode()
-        result = 31 * result + date.hashCode()
         result = 31 * result + isLocal.hashCode()
         result = 31 * result + isCloud.hashCode()
-        result = 31 * result + shouldBackupData.hashCode()
-        result = 31 * result + shouldBackupCache.hashCode()
         return result
     }
 

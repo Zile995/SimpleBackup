@@ -9,8 +9,11 @@ import android.util.Log
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 
+@Suppress("BlockingMethodInNonBlockingContext")
 object BitmapUtil {
+
     suspend fun Drawable.toBitmap(): Bitmap =
         withContext(ioDispatcher) {
             val bitmap: Bitmap =
@@ -23,8 +26,6 @@ object BitmapUtil {
                         Bitmap.Config.ARGB_8888
                     )
                 }
-
-            //Log.d("Bitmap", "Bytes bitmap: ${bitmap.allocationByteCount}")
             val canvas = Canvas(bitmap)
             setBounds(0, 0, canvas.width, canvas.height)
             draw(canvas)
@@ -32,7 +33,11 @@ object BitmapUtil {
         }
 
     suspend fun Drawable.toByteArray(): ByteArray =
-        this.toBitmap().toByteArray()
+        try {
+            toBitmap().toByteArray()
+        } catch (e: IOException) {
+            byteArrayOf()
+        }
 
     suspend fun ByteArray.saveByteArray(
         fileName: String,
@@ -40,18 +45,15 @@ object BitmapUtil {
     ) {
         val byteArray = this
         withContext(ioDispatcher) {
-            runCatching {
-                context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
-                    output.write(byteArray)
-                    Log.d("Bitmap", "Saved bytearray")
-                    output.close()
-                }
-            }.onFailure { throwable ->
-                throwable.message?.let { message -> Log.e("Serialization", message) }
+            context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
+                output.write(byteArray)
+                Log.d("Bitmap", "Saved bytearray")
+                output.close()
             }
         }
     }
 
+    @Throws(IOException::class)
     suspend fun ByteArray.toBitmap(): Bitmap {
         val byteArray = this
         return withContext(ioDispatcher) {
@@ -59,7 +61,8 @@ object BitmapUtil {
         }
     }
 
-    suspend fun Bitmap.toByteArray(): ByteArray =
+    @Throws(IOException::class)
+    private suspend fun Bitmap.toByteArray(): ByteArray =
         withContext(ioDispatcher) {
             val bytes = ByteArrayOutputStream()
             compress(Bitmap.CompressFormat.PNG, 100, bytes)

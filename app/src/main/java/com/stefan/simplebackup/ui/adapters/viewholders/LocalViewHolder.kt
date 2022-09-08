@@ -21,7 +21,7 @@ class LocalViewHolder(
             restoreVersionName.text = item.versionName.checkedString()
             restorePackageName.text = item.packageName.checkedString()
             restoreDataSize.text = item.dataSize.bytesToMegaBytesString()
-            backupDate.text = item.date
+            backupDate.text = item.getDateString()
         }
     }
 }

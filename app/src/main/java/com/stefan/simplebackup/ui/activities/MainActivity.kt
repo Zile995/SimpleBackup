@@ -210,9 +210,9 @@ class MainActivity : BaseActivity() {
                 }
                 R.id.add_to_favorites -> {
                     if (visibleFragment !is FavoritesFragment)
-                        mainViewModel.changeFavorites()
+                        mainViewModel.addToFavorites()
                     else
-                        mainViewModel.removeFavorites()
+                        mainViewModel.removeFromFavorites()
                 }
                 R.id.delete -> {
                     Log.d("Activity", "Setting up the delete action")
@@ -251,7 +251,6 @@ class MainActivity : BaseActivity() {
     private fun ActivityMainBinding.initObservers() {
         launchOnViewLifecycle {
             launch {
-                Log.d("Activity", "Number of selected = ${numberOfSelected.value}")
                 repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                     observeNumberOfSelected()
                 }

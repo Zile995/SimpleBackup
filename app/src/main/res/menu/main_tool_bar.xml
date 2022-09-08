@@ -8,21 +8,18 @@
         android:visible="false"
         app:actionViewClass="com.stefan.simplebackup.ui.views.MaterialSearchView"
         app:showAsAction="always" />
-
     <item
         android:id="@+id/add_to_favorites"
         android:icon="@drawable/ic_favorite"
         android:title="@string/add_to_favorites"
         android:visible="false"
         app:showAsAction="ifRoom" />
-
     <item
         android:id="@+id/delete"
         android:icon="@drawable/ic_delete"
         android:title="@string/delete"
         android:visible="false"
         app:showAsAction="ifRoom" />
-
     <item
         android:id="@+id/select_all"
         android:icon="@drawable/ic_select_all"

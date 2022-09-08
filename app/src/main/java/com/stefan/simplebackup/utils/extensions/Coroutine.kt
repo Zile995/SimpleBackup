@@ -76,7 +76,7 @@ suspend fun LifecycleOwner.repeatOnViewLifecycle(
 ) {
     when (this) {
         is ComponentActivity -> {
-            this.repeatOnLifecycle(state, block)
+            repeatOnLifecycle(state, block)
         }
         is Fragment -> {
             viewLifecycleOwner.repeatOnLifecycle(state, block)

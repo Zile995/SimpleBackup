@@ -162,7 +162,7 @@ class MainActivityAnimator(
 
     private fun animateSearchBarOnClick(): Array<ValueAnimator> =
         binding?.run {
-            return@run materialSearchBar.animateToParentSize(
+            materialSearchBar.animateToParentSize(
                 doOnStart = {
                     Log.d("MainAnimator", "Expanding SearchBar on click")
                     activity?.apply {
@@ -176,7 +176,7 @@ class MainActivityAnimator(
 
     private fun animateSearchBarOnSelection(): Array<ValueAnimator> =
         binding?.run {
-            return@run materialSearchBar.animateToParentSize(
+            materialSearchBar.animateToParentSize(
                 doOnStart = {
                     Log.d("MainAnimator", "Expanding SearchBar on selection")
                     activity?.apply {
@@ -187,7 +187,7 @@ class MainActivityAnimator(
 
     private fun shrinkSearchBarToInitialSize(): Array<ValueAnimator> =
         binding?.run {
-            return@run materialSearchBar.animateToInitialSize(
+            materialSearchBar.animateToInitialSize(
                 doOnStart = {
                     Log.d("MainAnimator", "Shrinking SearchBar to initial size")
                     activity?.apply {
@@ -197,6 +197,7 @@ class MainActivityAnimator(
         } ?: arrayOf()
 
     companion object {
+        @Volatile
         var animationFinished: Boolean = true
     }
 }

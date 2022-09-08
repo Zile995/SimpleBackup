@@ -7,22 +7,53 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.snackbar.Snackbar
+import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
+import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
+import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.*
 import java.lang.reflect.ParameterizedType
 
-
 abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB>,
     ViewReferenceCleaner {
     protected val binding by viewBinding()
     protected val mainViewModel: MainViewModel by activityViewModels()
+
+    private var _adapter: BaseAdapter? = null
+    protected val adapter: BaseAdapter get() = _adapter!!
+
     private var _mainRecyclerView: MainRecyclerView? = null
 
-    abstract fun MainRecyclerView.setMainAdapter()
+    private val onClickListener by lazy {
+        object : OnClickListener {
+            override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
+                val item = adapter.currentList[position]
+                if (adapter.hasSelectedItems()) {
+                    adapter.doSelection(holder as BaseViewHolder, item)
+                } else {
+                    launchOnViewLifecycle {
+                        item.passToActivity<AppDetailActivity>(context)
+                    }
+                }
+            }
+
+            override fun onLongItemViewClick(
+                holder: RecyclerView.ViewHolder,
+                position: Int
+            ) {
+                val item = adapter.currentList[position]
+                mainViewModel.setSelectionMode(true)
+                adapter.doSelection(holder as BaseViewHolder, item)
+            }
+        }
+    }
+
+    abstract fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,54 +72,6 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         onMainActivityCallback { _mainRecyclerView?.controlFloatingButton() }
     }
 
-    override fun onCleanUp() {
-        binding.saveRecyclerViewState()
-        _mainRecyclerView?.adapter = null
-        _mainRecyclerView = null
-    }
-
-    fun stopScrolling() {
-        _mainRecyclerView?.suppressLayout(true)
-        _mainRecyclerView?.suppressLayout(false)
-    }
-
-    private fun enableRecyclerViewScrolling(shouldEnable: Boolean) {
-        _mainRecyclerView?.isNestedScrollingEnabled = shouldEnable
-    }
-
-    fun deleteSelectedItems() {
-        _mainRecyclerView?.apply {
-            val currentAdapter = adapter as BaseAdapter
-            currentAdapter.selectedItems.forEach { packageName ->
-                requireContext().deletePackage(packageName)
-            }
-            mainViewModel.setSelectionMode(false)
-        }
-    }
-
-    fun selectAllItems() {
-        _mainRecyclerView?.apply {
-            itemAnimation = false
-            val currentAdapter = adapter as BaseAdapter
-            currentAdapter.selectAllItems()
-            itemAnimation = true
-            Snackbar.make(
-                binding.root,
-                "Selected ${mainViewModel.selectionList.size} apps",
-                Snackbar.LENGTH_SHORT
-            ).show()
-        }
-    }
-
-    private fun clearSelection() {
-        _mainRecyclerView?.apply {
-            itemAnimation = false
-            val currentAdapter = adapter as BaseAdapter
-            currentAdapter.clearSelection()
-            itemAnimation = true
-        }
-    }
-
     @Suppress("UNCHECKED_CAST")
     fun setMainRecyclerView() {
         val vbClass =
@@ -101,15 +84,10 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
             _mainRecyclerView = vbClass.getDeclaredField(name).get(binding) as MainRecyclerView
         }
         _mainRecyclerView?.apply {
-            setMainAdapter()
+            adapter = onCreateAdapter(onClickListener)
+            _adapter = this.adapter as BaseAdapter
             setHasFixedSize(true)
         }
-    }
-
-    fun shouldMoveFragmentUp() = _mainRecyclerView?.shouldMoveAtLastCompletelyVisibleItem() ?: false
-
-    fun fixRecyclerViewScrollPosition() {
-        if (shouldMoveFragmentUp()) _mainRecyclerView?.slowlyScrollToLastItem()
     }
 
     private fun initObservers() {
@@ -121,5 +99,47 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
                 }
             }
         }
+    }
+
+    fun stopScrolling() {
+        _mainRecyclerView?.suppressLayout(true)
+        _mainRecyclerView?.suppressLayout(false)
+    }
+
+    private fun enableRecyclerViewScrolling(shouldEnable: Boolean) {
+        _mainRecyclerView?.isNestedScrollingEnabled = shouldEnable
+    }
+
+    fun deleteSelectedItems() {
+        adapter.selectedItems.forEach { packageName ->
+            requireContext().deletePackage(packageName)
+        }
+        mainViewModel.setSelectionMode(false)
+    }
+
+    fun selectAllItems() {
+        adapter.selectAllItems()
+        Snackbar.make(
+            binding.root,
+            "Selected ${mainViewModel.selectionList.size} apps",
+            2000
+        ).show()
+    }
+
+    private fun clearSelection() {
+        adapter.clearSelection()
+    }
+
+    fun shouldMoveFragmentUp() = _mainRecyclerView?.shouldMoveAtLastCompletelyVisibleItem() ?: false
+
+    fun fixRecyclerViewScrollPosition() {
+        if (shouldMoveFragmentUp()) _mainRecyclerView?.slowlyScrollToLastItem()
+    }
+
+    override fun onCleanUp() {
+        binding.saveRecyclerViewState()
+        _adapter = null
+        _mainRecyclerView?.adapter = null
+        _mainRecyclerView = null
     }
 }

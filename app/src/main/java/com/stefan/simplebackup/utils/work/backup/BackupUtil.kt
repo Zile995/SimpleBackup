@@ -77,7 +77,7 @@ class BackupUtil(
     private suspend fun serializeAppData(app: AppData) {
         app.apply {
             updateNotificationData(R.string.backup_progress_saving_application_data)
-            setBackupTime()
+            setCurrentDate()
             serializeApp()
         }
     }

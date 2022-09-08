@@ -5,25 +5,18 @@ import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentFavoritesBinding
-import com.stefan.simplebackup.ui.activities.AppDetailActivity
+import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.FavoritesAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
-import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
-import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.ui.viewmodels.FavoritesViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.*
-import kotlinx.coroutines.launch
 
 class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
-    private var _favoritesAdapter: FavoritesAdapter? = null
-    private val favoritesAdapter get() = _favoritesAdapter!!
-
     private val homeViewModel: FavoritesViewModel by viewModels {
         val appDataType = getEnumExtra<AppDataType>()
         ViewModelFactory(
@@ -41,44 +34,22 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
         }
     }
 
-    override fun MainRecyclerView.setMainAdapter() {
-        _favoritesAdapter = FavoritesAdapter(
+    override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =
+        FavoritesAdapter(
             mainViewModel.selectionList,
             mainViewModel.setSelectionMode
         ) {
-            object : OnClickListener {
-                override fun onItemViewClick(holder: RecyclerView.ViewHolder, position: Int) {
-                    val item = favoritesAdapter.currentList[position]
-                    if (favoritesAdapter.hasSelectedItems()) {
-                        favoritesAdapter.doSelection(holder as BaseViewHolder, item)
-                    } else {
-                        viewLifecycleOwner.lifecycleScope.launch {
-                            item.passToActivity<AppDetailActivity>(context)
-                        }
-                    }
-                }
-
-                override fun onLongItemViewClick(
-                    holder: RecyclerView.ViewHolder,
-                    position: Int
-                ) {
-                    val item = favoritesAdapter.currentList[position]
-                    mainViewModel.setSelectionMode(true)
-                    favoritesAdapter.doSelection(holder as BaseViewHolder, item)
-                }
-            }
+            onClickListener
         }
-        adapter = favoritesAdapter
-    }
 
     private fun FragmentFavoritesBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 homeViewModel.spinner.collect { isSpinning ->
                     progressBar.isVisible = isSpinning
                     if (!isSpinning)
                         homeViewModel.observableList.collect { appList ->
-                            favoritesAdapter.submitList(appList)
+                            adapter.submitList(appList)
                         }
                 }
             }
@@ -106,11 +77,6 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d("Fragments", "Destroyed FavoritesFragment completely")
-    }
-
-    override fun onCleanUp() {
-        super.onCleanUp()
-        _favoritesAdapter = null
     }
 
     companion object {

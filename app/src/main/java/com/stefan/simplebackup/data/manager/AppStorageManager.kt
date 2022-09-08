@@ -15,6 +15,7 @@ class AppStorageManager(context: Context) {
         context.applicationContext.getSystemService(Context.STORAGE_STATS_SERVICE) as StorageStatsManager
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     fun getFreeStorageSize() = try {
         storageStatsManager.getFreeBytes(StorageManager.UUID_DEFAULT).convertBytesToMegaBytes()
     } catch (exception: IOException) {

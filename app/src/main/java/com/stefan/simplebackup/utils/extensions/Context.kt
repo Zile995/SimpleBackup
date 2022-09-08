@@ -168,6 +168,13 @@ fun Context.openStorageSettings() {
     })
 }
 
+fun Context.openUsageAccessSettings() {
+    startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+        addCategory(Intent.CATEGORY_DEFAULT)
+        data = Uri.fromParts("package", packageName, null)
+    })
+}
+
 fun Context.openPackageSettingsInfo(packageName: String) {
     startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
         addCategory(Intent.CATEGORY_DEFAULT)
@@ -206,30 +213,6 @@ inline fun <reified T : Enum<T>> Fragment.getEnumExtra(): T? =
         ?.let { T::class.java.enumConstants?.get(it) }
 
 // TODO: Move dialogs to specific classes
-fun Context.workerDialog(
-    title: String,
-    message: String,
-    positiveButtonText: String,
-    negativeButtonText: String,
-    doWork: () -> Unit
-) {
-    val builder = AlertDialog.Builder(this, R.style.DialogTheme)
-    builder.setTitle(title)
-    builder.setMessage(message)
-    builder.setPositiveButton(positiveButtonText) { dialog, _ ->
-        dialog.cancel()
-        doWork()
-    }
-    builder.setNegativeButton(negativeButtonText) { dialog, _ -> dialog.cancel() }
-    val alert = builder.create()
-    alert.setOnShowListener {
-        alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-            .setTextColor(this.getColor(R.color.negativeDialog))
-        alert.getButton(AlertDialog.BUTTON_POSITIVE)
-            .setTextColor(this.getColor(R.color.positiveDialog))
-    }
-    alert.show()
-}
 
 fun Context.permissionDialog(
     title: String,

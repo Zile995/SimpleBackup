@@ -48,12 +48,10 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
                 removeSelected(item.packageName)
                 item.isSelected = false
                 cardView.setCardBackgroundColor(context.getColor(R.color.cardView))
-                cardView.isChecked = false
             } else {
                 addSelected(item.packageName)
                 item.isSelected = true
                 cardView.setCardBackgroundColor(context.getColor(R.color.cardViewSelected))
-                cardView.isChecked = true
             }
             if (selectedItems.isEmpty()) {
                 onSelectionModeCallback(false)
@@ -64,6 +62,7 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     }
 
     companion object {
+        @Volatile
         var selectionFinished: Boolean = true
 
         private var mNumberOfSelected = MutableStateFlow(0)

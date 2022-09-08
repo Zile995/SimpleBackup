@@ -28,9 +28,9 @@ import com.stefan.simplebackup.databinding.ActivityDetailBinding
 import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
+import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
 import java.util.*
 import kotlin.math.abs
-
 
 private const val TAG: String = "AppDetailActivity"
 private const val REQUEST_CODE_SIGN_IN: Int = 400
@@ -38,7 +38,7 @@ private const val REQUEST_CODE_SIGN_IN: Int = 400
 class AppDetailActivity : BaseActivity() {
     private val binding by viewBinding(ActivityDetailBinding::inflate)
 
-    private var isAnimating = false
+    private var isToolbarAnimating = false
 
     private val detailsViewModel: DetailsViewModel by viewModels {
         val selectedApp: AppData? = intent?.extras?.getParcelable(PARCELABLE_EXTRA)
@@ -99,7 +99,7 @@ class AppDetailActivity : BaseActivity() {
     private fun animateStatusBarColor(
         @ColorRes color: Int
     ) {
-        if (window.statusBarColor == getColorFromResource(color) || isAnimating) return
+        if (window.statusBarColor == getColorFromResource(color) || isToolbarAnimating) return
         ObjectAnimator.ofObject(
             window,
             "statusBarColor",
@@ -112,10 +112,10 @@ class AppDetailActivity : BaseActivity() {
                 binding.detailsToolbar.setBackgroundColor(it.animatedValue as Int)
             }
             doOnStart {
-                isAnimating = true
+                isToolbarAnimating = true
             }
             doOnEnd {
-                isAnimating = false
+                isToolbarAnimating = false
             }
             start()
         }
@@ -128,19 +128,22 @@ class AppDetailActivity : BaseActivity() {
     }
 
     private suspend fun ActivityDetailBinding.bindCollapsingToolbarLayout() {
-        detailsViewModel.selectedApp?.let { app ->
+        detailsViewModel.app?.let { app ->
             val appImage = collapsingToolbar.findViewById<ImageView>(R.id.application_image)
             appImage.setOnClickListener {
                 launchPackage(app.packageName)
             }
-            app.setBitmap(applicationContext)
+            app.setBitmap(applicationContext, onFailure = {
+                getResourceDrawable(R.drawable.ic_error)?.toByteArray()
+                    ?: byteArrayOf()
+            })
             appImage.loadBitmap(app.bitmap)
             collapsingToolbar.title = app.name
         }
     }
 
     private fun ActivityDetailBinding.setData() {
-        detailsViewModel.selectedApp?.let { app ->
+        detailsViewModel.app?.let { app ->
             appTypeChip.text =
                 when {
                     app.isCloud -> resources.getString(R.string.cloud_backup)
@@ -173,23 +176,6 @@ class AppDetailActivity : BaseActivity() {
 //        }
     }
 
-    private fun ActivityDetailBinding.bindBackupDriveButton() {
-//        backupDriveButton.setOnClickListener {
-//            requestSignIn()
-//        }
-    }
-
-    private fun ActivityDetailBinding.bindDeleteButton() {
-//        floatingDeleteButton.setOnClickListener {
-//            lifecycleScope.launch {
-//                detailsViewModel.selectedApp?.apply {
-//                    onBackPressed()
-//                    deletePackage(packageName)
-//                }
-//            }
-//        }
-    }
-
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.details_tool_bar, menu)
         return super.onCreateOptionsMenu(menu)
@@ -198,13 +184,13 @@ class AppDetailActivity : BaseActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.force_stop -> {
-                detailsViewModel.selectedApp?.apply {
+                detailsViewModel.app?.apply {
                     forceStopPackage(packageName)
                 }
                 true
             }
             R.id.settings_info -> {
-                detailsViewModel.selectedApp?.apply {
+                detailsViewModel.app?.apply {
                     openPackageSettingsInfo(packageName)
                 }
                 true
