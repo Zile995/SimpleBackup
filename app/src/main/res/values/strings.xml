@@ -86,6 +86,7 @@
     <string name="choose_theme">Choose theme</string>
     <string name="exclude_app_cache">Exclude app\'s cache</string>
     <string name="exclude_app_cache_info">Exclude app\'s cache \nfrom data backup</string>
+    <string name="double_press_back">Double press back to exit</string>
     <string name="storage">Storage</string>
     <string name="app_details">App details</string>
     <string name="user_app">User app</string>

@@ -31,6 +31,12 @@ class SettingsViewModel(application: MainApplication) : ViewModel() {
         }
     }
 
+    fun setDoublePressBackToExit(shouldDoublePress: Boolean) {
+        viewModelScope.launch {
+            PreferenceHelper.setDoublePressToExit(shouldDoublePress)
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         Log.d("ViewModel", "SettingsViewModel cleared")

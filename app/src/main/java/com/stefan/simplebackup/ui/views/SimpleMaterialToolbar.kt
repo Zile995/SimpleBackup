@@ -25,7 +25,7 @@ class SimpleMaterialToolbar(
     private var inSettingsState = false
     private var inSelectionState = false
 
-    private val deleteItem
+    val deleteItem
         get() = findMenuItem(R.id.delete)
 
     private val addToFavoritesItem

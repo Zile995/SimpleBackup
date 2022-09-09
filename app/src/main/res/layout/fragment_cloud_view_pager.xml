@@ -19,7 +19,8 @@
         app:tabIndicatorFullWidth="false"
         app:tabMode="fixed"
         app:tabRippleColor="@color/cardViewRipple"
-        app:tabSelectedTextColor="@color/selectedTab">
+        app:tabSelectedTextColor="@color/selectedTab"
+        app:tabTextAppearance="@style/TextAppearance.SimpleBackup.BodyMedium">
 
     </com.google.android.material.tabs.TabLayout>
 

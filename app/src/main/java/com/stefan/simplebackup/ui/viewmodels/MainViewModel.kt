@@ -13,9 +13,12 @@ import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.C
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.root.RootChecker
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlin.system.measureTimeMillis
@@ -99,42 +102,44 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         _searchResults.value = searchResults
     }
 
-    private suspend inline fun startFavoritesJob(
-        crossinline repositoryPackageNameAction: RepositoryPackageNameAction,
+    private suspend inline fun startJobForSelectedPackageNames(
+        permits: Int = 5,
+        crossinline repositoryPackageNameAction: RepositoryPackageNameAction
     ) =
         coroutineScope {
-            launch {
-                withContext(ioDispatcher) {
-                    Log.d("ViewModel", "Calling startFavoritesJob")
-                    val time = measureTimeMillis {
-                        val semaphore = Semaphore(5)
-                        selectionList.forEach { packageName ->
-                            semaphore.withPermit {
-                                launch {
-                                    repositoryPackageNameAction.invoke(repository, packageName)
-                                }
+            launch(ioDispatcher) {
+                Log.d("ViewModel", "Calling startFavoritesJob")
+                val time = measureTimeMillis {
+                    val semaphore = Semaphore(permits)
+                    selectionList.forEach { packageName ->
+                        semaphore.withPermit {
+                            launch {
+                                repositoryPackageNameAction.invoke(repository, packageName)
                             }
                         }
                     }
-                    Log.d("ViewModel", "Finished favoritesJob in $time ms")
                 }
+                Log.d("ViewModel", "Finished favoritesJob in $time ms")
             }
         }
 
     fun addToFavorites() =
         viewModelScope.launch {
-            startFavoritesJob(
-                repositoryPackageNameAction = { packageName ->
-                    repository.addToFavorites(packageName)
-                }
-            )
+            startJobForSelectedPackageNames { packageName ->
+                repository.addToFavorites(packageName)
+            }
         }
 
     fun removeFromFavorites() {
         viewModelScope.launch {
-            startFavoritesJob { packageName ->
-                    repository.removeFromFavorites(packageName)
+            startJobForSelectedPackageNames { packageName ->
+                repository.removeFromFavorites(packageName)
+            }.invokeOnCompletion {
+                launch {
+                    delay(200)
+                    setSelectionMode(false)
                 }
+            }
         }
     }
 

@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.ui.adapters.viewholders
 
+import android.content.Context
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.card.MaterialCardView
@@ -15,6 +16,8 @@ sealed class BaseViewHolder(
     abstract val cardView: MaterialCardView
     abstract fun bind(item: AppData)
 
+    private val context: Context = binding.root.context
+
     init {
         binding.root.setOnClickListener {
             clickListener.onItemViewClick(this, adapterPosition)
@@ -26,19 +29,7 @@ sealed class BaseViewHolder(
         }
     }
 
-    fun setSelected() {
-        cardView.apply {
-            setCardBackgroundColor(
-                context.getColor(R.color.cardViewSelected)
-            )
-        }
-    }
+    fun unsetSelected() = cardView.setCardBackgroundColor(context.getColor(R.color.cardView))
 
-    fun unsetSelected() {
-        cardView.apply {
-            setCardBackgroundColor(
-                context.getColor(R.color.cardView)
-            )
-        }
-    }
+    fun setSelected() = cardView.setCardBackgroundColor(context.getColor(R.color.cardViewSelected))
 }

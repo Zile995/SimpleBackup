@@ -30,9 +30,7 @@ class SettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.apply {
-            bindViews()
-        }
+        binding.bindViews()
     }
 
     override fun onResume() {
@@ -47,6 +45,7 @@ class SettingsFragment : Fragment() {
         bindStorageInfoLabel()
         bindNotificationField()
         bindCompressionSlider()
+        bindDoubleBackPressSwitch()
     }
 
     private fun FragmentSettingsBinding.bindAppCacheSwitch() {
@@ -75,6 +74,13 @@ class SettingsFragment : Fragment() {
     private fun FragmentSettingsBinding.bindNotificationField() {
         notificationSettingsField.setOnClickListener {
             requireContext().openAppNotificationSettings()
+        }
+    }
+
+    private fun FragmentSettingsBinding.bindDoubleBackPressSwitch() {
+        doublePressSwitch.isChecked = PreferenceHelper.shouldDoublePressToExit
+        doublePressSwitch.setOnCheckedChangeListener { _, isChecked ->
+            settingsViewModel.setDoublePressBackToExit(isChecked)
         }
     }
 

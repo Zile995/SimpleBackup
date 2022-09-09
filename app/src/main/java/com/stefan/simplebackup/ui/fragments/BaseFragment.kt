@@ -37,7 +37,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
                     adapter.doSelection(holder as BaseViewHolder, item)
                 } else {
                     launchOnViewLifecycle {
-                        item.passToActivity<AppDetailActivity>(context)
+                        item.passToActivity<AppDetailActivity>(activity)
                     }
                 }
             }
@@ -110,10 +110,8 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         _mainRecyclerView?.isNestedScrollingEnabled = shouldEnable
     }
 
-    fun deleteSelectedItems() {
-        adapter.selectedItems.forEach { packageName ->
-            requireContext().deletePackage(packageName)
-        }
+    fun deleteSelectedItem() {
+        context?.deletePackage(mainViewModel.selectionList.first())
         mainViewModel.setSelectionMode(false)
     }
 
@@ -122,7 +120,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         Snackbar.make(
             binding.root,
             "Selected ${mainViewModel.selectionList.size} apps",
-            2000
+            1250
         ).show()
     }
 

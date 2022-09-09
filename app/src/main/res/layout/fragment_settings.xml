@@ -27,7 +27,7 @@
                 android:textSize="14sp"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
                 />
 
             <LinearLayout
@@ -56,7 +56,7 @@
                     android:layout_marginStart="14dp"
                     android:text="@string/storage_info"
                     android:textSize="15sp"
-                    android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
                     />
 
             </LinearLayout>
@@ -72,7 +72,7 @@
                 android:textSize="14sp"
                 app:layout_constraintTop_toBottomOf="@+id/storage_info_field"
                 app:layout_constraintStart_toStartOf="parent"
-                android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
                 />
 
             <LinearLayout
@@ -102,7 +102,7 @@
                     android:layout_marginStart="14dp"
                     android:text="@string/notification_settings"
                     android:textSize="15sp"
-                    android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
                     />
 
             </LinearLayout>
@@ -118,7 +118,7 @@
                 android:textSize="14sp"
                 app:layout_constraintTop_toBottomOf="@+id/notification_settings_field"
                 app:layout_constraintStart_toStartOf="parent"
-                android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
                 />
 
             <LinearLayout
@@ -148,7 +148,7 @@
                     android:layout_marginStart="14dp"
                     android:text="@string/choose_theme"
                     android:textSize="15sp"
-                    android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
                     />
 
             </LinearLayout>
@@ -164,7 +164,7 @@
                 android:textSize="14sp"
                 app:layout_constraintTop_toBottomOf="@+id/choose_theme_filed"
                 app:layout_constraintStart_toStartOf="parent"
-                android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
                 />
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -217,7 +217,7 @@
                     app:layout_constraintStart_toStartOf="@id/zip_compression_slider"
                     android:text="@string/fastest"
                     android:textSize="13sp"
-                    android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
                     />
 
                 <com.google.android.material.textview.MaterialTextView
@@ -227,7 +227,7 @@
                     android:layout_marginBottom="20dp"
                     android:layout_marginEnd="6dp"
                     android:text="@string/slowest"
-                    android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
                     android:textColor="@color/textColorPrimary"
                     android:textSize="13sp"
                     app:layout_constraintEnd_toEndOf="@id/zip_compression_slider"
@@ -246,7 +246,7 @@
                 android:textSize="14sp"
                 app:layout_constraintTop_toBottomOf="@+id/zip_compression_field"
                 app:layout_constraintStart_toStartOf="parent"
-                android:textAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
                 />
 
             <LinearLayout
@@ -276,7 +276,54 @@
                     android:textColor="@color/textColorPrimary"
                     android:textSize="15sp"
                     app:thumbTint="@color/selectedTab"
-                    android:textAppearance="@style/TextAppearance.SimpleBackup.TitleMedium"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                    android:layout_gravity="center"
+                    />
+
+            </LinearLayout>
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/double_press_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="10dp"
+                android:textColor="@color/selectedTab"
+                android:text="@string/exclude_app_cache"
+                android:textSize="14sp"
+                app:layout_constraintTop_toBottomOf="@+id/exclude_cache_field"
+                app:layout_constraintStart_toStartOf="parent"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                />
+
+            <LinearLayout
+                android:id="@+id/double_press_field"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="4dp"
+                android:clickable="true"
+                app:layout_constraintTop_toBottomOf="@+id/double_press_label"
+                app:layout_constraintStart_toStartOf="parent"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="20dp"
+                    android:src="@drawable/ic_double_press" />
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/double_press_switch"
+                    style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:text="@string/double_press_back"
+                    android:textColor="@color/textColorPrimary"
+                    android:textSize="15sp"
+                    app:thumbTint="@color/selectedTab"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
                     android:layout_gravity="center"
                     />
 

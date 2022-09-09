@@ -26,8 +26,8 @@ abstract class BaseAdapter(
             is HomeViewHolder -> holder.bind(item)
             is LocalViewHolder -> holder.bind(item)
             is CloudViewHolder -> holder.bind(item)
-            is FavoritesViewHolder -> holder.bind(item)
             is SearchViewHolder -> holder.bind(item)
+            is FavoritesViewHolder -> holder.bind(item)
         }
         holder.setSelectedItem(item)
     }

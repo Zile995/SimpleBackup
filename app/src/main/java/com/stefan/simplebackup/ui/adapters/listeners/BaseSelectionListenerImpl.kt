@@ -1,7 +1,6 @@
 package com.stefan.simplebackup.ui.adapters.listeners
 
 import android.util.Log
-import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
@@ -43,15 +42,14 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
         holder.apply {
             selectionFinished = false
             if (item.isSelected && selectedItems.size == 1 && !MainActivityAnimator.animationFinished) return
-            val context = cardView.context
             if (selectedItems.contains(item.packageName)) {
-                removeSelected(item.packageName)
+                holder.unsetSelected()
                 item.isSelected = false
-                cardView.setCardBackgroundColor(context.getColor(R.color.cardView))
+                removeSelected(item.packageName)
             } else {
-                addSelected(item.packageName)
+                holder.setSelected()
                 item.isSelected = true
-                cardView.setCardBackgroundColor(context.getColor(R.color.cardViewSelected))
+                addSelected(item.packageName)
             }
             if (selectedItems.isEmpty()) {
                 onSelectionModeCallback(false)

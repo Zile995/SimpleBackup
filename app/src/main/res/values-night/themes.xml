@@ -23,19 +23,20 @@
         <item name="colorSecondaryVariant">@color/background</item>
         <item name="colorOnSecondary">@color/selectedTab</item>
         <item name="android:textColorSecondary">@color/textColorPrimary</item>
-        <item name="android:statusBarColor" >@color/bottomView</item>
+        <item name="android:statusBarColor">@color/bottomView</item>
         <item name="android:navigationBarColor">@color/bottomView</item>
         <item name="android:windowBackground">@drawable/starting_screen</item>
         <item name="searchViewStyle">@style/Widget.SimpleBackup.MaterialSearchView</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 
-    <style name="Widget.SimpleBackup.Chip" parent="Widget.MaterialComponents.Chip.Action">
+    <style name="Widget.SimpleBackup.Chip" parent="Widget.Material3.ActionMode">
         <item name="android:textSize">9sp</item>
         <item name="strokeWidth">0dp</item>
         <item name="cornerSize">100%</item>
         <item name="fontFamily">@font/inter_family</item>
         <item name="android:fontFamily">@font/inter_family</item>
+        <item name="titleTextAppearance">@style/TextAppearance.SimpleBackup.BodyMedium</item>
     </style>
 
     <style name="TextAppearance.SimpleBackup.NavigationBar" parent="TextAppearance.Material3.LabelLarge">
@@ -57,6 +58,18 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
         <item name="backgroundTint">@color/blueChip</item>
+    </style>
+
+    <style name="TextAppearance.SimpleBackup.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="fontFamily">@font/inter_family</item>
+        <item name="android:fontFamily">@font/inter_family</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="TextAppearance.SimpleBackup.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="fontFamily">@font/inter_family</item>
+        <item name="android:fontFamily">@font/inter_family</item>
+        <item name="android:textSize">17sp</item>
     </style>
 
     <style name="TextAppearance.SimpleBackup.TitleSmall" parent="TextAppearance.Material3.TitleSmall">

@@ -31,6 +31,7 @@ import com.stefan.simplebackup.ui.views.MainActivityAnimator
 import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.ui.views.SimpleMaterialToolbar
+import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -86,13 +87,13 @@ class MainActivity : BaseActivity() {
     }
 
     override fun onBackPressed() {
-        if (!selectionFinished) {
-            shouldExit = true
-            mainViewModel.setSelectionMode(false)
-            return
-        }
         if (animationFinished) {
-            if (shouldExit) {
+            if (!selectionFinished) {
+                shouldExit = true
+                mainViewModel.setSelectionMode(false)
+                return
+            }
+            if (shouldExit && PreferenceHelper.shouldDoublePressToExit) {
                 launchOnViewLifecycle {
                     shouldExit = false
                     showToast(R.string.press_back_again)
@@ -151,13 +152,15 @@ class MainActivity : BaseActivity() {
 
     private suspend fun ActivityMainBinding.observeNumberOfSelected() {
         numberOfSelected.collect { numberOfItems ->
-            if (numberOfItems >= 1) materialToolbar.changeMenuItems()
+            materialToolbar.changeMenuItems(numberOfItems)
             when (numberOfItems) {
                 0 -> {}
                 1 -> {
                     materialToolbar.setCustomTitle("$numberOfItems ${getString(R.string.item)}")
                 }
-                else -> materialToolbar.setCustomTitle("$numberOfItems ${getString(R.string.items)}")
+                else -> {
+                    materialToolbar.setCustomTitle("$numberOfItems ${getString(R.string.items)}")
+                }
             }
         }
     }
@@ -166,9 +169,16 @@ class MainActivity : BaseActivity() {
         floatingButton.isVisible = mainViewModel.isButtonVisible
     }
 
-    private fun SimpleMaterialToolbar.changeMenuItems() {
+    private fun SimpleMaterialToolbar.changeMenuItems(numberOfSelectedItems: Int) {
         doOnLayout {
-            changeOnFavorite(visibleFragment is FavoritesFragment)
+            when {
+                numberOfSelectedItems > 1 && visibleFragment is HomeFragment -> {
+                    deleteItem?.isVisible = false
+                }
+                numberOfSelectedItems >= 1 -> {
+                    changeOnFavorite(visibleFragment is FavoritesFragment)
+                }
+            }
         }
     }
 
@@ -217,7 +227,7 @@ class MainActivity : BaseActivity() {
                 R.id.delete -> {
                     Log.d("Activity", "Setting up the delete action")
                     if (visibleFragment is HomeFragment && mainViewModel.hasRootAccess()) {
-                        visibleFragment?.deleteSelectedItems()
+                        visibleFragment?.deleteSelectedItem()
                     }
                 }
                 R.id.select_all -> {

@@ -12,6 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/tab_layout_height"
         android:background="@color/bottomView"
+        app:tabTextAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
