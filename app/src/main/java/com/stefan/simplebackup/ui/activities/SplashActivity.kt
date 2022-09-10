@@ -7,14 +7,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Bundle
 import android.os.Process
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import com.stefan.simplebackup.BuildConfig
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
+import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.openUsageAccessSettings
 import com.topjohnwu.superuser.Shell
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 import kotlin.properties.Delegates
 
 
@@ -39,24 +39,19 @@ class SplashActivity : AppCompatActivity() {
             // Preheat the main root shell in the splash screen
             // so the app can use it afterwards without interrupting
             // application flow (e.g. root permission prompt)
-
-            runBlocking {
-                Shell.getShell()
+            launchOnViewLifecycle {
+                launch(ioDispatcher) {
+                    Shell.getShell()
+                }.join()
+                // The main shell is now constructed and cached
+                // Exit splash screen and enter main activity
+                val intent = Intent(this@SplashActivity, MainActivity::class.java)
+                startActivity(intent)
+                finish()
             }
-            // The main shell is now constructed and cached
-            // Exit splash screen and enter main activity
-            val intent = Intent(this, MainActivity::class.java)
-            startActivity(intent)
-            finish()
         } else {
             openUsageAccessSettings()
         }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
     }
 
     override fun onStart() {
