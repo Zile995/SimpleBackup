@@ -25,7 +25,6 @@ sealed class BaseViewHolder(
 
         binding.root.setOnLongClickListener {
             clickListener.onLongItemViewClick(this, adapterPosition)
-            true
         }
     }
 

@@ -13,7 +13,6 @@ import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import com.stefan.simplebackup.utils.extensions.getColorFromResource
 import com.stefan.simplebackup.utils.extensions.getVisibleFragment
-import com.stefan.simplebackup.utils.extensions.launchPostDelayed
 import java.lang.ref.WeakReference
 
 class MainActivityAnimator(
@@ -74,15 +73,13 @@ class MainActivityAnimator(
                 interpolator = DecelerateInterpolator()
             }
             if (isSelected) {
+                setFragmentContainerMargin(appBarLayout.height)
                 root.doOnPreDraw {
                     animatorSet.playTogether(
                         navigationBar.moveDown(),
                         *animateSearchBarOnSelection()
                     )
                     animatorSet.start()
-                }
-                activity?.launchPostDelayed(50L) {
-                    setFragmentContainerMargin(appBarLayout.height)
                 }
             } else {
                 root.doOnPreDraw {
@@ -108,7 +105,7 @@ class MainActivityAnimator(
                 interpolator = DecelerateInterpolator()
             }
             if (isSearching) {
-                setFragmentContainerMargin(appBarLayout.height)
+                setFragmentContainerMargin(-materialToolbar.height - root.resources.getDimensionPixelSize(R.dimen.chip_group_height))
                 root.doOnPreDraw {
                     animatorSet.playTogether(
                         navigationBar.moveDown(),
@@ -150,13 +147,11 @@ class MainActivityAnimator(
         }
 
     private fun setFragmentContainerMargin(margin: Int) {
-        binding?.apply {
-            if (navHostContainer.marginBottom == margin) return@apply
+        binding?.run {
+            if (navHostContainer.marginBottom == margin) return
             val layoutParams =
                 navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
             layoutParams.bottomMargin = margin
-            navHostContainer.layoutParams = layoutParams
-            navHostContainer.requestLayout()
         }
     }
 

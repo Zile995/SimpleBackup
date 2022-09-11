@@ -7,9 +7,13 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AppDao {
-    @Query("SELECT * FROM app_table ORDER BY name ASC")
     @Transaction
+    @Query("SELECT * FROM app_table ORDER BY name ASC")
     fun getAllApps(): Flow<MutableList<AppData>>
+
+    @Transaction
+    @Query("SELECT * FROM app_table WHERE name LIKE :name || '%' ORDER BY name ASC")
+    fun findAppsByName(name: String): Flow<MutableList<AppData>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     @Throws(SQLiteException::class)
@@ -20,9 +24,6 @@ interface AppDao {
 
     @Query("DELETE FROM app_table WHERE package_name = :packageName")
     suspend fun delete(packageName: String): Int
-
-    @Query("DELETE FROM app_table")
-    suspend fun clear()
 
     @Transaction
     suspend fun removeFromFavorites(packageName: String) = setFavorite(packageName, false)
@@ -45,6 +46,6 @@ interface AppDao {
     @Query("SELECT * FROM app_table WHERE package_name = :packageName")
     suspend fun getData(packageName: String): AppData?
 
-    @Query("SELECT EXISTS(SELECT * FROM app_table WHERE package_name = :packageName)")
-    fun doesAppDataExist(packageName: String): Boolean
+    @Query("DELETE FROM app_table")
+    suspend fun clear()
 }

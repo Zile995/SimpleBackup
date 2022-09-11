@@ -13,7 +13,6 @@ import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.C
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.root.RootChecker
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,6 +27,7 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     // View saved states
     var isAppBarExpanded = true
         private set
+
     var isButtonVisible = false
         private set
 
@@ -53,8 +53,8 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     private var _isSettingsDestination = MutableStateFlow(false)
     val isSettingsDestination = _isSettingsDestination.asStateFlow()
 
-    private var _searchResults = MutableStateFlow(mutableListOf<AppData>())
-    val searchResults = _searchResults.asStateFlow()
+    private var _searchResult = MutableStateFlow(listOf<AppData>())
+    val searchResult = _searchResult.asStateFlow()
 
     init {
         Log.d("ViewModel", "MainViewModel created")
@@ -98,8 +98,20 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         _isSettingsDestination.value = isSettingsDestination
     }
 
-    fun setSearchResults(searchResults: MutableList<AppData>) {
-        _searchResults.value = searchResults
+    fun findAppsByName(name: String?) {
+        if (name.isNullOrBlank() || name.isNullOrEmpty() || name.contains("%") || name.contains("_")) {
+            _searchResult.value = listOf()
+            return
+        }
+        viewModelScope.launch(ioDispatcher) {
+            repository.findAppsByName(name).collect { searchList ->
+                _searchResult.value = searchList
+            }
+        }
+    }
+
+    fun resetSearchResult() {
+        _searchResult.value = listOf()
     }
 
     private suspend inline fun startJobForSelectedPackageNames(
@@ -123,22 +135,19 @@ class MainViewModel(application: MainApplication) : ViewModel(),
             }
         }
 
-    fun addToFavorites() =
-        viewModelScope.launch {
-            startJobForSelectedPackageNames { packageName ->
-                repository.addToFavorites(packageName)
-            }
+    fun addToFavorites() = viewModelScope.launch {
+        startJobForSelectedPackageNames { packageName ->
+            repository.addToFavorites(packageName)
         }
+    }
 
-    fun removeFromFavorites() {
-        viewModelScope.launch {
-            startJobForSelectedPackageNames { packageName ->
-                repository.removeFromFavorites(packageName)
-            }.invokeOnCompletion {
-                launch {
-                    delay(200)
-                    setSelectionMode(false)
-                }
+    fun removeFromFavorites() = viewModelScope.launch {
+        startJobForSelectedPackageNames { packageName ->
+            repository.removeFromFavorites(packageName)
+        }.invokeOnCompletion {
+            launch {
+                delay(200)
+                setSelectionMode(false)
             }
         }
     }

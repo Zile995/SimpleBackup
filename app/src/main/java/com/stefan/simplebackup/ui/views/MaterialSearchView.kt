@@ -41,9 +41,8 @@ class MaterialSearchView(
         setSearchViewMargin()
         preventFullScreenKeyboard()
         setOnQueryTextFocusChangeListener { view, hasFocus ->
-            if (hasFocus) {
+            if (hasFocus)
                 view.showSoftKeyboard()
-            }
         }
     }
 

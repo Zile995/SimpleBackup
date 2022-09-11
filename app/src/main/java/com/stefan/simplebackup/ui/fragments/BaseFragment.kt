@@ -27,6 +27,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
     private var _adapter: BaseAdapter? = null
     protected val adapter: BaseAdapter get() = _adapter!!
 
+    protected var shouldEnableOnLongClick = true
     private var _mainRecyclerView: MainRecyclerView? = null
 
     private val onClickListener by lazy {
@@ -45,10 +46,12 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
             override fun onLongItemViewClick(
                 holder: RecyclerView.ViewHolder,
                 position: Int
-            ) {
+            ): Boolean {
+                if (!shouldEnableOnLongClick) return false
                 val item = adapter.currentList[position]
                 mainViewModel.setSelectionMode(true)
                 adapter.doSelection(holder as BaseViewHolder, item)
+                return true
             }
         }
     }

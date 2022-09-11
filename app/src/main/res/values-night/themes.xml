@@ -63,7 +63,7 @@
     <style name="TextAppearance.SimpleBackup.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
         <item name="fontFamily">@font/inter_family</item>
         <item name="android:fontFamily">@font/inter_family</item>
-        <item name="android:textSize">15sp</item>
+        <item name="android:textSize">14sp</item>
     </style>
 
     <style name="TextAppearance.SimpleBackup.BodyLarge" parent="TextAppearance.Material3.BodyLarge">

@@ -5,6 +5,7 @@
     <string name="package_version">Package</string>
     <string name="search_button">Search button</string>
     <string name="search_for_apps">Search for apps</string>
+    <string name="please_search">Please search for apps…</string>
     <string name="back">Back</string>
     <string name="press_back_again">Press BACK again to exit</string>
     <string name="details">App Details</string>
@@ -13,8 +14,10 @@
     <string name="home">Home</string>
     <string name="local">Local</string>
     <string name="local_backup">Local backup</string>
+    <string name="local_backups">Local backups</string>
     <string name="cloud">Cloud</string>
     <string name="cloud_backup">Cloud backup</string>
+    <string name="cloud_backups">Cloud backups</string>
     <string name="settings">Settings</string>
     <string name="backup">Backup</string>
     <string name="restore">Restore</string>
@@ -68,8 +71,8 @@
     <string name="scroll_to_top">Scroll to top</string>
     <string name="configure">Configure</string>
     <string name="applications">Applications</string>
+    <string name="installed_apps">Installed apps</string>
     <string name="backups">Backups</string>
-    <string name="cloud_backups">Cloud backups</string>
     <string name="app">app</string>
     <string name="apps">apps</string>
     <string name="item">item</string>
@@ -87,6 +90,7 @@
     <string name="exclude_app_cache">Exclude app\'s cache</string>
     <string name="exclude_app_cache_info">Exclude app\'s cache \nfrom data backup</string>
     <string name="double_press_back">Double press back to exit</string>
+    <string name="exit_action">Exit action</string>
     <string name="storage">Storage</string>
     <string name="app_details">App details</string>
     <string name="user_app">User app</string>

@@ -11,7 +11,7 @@
         android:id="@+id/horizontal_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:background="@color/searchBar"
         android:scrollbars="none"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -20,14 +20,14 @@
         <com.stefan.simplebackup.ui.views.AnimatedChipGroup
             android:id="@+id/search_chip_group"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
+            android:layout_height="@dimen/chip_group_height"
             android:animateLayoutChanges="true"
-            android:scaleX="1.1"
-            android:scaleY="1.1"
-            android:translationY="-60dp"
             android:orientation="horizontal"
             android:paddingStart="10dp"
             android:paddingEnd="10dp"
+            android:scaleX="1.1"
+            android:scaleY="1.1"
+            android:translationY="-60dp"
             app:chipSpacingHorizontal="10dp"
             app:singleLine="true"
             app:singleSelection="true">
@@ -37,7 +37,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="Installed apps"
+                android:checked="true"
+                android:text="@string/installed_apps"
                 android:textAlignment="center"
                 android:textColor="@color/textColorPrimary"
                 app:checkedIcon="@drawable/ic_checked"
@@ -49,7 +50,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:text="Local backups"
+                android:text="@string/local_backups"
                 android:textAlignment="center"
                 android:textColor="@color/textColorPrimary"
                 app:checkedIcon="@drawable/ic_checked"
@@ -75,11 +76,72 @@
     <com.stefan.simplebackup.ui.views.MainRecyclerView
         android:id="@+id/search_recycler_view"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/chip_group_height"
+        android:background="?attr/colorPrimaryVariant"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/toolbar_height"
+        android:scrollbars="vertical"
+        android:visibility="visible"
+        app:layoutManager="LinearLayoutManager"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/horizontal_view" />
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/horizontal_view">
+
+        <FrameLayout
+            android:id="@+id/image_layout"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="15dp">
+
+            <ImageView
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                android:layout_gravity="center"
+                android:contentDescription="@string/application_image"
+                android:src="@drawable/ic_apps" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="10dp"
+                android:background="@color/blueChip"
+                android:scaleType="centerInside"
+                android:tint="@color/textInBlueChip"
+                android:visibility="visible"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SimpleBackup.ImageView"
+                app:srcCompat="@drawable/ic_search" />
+
+        </FrameLayout>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/please_search_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="130dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="@string/please_search"
+            android:textAlignment="center"
+            android:textAppearance="@style/TextAppearance.SimpleBackup.BodyLarge"
+            android:textColor="@color/selectedTab"
+            android:textSize="19sp"
+            android:visibility="visible" />
+
+    </RelativeLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

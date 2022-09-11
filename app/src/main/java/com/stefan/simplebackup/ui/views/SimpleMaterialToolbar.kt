@@ -28,6 +28,10 @@ class SimpleMaterialToolbar(
     val deleteItem
         get() = findMenuItem(R.id.delete)
 
+    val searchActionView
+        get() =
+            searchViewItem?.actionView as? MaterialSearchView
+
     private val addToFavoritesItem
         get() = findMenuItem(R.id.add_to_favorites)
 
@@ -36,10 +40,6 @@ class SimpleMaterialToolbar(
 
     private val searchViewItem
         get() = findMenuItem(R.id.action_search)
-
-    private val searchActionView
-        get() =
-            searchViewItem?.actionView as? MaterialSearchView
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, R.attr.toolbarStyle)
@@ -61,7 +61,9 @@ class SimpleMaterialToolbar(
                     setNavigationOnClickListener()
             }
         } else {
-            setDefaultState()
+            postDelayed(100L) {
+                setDefaultState()
+            }
         }
     }
 
@@ -105,7 +107,9 @@ class SimpleMaterialToolbar(
                 }
             }
         } else {
-            setDefaultState()
+            postDelayed(50L) {
+                setDefaultState()
+            }
         }
     }
 

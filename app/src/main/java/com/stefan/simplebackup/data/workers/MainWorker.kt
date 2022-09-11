@@ -43,9 +43,9 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     private lateinit var workResults: List<WorkResult>
 
     private val foregroundCallBack: ForegroundCallback = { notificationData ->
-        setProgress(workDataOf(WORK_PROGRESS to notificationData.progress))
         progressState.value = notificationData
         updateForegroundInfo(getUpdatedNotification(notificationData))
+        setProgress(workDataOf(WORK_PROGRESS to notificationData.progress))
     }
 
     private val updateForegroundInfo = createForegroundInfo(notificationId)
@@ -85,9 +85,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
     private suspend fun backup() {
         items?.let { backupItems ->
-            val backupUtil = BackupUtil(applicationContext, backupItems) { notificationData ->
-                foregroundCallBack(notificationData)
-            }
+            val backupUtil = BackupUtil(applicationContext, backupItems, foregroundCallBack)
             workResults = backupUtil.backup()
         }
     }
@@ -103,11 +101,10 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         WORK_ITEMS to (items?.size ?: 0)
     )
 
-    private fun createForegroundInfo(notificationId: Int): suspend (Notification) -> Unit {
-        return { notification ->
+    private fun createForegroundInfo(notificationId: Int): suspend (Notification) -> Unit =
+        { notification ->
             setForeground(ForegroundInfo(notificationId, notification))
         }
-    }
 
     companion object ProgressObserver {
         private var progressState: MutableStateFlow<NotificationData?> =

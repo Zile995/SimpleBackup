@@ -49,6 +49,7 @@
         <entry key="app/src/main/res/drawable/ic_add_to_drive.xml" value="0.184" />
         <entry key="app/src/main/res/drawable/ic_android.xml" value="0.184" />
         <entry key="app/src/main/res/drawable/ic_api.xml" value="0.1915" />
+        <entry key="app/src/main/res/drawable/ic_apps.xml" value="0.183" />
         <entry key="app/src/main/res/drawable/ic_arrow_back.xml" value="0.184" />
         <entry key="app/src/main/res/drawable/ic_arrow_up.xml" value="0.163" />
         <entry key="app/src/main/res/drawable/ic_checked.xml" value="0.299" />
@@ -124,7 +125,7 @@
         <entry key="app/src/main/res/layout/fragment_local.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_local_view_pager.xml" value="0.2774690038477982" />
         <entry key="app/src/main/res/layout/fragment_restore_list.xml" value="0.1" />
-        <entry key="app/src/main/res/layout/fragment_search.xml" value="0.5" />
+        <entry key="app/src/main/res/layout/fragment_search.xml" value="0.25" />
         <entry key="app/src/main/res/layout/fragment_settings.xml" value="0.25" />
         <entry key="app/src/main/res/layout/fragment_view_pager.xml" value="0.1" />
         <entry key="app/src/main/res/layout/home_item.xml" value="0.33" />

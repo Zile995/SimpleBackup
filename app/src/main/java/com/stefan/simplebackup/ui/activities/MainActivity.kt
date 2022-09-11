@@ -5,6 +5,7 @@ import android.content.Intent.ACTION_PACKAGE_REMOVED
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
+import androidx.appcompat.widget.SearchView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnLayout
 import androidx.lifecycle.Lifecycle
@@ -137,7 +138,7 @@ class MainActivity : BaseActivity() {
             }
             popUpTo(currentDestination?.id ?: navController.graph.startDestinationId) {
                 inclusive = false
-                saveState = true
+                saveState = false
             }
         })
     }
@@ -201,7 +202,8 @@ class MainActivity : BaseActivity() {
                 override fun canDrag(appBarLayout: AppBarLayout): Boolean {
                     return !(mainViewModel.isSelected.value
                             || mainViewModel.isSearching.value
-                            || navController.currentDestination?.doesMatchDestination(R.id.settings) == true)
+                            || navController.currentDestination?.doesMatchDestination(R.id.settings) == true
+                            || navController.currentDestination?.doesMatchDestination(R.id.search_action) == true)
                 }
             })
         }
@@ -213,10 +215,10 @@ class MainActivity : BaseActivity() {
 
     private fun ActivityMainBinding.bindToolBar() {
         materialToolbar.inflateMenu(R.menu.main_tool_bar)
+        materialToolbar.setOnSearchAction()
         materialToolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.action_search -> {
-
                 }
                 R.id.add_to_favorites -> {
                     if (visibleFragment !is FavoritesFragment)
@@ -239,6 +241,20 @@ class MainActivity : BaseActivity() {
             }
             true
         }
+    }
+
+    private fun SimpleMaterialToolbar.setOnSearchAction() {
+        searchActionView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                Log.d("MainActivity", "Search text = $query")
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean =
+                mainViewModel.findAppsByName(newText).run {
+                    true
+                }
+        })
     }
 
     private fun ActivityMainBinding.bindBottomNavigationView() =
@@ -277,6 +293,7 @@ class MainActivity : BaseActivity() {
                         isSearching.collect { isSearching ->
                             if (isSelected.value) return@collect
                             mainActivityAnimator.animateOnSearch(isSearching)
+                            resetSearchResult()
                         }
                     }
                     launch {

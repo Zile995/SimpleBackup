@@ -289,7 +289,7 @@
                 android:layout_marginStart="20dp"
                 android:layout_marginTop="10dp"
                 android:textColor="@color/selectedTab"
-                android:text="@string/exclude_app_cache"
+                android:text="@string/exit_action"
                 android:textSize="14sp"
                 app:layout_constraintTop_toBottomOf="@+id/exclude_cache_field"
                 app:layout_constraintStart_toStartOf="parent"

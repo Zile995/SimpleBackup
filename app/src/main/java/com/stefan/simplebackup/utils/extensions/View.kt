@@ -62,7 +62,7 @@ fun View.changeBackgroundColor(context: Context?, @ColorRes color: Int) {
 }
 
 inline fun View.fadeIn(
-    animationDuration: Long = 300L,
+    animationDuration: Long = 250L,
     crossinline onAnimationEnd: () -> Unit = {}
 ) {
     if (isVisible) return
@@ -81,7 +81,7 @@ inline fun View.fadeIn(
 }
 
 inline fun View.fadeOut(
-    animationDuration: Long = 300L,
+    animationDuration: Long = 250L,
     crossinline onAnimationEnd: () -> Unit = {}
 ) {
     if (!isVisible) return
@@ -99,4 +99,9 @@ inline fun View.fadeOut(
 fun View.showSoftKeyboard() {
     val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
     imm.showSoftInput(findFocus(), 0)
+}
+
+fun View.hideSoftKeyboard() {
+    val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+    imm?.hideSoftInputFromWindow(windowToken, 0)
 }

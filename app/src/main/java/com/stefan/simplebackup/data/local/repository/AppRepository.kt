@@ -30,6 +30,7 @@ class AppRepository(private val appDao: AppDao) {
     }
 
     suspend fun insert(app: AppData) = appDao.insert(app)
+    fun findAppsByName(name: String) = appDao.findAppsByName(name)
     suspend fun delete(packageName: String) = appDao.delete(packageName)
     suspend fun getAppData(packageName: String) = appDao.getData(packageName)
     suspend fun isFavorite(packageName: String) = appDao.isFavorite(packageName)

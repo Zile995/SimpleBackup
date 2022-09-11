@@ -8,25 +8,26 @@ import android.view.ViewGroup
 import androidx.activity.addCallback
 import androidx.core.view.children
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.RecyclerView
+import androidx.lifecycle.Lifecycle
 import com.google.android.material.chip.Chip
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.databinding.FragmentSearchBinding
-import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.SearchAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
-import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.SearchViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
-import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
-import kotlinx.coroutines.launch
+import com.stefan.simplebackup.utils.extensions.*
+import kotlinx.coroutines.delay
 
 class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     private val searchViewModel: SearchViewModel by viewModels {
         ViewModelFactory(requireActivity().application as MainApplication)
+    }
+
+    init {
+        shouldEnableOnLongClick = false
     }
 
     override fun onCreateView(
@@ -37,8 +38,10 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setOnBackPressedCallback()
-        binding.bindChipGroup()
-        searchViewModel
+        binding.apply {
+            bindChipGroup()
+            initObservers()
+        }
     }
 
     private fun setOnBackPressedCallback() {
@@ -59,6 +62,21 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
             }
         }
     }
+
+    private fun FragmentSearchBinding.initObservers() {
+        launchOnViewLifecycle {
+            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+                mainViewModel.searchResult.collect { searchResults ->
+                    Log.d("Search", "Search result = ${searchResults.map { it.name }}")
+                    adapter.submitList(searchResults)
+                    if (searchResults.isEmpty()) delay(150)
+                    pleaseSearchLabel.isVisible = searchResults.isEmpty()
+                    imageLayout.isVisible = searchResults.isEmpty()
+                }
+            }
+        }
+    }
+
 
     override fun FragmentSearchBinding.saveRecyclerViewState() {
         searchRecyclerView.onSaveRecyclerViewState { stateParcelable ->
@@ -85,5 +103,4 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
         super.onDestroy()
         Log.d("Fragments", "Destroyed SearchFragment completely")
     }
-
 }
