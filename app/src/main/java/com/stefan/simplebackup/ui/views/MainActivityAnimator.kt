@@ -1,10 +1,10 @@
 package com.stefan.simplebackup.ui.views
 
 import android.animation.AnimatorSet
-import android.animation.ValueAnimator
 import android.util.Log
 import android.view.animation.DecelerateInterpolator
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.animation.doOnEnd
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.marginBottom
 import com.stefan.simplebackup.R
@@ -28,12 +28,12 @@ class MainActivityAnimator(
     fun animateOnSettings(isInSettings: Boolean) {
         binding?.apply {
             root.doOnPreDraw {
+                val animatorSet = AnimatorSet().apply {
+                    duration = 50L
+                    interpolator = DecelerateInterpolator()
+                }
                 if (isInSettings) {
-                    val animatorSet = AnimatorSet().apply {
-                        duration = 50L
-                        interpolator = DecelerateInterpolator()
-                    }
-                    animatorSet.playTogether(*materialSearchBar.animateToParentSize(doOnEnd = {
+                    animatorSet.playTogether(materialSearchBar.animateToParentSize(doOnEnd = {
                         activity?.apply {
                             window.statusBarColor = getColorFromResource(R.color.searchBar)
                         }
@@ -41,25 +41,15 @@ class MainActivityAnimator(
                     }))
                     animatorSet.start()
                 } else {
-                    animateOnNavigateFromSettings()
+                    animatorSet.playTogether(searchBarShrinkAnimator() ?: return@doOnPreDraw)
+                    animatorSet.duration = animationDuration
+                    animatorSet.start()
                 }
             }
             floatingButton.hidePermanently = isInSettings
             materialToolbar.changeOnSettings(isInSettings) {
                 activity?.onSupportNavigateUp()
             }
-        }
-    }
-
-    private fun animateOnNavigateFromSettings() {
-        binding?.apply {
-            if (materialSearchBar.height == materialSearchBar.initialHeight) return@apply
-            val animatorSet = AnimatorSet().apply {
-                duration = 250L
-                interpolator = DecelerateInterpolator()
-            }
-            animatorSet.playTogether(*shrinkSearchBarToInitialSize())
-            animatorSet.start()
         }
     }
 
@@ -73,23 +63,13 @@ class MainActivityAnimator(
                 interpolator = DecelerateInterpolator()
             }
             if (isSelected) {
-                setFragmentContainerMargin(appBarLayout.height)
-                root.doOnPreDraw {
-                    animatorSet.playTogether(
-                        navigationBar.moveDown(),
-                        *animateSearchBarOnSelection()
-                    )
-                    animatorSet.start()
-                }
+                startAnimations(
+                    animatorSet = animatorSet,
+                    fragmentBottomMargin = appBarLayout.height
+                )
             } else {
-                root.doOnPreDraw {
-                    animatorSet.playTogether(
-                        navigationBar.moveUp {
-                            setFragmentContainerMargin(navigationBar.height)
-                            visibleFragment?.fixRecyclerViewScrollPosition()
-                        }, *shrinkSearchBarToInitialSize()
-                    )
-                    animatorSet.start()
+                reverseAnimations(animatorSet).doOnEnd {
+                    visibleFragment?.fixRecyclerViewScrollPosition()
                 }
             }
             expandAppBarLayout(isSelected)
@@ -105,23 +85,14 @@ class MainActivityAnimator(
                 interpolator = DecelerateInterpolator()
             }
             if (isSearching) {
-                setFragmentContainerMargin(-materialToolbar.height - root.resources.getDimensionPixelSize(R.dimen.chip_group_height))
-                root.doOnPreDraw {
-                    animatorSet.playTogether(
-                        navigationBar.moveDown(),
-                        *animateSearchBarOnClick()
+                startAnimations(
+                    animatorSet = animatorSet,
+                    fragmentBottomMargin = -materialToolbar.height - root.resources.getDimensionPixelSize(
+                        R.dimen.chip_group_height
                     )
-                    animatorSet.start()
-                }
+                )
             } else {
-                root.doOnPreDraw {
-                    animatorSet.playTogether(
-                        navigationBar.moveUp {
-                            setFragmentContainerMargin(navigationBar.height)
-                        }, *shrinkSearchBarToInitialSize()
-                    )
-                    animatorSet.start()
-                }
+                reverseAnimations(animatorSet)
             }
             floatingButton.hidePermanently = isSearching
             materialToolbar.changeOnSearch(isSearching,
@@ -131,65 +102,72 @@ class MainActivityAnimator(
         }
     }
 
-    private fun expandAppBarLayout(shouldExpand: Boolean) =
-        binding?.apply {
+    private fun ActivityMainBinding.startAnimations(
+        animatorSet: AnimatorSet,
+        fragmentBottomMargin: Int
+    ) {
+        setFragmentBottomMargin(fragmentBottomMargin)
+        root.doOnPreDraw {
+            animatorSet.playTogether(
+                navigationBar.moveDown(),
+                searchBarExpandAnimator() ?: return@doOnPreDraw
+            )
+            animatorSet.start()
+        }
+    }
+
+    private fun ActivityMainBinding.reverseAnimations(animatorSet: AnimatorSet) =
+        animatorSet.apply {
             root.doOnPreDraw {
-                if (shouldExpand) {
-                    animationFinished = false
-                    appBarLayout.setExpanded(shouldExpand)
-                } else {
-                    if (visibleFragment?.shouldMoveFragmentUp() == true) {
-                        Log.d("AppBarLayout", "Collapsing the AppBarLayout")
-                        appBarLayout.setExpanded(false)
-                    }
+                playTogether(
+                    navigationBar.moveUp {
+                        setFragmentBottomMargin(navigationBar.height)
+                    } ?: return@doOnPreDraw,
+                    searchBarShrinkAnimator() ?: return@doOnPreDraw
+                )
+                start()
+            }
+        }
+
+    private fun ActivityMainBinding.expandAppBarLayout(shouldExpand: Boolean) =
+        root.doOnPreDraw {
+            if (shouldExpand)
+                appBarLayout.setExpanded(shouldExpand)
+            else {
+                if (visibleFragment?.shouldMoveFragmentUp() == true) {
+                    Log.d("AppBarLayout", "Collapsing the AppBarLayout")
+                    appBarLayout.setExpanded(false)
                 }
             }
         }
 
-    private fun setFragmentContainerMargin(margin: Int) {
-        binding?.run {
-            if (navHostContainer.marginBottom == margin) return
-            val layoutParams =
-                navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
-            layoutParams.bottomMargin = margin
-        }
+    private fun ActivityMainBinding.setFragmentBottomMargin(bottomMargin: Int) {
+        if (navHostContainer.marginBottom == bottomMargin) return
+        val layoutParams =
+            navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
+        layoutParams.bottomMargin = bottomMargin
     }
 
-    private fun animateSearchBarOnClick(): Array<ValueAnimator> =
-        binding?.run {
-            materialSearchBar.animateToParentSize(
-                doOnStart = {
-                    Log.d("MainAnimator", "Expanding SearchBar on click")
-                    activity?.apply {
-                        window.statusBarColor = getColorFromResource(R.color.searchBar)
-                    }
-                },
-                doOnEnd = {
-                    appBarLayout.setExpanded(true)
-                })
-        } ?: arrayOf()
+    private fun ActivityMainBinding.searchBarExpandAnimator() =
+        materialSearchBar.animateToParentSize(
+            doOnStart = {
+                Log.d("MainAnimator", "Expanding SearchBar on click")
+                activity?.apply {
+                    window.statusBarColor = getColorFromResource(R.color.searchBar)
+                }
+            },
+            doOnEnd = {
+                appBarLayout.setExpanded(true)
+            })
 
-    private fun animateSearchBarOnSelection(): Array<ValueAnimator> =
-        binding?.run {
-            materialSearchBar.animateToParentSize(
-                doOnStart = {
-                    Log.d("MainAnimator", "Expanding SearchBar on selection")
-                    activity?.apply {
-                        window.statusBarColor = getColorFromResource(R.color.searchBar)
-                    }
-                })
-        } ?: arrayOf()
-
-    private fun shrinkSearchBarToInitialSize(): Array<ValueAnimator> =
-        binding?.run {
-            materialSearchBar.animateToInitialSize(
-                doOnStart = {
-                    Log.d("MainAnimator", "Shrinking SearchBar to initial size")
-                    activity?.apply {
-                        window.statusBarColor = getColorFromResource(R.color.bottomView)
-                    }
-                })
-        } ?: arrayOf()
+    private fun ActivityMainBinding.searchBarShrinkAnimator() =
+        materialSearchBar.animateToInitialSize(
+            doOnStart = {
+                Log.d("MainAnimator", "Shrinking SearchBar to initial size")
+                activity?.apply {
+                    window.statusBarColor = getColorFromResource(R.color.bottomView)
+                }
+            })
 
     companion object {
         @Volatile

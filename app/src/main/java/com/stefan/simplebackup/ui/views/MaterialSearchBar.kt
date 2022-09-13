@@ -1,5 +1,7 @@
 package com.stefan.simplebackup.ui.views
 
+import android.animation.Animator
+import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.ColorStateList
@@ -56,8 +58,8 @@ class MaterialSearchBar(
     inline fun animateToInitialSize(
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
-    ): Array<ValueAnimator> {
-        if (height == initialHeight || width == initialWidth || radius == initialRadius) return arrayOf()
+    ): Animator? {
+        if (height == initialHeight && width == initialWidth && radius == initialRadius) return null
         Log.d("SearchBarAnimation", "Animating to initial size")
         return animateTo(
             toHeightValue = initialHeight,
@@ -74,8 +76,8 @@ class MaterialSearchBar(
     inline fun animateToParentSize(
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
-    ): Array<ValueAnimator> {
-        if (height == parentHeight || width == parentWidth) return arrayOf()
+    ): AnimatorSet? {
+        if (height == parentHeight && width == parentWidth) return null
         Log.d("SearchBarAnimation", "Animating to parent size")
         return animateTo(
             toHeightValue = parentHeight,
@@ -94,7 +96,7 @@ class MaterialSearchBar(
         toWidthValue: Int,
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
-    ): Array<ValueAnimator> {
+    ): AnimatorSet {
         isEnabled = false
         animationFinished = false
 
@@ -123,6 +125,8 @@ class MaterialSearchBar(
         }
 
         doOnStart.invoke()
-        return arrayOf(widthAnimator, heightAnimator, radiusAnimator)
+        return AnimatorSet().apply {
+            playTogether(widthAnimator, heightAnimator, radiusAnimator)
+        }
     }
 }

@@ -52,13 +52,11 @@ class NavigationBar(
     }
 
     inline fun moveUp(
-        animationDuration: Long = 250L,
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
     ): ObjectAnimator? {
         if (isVisible) return null
         return ObjectAnimator.ofFloat(this, "translationY", 0f).apply {
-            duration = animationDuration
             doOnStart {
                 show()
                 doOnStart()
@@ -71,12 +69,10 @@ class NavigationBar(
     }
 
     inline fun moveDown(
-        animationDuration: Long = 250L,
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
     ): ObjectAnimator {
         return ObjectAnimator.ofFloat(this, "translationY", initialHeight.toFloat()).apply {
-            duration = animationDuration
             doOnStart {
                 doOnStart()
             }
