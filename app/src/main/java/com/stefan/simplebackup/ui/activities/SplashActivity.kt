@@ -7,19 +7,19 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.Bundle
 import android.os.Process
-import androidx.appcompat.app.AppCompatActivity
 import com.stefan.simplebackup.BuildConfig
-import com.stefan.simplebackup.utils.extensions.ioDispatcher
-import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.openUsageAccessSettings
+import com.stefan.simplebackup.R
+import com.stefan.simplebackup.databinding.ActivitySplashBinding
+import com.stefan.simplebackup.utils.extensions.*
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.launch
 import kotlin.properties.Delegates
 
 
 @SuppressLint("CustomSplashScreen")
-class SplashActivity : AppCompatActivity() {
+class SplashActivity : BaseActivity() {
 
     companion object {
         init {
@@ -33,6 +33,8 @@ class SplashActivity : AppCompatActivity() {
             )
         }
     }
+
+    private val binding by viewBinding(ActivitySplashBinding::inflate)
 
     private var isUsageStatsGranted: Boolean by Delegates.observable(false) { _, _, newGrantedStatus ->
         if (newGrantedStatus) {
@@ -52,6 +54,26 @@ class SplashActivity : AppCompatActivity() {
         } else {
             openUsageAccessSettings()
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(binding.root)
+
+        window.statusBarColor = getColorFromResource(R.color.background)
+
+        binding.apply {
+            bindStoragePermissionView()
+            bindUsageStatsPermissionView()
+        }
+    }
+
+    private fun ActivitySplashBinding.bindUsageStatsPermissionView() {
+
+    }
+
+    private fun ActivitySplashBinding.bindStoragePermissionView() {
+
     }
 
     override fun onStart() {

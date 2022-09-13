@@ -30,11 +30,6 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
         shouldEnableOnLongClick = false
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View = binding.root
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setOnBackPressedCallback()
@@ -65,18 +60,17 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
 
     private fun FragmentSearchBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 mainViewModel.searchResult.collect { searchResults ->
                     Log.d("Search", "Search result = ${searchResults.map { it.name }}")
                     adapter.submitList(searchResults)
-                    if (searchResults.isEmpty()) delay(150)
+                    if (searchResults.isEmpty()) delay(150L)
                     pleaseSearchLabel.isVisible = searchResults.isEmpty()
                     imageLayout.isVisible = searchResults.isEmpty()
                 }
             }
         }
     }
-
 
     override fun FragmentSearchBinding.saveRecyclerViewState() {
         searchRecyclerView.onSaveRecyclerViewState { stateParcelable ->

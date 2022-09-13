@@ -7,6 +7,16 @@
     android:background="@color/background"
     tools:context=".ui.fragments.SearchFragment">
 
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/toolbar_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        app:dividerColor="@color/background"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
     <HorizontalScrollView
         android:id="@+id/horizontal_view"
         android:layout_width="match_parent"
@@ -15,7 +25,7 @@
         android:scrollbars="none"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/toolbar_divider">
 
         <com.stefan.simplebackup.ui.views.AnimatedChipGroup
             android:id="@+id/search_chip_group"

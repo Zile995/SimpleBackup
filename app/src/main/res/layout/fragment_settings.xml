@@ -1,336 +1,317 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/settings_scroll_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="?attr/colorPrimaryVariant"
     tools:context=".ui.fragments.SettingsFragment">
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/settings_scroll_view"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/storage_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="16dp"
+            android:text="@string/storage"
+            android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+            android:textColor="@color/selectedTab"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <LinearLayout
+            android:id="@+id/storage_info_field"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="4dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/storage_label">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="20dp"
+                android:src="@drawable/ic_smartphone" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/storage_info_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="14dp"
+                android:text="@string/storage_info"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/notifications_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp"
+            android:text="@string/notifications"
+            android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+            android:textColor="@color/selectedTab"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/storage_info_field" />
+
+        <LinearLayout
+            android:id="@+id/notification_settings_field"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="4dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/notifications_label">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="20dp"
+                android:src="@drawable/ic_edit_notifications" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/notification_settings_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="14dp"
+                android:text="@string/notification_settings"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/theme_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp"
+            android:text="@string/theme"
+            android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+            android:textColor="@color/selectedTab"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/notification_settings_field" />
+
+        <LinearLayout
+            android:id="@+id/choose_theme_filed"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="4dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/theme_label">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="20dp"
+                android:src="@drawable/ic_theme"
+                tools:ignore="ContentDescription" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/choose_theme_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="14dp"
+                android:text="@string/choose_theme"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/zip_compression_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp"
+            android:text="@string/zip_compression_level"
+            android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+            android:textColor="@color/selectedTab"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/choose_theme_filed" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/zip_compression_field"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" >
+            android:layout_height="80dp"
+            android:layout_marginTop="4dp"
+            android:clickable="true"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/zip_compression_label">
 
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/storage_label"
+            <ImageView
+                android:id="@+id/zip_image"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_gravity="center"
                 android:layout_marginStart="20dp"
-                android:text="@string/storage"
-                android:textColor="@color/selectedTab"
-                android:textSize="14sp"
+                android:layout_marginBottom="20dp"
+                android:src="@drawable/ic_zip_compression"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/zip_compression_slider"
+                style="@style/Widget.Material3.Slider"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="30dp"
+                android:layout_marginBottom="20dp"
+                android:stepSize="1.0"
+                android:valueFrom="0.0"
+                android:valueTo="10.0"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/zip_image"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                />
-
-            <LinearLayout
-                android:id="@+id/storage_info_field"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="4dp"
-                android:clickable="true"
-                android:background="?attr/selectableItemBackground"
-                app:layout_constraintTop_toBottomOf="@+id/storage_label"
-                app:layout_constraintStart_toStartOf="parent"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="20dp"
-                    android:src="@drawable/ic_smartphone"/>
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/storage_info_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="14dp"
-                    android:text="@string/storage_info"
-                    android:textSize="15sp"
-                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                    />
-
-            </LinearLayout>
+                app:tickColorActive="@color/blueChip"
+                app:trackColorInactive="@color/blueChip" />
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/notifications_label"
+                android:id="@+id/fastest_compression"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_marginStart="20dp"
-                android:text="@string/notifications"
-                android:textColor="@color/selectedTab"
-                android:textSize="14sp"
-                app:layout_constraintTop_toBottomOf="@+id/storage_info_field"
-                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginStart="6dp"
+                android:text="@string/fastest"
                 android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                />
-
-            <LinearLayout
-                android:id="@+id/notification_settings_field"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="4dp"
-                android:clickable="true"
-                android:background="?attr/selectableItemBackground"
-                app:layout_constraintTop_toBottomOf="@+id/notifications_label"
-                app:layout_constraintStart_toStartOf="parent"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="20dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_edit_notifications"
-                    />
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/notification_settings_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="14dp"
-                    android:text="@string/notification_settings"
-                    android:textSize="15sp"
-                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                    />
-
-            </LinearLayout>
+                android:textColor="@color/textColorPrimary"
+                android:textSize="13sp"
+                app:layout_constraintStart_toStartOf="@id/zip_compression_slider"
+                app:layout_constraintTop_toBottomOf="@+id/zip_compression_slider" />
 
             <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/theme_label"
+                android:id="@+id/slowest_compression"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="10dp"
-                android:textColor="@color/selectedTab"
-                android:text="@string/theme"
-                android:textSize="14sp"
-                app:layout_constraintTop_toBottomOf="@+id/notification_settings_field"
-                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginEnd="6dp"
+                android:layout_marginBottom="20dp"
+                android:text="@string/slowest"
                 android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                />
-
-            <LinearLayout
-                android:id="@+id/choose_theme_filed"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="4dp"
-                android:clickable="true"
-                android:background="?attr/selectableItemBackground"
-                app:layout_constraintTop_toBottomOf="@+id/theme_label"
-                app:layout_constraintStart_toStartOf="parent"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="20dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_theme"
-                    tools:ignore="ContentDescription" />
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/choose_theme_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="14dp"
-                    android:text="@string/choose_theme"
-                    android:textSize="15sp"
-                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                    />
-
-            </LinearLayout>
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/zip_compression_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="10dp"
-                android:textColor="@color/selectedTab"
-                android:text="@string/zip_compression_level"
-                android:textSize="14sp"
-                app:layout_constraintTop_toBottomOf="@+id/choose_theme_filed"
-                app:layout_constraintStart_toStartOf="parent"
-                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                />
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/zip_compression_field"
-                android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:layout_marginTop="4dp"
-                android:clickable="true"
-                app:layout_constraintTop_toBottomOf="@+id/zip_compression_label"
-                app:layout_constraintStart_toStartOf="parent"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/zip_image"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_gravity="center"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    android:src="@drawable/ic_zip_compression" />
-
-                <com.google.android.material.slider.Slider
-                    style="@style/Widget.Material3.Slider"
-                    android:id="@+id/zip_compression_slider"
-                    android:layout_width="0dp"
-                    android:layout_marginBottom="20dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="5dp"
-                    android:layout_marginEnd="30dp"
-                    app:tickColorActive="@color/blueChip"
-                    app:trackColorInactive="@color/blueChip"
-                    android:valueFrom="0.0"
-                    android:valueTo="10.0"
-                    android:stepSize="1.0"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toEndOf="@id/zip_image"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    />
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/fastest_compression"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:textColor="@color/textColorPrimary"
-                    app:layout_constraintTop_toBottomOf="@+id/zip_compression_slider"
-                    app:layout_constraintStart_toStartOf="@id/zip_compression_slider"
-                    android:text="@string/fastest"
-                    android:textSize="13sp"
-                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                    />
-
-                <com.google.android.material.textview.MaterialTextView
-                    android:id="@+id/slowest_compression"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="20dp"
-                    android:layout_marginEnd="6dp"
-                    android:text="@string/slowest"
-                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                    android:textColor="@color/textColorPrimary"
-                    android:textSize="13sp"
-                    app:layout_constraintEnd_toEndOf="@id/zip_compression_slider"
-                    app:layout_constraintTop_toBottomOf="@+id/zip_compression_slider" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/exclude_cache_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="10dp"
-                android:textColor="@color/selectedTab"
-                android:text="@string/exclude_app_cache"
-                android:textSize="14sp"
-                app:layout_constraintTop_toBottomOf="@+id/zip_compression_field"
-                app:layout_constraintStart_toStartOf="parent"
-                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                />
-
-            <LinearLayout
-                android:id="@+id/exclude_cache_field"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="4dp"
-                android:clickable="true"
-                app:layout_constraintTop_toBottomOf="@+id/exclude_cache_label"
-                app:layout_constraintStart_toStartOf="parent"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="20dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_exclude_cache" />
-
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/app_cache_switch"
-                    style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
-                    android:text="@string/exclude_app_cache_info"
-                    android:textColor="@color/textColorPrimary"
-                    android:textSize="15sp"
-                    app:thumbTint="@color/selectedTab"
-                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                    android:layout_gravity="center"
-                    />
-
-            </LinearLayout>
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/double_press_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="10dp"
-                android:textColor="@color/selectedTab"
-                android:text="@string/exit_action"
-                android:textSize="14sp"
-                app:layout_constraintTop_toBottomOf="@+id/exclude_cache_field"
-                app:layout_constraintStart_toStartOf="parent"
-                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                />
-
-            <LinearLayout
-                android:id="@+id/double_press_field"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_marginTop="4dp"
-                android:clickable="true"
-                app:layout_constraintTop_toBottomOf="@+id/double_press_label"
-                app:layout_constraintStart_toStartOf="parent"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="20dp"
-                    android:src="@drawable/ic_double_press" />
-
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/double_press_switch"
-                    style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="14dp"
-                    android:text="@string/double_press_back"
-                    android:textColor="@color/textColorPrimary"
-                    android:textSize="15sp"
-                    app:thumbTint="@color/selectedTab"
-                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                    android:layout_gravity="center"
-                    />
-
-            </LinearLayout>
+                android:textColor="@color/textColorPrimary"
+                android:textSize="13sp"
+                app:layout_constraintEnd_toEndOf="@id/zip_compression_slider"
+                app:layout_constraintTop_toBottomOf="@+id/zip_compression_slider" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </androidx.core.widget.NestedScrollView>
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/exclude_cache_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp"
+            android:text="@string/exclude_app_cache"
+            android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+            android:textColor="@color/selectedTab"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/zip_compression_field" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+        <LinearLayout
+            android:id="@+id/exclude_cache_field"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="4dp"
+            android:clickable="true"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/exclude_cache_label">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="20dp"
+                android:src="@drawable/ic_exclude_cache" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/app_cache_switch"
+                style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="14dp"
+                android:text="@string/exclude_app_cache_info"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                android:textColor="@color/textColorPrimary"
+                android:textSize="15sp"
+                app:thumbTint="@color/selectedTab" />
+
+        </LinearLayout>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/double_press_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="10dp"
+            android:text="@string/exit_action"
+            android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+            android:textColor="@color/selectedTab"
+            android:textSize="14sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/exclude_cache_field" />
+
+        <LinearLayout
+            android:id="@+id/double_press_field"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="4dp"
+            android:clickable="true"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/double_press_label">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="20dp"
+                android:src="@drawable/ic_double_press" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/double_press_switch"
+                style="@style/Widget.Material3.CompoundButton.MaterialSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="14dp"
+                android:text="@string/double_press_back"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                android:textColor="@color/textColorPrimary"
+                android:textSize="15sp"
+                app:thumbTint="@color/selectedTab" />
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>
