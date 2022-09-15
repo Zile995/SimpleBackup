@@ -4,6 +4,7 @@ import android.app.Notification
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.IBinder
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.WorkManager
 import com.stefan.simplebackup.ui.notifications.EXTRA_NOTIFICATION
@@ -18,10 +19,10 @@ class NotificationReceiver : BroadcastReceiver() {
             ACTION_WORK_FINISHED -> {
                 val notification = intent.getParcelableExtra<Notification>(EXTRA_NOTIFICATION)
                 notification?.let {
-                    CoroutineScope(Job() + Dispatchers.Main.immediate).launch {
-                        NotificationManagerCompat
-                            .from(context)
-                            .notify(intent.getIntExtra(EXTRA_NOTIFICATION_ID, 0) + 1, it)
+                    NotificationManagerCompat
+                        .from(context)
+                        .notify(intent.getIntExtra(EXTRA_NOTIFICATION_ID, 0) + 1, it)
+                    MainScope().launch {
                         delay(1_000)
                         val workManager = WorkManager.getInstance(context)
                         workManager.pruneWork()

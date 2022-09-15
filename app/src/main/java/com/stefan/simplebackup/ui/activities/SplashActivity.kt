@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.ui.activities
 
+import android.Manifest.permission.MANAGE_EXTERNAL_STORAGE
 import android.Manifest.permission.PACKAGE_USAGE_STATS
 import android.annotation.SuppressLint
 import android.app.AppOpsManager
@@ -9,6 +10,8 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Process
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import com.stefan.simplebackup.BuildConfig
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.ActivitySplashBinding
@@ -17,9 +20,8 @@ import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.launch
 import kotlin.properties.Delegates
 
-
 @SuppressLint("CustomSplashScreen")
-class SplashActivity : BaseActivity() {
+class SplashActivity : AppCompatActivity() {
 
     companion object {
         init {
@@ -36,8 +38,8 @@ class SplashActivity : BaseActivity() {
 
     private val binding by viewBinding(ActivitySplashBinding::inflate)
 
-    private var isUsageStatsGranted: Boolean by Delegates.observable(false) { _, _, newGrantedStatus ->
-        if (newGrantedStatus) {
+    private var permissionHolder: PermissionHolder by Delegates.observable(PermissionHolder()) { _, _, newGrantedStatus ->
+        if (newGrantedStatus.isUsageStatsGranted && newGrantedStatus.isManageAllFilesGranted) {
             // Preheat the main root shell in the splash screen
             // so the app can use it afterwards without interrupting
             // application flow (e.g. root permission prompt)
@@ -51,17 +53,22 @@ class SplashActivity : BaseActivity() {
                 startActivity(intent)
                 finish()
             }
-        } else {
-            openUsageAccessSettings()
+        }
+        binding.apply {
+            binding.root.background =
+                AppCompatResources.getDrawable(applicationContext, R.color.bottomView)
+            usageStatsCard.isVisible = !newGrantedStatus.isUsageStatsGranted
+            storagePermissionCard.isVisible = !newGrantedStatus.isManageAllFilesGranted
+            applicationImage.isVisible =
+                !(newGrantedStatus.isUsageStatsGranted && newGrantedStatus.isManageAllFilesGranted)
+            welcomeLabel.isVisible =
+                !(newGrantedStatus.isUsageStatsGranted && newGrantedStatus.isManageAllFilesGranted)
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-
-        window.statusBarColor = getColorFromResource(R.color.background)
-
         binding.apply {
             bindStoragePermissionView()
             bindUsageStatsPermissionView()
@@ -69,21 +76,35 @@ class SplashActivity : BaseActivity() {
     }
 
     private fun ActivitySplashBinding.bindUsageStatsPermissionView() {
-
+        usageStatsCard.setOnClickListener {
+            openUsageAccessSettings()
+        }
     }
 
     private fun ActivitySplashBinding.bindStoragePermissionView() {
-
+        storagePermissionCard.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
+                openMenageFilesPermissionSettings()
+        }
     }
 
     override fun onStart() {
         super.onStart()
-        checkUsageStatsPermission()
+        checkForMainPermissions()
     }
 
     private val appOpsService by lazy { getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager }
 
-    private fun checkUsageStatsPermission() {
+    private fun checkForMainPermissions() {
+        permissionHolder =
+            PermissionHolder(
+                isUsageStatsGranted = checkUsageStatsPermission(),
+                isManageAllFilesGranted = checkManageAllFilesPermission()
+            )
+    }
+
+    @Suppress("DEPRECATION")
+    private fun checkUsageStatsPermission(): Boolean {
         val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
             appOpsService.unsafeCheckOpNoThrow(
                 AppOpsManager.OPSTR_GET_USAGE_STATS,
@@ -96,8 +117,27 @@ class SplashActivity : BaseActivity() {
                 Process.myUid(),
                 packageName
             )
-        isUsageStatsGranted = if (mode == AppOpsManager.MODE_DEFAULT)
+        return if (mode == AppOpsManager.MODE_DEFAULT)
             checkCallingOrSelfPermission(PACKAGE_USAGE_STATS) == PackageManager.PERMISSION_GRANTED
         else mode == AppOpsManager.MODE_ALLOWED
     }
+
+    private fun checkManageAllFilesPermission(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return true
+        val mode = AppOpsManager.permissionToOp(MANAGE_EXTERNAL_STORAGE)?.let { appOpName ->
+            appOpsService.unsafeCheckOpNoThrow(
+                appOpName,
+                Process.myUid(),
+                packageName
+            )
+        }
+        return if (mode == AppOpsManager.MODE_DEFAULT)
+            checkCallingOrSelfPermission(MANAGE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+        else mode == AppOpsManager.MODE_ALLOWED
+    }
+
+    private data class PermissionHolder(
+        var isUsageStatsGranted: Boolean = false,
+        var isManageAllFilesGranted: Boolean = false
+    )
 }

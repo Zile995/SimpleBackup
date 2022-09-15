@@ -10,6 +10,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnStart
 import androidx.core.view.doOnLayout
 import com.google.android.material.card.MaterialCardView
 import com.stefan.simplebackup.R
@@ -115,18 +116,19 @@ class MaterialSearchBar(
             layoutParams.height = valueAnimator.animatedValue as Int
         }
         radiusAnimator.addUpdateListener { valueAnimator ->
-            valueAnimator.doOnEnd {
+            radius = valueAnimator.animatedValue as Float
+            requestLayout()
+        }
+        return AnimatorSet().apply {
+            playTogether(widthAnimator, heightAnimator, radiusAnimator)
+            doOnStart {
+                doOnStart()
+            }
+            doOnEnd {
                 doOnEnd.invoke()
                 isEnabled = true
                 animationFinished = true
             }
-            radius = valueAnimator.animatedValue as Float
-            requestLayout()
-        }
-
-        doOnStart.invoke()
-        return AnimatorSet().apply {
-            playTogether(widthAnimator, heightAnimator, radiusAnimator)
         }
     }
 }

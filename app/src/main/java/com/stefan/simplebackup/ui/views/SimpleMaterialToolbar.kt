@@ -61,7 +61,7 @@ class SimpleMaterialToolbar(
                     setNavigationOnClickListener()
             }
         } else {
-            postDelayed(100L) {
+            postDelayed(50L) {
                 setDefaultState()
             }
         }

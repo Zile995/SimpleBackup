@@ -15,7 +15,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 
 val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
-val coroutineExceptionHandler =
+private val coroutineExceptionHandler =
     CoroutineExceptionHandler { coroutineContext, throwable ->
         when (throwable) {
             is CancellationException -> throw throwable
@@ -51,24 +51,24 @@ inline fun LifecycleOwner.launchPostDelayed(
     delay: Long = 0L,
     crossinline block: suspend CoroutineScope.() -> Unit
 ) = launchOnViewLifecycle {
-        delay(delay)
-        block()
-    }
+    delay(delay)
+    block()
+}
 
 inline fun LifecycleOwner.launchOnViewLifecycle(
     context: CoroutineContext = EmptyCoroutineContext,
     crossinline block: suspend CoroutineScope.() -> Unit
 ): Job = when (this) {
-        is ComponentActivity -> {
-            lifecycleScope.launch(context) { block() }
-        }
-        is Fragment -> {
-            viewLifecycleOwner.lifecycleScope.launch(context) { block() }
-        }
-        else -> {
-            throw IllegalArgumentException("Unsupported LifecycleOwner")
-        }
+    is ComponentActivity -> {
+        lifecycleScope.launch(context) { block() }
     }
+    is Fragment -> {
+        viewLifecycleOwner.lifecycleScope.launch(context) { block() }
+    }
+    else -> {
+        throw IllegalArgumentException("Unsupported LifecycleOwner")
+    }
+}
 
 suspend fun LifecycleOwner.repeatOnViewLifecycle(
     state: Lifecycle.State,

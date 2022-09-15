@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
+import androidx.annotation.RequiresApi
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -155,6 +156,17 @@ fun Context.forceStopPackage(packageName: String) {
     showToast(R.string.application_stopped)
 }
 
+// ###
+// ### Settings intents
+
+@RequiresApi(Build.VERSION_CODES.R)
+fun Context.openMenageFilesPermissionSettings() {
+    startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+        addCategory(Intent.CATEGORY_DEFAULT)
+        data = Uri.parse("package:$packageName")
+    })
+}
+
 fun Context.openAppNotificationSettings() {
     startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
         putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
@@ -190,10 +202,8 @@ fun Context.launchPackage(packageName: String) {
     }
 }
 
-fun Context.showToast(@StringRes message: Int, longDuration: Boolean = false) {
-    val duration = if (longDuration) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
-    Toast.makeText(applicationContext, message, duration).show()
-}
+fun Context.showToast(@StringRes resId: Int, longDuration: Boolean = false) =
+    showToast(getString(resId), longDuration)
 
 fun Context.showToast(message: String, longDuration: Boolean = false) {
     val duration = if (longDuration) Toast.LENGTH_LONG else Toast.LENGTH_SHORT
