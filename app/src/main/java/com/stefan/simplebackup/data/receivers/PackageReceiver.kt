@@ -8,8 +8,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class PackageReceiver(
-    private val packageListener: PackageListener,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val packageListener: PackageListener
 ) : BroadcastReceiver() {
 
     /**

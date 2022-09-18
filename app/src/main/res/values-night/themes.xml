@@ -127,10 +127,7 @@
         <item name="android:fontFamily">@font/inter_family</item>
     </style>
 
-    <style name="DialogTheme" parent="Theme.Material3.DayNight.Dialog.Alert">
-        <!--        <item name="android:windowBackground">@drawable/dialog_style</item>-->
-        <item name="android:textColor">@color/textColorPrimary</item>
-        <item name="android:textColorPrimary">@color/textColorPrimary</item>
+    <style name="Widget.SimpleBackup.MaterialAlertDialog" parent="MaterialAlertDialog.Material3">
         <item name="android:fontFamily">@font/inter_family</item>
     </style>
 </resources>

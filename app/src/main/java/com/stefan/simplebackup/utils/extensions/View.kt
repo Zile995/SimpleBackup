@@ -70,11 +70,11 @@ inline fun View.fadeIn(
         .alpha(1f)
         .setDuration(animationDuration)
         .setListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationStart(animation: Animator?) {
+            override fun onAnimationStart(animation: Animator) {
                 show()
             }
 
-            override fun onAnimationEnd(animation: Animator?) {
+            override fun onAnimationEnd(animation: Animator) {
                 onAnimationEnd.invoke()
             }
         })
@@ -89,7 +89,7 @@ inline fun View.fadeOut(
         .alpha(0f)
         .setDuration(animationDuration)
         .setListener(object : AnimatorListenerAdapter() {
-            override fun onAnimationEnd(animation: Animator?) {
+            override fun onAnimationEnd(animation: Animator) {
                 hide()
                 onAnimationEnd.invoke()
             }

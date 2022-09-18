@@ -8,12 +8,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.stefan.simplebackup"
         minSdk 26
-        targetSdk 32
+        targetSdk 33
         versionCode 20
         versionName "0.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -65,7 +65,7 @@ android {
         includeInBundle false
     }
 
-    compileSdkVersion 32
+    compileSdkVersion 33
     namespace 'com.stefan.simplebackup'
 }
 

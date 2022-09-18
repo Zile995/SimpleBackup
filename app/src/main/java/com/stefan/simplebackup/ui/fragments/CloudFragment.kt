@@ -3,6 +3,7 @@ package com.stefan.simplebackup.ui.fragments
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -22,6 +23,13 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
     private val homeViewModel: HomeViewModel by viewModels(
         ownerProducer = { requireParentFragment() }
     )
+
+    private val contactsPermissionLauncher by lazy {
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            binding.cloudRecyclerView.isVisible =  isGranted
+            binding.contactsPermissionLabel.isVisible = !isGranted
+        }
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

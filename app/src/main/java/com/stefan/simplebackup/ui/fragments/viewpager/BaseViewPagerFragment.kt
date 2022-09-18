@@ -79,7 +79,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
     }
 
     fun getCurrentFragment() =
-        viewPager.findCurrentFragment(childFragmentManager) as BaseFragment<*>
+        viewPager.findCurrentFragment(childFragmentManager) as? BaseFragment<*>
 
     private fun getOnPageChangeCallback(): ViewPager2.OnPageChangeCallback =
         object : ViewPager2.OnPageChangeCallback() {
@@ -127,16 +127,18 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
         tabPositions
     }
 
-    private fun controlTabs(shouldEnableTabs: Boolean) {
+    protected fun controlTabs(shouldEnableTabs: Boolean) {
         // Have to doOnPreDraw because the selectedTabPosition update is slow on configuration change
-        tabLayout.doOnPreDraw {
-            val tabPositions = getTabPositions()
-            tabPositions.filter { position ->
-                position != tabLayout.selectedTabPosition
-            }.forEach { notSelectedPosition ->
-                tabLayout.getTabAt(notSelectedPosition)?.view?.isEnabled = shouldEnableTabs
+        _tabLayout?.apply {
+            doOnPreDraw {
+                val tabPositions = getTabPositions()
+                tabPositions.filter { position ->
+                    position != tabLayout.selectedTabPosition
+                }.forEach { notSelectedPosition ->
+                    tabLayout.getTabAt(notSelectedPosition)?.view?.isEnabled = shouldEnableTabs
+                }
+                viewPager.isUserInputEnabled = shouldEnableTabs
             }
-            viewPager.isUserInputEnabled = shouldEnableTabs
         }
     }
 

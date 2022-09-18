@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
+import android.os.Parcelable
 import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -25,6 +26,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.viewbinding.ViewBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.fragments.BaseFragment
@@ -114,14 +116,13 @@ inline fun Fragment.onMainActivityCallback(crossinline block: suspend MainActivi
 
 inline fun <T : AppCompatActivity> Fragment.onActivityCallback(
     crossinline block: suspend T.() -> Unit
-) {
+) =
     @Suppress("UNCHECKED_CAST")
     (activity as? T)?.apply {
         launchOnViewLifecycle {
             block()
         }
     }
-}
 
 inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.() -> Unit = {}) =
     IntentFilter().apply {
@@ -131,11 +132,10 @@ inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.
         block()
     }
 
-fun Context.unregisterReceivers(vararg receivers: BroadcastReceiver) {
+fun Context.unregisterReceivers(vararg receivers: BroadcastReceiver) =
     receivers.forEach { receiver ->
         unregisterReceiver(receiver)
     }
-}
 
 fun Context.getColorFromResource(@ColorRes color: Int) =
     ContextCompat.getColor(applicationContext, color)
@@ -143,11 +143,10 @@ fun Context.getColorFromResource(@ColorRes color: Int) =
 fun Context.getInterFontTypeFace() =
     ResourcesCompat.getFont(applicationContext, R.font.inter_family)
 
-fun Context.deletePackage(packageName: String) {
+fun Context.deletePackage(packageName: String) =
     startActivity(Intent(Intent.ACTION_DELETE).apply {
         data = Uri.parse("package:${packageName}")
     })
-}
 
 fun Context.forceStopPackage(packageName: String) {
     val activityManager =
@@ -160,39 +159,34 @@ fun Context.forceStopPackage(packageName: String) {
 // ### Settings intents
 
 @RequiresApi(Build.VERSION_CODES.R)
-fun Context.openMenageFilesPermissionSettings() {
+fun Context.openMenageFilesPermissionSettings() =
     startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
         addCategory(Intent.CATEGORY_DEFAULT)
         data = Uri.parse("package:$packageName")
     })
-}
 
-fun Context.openAppNotificationSettings() {
+fun Context.openAppNotificationSettings() =
     startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
         putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
         addCategory(Intent.CATEGORY_DEFAULT)
     })
-}
 
-fun Context.openStorageSettings() {
+fun Context.openStorageSettings() =
     startActivity(Intent(Settings.ACTION_INTERNAL_STORAGE_SETTINGS).apply {
         addCategory(Intent.CATEGORY_DEFAULT)
     })
-}
 
-fun Context.openUsageAccessSettings() {
+fun Context.openUsageAccessSettings() =
     startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
         addCategory(Intent.CATEGORY_DEFAULT)
         data = Uri.fromParts("package", packageName, null)
     })
-}
 
-fun Context.openPackageSettingsInfo(packageName: String) {
+fun Context.openPackageSettingsInfo(packageName: String) =
     startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
         addCategory(Intent.CATEGORY_DEFAULT)
         data = Uri.parse("package:$packageName")
     })
-}
 
 fun Context.launchPackage(packageName: String) {
     val intent = applicationContext.packageManager.getLaunchIntentForPackage(packageName)
@@ -213,6 +207,9 @@ fun Context.showToast(message: String, longDuration: Boolean = false) {
 fun Context.getResourceDrawable(@DrawableRes drawable: Int) =
     ContextCompat.getDrawable(this, drawable)
 
+// ####
+// ### Parcelable / Bundle extensions
+
 inline fun <reified T : Enum<T>> Fragment.putEnumExtra(victim: T) {
     arguments = Bundle().apply { putInt(T::class.java.name, victim.ordinal) }
 }
@@ -222,58 +219,57 @@ inline fun <reified T : Enum<T>> Fragment.getEnumExtra(): T? =
         .takeUnless { ordinal -> ordinal == -1 }
         ?.let { T::class.java.enumConstants?.get(it) }
 
-// TODO: Move dialogs to specific classes
+inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? =
+    when {
+        SDK_INT >= 33 -> getParcelable(key, T::class.java)
+        else -> @Suppress("DEPRECATION") getParcelable(key) as? T
+    }
 
-fun Context.permissionDialog(
+inline fun Context.permissionDialog(
     title: String,
     message: String,
     positiveButtonText: String,
     negativeButtonText: String,
+    crossinline onPositiveButtonPress: () -> Unit = {},
+    crossinline onNegativeButtonPress: () -> Unit = {}
 ) {
-    val builder = AlertDialog.Builder(this, R.style.DialogTheme)
-    builder.setTitle(title)
-    builder.setMessage(message)
-    builder.setPositiveButton(positiveButtonText) { dialog, _ ->
-        dialog.cancel()
-    }
-    builder.setNegativeButton(negativeButtonText) { dialog, _ ->
-        dialog.cancel()
-        val uriData = Uri.parse("package:${applicationContext.packageName}")
-        if (SDK_INT >= Build.VERSION_CODES.R) {
-            startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
-                addCategory(Intent.CATEGORY_DEFAULT)
-                data = uriData
-            })
-        } else {
-            startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                addCategory(Intent.CATEGORY_DEFAULT)
-                data = uriData
-            })
+    val context = this
+    MaterialAlertDialogBuilder(context, R.style.Widget_SimpleBackup_MaterialAlertDialog).run {
+        setTitle(title)
+        setMessage(message)
+        setPositiveButton(positiveButtonText) { dialog, _ ->
+            dialog.cancel()
+            onPositiveButtonPress()
         }
+        setNegativeButton(negativeButtonText) { dialog, _ ->
+            dialog.cancel()
+            onNegativeButtonPress()
+        }
+        val alert = create()
+        alert.setOnShowListener {
+            alert.getButton(AlertDialog.BUTTON_NEGATIVE)
+                .setTextColor(context.getColor(R.color.negativeDialog))
+            alert.getButton(AlertDialog.BUTTON_POSITIVE)
+                .setTextColor(context.getColor(R.color.positiveDialog))
+        }
+        alert.show()
     }
-    val alert = builder.create()
-    alert.setOnShowListener {
-        alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-            .setTextColor(this.getColor(R.color.negativeDialog))
-        alert.getButton(AlertDialog.BUTTON_POSITIVE)
-            .setTextColor(this.getColor(R.color.positiveDialog))
-    }
-    alert.show()
 }
 
 fun Context.rootDialog(title: String, message: String) {
-    val builder = AlertDialog.Builder(this, R.style.DialogTheme).apply {
+    val context = this
+    MaterialAlertDialogBuilder(context, R.style.Widget_SimpleBackup_MaterialAlertDialog).apply {
         setTitle(title)
         setMessage(message)
-        setPositiveButton(getString(R.string.OK)) { dialog, _ ->
+        setPositiveButton(getString(R.string.ok)) { dialog, _ ->
             dialog.cancel()
         }
+        val alert = create()
+        alert.setOnShowListener {
+            alert.getButton(AlertDialog.BUTTON_POSITIVE)
+                .setTextColor(context.getColor(R.color.positiveDialog))
+        }
+        alert.show()
     }
-    val alert = builder.create()
-    alert.setOnShowListener {
-        alert.getButton(AlertDialog.BUTTON_POSITIVE)
-            .setTextColor(ContextCompat.getColor(this, R.color.positiveDialog))
-    }
-    alert.show()
 }
 

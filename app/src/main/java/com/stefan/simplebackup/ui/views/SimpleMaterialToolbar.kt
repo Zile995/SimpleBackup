@@ -123,11 +123,6 @@ class SimpleMaterialToolbar(
             propagateClickEventsToParent()
             setNavigationIcon(R.drawable.ic_search)
             setNavigationContentDescription(R.string.search_for_apps)
-            setNavigationOnClickListener {
-                if (animationFinished) {
-                    (parent as View).performClick()
-                }
-            }
         }
     }
 
@@ -226,7 +221,12 @@ class SimpleMaterialToolbar(
         val parentView by lazy { parent as View }
         setOnClickListener {
             if (animationFinished) {
-                parentView.performClick()
+                parentView.callOnClick()
+            }
+        }
+        setNavigationOnClickListener {
+            if (animationFinished) {
+                parentView.callOnClick()
             }
         }
     }

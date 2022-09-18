@@ -61,8 +61,8 @@ class MainActivity : BaseActivity() {
     // Broadcast receivers
     private val packageReceiver: PackageReceiver by lazy {
         PackageReceiver(
-            mainViewModel,
-            mainViewModel.viewModelScope
+            mainViewModel.viewModelScope,
+            mainViewModel
         )
     }
     private val notificationReceiver: NotificationReceiver by lazy {
@@ -87,7 +87,11 @@ class MainActivity : BaseActivity() {
         registerReceivers()
     }
 
-    override fun onBackPressed() {
+    override fun onBackPress() {
+        if (navController.currentDestination?.doesMatchDestination(R.id.home) == false) {
+            navController.popBackStack()
+            return
+        }
         if (animationFinished) {
             if (!selectionFinished) {
                 shouldExit = true
@@ -102,7 +106,7 @@ class MainActivity : BaseActivity() {
                     delayedExitJob?.invokeOnCompletion { delayedExitJob = null }
                 }
             } else
-                super.onBackPressed()
+                super.onBackPress()
         }
     }
 
@@ -336,6 +340,7 @@ class MainActivity : BaseActivity() {
     }
 
     fun MainRecyclerView.controlFloatingButton() {
+        if (binding.floatingButton.hidePermanently) return
         binding.floatingButton.setOnClickListener {
             if (selectionFinished)
                 smoothSnapToPosition(0)

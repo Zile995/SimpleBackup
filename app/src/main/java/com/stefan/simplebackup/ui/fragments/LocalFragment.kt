@@ -1,19 +1,23 @@
 package com.stefan.simplebackup.ui.fragments
 
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.manager.AppPermissionManager
+import com.stefan.simplebackup.data.manager.MainPermissions
 import com.stefan.simplebackup.databinding.FragmentLocalBinding
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.LocalAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
 import com.stefan.simplebackup.ui.views.MainRecyclerView
-import com.stefan.simplebackup.utils.extensions.isVisible
-import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

@@ -41,7 +41,7 @@ class AppDetailActivity : BaseActivity() {
     private var isToolbarAnimating = false
 
     private val detailsViewModel: DetailsViewModel by viewModels {
-        val selectedApp: AppData? = intent?.extras?.getParcelable(PARCELABLE_EXTRA)
+        val selectedApp = intent?.extras?.parcelable<AppData>(PARCELABLE_EXTRA)
         ViewModelFactory(application as MainApplication, selectedApp)
     }
 
@@ -157,25 +157,6 @@ class AppDetailActivity : BaseActivity() {
         }
     }
 
-    private fun ActivityDetailBinding.bindBackupButton() {
-//        backupButton.setOnClickListener {
-//            requestPermission(
-//                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-//                requestPermissionLauncher,
-//                continuationCallBack = {
-//                    detailsViewModel.createLocalBackup()
-//                },
-//                dialogCallBack = {
-//                    permissionDialog(
-//                        title = getString(R.string.storage_permission),
-//                        message = getString(R.string.storage_perm_info),
-//                        positiveButtonText = getString(R.string.OK),
-//                        negativeButtonText = getString(R.string.set_manually)
-//                    )
-//                })
-//        }
-    }
-
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.details_tool_bar, menu)
         return super.onCreateOptionsMenu(menu)
@@ -202,11 +183,12 @@ class AppDetailActivity : BaseActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        onBackPressed()
+        onBackPress()
         return true
     }
 
     @Deprecated("Deprecated in Java")
+    @Suppress("DEPRECATION")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             REQUEST_CODE_SIGN_IN ->
@@ -217,6 +199,7 @@ class AppDetailActivity : BaseActivity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
+    @Suppress("DEPRECATION")
     private fun requestSignIn() {
         val signInOptions = GoogleSignInOptions
             .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).apply {

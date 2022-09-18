@@ -34,7 +34,7 @@
     <string name="application_stopped">Application stopped!</string>
     <string name="data">Data</string>
     <string name="date">Date: </string>
-    <string name="OK">OK</string>
+    <string name="ok">OK</string>
     <string name="split">SPLIT</string>
     <string name="non_split">NON-SPLIT</string>
     <string name="settings_info">App info</string>
@@ -44,9 +44,12 @@
         \nbackup/restore application data</string>
     <string name="not_rooted">Your phone is not rooted</string>
     <string name="not_rooted_info">However, you will only be able to back up / restore applications without their data</string>
-    <string name="storage_permission">Permission not granted!</string>
+    <string name="storage_permission">Storage permission not granted.</string>
+    <string name="contacts_permission">Contacts permission not granted.</string>
     <string name="storage_perm_info">This permission is required to manage backup files and folders.
-        \nPlease set the storage permission.</string>
+        \nPlease set the storage permission in app settings.</string>
+    <string name="contacts_perm_info">This permission is required to upload / download backup files and folders from cloud.
+        \nPlease set the contacts permission in app settings.</string>
     <string name="work">Work</string>
     <string name="work_in_progress">Work in progress</string>
     <string name="backing_up">Backing up</string>

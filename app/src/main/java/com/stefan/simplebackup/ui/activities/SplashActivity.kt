@@ -1,19 +1,14 @@
 package com.stefan.simplebackup.ui.activities
 
-import android.Manifest.permission.MANAGE_EXTERNAL_STORAGE
-import android.Manifest.permission.PACKAGE_USAGE_STATS
 import android.annotation.SuppressLint
-import android.app.AppOpsManager
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.os.Process
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
 import com.stefan.simplebackup.BuildConfig
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.manager.AppPermissionManager
 import com.stefan.simplebackup.databinding.ActivitySplashBinding
 import com.stefan.simplebackup.utils.extensions.*
 import com.topjohnwu.superuser.Shell
@@ -69,6 +64,7 @@ class SplashActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        permissionHolder
         binding.apply {
             bindStoragePermissionView()
             bindUsageStatsPermissionView()
@@ -93,47 +89,15 @@ class SplashActivity : AppCompatActivity() {
         checkForMainPermissions()
     }
 
-    private val appOpsService by lazy { getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager }
-
     private fun checkForMainPermissions() {
-        permissionHolder =
-            PermissionHolder(
-                isUsageStatsGranted = checkUsageStatsPermission(),
-                isManageAllFilesGranted = checkManageAllFilesPermission()
-            )
-    }
-
-    @Suppress("DEPRECATION")
-    private fun checkUsageStatsPermission(): Boolean {
-        val mode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
-            appOpsService.unsafeCheckOpNoThrow(
-                AppOpsManager.OPSTR_GET_USAGE_STATS,
-                Process.myUid(),
-                packageName
-            )
-        else
-            appOpsService.checkOpNoThrow(
-                AppOpsManager.OPSTR_GET_USAGE_STATS,
-                Process.myUid(),
-                packageName
-            )
-        return if (mode == AppOpsManager.MODE_DEFAULT)
-            checkCallingOrSelfPermission(PACKAGE_USAGE_STATS) == PackageManager.PERMISSION_GRANTED
-        else mode == AppOpsManager.MODE_ALLOWED
-    }
-
-    private fun checkManageAllFilesPermission(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return true
-        val mode = AppOpsManager.permissionToOp(MANAGE_EXTERNAL_STORAGE)?.let { appOpName ->
-            appOpsService.unsafeCheckOpNoThrow(
-                appOpName,
-                Process.myUid(),
-                packageName
-            )
+        val appPermissionManager = AppPermissionManager(applicationContext)
+        appPermissionManager.apply {
+            permissionHolder =
+                PermissionHolder(
+                    isUsageStatsGranted = checkUsageStatsPermission(),
+                    isManageAllFilesGranted = checkManageAllFilesPermission()
+                )
         }
-        return if (mode == AppOpsManager.MODE_DEFAULT)
-            checkCallingOrSelfPermission(MANAGE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-        else mode == AppOpsManager.MODE_ALLOWED
     }
 
     private data class PermissionHolder(

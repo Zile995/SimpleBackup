@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.animation.DecelerateInterpolator
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.doOnEnd
+import androidx.core.animation.doOnStart
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.marginBottom
 import com.stefan.simplebackup.R
@@ -92,7 +93,9 @@ class MainActivityAnimator(
                     )
                 )
             } else {
-                reverseAnimations(animatorSet)
+                reverseAnimations(animatorSet).doOnStart {
+                    setFragmentBottomMargin(navigationBar.height)
+                }
             }
             floatingButton.hidePermanently = isSearching
             materialToolbar.changeOnSearch(isSearching,
@@ -132,7 +135,7 @@ class MainActivityAnimator(
     private fun ActivityMainBinding.expandAppBarLayout(shouldExpand: Boolean) =
         root.doOnPreDraw {
             if (shouldExpand)
-                appBarLayout.setExpanded(shouldExpand)
+                appBarLayout.setExpanded(true)
             else {
                 if (visibleFragment?.shouldMoveFragmentUp() == true) {
                     Log.d("AppBarLayout", "Collapsing the AppBarLayout")
