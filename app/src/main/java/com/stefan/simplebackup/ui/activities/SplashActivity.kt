@@ -80,7 +80,7 @@ class SplashActivity : AppCompatActivity() {
     private fun ActivitySplashBinding.bindStoragePermissionView() {
         storagePermissionCard.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-                openMenageFilesPermissionSettings()
+                openManageFilesPermissionSettings()
         }
     }
 

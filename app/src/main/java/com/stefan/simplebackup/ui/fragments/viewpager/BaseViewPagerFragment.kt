@@ -18,7 +18,6 @@ import com.stefan.simplebackup.ui.fragments.FavoritesFragment
 import com.stefan.simplebackup.ui.fragments.ViewReferenceCleaner
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.utils.extensions.*
-import kotlinx.coroutines.delay
 import java.lang.reflect.ParameterizedType
 
 abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
@@ -100,8 +99,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
 
             override fun onPageScrollStateChanged(state: Int) {
                 if (state == ViewPager2.SCROLL_STATE_IDLE && shouldStopSpinning) {
-                    launchOnViewLifecycle {
-                        delay(100L)
+                    launchPostDelayed(100L) {
                         stopProgressBarSpinning()
                     }
                 }
@@ -117,6 +115,21 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
             )
             viewPager.registerOnPageChangeCallback(cachedPageChangeCallback)
         }
+    }
+
+    protected fun addFragments(fragmentList: ArrayList<BaseFragment<*>>) {
+        viewPager.run {
+            val viewPagerAdapter = adapter as ViewPagerAdapter
+            if (viewPagerAdapter.itemCount != 0) return
+            fragmentList.forEach { baseFragment ->
+                viewPagerAdapter.addItem(baseFragment)
+            }
+            attachMediator()
+        }
+    }
+
+    protected fun removeAllFragments() {
+        (viewPager.adapter as ViewPagerAdapter).removeFragments()
     }
 
     private fun getTabPositions() = run {

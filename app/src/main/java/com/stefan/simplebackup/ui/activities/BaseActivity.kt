@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
 import com.stefan.simplebackup.data.manager.MainPermissions
-import com.stefan.simplebackup.utils.extensions.openMenageFilesPermissionSettings
+import com.stefan.simplebackup.utils.extensions.openManageFilesPermissionSettings
 import com.stefan.simplebackup.utils.extensions.openPackageSettingsInfo
 import com.stefan.simplebackup.utils.extensions.permissionDialog
 
@@ -71,7 +71,7 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
                     positiveButtonText = getString(R.string.ok),
                     negativeButtonText = getString(R.string.set_manually),
                     onNegativeButtonPress = {
-                        openMenageFilesPermissionSettings()
+                        openManageFilesPermissionSettings()
                     }
                 )
             }

@@ -159,7 +159,7 @@ fun Context.forceStopPackage(packageName: String) {
 // ### Settings intents
 
 @RequiresApi(Build.VERSION_CODES.R)
-fun Context.openMenageFilesPermissionSettings() =
+fun Context.openManageFilesPermissionSettings() =
     startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
         addCategory(Intent.CATEGORY_DEFAULT)
         data = Uri.parse("package:$packageName")

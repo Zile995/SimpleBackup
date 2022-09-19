@@ -24,13 +24,6 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
         ownerProducer = { requireParentFragment() }
     )
 
-    private val contactsPermissionLauncher by lazy {
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-            binding.cloudRecyclerView.isVisible =  isGranted
-            binding.contactsPermissionLabel.isVisible = !isGranted
-        }
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.apply {

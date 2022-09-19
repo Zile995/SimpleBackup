@@ -35,12 +35,12 @@ class ViewModelFactory(
                 additionalProperty as? Array<String>?,
                 application
             )
-            DetailsViewModel::class.java -> DetailsViewModel(
-                additionalProperty as? AppData?,
-                application
-            )
             ProgressViewModel::class.java -> ProgressViewModel(
                 additionalProperty as? Array<String>?,
+                application
+            )
+            DetailsViewModel::class.java -> DetailsViewModel(
+                additionalProperty as? AppData?,
                 application
             )
             SearchViewModel::class.java -> SearchViewModel()
