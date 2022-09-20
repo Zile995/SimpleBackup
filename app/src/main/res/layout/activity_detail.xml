@@ -60,7 +60,7 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
+        android:fillViewport="false"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -99,20 +99,44 @@
                         tools:ignore="RelativeOverlap" />
                 </LinearLayout>
 
-                <com.google.android.material.chip.Chip
-                    android:id="@+id/app_type_chip"
-                    style="@style/Widget.SimpleBackup.Chip"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginEnd="20dp"
-                    android:clickable="false"
-                    android:textColor="@color/textInBlueChip"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    app:chipBackgroundColor="@color/blueChip"
-                    app:chipEndPadding="2dp"
-                    app:chipStartPadding="2dp" />
+                    android:orientation="horizontal"
+                    android:layout_alignParentEnd="true">
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/is_split_chip"
+                        style="@style/Widget.SimpleBackup.Chip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="false"
+                        android:visibility="gone"
+                        android:layout_marginEnd="10dp"
+                        android:textColor="@color/textInBlueChip"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        app:chipBackgroundColor="@color/blueChip"
+                        app:chipEndPadding="2dp"
+                        app:chipStartPadding="2dp" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/app_type_chip"
+                        style="@style/Widget.SimpleBackup.Chip"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="20dp"
+                        android:clickable="false"
+                        android:textColor="@color/textInBlueChip"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        app:chipBackgroundColor="@color/blueChip"
+                        app:chipEndPadding="2dp"
+                        app:chipStartPadding="2dp" />
+
+                </LinearLayout>
+
+
 
             </RelativeLayout>
 
@@ -146,13 +170,42 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/version_name_field"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginTop="10dp"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/package_name_field">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="20dp"
+                    android:src="@drawable/ic_version" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/version_name_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="14dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                    android:textSize="15sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
                 android:id="@+id/apk_size_field"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:layout_marginTop="4dp"
                 android:orientation="horizontal"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/package_name_field">
+                app:layout_constraintTop_toBottomOf="@+id/version_name_field">
 
                 <ImageView
                     android:layout_width="wrap_content"
@@ -224,8 +277,96 @@
 
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/installed_on_field"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/target_api_field">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="20dp"
+                    android:src="@drawable/ic_installed_on" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/installed_date_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="14dp"
+                    android:text="@string/first_installed_on"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                    android:textSize="15sp" />
+
+            </LinearLayout>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/main_actions"
+        style="@style/Widget.SimpleBackup.SearchBar"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginEnd="40dp"
+        app:cardCornerRadius="40dp"
+        android:layout_marginBottom="10dp"
+        android:layout_gravity="bottom"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_gravity="start|center"
+                android:background="@color/blueChip"
+                android:scaleType="centerInside"
+                android:tint="@color/textInBlueChip"
+                android:visibility="visible"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SimpleBackup.ImageView"
+                app:srcCompat="@drawable/ic_storage" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_gravity="start|center"
+                android:layout_marginStart="20dp"
+                android:background="@color/blueChip"
+                android:scaleType="centerInside"
+                android:tint="@color/textInBlueChip"
+                android:visibility="visible"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SimpleBackup.ImageView"
+                app:srcCompat="@drawable/ic_add_to_drive" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/delete_app_button"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_gravity="start|center"
+                android:layout_marginStart="20dp"
+                android:background="@color/blueChip"
+                android:scaleType="centerInside"
+                android:tint="@color/textInBlueChip"
+                android:visibility="visible"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SimpleBackup.ImageView"
+                app:srcCompat="@drawable/ic_delete" />
+
+        </LinearLayout>
+
+    </com.google.android.material.card.MaterialCardView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

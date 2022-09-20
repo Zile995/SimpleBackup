@@ -130,7 +130,7 @@ data class AppData(
     private fun convertDateToString(): String {
         val locale = Locale.getDefault()
         val time = SimpleDateFormat(
-            "EEE, dd MMM yyyy hh:mm", locale
+            "dd MMM yyyy hh:mm", locale
         )
         return time.format(date)
     }

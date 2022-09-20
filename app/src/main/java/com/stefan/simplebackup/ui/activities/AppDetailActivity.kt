@@ -2,6 +2,7 @@ package com.stefan.simplebackup.ui.activities
 
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -10,6 +11,7 @@ import android.view.MenuItem
 import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.annotation.ColorRes
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -76,6 +78,7 @@ class AppDetailActivity : BaseActivity() {
                     applicationImage.scaleX = scaleFactor
                     applicationImage.scaleY = scaleFactor
                     applicationImage.alpha = alphaScaleFactor
+                    moveCardView(totalScrollRange)
                 }
                 0 -> {
                     applicationImage.alpha = 1f
@@ -91,6 +94,7 @@ class AppDetailActivity : BaseActivity() {
                 && absoluteOffsetValue < previousOffset
             ) {
                 animateStatusBarColor(android.R.color.transparent)
+                moveCardView(0)
             }
             previousOffset = absoluteOffsetValue
         }
@@ -117,6 +121,14 @@ class AppDetailActivity : BaseActivity() {
             doOnEnd {
                 isToolbarAnimating = false
             }
+            start()
+        }
+    }
+
+    private fun ActivityDetailBinding.moveCardView(translation: Int) {
+        if (mainActions.translationY == translation.toFloat() || isToolbarAnimating) return
+        ObjectAnimator.ofFloat(mainActions, "translationY", translation.toFloat()).apply {
+            duration = 100L
             start()
         }
     }
@@ -150,16 +162,51 @@ class AppDetailActivity : BaseActivity() {
                     app.isLocal -> resources.getString(R.string.local_backup)
                     else -> resources.getString(R.string.user_app)
                 }
+            @SuppressLint("SetTextI18n")
+            versionNameLabel.text = "v${app.versionName}"
+            installedDateLabel.text = when {
+                app.isCloud || app.isLocal -> getString(R.string.backed_up_on, app.getDateString())
+                else -> getString(R.string.first_installed_on, app.getDateString())
+            }
+            isSplitChip.isVisible = app.isSplit
+            isSplitChip.text = getString(R.string.split)
             packageNameLabel.text = app.packageName
             apkSizeLabel.text = getString(R.string.apk_size, app.apkSize.bytesToMegaBytesString())
             targetApiLabel.text = getString(R.string.target_sdk, app.targetSdk)
             minApiLabel.text = getString(R.string.min_sdk, app.minSdk)
+            deleteAppButton.setOnClickListener {
+                detailsViewModel.app?.apply {
+                    deletePackage(packageName)
+                }
+            }
         }
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.details_tool_bar, menu)
         return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        detailsViewModel.app?.apply {
+            menu?.findItem(R.id.add_to_favorites)?.apply {
+                icon =
+                    if (favorite) AppCompatResources.getDrawable(
+                        applicationContext,
+                        R.drawable.ic_favorite
+                    )
+                    else
+                        AppCompatResources.getDrawable(
+                            applicationContext,
+                            R.drawable.ic_unstarred
+                        )
+                tooltipText = if (favorite)
+                    getString(R.string.remove_from_favorites)
+                else
+                    getString(R.string.add_to_favorites)
+            }
+        }
+        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -174,6 +221,9 @@ class AppDetailActivity : BaseActivity() {
                 detailsViewModel.app?.apply {
                     openPackageSettingsInfo(packageName)
                 }
+                true
+            }
+            R.id.add_to_favorites -> {
                 true
             }
             else -> {

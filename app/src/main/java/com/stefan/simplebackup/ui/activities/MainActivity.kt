@@ -222,8 +222,6 @@ class MainActivity : BaseActivity() {
         materialToolbar.setOnSearchAction()
         materialToolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.action_search -> {
-                }
                 R.id.add_to_favorites -> {
                     if (visibleFragment !is FavoritesFragment)
                         mainViewModel.addToFavorites()
@@ -232,7 +230,7 @@ class MainActivity : BaseActivity() {
                 }
                 R.id.delete -> {
                     Log.d("Activity", "Setting up the delete action")
-                    if (visibleFragment is HomeFragment && mainViewModel.hasRootAccess()) {
+                    if (visibleFragment is HomeFragment && !mainViewModel.hasRootAccess()) {
                         visibleFragment?.deleteSelectedItem()
                     }
                 }
