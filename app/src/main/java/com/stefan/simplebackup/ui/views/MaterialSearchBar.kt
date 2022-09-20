@@ -56,33 +56,15 @@ class MaterialSearchBar(
             rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
     }
 
-    inline fun animateToInitialSize(
-        crossinline doOnStart: () -> Unit = {},
-        crossinline doOnEnd: () -> Unit = {}
-    ): Animator? {
-        if (height == initialHeight && width == initialWidth && radius == initialRadius) return null
-        Log.d("SearchBarAnimation", "Animating to initial size")
-        return animateTo(
-            toHeightValue = initialHeight,
-            toWidthValue = initialWidth,
-            doOnStart = {
-                doOnStart.invoke()
-            },
-            doOnEnd = {
-                doOnEnd.invoke()
-            }
-        )
-    }
-
     inline fun animateToParentSize(
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
-    ): AnimatorSet? {
-        if (height == parentHeight && width == parentWidth) return null
+    ): AnimatorSet {
         Log.d("SearchBarAnimation", "Animating to parent size")
         return animateTo(
             toHeightValue = parentHeight,
             toWidthValue = parentWidth,
+            toRadius = 0f,
             doOnStart = {
                 doOnStart.invoke()
             },
@@ -95,19 +77,13 @@ class MaterialSearchBar(
     inline fun animateTo(
         toHeightValue: Int,
         toWidthValue: Int,
+        toRadius: Float,
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
     ): AnimatorSet {
-        isEnabled = false
-        animationFinished = false
-
         val widthAnimator = ValueAnimator.ofInt(width, toWidthValue)
         val heightAnimator = ValueAnimator.ofInt(height, toHeightValue)
-        val radiusAnimator =
-            if (initialRadius != radius)
-                ValueAnimator.ofFloat(radius, initialRadius)
-            else
-                ValueAnimator.ofFloat(radius, 0f)
+        val radiusAnimator = ValueAnimator.ofFloat(radius, toRadius)
 
         widthAnimator.addUpdateListener { valueAnimator ->
             layoutParams.width = valueAnimator.animatedValue as Int
@@ -122,10 +98,12 @@ class MaterialSearchBar(
         return AnimatorSet().apply {
             playTogether(widthAnimator, heightAnimator, radiusAnimator)
             doOnStart {
+                isEnabled = false
+                animationFinished = false
                 doOnStart()
             }
             doOnEnd {
-                doOnEnd.invoke()
+                doOnEnd()
                 isEnabled = true
                 animationFinished = true
             }

@@ -6,8 +6,6 @@ import android.os.Bundle
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MenuItem
-import androidx.core.animation.doOnEnd
-import androidx.core.animation.doOnStart
 import androidx.core.view.doOnLayout
 import androidx.core.view.forEach
 import androidx.navigation.NavController
@@ -16,9 +14,6 @@ import androidx.navigation.NavOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.utils.extensions.doesMatchDestination
-import com.stefan.simplebackup.utils.extensions.hide
-import com.stefan.simplebackup.utils.extensions.isVisible
-import com.stefan.simplebackup.utils.extensions.show
 import java.lang.ref.WeakReference
 
 class NavigationBar(
@@ -28,8 +23,7 @@ class NavigationBar(
     defStyleRes: Int
 ) : BottomNavigationView(context, attrs, defStyleAttr, defStyleRes) {
 
-    var initialHeight: Int = 0
-        private set
+    private var initialHeight: Int = 0
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(
@@ -51,38 +45,10 @@ class NavigationBar(
         }
     }
 
-    inline fun moveUp(
-        crossinline doOnStart: () -> Unit = {},
-        crossinline doOnEnd: () -> Unit = {}
-    ): ObjectAnimator? {
-        if (isVisible) return null
-        return ObjectAnimator.ofFloat(this, "translationY", 0f).apply {
-            doOnStart {
-                show()
-                doOnStart()
-            }
-            doOnEnd {
-                doOnEnd()
-            }
-            Log.d("NavigationBar", "Moving up")
-        }
-    }
-
-    inline fun moveDown(
-        crossinline doOnStart: () -> Unit = {},
-        crossinline doOnEnd: () -> Unit = {}
-    ): ObjectAnimator {
-        return ObjectAnimator.ofFloat(this, "translationY", initialHeight.toFloat()).apply {
-            doOnStart {
-                doOnStart()
-            }
-            doOnEnd {
-                doOnEnd()
-                hide()
-            }
+    fun moveDown(): ObjectAnimator =
+        ObjectAnimator.ofFloat(this, "translationY", initialHeight.toFloat()).apply {
             Log.d("NavigationBar", "Moving down")
         }
-    }
 
     inline fun navigateWithAnimation(
         navController: NavController,
