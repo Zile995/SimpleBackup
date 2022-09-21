@@ -53,7 +53,6 @@ class MainActivityAnimator(
                         duration = animationDuration
                         interpolator = AccelerateInterpolator()
                         doOnStart {
-                            appBarLayout.setExpanded(true)
                             changeStatusBarColor(R.color.bottomView)
                         }
                         doOnEnd {

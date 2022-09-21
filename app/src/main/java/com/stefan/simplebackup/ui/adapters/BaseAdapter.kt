@@ -32,12 +32,13 @@ abstract class BaseAdapter(
         holder.setSelectedItem(item)
     }
 
-    private fun getOnlySelectedItems() = currentList.filter { it.isSelected }
-
     private fun BaseViewHolder.setSelectedItem(item: AppData) {
         if (selectedItems.contains(item.packageName)) {
             item.isSelected = true
             setSelected()
+        } else {
+            item.isSelected = false
+            unsetSelected()
         }
     }
 
@@ -47,7 +48,6 @@ abstract class BaseAdapter(
         }
 
     fun selectAllItems() {
-        if (selectedItems.size == currentList.size) return
         val transformedList = currentList.map {
             it.packageName
         }
