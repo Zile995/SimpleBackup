@@ -88,8 +88,6 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         }
     }
 
-    fun hasRootAccess() = rootChecker.hasRootAccess() == true
-
     fun setSearching(isSearching: Boolean) {
         _isSearching.value = isSearching
     }
@@ -99,7 +97,7 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     }
 
     fun findAppsByName(name: String?) {
-        if (name.isNullOrBlank() || name.isNullOrEmpty() || name.contains("%") || name.contains("_")) {
+        if (name.isNullOrBlank() || name.isEmpty() || name.contains("%") || name.contains("_")) {
             _searchResult.value = listOf()
             return
         }

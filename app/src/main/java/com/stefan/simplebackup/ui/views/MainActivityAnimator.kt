@@ -2,13 +2,16 @@ package com.stefan.simplebackup.ui.views
 
 import android.animation.AnimatorSet
 import android.util.Log
+import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import androidx.annotation.ColorRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
+import androidx.core.view.doOnLayout
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.marginBottom
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
@@ -48,8 +51,10 @@ class MainActivityAnimator(
                 } else
                     animatorSet.apply {
                         duration = animationDuration
+                        interpolator = AccelerateInterpolator()
                         doOnStart {
                             appBarLayout.setExpanded(true)
+                            changeStatusBarColor(R.color.bottomView)
                         }
                         doOnEnd {
                             changeStatusBarColor(R.color.bottomView)
@@ -77,8 +82,8 @@ class MainActivityAnimator(
                         visibleFragment?.fixRecyclerViewScrollPosition()
                     }
                 }
+                expandAppBarLayout(isSelected)
             }
-            expandAppBarLayout(isSelected)
             floatingButton.changeOnSelection(isSelected)
             materialToolbar.changeOnSelection(isSelected, selectionModeCallBack)
         }
@@ -137,20 +142,21 @@ class MainActivityAnimator(
     ) {
         root.doOnPreDraw {
             animatorSet.apply {
+                interpolator = AccelerateInterpolator()
                 doOnStart {
                     changeStatusBarColor(R.color.bottomView)
                     doOnStart()
                 }
                 doOnEnd {
-                    doOnEnd()
                     setFragmentBottomMargin(navigationBar.height)
+                    doOnEnd()
                 }
                 reverse()
             }
         }
     }
 
-    private fun ActivityMainBinding.expandAppBarLayout(shouldExpand: Boolean) =
+    private fun ActivityMainBinding.expandAppBarLayout(shouldExpand: Boolean) {
         root.doOnPreDraw {
             if (shouldExpand)
                 appBarLayout.setExpanded(true)
@@ -161,6 +167,7 @@ class MainActivityAnimator(
                 }
             }
         }
+    }
 
     private fun ActivityMainBinding.setFragmentBottomMargin(bottomMargin: Int) {
         if (navHostContainer.marginBottom == bottomMargin) return

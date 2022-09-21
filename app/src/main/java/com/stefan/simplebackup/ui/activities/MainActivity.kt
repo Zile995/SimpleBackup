@@ -230,7 +230,7 @@ class MainActivity : BaseActivity() {
                 }
                 R.id.delete -> {
                     Log.d("Activity", "Setting up the delete action")
-                    if (visibleFragment is HomeFragment && !mainViewModel.hasRootAccess()) {
+                    if (visibleFragment is HomeFragment) {
                         visibleFragment?.deleteSelectedItem()
                     }
                 }

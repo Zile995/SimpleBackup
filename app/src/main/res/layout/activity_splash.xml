@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true">
 
     <LinearLayout
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
         android:gravity="center"
         android:orientation="vertical">
 
@@ -17,7 +17,6 @@
             android:id="@+id/application_image"
             android:layout_width="75dp"
             android:layout_height="75dp"
-            android:layout_marginTop="-50dp"
             android:background="@color/blueChip"
             android:scaleType="center"
             android:tint="@color/textInBlueChip"
@@ -30,38 +29,128 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:visibility="gone"
-            android:text="Welcome to Simple Backup"
+            android:text="@string/welcome_to_simple_backup"
             android:textAlignment="center"
             android:textAppearance="@style/TextAppearance.SimpleBackup.TitleLarge"
-            android:textColor="@color/selectedTab" />
+            android:textColor="@color/selectedTab"
+            android:visibility="gone" />
 
         <LinearLayout
             android:id="@+id/card_items_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="40dp"
-            android:orientation="vertical" >
+            android:orientation="vertical">
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/usage_stats_card"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:visibility="gone"
+                android:layout_height="140dp"
                 android:layout_marginStart="30dp"
                 android:layout_marginEnd="30dp"
-                android:layout_marginBottom="20dp" />
+                android:layout_marginBottom="20dp"
+                android:visibility="gone">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/usage_access_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/usage_access"
+                        android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                        android:textColor="@color/selectedTab"
+                        android:textSize="16sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <ImageView
+                        android:id="@+id/usage_access_icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:src="@drawable/ic_usage_stats"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="@+id/usage_access_label"
+                        app:layout_constraintTop_toBottomOf="@id/usage_access_label" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/usage_access_info"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="20dp"
+                        android:text="@string/permit_usage_access"
+                        android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                        android:textSize="14sp"
+                        app:layout_constraintBottom_toBottomOf="@id/usage_access_icon"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/usage_access_icon"
+                        app:layout_constraintTop_toTopOf="@+id/usage_access_icon" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/storage_permission_card"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:visibility="gone"
+                android:layout_height="140dp"
                 android:layout_marginStart="30dp"
-                android:layout_marginEnd="30dp" />
+                android:layout_marginEnd="30dp"
+                android:visibility="gone">
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/manage_files_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:layout_marginTop="10dp"
+                        android:text="@string/manage_all_files"
+                        android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                        android:textColor="@color/selectedTab"
+                        android:textSize="16sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <ImageView
+                        android:id="@+id/manage_files_icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="10dp"
+                        android:src="@drawable/ic_manage_files"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="@+id/manage_files_label"
+                        app:layout_constraintTop_toBottomOf="@+id/manage_files_label" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/manage_files_info"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="20dp"
+                        android:text="@string/allow_manage_files"
+                        android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                        android:textSize="14sp"
+                        app:layout_constraintBottom_toBottomOf="@id/manage_files_icon"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/manage_files_icon"
+                        app:layout_constraintTop_toTopOf="@+id/manage_files_icon" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
 
     </LinearLayout>
 
-</ScrollView>
+</androidx.core.widget.NestedScrollView>
