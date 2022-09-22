@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.ui.views
 
-import android.animation.Animator
 import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.content.Context

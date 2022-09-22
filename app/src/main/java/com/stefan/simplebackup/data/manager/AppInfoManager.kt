@@ -1,16 +1,26 @@
 package com.stefan.simplebackup.data.manager
 
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.content.pm.PackageManager.ApplicationInfoFlags
+import android.content.pm.PackageManager.PackageInfoFlags
 import android.graphics.drawable.Drawable
+import android.os.Build
 
-class AppInfoManager(private val packageManager: PackageManager, private val flag: Int) {
+class AppInfoManager(private val packageManager: PackageManager, private val flag: Long) {
 
-    @Suppress("MemberVisibilityCanBePrivate")
-    fun getCompleteAppsInfo(): List<ApplicationInfo> =
-        packageManager.getInstalledApplications(flag).sortedBy { appInfo ->
+    @Suppress("DEPRECATION")
+    fun getCompleteAppsInfo(): List<ApplicationInfo> {
+        val installedApps =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+                packageManager.getInstalledApplications(ApplicationInfoFlags.of(flag))
+            else
+                packageManager.getInstalledApplications(flag.toInt())
+        return installedApps.sortedBy { appInfo ->
             getAppName(appInfo)
         }
+    }
 
     fun getFilteredInfo(
         filterSystemApps: Boolean = false,
@@ -20,17 +30,20 @@ class AppInfoManager(private val packageManager: PackageManager, private val fla
             predicate(appInfo) && (if (filterSystemApps) !isUserApp(appInfo) else isUserApp(appInfo))
         }
 
-    fun getMinSDK(applicationInfo: ApplicationInfo) = applicationInfo.minSdkVersion
-    fun getTargetSDK(applicationInfo: ApplicationInfo) = applicationInfo.targetSdkVersion
+    fun getMinSdk(applicationInfo: ApplicationInfo) = applicationInfo.minSdkVersion
+    fun getTargetSdk(applicationInfo: ApplicationInfo) = applicationInfo.targetSdkVersion
 
     fun getDataDir(applicationInfo: ApplicationInfo): String = applicationInfo.dataDir
 
-    fun getAppInfo(packageName: String, flag: Int) =
-        packageManager.getApplicationInfo(packageName, flag)
+    @Suppress("DEPRECATION")
+    fun getAppInfo(packageName: String) =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            packageManager.getApplicationInfo(packageName, ApplicationInfoFlags.of(flag))
+        else
+            packageManager.getApplicationInfo(packageName, flag.toInt())
 
     fun getVersionName(applicationInfo: ApplicationInfo) =
-        packageManager.getPackageInfo(applicationInfo.packageName, flag)
-            .versionName?.substringBefore(" (") ?: ""
+        getPackageInfo(applicationInfo.packageName).versionName?.substringBefore(" (") ?: ""
 
     fun getDrawable(applicationInfo: ApplicationInfo): Drawable =
         applicationInfo.loadIcon(packageManager)
@@ -47,6 +60,12 @@ class AppInfoManager(private val packageManager: PackageManager, private val fla
     fun getAppName(applicationInfo: ApplicationInfo) =
         applicationInfo.loadLabel(packageManager).toString()
 
-    fun getFirstInstallTime(packageName: String) =
-        packageManager.getPackageInfo(packageName, 0).firstInstallTime
+    fun getFirstInstallTime(packageName: String) = getPackageInfo(packageName).firstInstallTime
+
+    @Suppress("DEPRECATION")
+    fun getPackageInfo(packageName: String): PackageInfo =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            packageManager.getPackageInfo(packageName, PackageInfoFlags.of(flag))
+        else
+            packageManager.getPackageInfo(packageName, flag.toInt())
 }

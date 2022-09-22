@@ -23,7 +23,7 @@ import kotlinx.coroutines.sync.withPermit
 import kotlin.system.measureTimeMillis
 
 class MainViewModel(application: MainApplication) : ViewModel(),
-    PackageListener by PackageListenerImpl(application) {
+    PackageListener by PackageListenerImpl(application.applicationContext) {
     // View saved states
     var isAppBarExpanded = true
         private set

@@ -30,6 +30,7 @@
     <string name="no">NO</string>
     <string name="apk">APK </string>
     <string name="apk_size">Apk size %1$s</string>
+    <string name="all_arch">All architectures</string>
     <string name="first_installed_on">First installed on %1$s</string>
     <string name="backed_up_on">Backed up on %1$s</string>
     <string name="force_stop">Force Stop</string>

@@ -60,6 +60,11 @@
         <item name="backgroundTint">@color/blueChip</item>
     </style>
 
+    <style name="ShapeAppearanceOverlay.SimpleBackup.RoundedFloatingButton" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+
     <style name="TextAppearance.SimpleBackup.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
         <item name="fontFamily">@font/inter_family</item>
         <item name="android:fontFamily">@font/inter_family</item>
@@ -104,6 +109,13 @@
         <item name="cardCornerRadius">30dp</item>
         <item name="cardElevation">2dp</item>
         <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="Widget.SimpleBackup.RoundedFloatingButton" parent="ThemeOverlay.Material3.FloatingActionButton.Primary">
+        <item name="elevation">2dp</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="backgroundTint">@color/blueChip</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SimpleBackup.RoundedFloatingButton</item>
     </style>
 
     <style name="Widget.SimpleBackup.MaterialSearchView" parent="Widget.AppCompat.SearchView">

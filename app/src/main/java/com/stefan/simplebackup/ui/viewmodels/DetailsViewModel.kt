@@ -8,7 +8,12 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
+import com.stefan.simplebackup.utils.extensions.ioDispatcher
+import com.stefan.simplebackup.utils.work.archive.ZipUtil
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class DetailsViewModel(
@@ -16,14 +21,27 @@ class DetailsViewModel(
     application: MainApplication
 ) : ViewModel() {
 
-    private val workManager = WorkManager.getInstance(application)
+    private val workManager by lazy { WorkManager.getInstance(application) }
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+
+    private var _archNames = MutableStateFlow<List<String>?>(null)
+    val archNames get() = _archNames.asStateFlow()
 
     init {
         Log.d("ViewModel", "DetailsViewModel created")
+        getApkArchitectures()
+    }
+
+    private fun getApkArchitectures() {
+        viewModelScope.launch(ioDispatcher) {
+            app?.apply {
+                _archNames.value = ZipUtil.getAppAbiList(this)
+            }
+        }
     }
 
     fun createLocalBackup() {
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(defaultDispatcher) {
             app?.apply {
                 val workerHelper = WorkerHelper(packageName, workManager)
                 workerHelper.beginUniqueWork<MainWorker>()

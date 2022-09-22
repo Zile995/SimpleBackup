@@ -102,20 +102,20 @@
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_alignParentEnd="true">
+                    android:layout_alignParentEnd="true"
+                    android:orientation="horizontal">
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/is_split_chip"
                         style="@style/Widget.SimpleBackup.Chip"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:clickable="false"
-                        android:visibility="gone"
                         android:layout_marginEnd="10dp"
+                        android:clickable="false"
                         android:textColor="@color/textInBlueChip"
                         android:textSize="11sp"
                         android:textStyle="bold"
+                        android:visibility="gone"
                         app:chipBackgroundColor="@color/blueChip"
                         app:chipEndPadding="2dp"
                         app:chipStartPadding="2dp" />
@@ -135,7 +135,6 @@
                         app:chipStartPadding="2dp" />
 
                 </LinearLayout>
-
 
 
             </RelativeLayout>
@@ -305,6 +304,29 @@
 
             </LinearLayout>
 
+            <HorizontalScrollView
+                android:id="@+id/horizontal_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/installed_on_field">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/architecture_chip_group"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:alpha="0.0"
+                    android:visibility="gone"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/installed_on_field" />
+
+            </HorizontalScrollView>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.core.widget.NestedScrollView>
@@ -313,12 +335,12 @@
         android:id="@+id/main_actions"
         style="@style/Widget.SimpleBackup.SearchBar"
         android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:layout_marginStart="40dp"
-        android:layout_marginEnd="40dp"
-        app:cardCornerRadius="40dp"
-        android:layout_marginBottom="10dp"
+        android:layout_height="@dimen/bottom_navigation_height"
         android:layout_gravity="bottom"
+        android:layout_marginStart="50dp"
+        android:layout_marginEnd="50dp"
+        android:layout_marginBottom="10dp"
+        app:cardCornerRadius="30dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -329,41 +351,40 @@
             android:layout_gravity="center"
             android:orientation="horizontal">
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:layout_gravity="start|center"
-                android:background="@color/blueChip"
-                android:scaleType="centerInside"
-                android:tint="@color/textInBlueChip"
-                android:visibility="visible"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SimpleBackup.ImageView"
-                app:srcCompat="@drawable/ic_storage" />
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/local_backup_button"
+                style="@style/Widget.SimpleBackup.RoundedFloatingButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:contentDescription="TODO"
+                android:src="@drawable/ic_storage">
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:layout_gravity="start|center"
-                android:layout_marginStart="20dp"
-                android:background="@color/blueChip"
-                android:scaleType="centerInside"
-                android:tint="@color/textInBlueChip"
-                android:visibility="visible"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SimpleBackup.ImageView"
-                app:srcCompat="@drawable/ic_add_to_drive" />
+            </com.google.android.material.floatingactionbutton.FloatingActionButton>
 
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/delete_app_button"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:layout_gravity="start|center"
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/cloud_backup_button"
+                style="@style/Widget.SimpleBackup.RoundedFloatingButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
                 android:layout_marginStart="20dp"
-                android:background="@color/blueChip"
-                android:scaleType="centerInside"
-                android:tint="@color/textInBlueChip"
-                android:visibility="visible"
-                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SimpleBackup.ImageView"
-                app:srcCompat="@drawable/ic_delete" />
+                android:contentDescription="TODO"
+                android:src="@drawable/ic_add_to_drive">
+
+            </com.google.android.material.floatingactionbutton.FloatingActionButton>
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/delete_button"
+                style="@style/Widget.SimpleBackup.RoundedFloatingButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="20dp"
+                android:contentDescription="TODO"
+                android:src="@drawable/ic_delete">
+
+            </com.google.android.material.floatingactionbutton.FloatingActionButton>
 
         </LinearLayout>
 

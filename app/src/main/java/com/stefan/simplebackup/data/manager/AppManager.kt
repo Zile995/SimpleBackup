@@ -3,20 +3,20 @@ package com.stefan.simplebackup.data.manager
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.content.pm.PackageManager.PackageInfoFlags
+import android.os.Build
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
-import com.stefan.simplebackup.utils.work.archive.ZipUtil.getApkFileSizeWithSplitInfo
+import com.stefan.simplebackup.utils.file.FileUtil.getApkFileSizeSplitInfo
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
 class AppManager(private val context: Context) {
-
-    private val metaDataFlag = PackageManager.GET_META_DATA
 
     /**
      * - [PackageManager]
@@ -25,12 +25,12 @@ class AppManager(private val context: Context) {
 
     // Helper manager classes
     private val appInfoManager: AppInfoManager by lazy {
-        AppInfoManager(packageManager, metaDataFlag)
+        AppInfoManager(packageManager, 0)
     }
 
     suspend fun build(packageName: String) =
         withContext(ioDispatcher) {
-            getAppData(appInfo = appInfoManager.getAppInfo(packageName, metaDataFlag))
+            getAppData(appInfo = appInfoManager.getAppInfo(packageName))
         }
 
     private fun printSequence() =
@@ -68,7 +68,7 @@ class AppManager(private val context: Context) {
 
     fun doesPackageExists(packageName: String): Boolean {
         try {
-            packageManager.getPackageInfo(packageName, metaDataFlag)
+            appInfoManager.getPackageInfo(packageName)
         } catch (e: PackageManager.NameNotFoundException) {
             return false
         }
@@ -85,12 +85,12 @@ class AppManager(private val context: Context) {
         }
     }.flowOn(ioDispatcher)
 
-    private suspend fun getAppData(appInfo: ApplicationInfo): AppData = coroutineScope {
+    private suspend fun getAppData(appInfo: ApplicationInfo) = coroutineScope {
         appInfoManager.run {
             getApkDir(appInfo)
             val apkDir = getApkDir(appInfo)
             val packageName = getPackageName(appInfo)
-            val apkInfo = getApkFileSizeWithSplitInfo(apkDir)
+            val apkInfo = getApkFileSizeSplitInfo(apkDir)
 
             AppData(
                 name = getAppName(appInfo),
@@ -98,8 +98,8 @@ class AppManager(private val context: Context) {
                 packageName = packageName,
                 versionName = getVersionName(appInfo),
                 date = getFirstInstallTime(packageName),
-                targetSdk = getTargetSDK(appInfo),
-                minSdk = getMinSDK(appInfo),
+                targetSdk = getTargetSdk(appInfo),
+                minSdk = getMinSdk(appInfo),
                 dataDir = getDataDir(appInfo),
                 apkDir = getApkDir(appInfo),
                 apkSize = apkInfo.first,

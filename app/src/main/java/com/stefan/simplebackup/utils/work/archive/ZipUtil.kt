@@ -5,6 +5,7 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.file.FileUtil
+import com.stefan.simplebackup.utils.file.FileUtil.getApkFilesInsideDir
 import com.stefan.simplebackup.utils.file.FileUtil.getApkZipFile
 import com.stefan.simplebackup.utils.file.FileUtil.getBackupDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
@@ -43,7 +44,7 @@ object ZipUtil {
     @Throws(ZipException::class)
     private suspend fun zipApks(app: AppData) {
         coroutineScope {
-            val apkFiles = async { getApkList(app) }
+            val apkFiles = async { getApkFilesInsideDir(app) }
             val tempDirPath = getTempDirPath(app)
             val zipParameters = getZipParameters()
             val zipFile = ZipFile("$tempDirPath/${app.name}.zip")
@@ -98,32 +99,19 @@ object ZipUtil {
         return if (tarArchive.exists()) tarArchive else null
     }
 
-    private fun getApkList(app: AppData): MutableList<File> {
-        val apkList = mutableListOf<File>()
-        val dir = File(app.apkDir)
-        dir.walkTopDown().filter {
-            it.extension == "apk"
-        }.forEach { apk ->
-            apkList.add(apk)
+    suspend fun getAppAbiList(app: AppData) = coroutineScope {
+        val abiList = mutableListOf<String>()
+        val apkFiles = File(app.apkDir).listFiles()?.filter { file ->
+            file.extension == "apk"
         }
-        Log.d("ZipUtil", "Got the apk list for ${app.name}: ${apkList.map { it.name }}")
-        return apkList
+        apkFiles?.forEach { apkFile ->
+            val apkAbiList = getApkAbiList(apkFile)
+            abiList.addAll(apkAbiList)
+        }
+        abiList.distinct()
     }
 
-    suspend fun getApkFileSizeWithSplitInfo(apkDirPath: String): Pair<Float, Boolean> = coroutineScope {
-        val isSplit: Boolean
-        File(apkDirPath).listFiles()?.let { apkDirFiles ->
-            apkDirFiles.filter { dirFile ->
-                dirFile.isFile && dirFile.name.endsWith(".apk")
-            }.also { apkFiles ->
-                isSplit = apkFiles.size > 1
-            }.sumOf { apkFile ->
-                apkFile.length()
-            }.toFloat() to isSplit
-        } ?: (0f to false)
-    }
-
-    suspend fun listApkLibs(apkFile: File) = coroutineScope {
+    private suspend fun getApkAbiList(apkFile: File) = coroutineScope {
         val abiList = mutableListOf<String>()
         try {
             val zipFile = ZipFile(apkFile)
@@ -138,7 +126,7 @@ object ZipUtil {
         } catch (e: IOException) {
             e.message?.let { message ->
                 Log.e(
-                    "AppManager",
+                    "ZipUtil",
                     "${apkFile.name}: $message"
                 )
             }

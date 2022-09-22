@@ -8,10 +8,8 @@ import androidx.annotation.ColorRes
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
-import androidx.core.view.doOnLayout
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.marginBottom
-import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
@@ -38,27 +36,31 @@ class MainActivityAnimator(
         binding?.apply {
             root.doOnPreDraw {
                 if (isInSettings) {
-                    animatorSet = AnimatorSet().apply {
-                        duration = 50L
-                        interpolator = DecelerateInterpolator()
-                        play(materialSearchBar.animateToParentSize())
-                        doOnEnd {
-                            changeStatusBarColor(R.color.searchBar)
-                            appBarLayout.setExpanded(true)
+                    root.doOnPreDraw {
+                        animatorSet = AnimatorSet().apply {
+                            duration = 50L
+                            interpolator = DecelerateInterpolator()
+                            play(materialSearchBar.animateToParentSize())
+                            doOnEnd {
+                                changeStatusBarColor(R.color.searchBar)
+                                appBarLayout.setExpanded(true)
+                            }
+                            start()
                         }
-                        start()
                     }
                 } else
-                    animatorSet.apply {
-                        duration = animationDuration
-                        interpolator = AccelerateInterpolator()
-                        doOnStart {
-                            changeStatusBarColor(R.color.bottomView)
+                    root.doOnPreDraw {
+                        animatorSet.apply {
+                            duration = animationDuration
+                            interpolator = AccelerateInterpolator()
+                            doOnStart {
+                                changeStatusBarColor(R.color.bottomView)
+                            }
+                            doOnEnd {
+                                changeStatusBarColor(R.color.bottomView)
+                            }
+                            reverse()
                         }
-                        doOnEnd {
-                            changeStatusBarColor(R.color.bottomView)
-                        }
-                        reverse()
                     }
             }
             floatingButton.hidePermanently = isInSettings

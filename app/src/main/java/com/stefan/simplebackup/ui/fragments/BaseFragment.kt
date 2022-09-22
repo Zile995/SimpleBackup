@@ -127,9 +127,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         ).show()
     }
 
-    private fun clearSelection() {
-        adapter.clearSelection()
-    }
+    private fun clearSelection() = adapter.clearSelection()
 
     fun shouldMoveFragmentUp() = _mainRecyclerView?.shouldMoveAtLastCompletelyVisibleItem() ?: false
 

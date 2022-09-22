@@ -14,9 +14,12 @@ import androidx.annotation.ColorRes
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
+import androidx.lifecycle.Lifecycle
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
 import com.google.api.client.http.javanet.NetHttpTransport
 import com.google.api.client.json.gson.GsonFactory
@@ -54,6 +57,20 @@ class AppDetailActivity : BaseActivity() {
         binding.apply {
             bindViews()
             setData()
+            initObservers()
+        }
+    }
+
+    private fun ActivityDetailBinding.initObservers() {
+        launchOnViewLifecycle {
+            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+                detailsViewModel.archNames.collect { archNames ->
+                    Log.d("ChipGroup", "Arch names = $archNames")
+                    archNames?.let {
+                        architectureChipGroup.addArchChipsToChipGroup(archNames)
+                    }
+                }
+            }
         }
     }
 
@@ -78,23 +95,22 @@ class AppDetailActivity : BaseActivity() {
                     applicationImage.scaleX = scaleFactor
                     applicationImage.scaleY = scaleFactor
                     applicationImage.alpha = alphaScaleFactor
-                    moveCardView(totalScrollRange)
+                    mainActions.translationY = absoluteOffsetValue.toFloat()
                 }
                 0 -> {
                     applicationImage.alpha = 1f
                     applicationImage.scaleX = 1f
                     applicationImage.scaleY = 1f
+                    mainActions.translationY = 0f
                     animateStatusBarColor(android.R.color.transparent)
                 }
                 totalScrollRange -> {
                     animateStatusBarColor(R.color.bottomView)
+                    mainActions.translationY = totalScrollRange.toFloat()
                 }
             }
-            if (absoluteOffsetValue < (totalScrollRange - (collapsingToolbar.scrimVisibleHeightTrigger - detailsToolbar.height))
-                && absoluteOffsetValue < previousOffset
-            ) {
+            if (absoluteOffsetValue < (totalScrollRange - (collapsingToolbar.scrimVisibleHeightTrigger - detailsToolbar.height)) && absoluteOffsetValue < previousOffset) {
                 animateStatusBarColor(android.R.color.transparent)
-                moveCardView(0)
             }
             previousOffset = absoluteOffsetValue
         }
@@ -125,14 +141,6 @@ class AppDetailActivity : BaseActivity() {
         }
     }
 
-    private fun ActivityDetailBinding.moveCardView(translation: Int) {
-        if (mainActions.translationY == translation.toFloat() || isToolbarAnimating) return
-        ObjectAnimator.ofFloat(mainActions, "translationY", translation.toFloat()).apply {
-            duration = 100L
-            start()
-        }
-    }
-
     private fun ActivityDetailBinding.bindToolBar() {
         setSupportActionBar(detailsToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
@@ -146,8 +154,7 @@ class AppDetailActivity : BaseActivity() {
                 launchPackage(app.packageName)
             }
             app.setBitmap(applicationContext, onFailure = {
-                getResourceDrawable(R.drawable.ic_error)?.toByteArray()
-                    ?: byteArrayOf()
+                getResourceDrawable(R.drawable.ic_error)?.toByteArray() ?: byteArrayOf()
             })
             appImage.loadBitmap(app.bitmap)
             collapsingToolbar.title = app.name
@@ -156,12 +163,11 @@ class AppDetailActivity : BaseActivity() {
 
     private fun ActivityDetailBinding.setData() {
         detailsViewModel.app?.let { app ->
-            appTypeChip.text =
-                when {
-                    app.isCloud -> resources.getString(R.string.cloud_backup)
-                    app.isLocal -> resources.getString(R.string.local_backup)
-                    else -> resources.getString(R.string.user_app)
-                }
+            appTypeChip.text = when {
+                app.isCloud -> resources.getString(R.string.cloud_backup)
+                app.isLocal -> resources.getString(R.string.local_backup)
+                else -> resources.getString(R.string.user_app)
+            }
             @SuppressLint("SetTextI18n")
             versionNameLabel.text = "v${app.versionName}"
             installedDateLabel.text = when {
@@ -174,12 +180,35 @@ class AppDetailActivity : BaseActivity() {
             apkSizeLabel.text = getString(R.string.apk_size, app.apkSize.bytesToMegaBytesString())
             targetApiLabel.text = getString(R.string.target_sdk, app.targetSdk)
             minApiLabel.text = getString(R.string.min_sdk, app.minSdk)
-            deleteAppButton.setOnClickListener {
+            deleteButton.setOnClickListener {
                 detailsViewModel.app?.apply {
                     deletePackage(packageName)
                 }
             }
         }
+    }
+
+    private fun ChipGroup.addArchChipsToChipGroup(archNames: List<String>) {
+        if (archNames.isNotEmpty()) {
+            archNames.forEach { archName ->
+                val chip = Chip(
+                    context,
+                    null,
+                    com.google.android.material.R.style.Widget_MaterialComponents_Chip_Action
+                )
+                chip.text = archName
+                addView(chip)
+            }
+        } else {
+            val chip = Chip(
+                context,
+                null,
+                com.google.android.material.R.style.Widget_MaterialComponents_Chip_Action
+            )
+            chip.text = getString(R.string.all_arch)
+            addView(chip)
+        }
+        fadeIn(300L)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -190,20 +219,14 @@ class AppDetailActivity : BaseActivity() {
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         detailsViewModel.app?.apply {
             menu?.findItem(R.id.add_to_favorites)?.apply {
-                icon =
-                    if (favorite) AppCompatResources.getDrawable(
-                        applicationContext,
-                        R.drawable.ic_favorite
-                    )
-                    else
-                        AppCompatResources.getDrawable(
-                            applicationContext,
-                            R.drawable.ic_unstarred
-                        )
-                tooltipText = if (favorite)
-                    getString(R.string.remove_from_favorites)
-                else
-                    getString(R.string.add_to_favorites)
+                icon = if (favorite) AppCompatResources.getDrawable(
+                    applicationContext, R.drawable.ic_favorite
+                )
+                else AppCompatResources.getDrawable(
+                    applicationContext, R.drawable.ic_unstarred
+                )
+                tooltipText = if (favorite) getString(R.string.remove_from_favorites)
+                else getString(R.string.add_to_favorites)
             }
         }
         return super.onPrepareOptionsMenu(menu)
@@ -241,43 +264,35 @@ class AppDetailActivity : BaseActivity() {
     @Suppress("DEPRECATION")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
-            REQUEST_CODE_SIGN_IN ->
-                if (resultCode == RESULT_OK && data != null) {
-                    handleSignInIntent(data)
-                }
+            REQUEST_CODE_SIGN_IN -> if (resultCode == RESULT_OK && data != null) {
+                handleSignInIntent(data)
+            }
         }
         super.onActivityResult(requestCode, resultCode, data)
     }
 
     @Suppress("DEPRECATION")
     private fun requestSignIn() {
-        val signInOptions = GoogleSignInOptions
-            .Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).apply {
-                requestEmail()
-                requestScopes(Scope(DriveScopes.DRIVE_FILE))
-            }.build()
+        val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).apply {
+            requestEmail()
+            requestScopes(Scope(DriveScopes.DRIVE_FILE))
+        }.build()
         val client = GoogleSignIn.getClient(this, signInOptions)
         startActivityForResult(client.signInIntent, REQUEST_CODE_SIGN_IN)
     }
 
     private fun handleSignInIntent(data: Intent) {
-        GoogleSignIn.getSignedInAccountFromIntent(data)
-            .addOnSuccessListener { googleAccount ->
-                Log.d(TAG, "Signed in as " + googleAccount.email)
-                val credential = GoogleAccountCredential.usingOAuth2(
-                    this,
-                    Collections.singleton(DriveScopes.DRIVE_FILE)
-                )
-                credential.selectedAccount = googleAccount.account
-                val googleDriveService = Drive.Builder(
-                    NetHttpTransport(),
-                    GsonFactory.getDefaultInstance(),
-                    credential
-                ).setApplicationName("Simple Backup/1.0")
-                    .build()
-            }
-            .addOnFailureListener { exception: Exception? ->
-                Log.e(TAG, "Unable to sign in.", exception)
-            }
+        GoogleSignIn.getSignedInAccountFromIntent(data).addOnSuccessListener { googleAccount ->
+            Log.d(TAG, "Signed in as " + googleAccount.email)
+            val credential = GoogleAccountCredential.usingOAuth2(
+                this, Collections.singleton(DriveScopes.DRIVE_FILE)
+            )
+            credential.selectedAccount = googleAccount.account
+            val googleDriveService = Drive.Builder(
+                NetHttpTransport(), GsonFactory.getDefaultInstance(), credential
+            ).setApplicationName("Simple Backup/1.0").build()
+        }.addOnFailureListener { exception: Exception? ->
+            Log.e(TAG, "Unable to sign in.", exception)
+        }
     }
 }

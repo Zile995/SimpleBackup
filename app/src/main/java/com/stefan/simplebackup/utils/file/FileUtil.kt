@@ -4,6 +4,7 @@ import android.util.Log
 import com.stefan.simplebackup.MainApplication.Companion.backupDirPath
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
@@ -85,8 +86,33 @@ object FileUtil {
         }
     }.flowOn(ioDispatcher)
 
-    fun getApkZipFile(path: String): ZipFile? {
-        val backupFiles = File(path)
+    fun getApkFilesInsideDir(app: AppData): MutableList<File> {
+        val apkFiles = mutableListOf<File>()
+        val dir = File(app.apkDir)
+        dir.walkTopDown().filter {
+            it.extension == "apk"
+        }.forEach { apkFile ->
+            apkFiles.add(apkFile)
+        }
+        Log.d("FileUtil", "Got the apk list for ${app.name}: ${apkFiles.map { it.name }}")
+        return apkFiles
+    }
+
+    suspend fun getApkFileSizeSplitInfo(apkDirPath: String): Pair<Float, Boolean> = coroutineScope {
+        val isSplit: Boolean
+        File(apkDirPath).listFiles()?.let { apkDirFiles ->
+            apkDirFiles.filter { dirFile ->
+                dirFile.isFile && dirFile.name.endsWith(".apk")
+            }.also { apkFiles ->
+                isSplit = apkFiles.size > 1
+            }.sumOf { apkFile ->
+                apkFile.length()
+            }.toFloat() to isSplit
+        } ?: (0f to false)
+    }
+
+    fun getApkZipFile(apkZipDirPath: String): ZipFile? {
+        val backupFiles = File(apkZipDirPath)
         backupFiles.listFiles()?.filter { backupFile ->
             backupFile.isFile and (backupFile.extension == "zip")
         }?.forEach { file ->
