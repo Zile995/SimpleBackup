@@ -88,11 +88,11 @@ class MainActivity : BaseActivity() {
     }
 
     override fun onBackPress() {
-        if (navController.currentDestination?.doesMatchDestination(R.id.home) == false) {
-            navController.popBackStack()
-            return
-        }
         if (animationFinished) {
+            if (navController.currentDestination?.doesMatchDestination(R.id.home) == false) {
+                navController.popBackStack()
+                return
+            }
             if (!selectionFinished) {
                 shouldExit = true
                 mainViewModel.setSelectionMode(false)
@@ -262,10 +262,10 @@ class MainActivity : BaseActivity() {
     private fun ActivityMainBinding.bindBottomNavigationView() =
         navigationBar.navigateWithAnimation(navController,
             doBeforeNavigating = {
-                floatingButton.setOnClickListener(null)
                 visibleFragment?.stopScrolling()
-                return@navigateWithAnimation !(mainViewModel.isSearching.value
-                        || mainViewModel.isSelected.value || !animationFinished)
+                floatingButton.setOnClickListener(null)
+                !(mainViewModel.isSearching.value
+                        || mainViewModel.isSelected.value) && animationFinished
             },
             setCustomNavigationOptions = { menuItem ->
                 if (menuItem.itemId == R.id.settings) {
@@ -300,6 +300,7 @@ class MainActivity : BaseActivity() {
                     }
                     launch {
                         isSettingsDestination.collect { isSettingsDestination ->
+                            if (isSearching.value || isSelected.value) return@collect
                             mainActivityAnimator.animateOnSettings(isSettingsDestination)
                         }
                     }

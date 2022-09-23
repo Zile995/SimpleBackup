@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.data.local.database.AppDatabase
+import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
@@ -21,8 +23,11 @@ class DetailsViewModel(
     application: MainApplication
 ) : ViewModel() {
 
-    private val workManager by lazy { WorkManager.getInstance(application) }
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val appRepository by lazy {
+        AppRepository(AppDatabase.getInstance(application).appDao())
+    }
+    private val workManager by lazy { WorkManager.getInstance(application) }
 
     private var _archNames = MutableStateFlow<List<String>?>(null)
     val archNames get() = _archNames.asStateFlow()
@@ -36,6 +41,26 @@ class DetailsViewModel(
         viewModelScope.launch(ioDispatcher) {
             app?.apply {
                 _archNames.value = ZipUtil.getAppAbiList(this)
+            }
+        }
+    }
+
+    fun addAppToFavorites() {
+        viewModelScope.launch {
+            appRepository.startRepositoryJob {
+                app?.apply {
+                    addToFavorites(packageName)
+                }
+            }
+        }
+    }
+
+    fun removeAppFromFavorites() {
+        viewModelScope.launch {
+            appRepository.startRepositoryJob {
+                app?.apply {
+                    removeFromFavorites(packageName)
+                }
             }
         }
     }

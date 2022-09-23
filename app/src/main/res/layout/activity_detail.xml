@@ -99,7 +99,7 @@
                         tools:ignore="RelativeOverlap" />
                 </LinearLayout>
 
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
@@ -114,6 +114,7 @@
                         android:clickable="false"
                         android:textColor="@color/textInBlueChip"
                         android:textSize="11sp"
+                        android:text="@string/split"
                         android:textStyle="bold"
                         android:visibility="gone"
                         app:chipBackgroundColor="@color/blueChip"
@@ -134,8 +135,7 @@
                         app:chipEndPadding="2dp"
                         app:chipStartPadding="2dp" />
 
-                </LinearLayout>
-
+                </RelativeLayout>
 
             </RelativeLayout>
 
@@ -334,11 +334,9 @@
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/main_actions"
         style="@style/Widget.SimpleBackup.SearchBar"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="@dimen/bottom_navigation_height"
-        android:layout_gravity="bottom"
-        android:layout_marginStart="50dp"
-        android:layout_marginEnd="50dp"
+        android:layout_gravity="bottom|center_horizontal"
         android:layout_marginBottom="10dp"
         app:cardCornerRadius="30dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -348,6 +346,8 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
             android:layout_gravity="center"
             android:orientation="horizontal">
 
@@ -357,8 +357,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:contentDescription="TODO"
-                android:src="@drawable/ic_storage">
+                android:src="@drawable/ic_storage"
+                android:contentDescription="TODO">
 
             </com.google.android.material.floatingactionbutton.FloatingActionButton>
 

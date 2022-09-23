@@ -3,6 +3,8 @@ package com.stefan.simplebackup.ui.activities
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -15,6 +17,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
@@ -34,6 +37,7 @@ import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
+import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.math.abs
 
@@ -50,15 +54,38 @@ class AppDetailActivity : BaseActivity() {
         ViewModelFactory(application as MainApplication, selectedApp)
     }
 
+    private val packageReceiver by lazy {
+        object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                detailsViewModel.viewModelScope.launch {
+                    if ((intent.action == Intent.ACTION_PACKAGE_ADDED || (intent.action == Intent.ACTION_PACKAGE_REMOVED && intent.extras?.getBoolean(
+                            Intent.EXTRA_REPLACING
+                        ) == false)) && intent.data?.encodedSchemeSpecificPart == detailsViewModel.app?.packageName
+                    ) {
+                        onBackPress()
+                    }
+                }
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         window.statusBarColor = getColorFromResource(R.color.background)
         binding.apply {
             bindViews()
-            setData()
             initObservers()
         }
+        registerPackageReceiver()
+    }
+
+    private fun registerPackageReceiver() {
+        registerReceiver(packageReceiver, intentFilter(
+            Intent.ACTION_PACKAGE_ADDED, Intent.ACTION_PACKAGE_REMOVED
+        ) {
+            addDataScheme("package")
+        })
     }
 
     private fun ActivityDetailBinding.initObservers() {
@@ -78,7 +105,7 @@ class AppDetailActivity : BaseActivity() {
         launchOnViewLifecycle {
             bindToolBar()
             bindAppBarLayout()
-            bindCollapsingToolbarLayout()
+            setData(detailsViewModel.app)
         }
     }
 
@@ -147,43 +174,41 @@ class AppDetailActivity : BaseActivity() {
         supportActionBar?.setDisplayShowHomeEnabled(true)
     }
 
-    private suspend fun ActivityDetailBinding.bindCollapsingToolbarLayout() {
-        detailsViewModel.app?.let { app ->
+    private suspend fun ActivityDetailBinding.setCollapsingToolbarData(app: AppData?) {
+        app?.apply {
             val appImage = collapsingToolbar.findViewById<ImageView>(R.id.application_image)
             appImage.setOnClickListener {
-                launchPackage(app.packageName)
+                launchPackage(packageName)
             }
-            app.setBitmap(applicationContext, onFailure = {
+            setBitmap(context = this@AppDetailActivity, onFailure = {
                 getResourceDrawable(R.drawable.ic_error)?.toByteArray() ?: byteArrayOf()
             })
-            appImage.loadBitmap(app.bitmap)
-            collapsingToolbar.title = app.name
+            appImage.loadBitmap(bitmap)
+            collapsingToolbar.title = name
         }
     }
 
-    private fun ActivityDetailBinding.setData() {
-        detailsViewModel.app?.let { app ->
+    @SuppressLint("SetTextI18n")
+    private suspend fun ActivityDetailBinding.setData(app: AppData?) {
+        app?.apply {
+            setCollapsingToolbarData(this)
             appTypeChip.text = when {
-                app.isCloud -> resources.getString(R.string.cloud_backup)
-                app.isLocal -> resources.getString(R.string.local_backup)
+                isCloud && isLocal -> resources.getString(R.string.cloud_backup)
+                isLocal -> resources.getString(R.string.local_backup)
                 else -> resources.getString(R.string.user_app)
             }
-            @SuppressLint("SetTextI18n")
-            versionNameLabel.text = "v${app.versionName}"
             installedDateLabel.text = when {
-                app.isCloud || app.isLocal -> getString(R.string.backed_up_on, app.getDateString())
+                isCloud || isLocal -> getString(R.string.backed_up_on, app.getDateString())
                 else -> getString(R.string.first_installed_on, app.getDateString())
             }
-            isSplitChip.isVisible = app.isSplit
-            isSplitChip.text = getString(R.string.split)
-            packageNameLabel.text = app.packageName
-            apkSizeLabel.text = getString(R.string.apk_size, app.apkSize.bytesToMegaBytesString())
-            targetApiLabel.text = getString(R.string.target_sdk, app.targetSdk)
-            minApiLabel.text = getString(R.string.min_sdk, app.minSdk)
+            isSplitChip.isVisible = isSplit
+            packageNameLabel.text = packageName
+            versionNameLabel.text = "v${versionName}"
+            apkSizeLabel.text = getString(R.string.apk_size, apkSize.bytesToMegaBytesString())
+            targetApiLabel.text = getString(R.string.target_sdk, targetSdk)
+            minApiLabel.text = getString(R.string.min_sdk, minSdk)
             deleteButton.setOnClickListener {
-                detailsViewModel.app?.apply {
-                    deletePackage(packageName)
-                }
+                deletePackage(packageName)
             }
         }
     }
@@ -192,18 +217,14 @@ class AppDetailActivity : BaseActivity() {
         if (archNames.isNotEmpty()) {
             archNames.forEach { archName ->
                 val chip = Chip(
-                    context,
-                    null,
-                    com.google.android.material.R.style.Widget_MaterialComponents_Chip_Action
+                    context, null, R.style.Widget_SimpleBackup_Chip
                 )
                 chip.text = archName
                 addView(chip)
             }
         } else {
             val chip = Chip(
-                context,
-                null,
-                com.google.android.material.R.style.Widget_MaterialComponents_Chip_Action
+                context, null, R.style.Widget_SimpleBackup_Chip
             )
             chip.text = getString(R.string.all_arch)
             addView(chip)
@@ -217,19 +238,27 @@ class AppDetailActivity : BaseActivity() {
     }
 
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        detailsViewModel.app?.apply {
-            menu?.findItem(R.id.add_to_favorites)?.apply {
+        menu?.findItem(R.id.add_to_favorites)?.apply {
+            detailsViewModel.app?.apply {
+                changeFavoritesIcon(this)
+            }
+        }
+        return super.onPrepareOptionsMenu(menu)
+    }
+
+    private fun MenuItem.changeFavoritesIcon(app: AppData) {
+        if (itemId == R.id.add_to_favorites) {
+            app.apply {
                 icon = if (favorite) AppCompatResources.getDrawable(
-                    applicationContext, R.drawable.ic_favorite
+                    this@AppDetailActivity, R.drawable.ic_favorite
                 )
                 else AppCompatResources.getDrawable(
-                    applicationContext, R.drawable.ic_unstarred
+                    this@AppDetailActivity, R.drawable.ic_unstarred
                 )
                 tooltipText = if (favorite) getString(R.string.remove_from_favorites)
                 else getString(R.string.add_to_favorites)
             }
         }
-        return super.onPrepareOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -247,7 +276,13 @@ class AppDetailActivity : BaseActivity() {
                 true
             }
             R.id.add_to_favorites -> {
-                true
+                detailsViewModel.app?.run {
+                    if (favorite) detailsViewModel.removeAppFromFavorites()
+                    else detailsViewModel.addAppToFavorites()
+                    favorite = !favorite
+                    item.changeFavoritesIcon(this)
+                    true
+                } ?: false
             }
             else -> {
                 super.onOptionsItemSelected(item)
@@ -258,6 +293,11 @@ class AppDetailActivity : BaseActivity() {
     override fun onSupportNavigateUp(): Boolean {
         onBackPress()
         return true
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceivers(packageReceiver)
     }
 
     @Deprecated("Deprecated in Java")

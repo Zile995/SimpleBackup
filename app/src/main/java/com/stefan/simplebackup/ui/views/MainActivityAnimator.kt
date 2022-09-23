@@ -36,32 +36,28 @@ class MainActivityAnimator(
         binding?.apply {
             root.doOnPreDraw {
                 if (isInSettings) {
-                    root.doOnPreDraw {
-                        animatorSet = AnimatorSet().apply {
-                            duration = 50L
-                            interpolator = DecelerateInterpolator()
-                            play(materialSearchBar.animateToParentSize())
-                            doOnEnd {
-                                changeStatusBarColor(R.color.searchBar)
-                                appBarLayout.setExpanded(true)
-                            }
-                            start()
+                    animatorSet = AnimatorSet().apply {
+                        duration = 50L
+                        interpolator = DecelerateInterpolator()
+                        play(materialSearchBar.animateToParentSize())
+                        doOnEnd {
+                            appBarLayout.setExpanded(true)
+                            changeStatusBarColor(R.color.searchBar)
                         }
+                        start()
                     }
-                } else
-                    root.doOnPreDraw {
-                        animatorSet.apply {
-                            duration = animationDuration
-                            interpolator = AccelerateInterpolator()
-                            doOnStart {
-                                changeStatusBarColor(R.color.bottomView)
-                            }
-                            doOnEnd {
-                                changeStatusBarColor(R.color.bottomView)
-                            }
-                            reverse()
+                } else {
+                    Log.d("MainAnimator", "Shrinking SearchBar from Settings")
+                    animatorSet.apply {
+                        duration = animationDuration
+                        removeAllListeners()
+                        interpolator = AccelerateInterpolator()
+                        doOnStart {
+                            changeStatusBarColor(R.color.bottomView)
                         }
+                        reverse()
                     }
+                }
             }
             floatingButton.hidePermanently = isInSettings
             materialToolbar.changeOnSettings(isInSettings) {
@@ -83,8 +79,8 @@ class MainActivityAnimator(
                         visibleFragment?.fixRecyclerViewScrollPosition()
                     }
                 }
-                expandAppBarLayout(isSelected)
             }
+            expandAppBarLayout(isSelected)
             floatingButton.changeOnSelection(isSelected)
             materialToolbar.changeOnSelection(isSelected, selectionModeCallBack)
         }
@@ -118,22 +114,21 @@ class MainActivityAnimator(
     private fun ActivityMainBinding.startAnimations(
         fragmentBottomMargin: Int
     ) {
-        root.doOnPreDraw {
-            animatorSet = AnimatorSet().apply {
-                duration = animationDuration
-                interpolator = DecelerateInterpolator()
-                playTogether(
-                    navigationBar.moveDown(),
-                    materialSearchBar.animateToParentSize()
-                )
-                doOnStart {
-                    Log.d("MainAnimator", "Expanding SearchBar on click")
-                    changeStatusBarColor(R.color.searchBar)
-                    setFragmentBottomMargin(fragmentBottomMargin)
-                    appBarLayout.setExpanded(true)
-                }
-                start()
+        Log.d("MainAnimator", "Expanding SearchBar")
+        animatorSet = AnimatorSet().apply {
+            removeAllListeners()
+            duration = animationDuration
+            interpolator = DecelerateInterpolator()
+            playTogether(
+                navigationBar.moveDown(),
+                materialSearchBar.animateToParentSize()
+            )
+            doOnStart {
+                changeStatusBarColor(R.color.searchBar)
+                setFragmentBottomMargin(fragmentBottomMargin)
+                appBarLayout.setExpanded(true)
             }
+            start()
         }
     }
 
@@ -141,19 +136,20 @@ class MainActivityAnimator(
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
     ) {
-        root.doOnPreDraw {
-            animatorSet.apply {
-                interpolator = AccelerateInterpolator()
-                doOnStart {
-                    changeStatusBarColor(R.color.bottomView)
-                    doOnStart()
-                }
-                doOnEnd {
-                    setFragmentBottomMargin(navigationBar.height)
-                    doOnEnd()
-                }
-                reverse()
+        Log.d("MainAnimator", "Shrinking SearchBar")
+        animatorSet.apply {
+            removeAllListeners()
+            interpolator = AccelerateInterpolator()
+            duration = animationDuration
+            doOnStart {
+                changeStatusBarColor(R.color.bottomView)
+                doOnStart()
             }
+            doOnEnd {
+                setFragmentBottomMargin(navigationBar.height)
+                doOnEnd()
+            }
+            reverse()
         }
     }
 
@@ -163,7 +159,7 @@ class MainActivityAnimator(
                 appBarLayout.setExpanded(true)
             else {
                 if (visibleFragment?.shouldMoveFragmentUp() == true) {
-                    Log.d("AppBarLayout", "Collapsing the AppBarLayout")
+                    Log.d("MainAnimator", "Collapsing the AppBarLayout")
                     appBarLayout.setExpanded(false)
                 }
             }

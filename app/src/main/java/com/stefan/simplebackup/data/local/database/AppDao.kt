@@ -15,8 +15,8 @@ interface AppDao {
     @Query("SELECT * FROM app_table WHERE name LIKE :name || '%' ORDER BY name ASC")
     fun findAppsByName(name: String): Flow<MutableList<AppData>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
     @Throws(SQLiteException::class)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(app: AppData)
 
     @Update

@@ -61,9 +61,7 @@ class SimpleMaterialToolbar(
                     setNavigationOnClickListener()
             }
         } else {
-            postDelayed(50L) {
-                setDefaultState()
-            }
+            setDefaultState()
         }
     }
 
@@ -83,9 +81,7 @@ class SimpleMaterialToolbar(
                     selectionModeCallBack(false)
             }
         } else {
-            postDelayed(50L) {
-                setDefaultState()
-            }
+            setDefaultState()
         }
     }
 
