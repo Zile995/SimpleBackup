@@ -112,11 +112,11 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="10dp"
                         android:clickable="false"
+                        android:text="@string/split"
                         android:textColor="@color/textInBlueChip"
                         android:textSize="11sp"
-                        android:text="@string/split"
                         android:textStyle="bold"
-                        android:visibility="gone"
+                        android:visibility="visible"
                         app:chipBackgroundColor="@color/blueChip"
                         app:chipEndPadding="2dp"
                         app:chipStartPadding="2dp" />
@@ -130,6 +130,7 @@
                         android:clickable="false"
                         android:textColor="@color/textInBlueChip"
                         android:textSize="11sp"
+                        android:layout_toEndOf="@id/is_split_chip"
                         android:textStyle="bold"
                         app:chipBackgroundColor="@color/blueChip"
                         app:chipEndPadding="2dp"
@@ -317,9 +318,9 @@
                     android:id="@+id/architecture_chip_group"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:alpha="0.0"
                     android:paddingStart="20dp"
                     android:paddingEnd="20dp"
-                    android:alpha="0.0"
                     android:visibility="gone"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -346,9 +347,9 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_marginStart="20dp"
             android:layout_marginEnd="20dp"
-            android:layout_gravity="center"
             android:orientation="horizontal">
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -357,10 +358,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_storage"
-                android:contentDescription="TODO">
-
-            </com.google.android.material.floatingactionbutton.FloatingActionButton>
+                android:contentDescription="TODO"
+                android:src="@drawable/ic_storage" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/cloud_backup_button"
@@ -370,9 +369,7 @@
                 android:layout_gravity="center"
                 android:layout_marginStart="20dp"
                 android:contentDescription="TODO"
-                android:src="@drawable/ic_add_to_drive">
-
-            </com.google.android.material.floatingactionbutton.FloatingActionButton>
+                android:src="@drawable/ic_add_to_drive" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/delete_button"
@@ -382,9 +379,7 @@
                 android:layout_gravity="center"
                 android:layout_marginStart="20dp"
                 android:contentDescription="TODO"
-                android:src="@drawable/ic_delete">
-
-            </com.google.android.material.floatingactionbutton.FloatingActionButton>
+                android:src="@drawable/ic_delete" />
 
         </LinearLayout>
 

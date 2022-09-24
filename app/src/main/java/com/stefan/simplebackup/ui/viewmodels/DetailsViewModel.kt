@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.ui.viewmodels
 
+import android.database.sqlite.SQLiteException
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -32,6 +33,9 @@ class DetailsViewModel(
     private var _archNames = MutableStateFlow<List<String>?>(null)
     val archNames get() = _archNames.asStateFlow()
 
+    private var _favoriteChanged = MutableStateFlow(false)
+    val favoriteChanged get() = _favoriteChanged.asStateFlow()
+
     init {
         Log.d("ViewModel", "DetailsViewModel created")
         getApkArchitectures()
@@ -45,25 +49,26 @@ class DetailsViewModel(
         }
     }
 
-    fun addAppToFavorites() {
+    fun changeFavorites() =
         viewModelScope.launch {
-            appRepository.startRepositoryJob {
+            try {
                 app?.apply {
-                    addToFavorites(packageName)
+                    _favoriteChanged.value = false
+                    appRepository.startRepositoryJob {
+                        if (favorite)
+                            removeFromFavorites(packageName)
+                        else
+                            addToFavorites(packageName)
+                    }.invokeOnCompletion {
+                        favorite = !favorite
+                        _favoriteChanged.value = true
+                    }
                 }
+            } catch (e: SQLiteException) {
+                Log.e("ViewModel", "Database exception: $e")
+                _favoriteChanged.value = false
             }
         }
-    }
-
-    fun removeAppFromFavorites() {
-        viewModelScope.launch {
-            appRepository.startRepositoryJob {
-                app?.apply {
-                    removeFromFavorites(packageName)
-                }
-            }
-        }
-    }
 
     fun createLocalBackup() {
         viewModelScope.launch(defaultDispatcher) {

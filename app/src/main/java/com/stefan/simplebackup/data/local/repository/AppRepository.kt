@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.data.local.repository
 
+import android.database.sqlite.SQLiteException
 import android.util.Log
 import com.stefan.simplebackup.data.local.database.AppDao
 import com.stefan.simplebackup.data.model.AppData
@@ -58,6 +59,10 @@ class AppRepository(private val appDao: AppDao) {
     suspend fun delete(packageName: String) = appDao.delete(packageName)
     suspend fun getAppData(packageName: String) = appDao.getData(packageName)
     suspend fun isFavorite(packageName: String) = appDao.isFavorite(packageName)
+
+    @Throws(SQLiteException::class)
     suspend fun addToFavorites(packageName: String) = appDao.addToFavorites(packageName)
+
+    @Throws(SQLiteException::class)
     suspend fun removeFromFavorites(packageName: String) = appDao.removeFromFavorites(packageName)
 }

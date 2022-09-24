@@ -9,7 +9,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
-import android.view.MenuItem
 import android.widget.ImageView
 import androidx.activity.viewModels
 import androidx.annotation.ColorRes
@@ -91,6 +90,11 @@ class AppDetailActivity : BaseActivity() {
     private fun ActivityDetailBinding.initObservers() {
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+                launch {
+                    detailsViewModel.favoriteChanged.collect { isChanged ->
+                        if (isChanged) detailsToolbar.menu?.setFavoritesIcon()
+                    }
+                }
                 detailsViewModel.archNames.collect { archNames ->
                     Log.d("ChipGroup", "Arch names = $archNames")
                     archNames?.let {
@@ -169,9 +173,38 @@ class AppDetailActivity : BaseActivity() {
     }
 
     private fun ActivityDetailBinding.bindToolBar() {
-        setSupportActionBar(detailsToolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayShowHomeEnabled(true)
+        detailsToolbar.apply {
+            inflateMenu(R.menu.details_tool_bar)
+            menu.setFavoritesIcon()
+            setNavigationIcon(R.drawable.ic_arrow_back)
+            setNavigationContentDescription(R.string.back)
+            setNavigationOnClickListener { onBackPress() }
+            setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.force_stop -> {
+                        detailsViewModel.app?.run {
+                            forceStopPackage(packageName)
+                            true
+                        } ?: false
+                    }
+                    R.id.settings_info -> {
+                        detailsViewModel.app?.run {
+                            openPackageSettingsInfo(packageName)
+                            true
+                        } ?: false
+                    }
+                    R.id.add_to_favorites -> {
+                        detailsViewModel.app?.run {
+                            detailsViewModel.changeFavorites()
+                            true
+                        } ?: false
+                    }
+                    else -> {
+                        false
+                    }
+                }
+            }
+        }
     }
 
     private suspend fun ActivityDetailBinding.setCollapsingToolbarData(app: AppData?) {
@@ -232,23 +265,9 @@ class AppDetailActivity : BaseActivity() {
         fadeIn(300L)
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        menuInflater.inflate(R.menu.details_tool_bar, menu)
-        return super.onCreateOptionsMenu(menu)
-    }
-
-    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
-        menu?.findItem(R.id.add_to_favorites)?.apply {
+    private fun Menu.setFavoritesIcon() {
+        findItem(R.id.add_to_favorites).apply {
             detailsViewModel.app?.apply {
-                changeFavoritesIcon(this)
-            }
-        }
-        return super.onPrepareOptionsMenu(menu)
-    }
-
-    private fun MenuItem.changeFavoritesIcon(app: AppData) {
-        if (itemId == R.id.add_to_favorites) {
-            app.apply {
                 icon = if (favorite) AppCompatResources.getDrawable(
                     this@AppDetailActivity, R.drawable.ic_favorite
                 )
@@ -259,40 +278,6 @@ class AppDetailActivity : BaseActivity() {
                 else getString(R.string.add_to_favorites)
             }
         }
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.force_stop -> {
-                detailsViewModel.app?.apply {
-                    forceStopPackage(packageName)
-                }
-                true
-            }
-            R.id.settings_info -> {
-                detailsViewModel.app?.apply {
-                    openPackageSettingsInfo(packageName)
-                }
-                true
-            }
-            R.id.add_to_favorites -> {
-                detailsViewModel.app?.run {
-                    if (favorite) detailsViewModel.removeAppFromFavorites()
-                    else detailsViewModel.addAppToFavorites()
-                    favorite = !favorite
-                    item.changeFavoritesIcon(this)
-                    true
-                } ?: false
-            }
-            else -> {
-                super.onOptionsItemSelected(item)
-            }
-        }
-    }
-
-    override fun onSupportNavigateUp(): Boolean {
-        onBackPress()
-        return true
     }
 
     override fun onDestroy() {

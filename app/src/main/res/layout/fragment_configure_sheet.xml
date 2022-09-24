@@ -1,27 +1,87 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/bottomView"
     tools:context=".ui.fragments.ConfigureSheetFragment">
 
-    <androidx.cardview.widget.CardView
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        app:cardCornerRadius="10dp"
-        app:cardBackgroundColor="@color/searchBar">
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/storage_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_centerHorizontal="true"
+        android:text="@string/choose_backup_location"
+        android:textAppearance="@style/TextAppearance.SimpleBackup.TitleLarge"
+        android:textColor="@color/selectedTab"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Testing what can be written"
-            android:textColor="@color/textColorPrimary"
-            android:textSize="20sp"
-            android:fontFamily="@font/inter_family"/>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/storage_label"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="40dp"
+        android:layout_marginBottom="40dp"
+        android:orientation="horizontal">
 
-    </androidx.cardview.widget.CardView>
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/local_backup_button"
+                style="@style/Widget.SimpleBackup.RoundedFloatingButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_storage"
+                android:tooltipText="@string/local_backup"
+                app:layout_constraintEnd_toStartOf="@+id/cloud_backup_button"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/cloud_backup_button"
+                style="@style/Widget.SimpleBackup.RoundedFloatingButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="40dp"
+                android:src="@drawable/ic_add_to_drive"
+                android:tooltipText="@string/cloud_backup"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/local_backup_button"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/local_backup_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/local"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                android:textColor="@color/selectedTab"
+                app:layout_constraintEnd_toEndOf="@id/local_backup_button"
+                app:layout_constraintStart_toStartOf="@id/local_backup_button"
+                app:layout_constraintTop_toBottomOf="@id/local_backup_button" />
 
 
-</FrameLayout>
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/cloud_backup_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/cloud"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                android:textColor="@color/selectedTab"
+                app:layout_constraintEnd_toEndOf="@id/cloud_backup_button"
+                app:layout_constraintStart_toStartOf="@id/cloud_backup_button"
+                app:layout_constraintTop_toBottomOf="@id/cloud_backup_button" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

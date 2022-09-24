@@ -237,8 +237,7 @@ class MainActivity : BaseActivity() {
                 R.id.select_all -> {
                     visibleFragment?.selectAllItems()
                 }
-                else -> {
-                    return@setOnMenuItemClickListener false
+                else -> { return@setOnMenuItemClickListener false
                 }
             }
             true

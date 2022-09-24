@@ -26,14 +26,17 @@ interface AppDao {
     suspend fun delete(packageName: String): Int
 
     @Transaction
+    @Throws(SQLiteException::class)
     suspend fun removeFromFavorites(packageName: String) = setFavorite(packageName, false)
 
     @Transaction
+    @Throws(SQLiteException::class)
     suspend fun addToFavorites(packageName: String) = setFavorite(packageName, true)
 
     @Query("SELECT favorite FROM app_table WHERE package_name = :packageName")
     suspend fun isFavorite(packageName: String): Boolean?
 
+    @Throws(SQLiteException::class)
     @Query("UPDATE app_table SET favorite = :setFavorite WHERE package_name = :packageName ")
     suspend fun setFavorite(packageName: String, setFavorite: Boolean)
 

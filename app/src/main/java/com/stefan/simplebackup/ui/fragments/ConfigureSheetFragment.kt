@@ -26,5 +26,6 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun FragmentConfigureSheetBinding.bindViews() {
+
     }
 }
