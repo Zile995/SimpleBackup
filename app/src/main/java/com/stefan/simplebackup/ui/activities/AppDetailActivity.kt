@@ -114,10 +114,8 @@ class AppDetailActivity : BaseActivity() {
                     detailsViewModel.favoriteChanged.collect { isSuccessfullyChanged ->
                         if (isSuccessfullyChanged == true) {
                             detailsToolbar.menu?.setFavoritesIcon()
-                            if (detailsViewModel.app?.favorite == true)
-                                showToast(R.string.added_to_favorites)
-                            else
-                                showToast(R.string.removed_from_favorites)
+                            if (detailsViewModel.app?.favorite == true) showToast(R.string.added_to_favorites)
+                            else showToast(R.string.removed_from_favorites)
                         }
                         if (isSuccessfullyChanged == false) {
                             showToast(R.string.unable_to_change_favorites)
@@ -232,26 +230,21 @@ class AppDetailActivity : BaseActivity() {
 
     private fun ActivityDetailBinding.bindLocalBackupButton() {
         localBackupButton.setOnClickListener {
-            requestStoragePermission(storagePermissionLauncher,
-                onPermissionAlreadyGranted = {
-                    //
-                })
+            requestStoragePermission(storagePermissionLauncher, onPermissionAlreadyGranted = {
+                //
+            })
         }
     }
 
     private fun ActivityDetailBinding.bindCloudBackupButton() {
         cloudBackupButton.setOnClickListener {
-            proceedWithPermission(
-                MainPermission.MANAGE_ALL_FILES,
-                onPermissionGranted = {
-                    requestContactsPermission(contactsPermissionLauncher,
-                        onPermissionAlreadyGranted = {
-                            //
-                        })
-                },
-                onPermissionDenied = {
-                    showStoragePermissionDialog()
+            proceedWithPermission(MainPermission.MANAGE_ALL_FILES, onPermissionGranted = {
+                requestContactsPermission(contactsPermissionLauncher, onPermissionAlreadyGranted = {
+                    //
                 })
+            }, onPermissionDenied = {
+                showStoragePermissionDialog()
+            })
         }
     }
 

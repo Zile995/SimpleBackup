@@ -118,6 +118,11 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         mainViewModel.setSelectionMode(false)
     }
 
+    fun deleteLocalBackups() {
+        mainViewModel.deleteSelectedBackups()
+    }
+
+
     fun selectAllItems() {
         adapter.selectAllItems()
         Snackbar.make(

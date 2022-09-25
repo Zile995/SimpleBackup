@@ -28,7 +28,6 @@ class DetailsViewModel(
     private val appRepository by lazy {
         AppRepository(AppDatabase.getInstance(application).appDao())
     }
-    private val workManager by lazy { WorkManager.getInstance(application) }
 
     private var _archNames = MutableStateFlow<List<String>?>(null)
     val archNames get() = _archNames.asStateFlow()
@@ -70,7 +69,7 @@ class DetailsViewModel(
             }
         }
 
-    fun createLocalBackup() {
+    fun createLocalBackup(workManager: WorkManager) {
         viewModelScope.launch(defaultDispatcher) {
             app?.apply {
                 val workerHelper = WorkerHelper(packageName, workManager)

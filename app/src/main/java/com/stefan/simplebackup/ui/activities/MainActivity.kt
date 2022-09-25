@@ -25,6 +25,7 @@ import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.C
 import com.stefan.simplebackup.ui.fragments.ConfigureSheetFragment
 import com.stefan.simplebackup.ui.fragments.FavoritesFragment
 import com.stefan.simplebackup.ui.fragments.HomeFragment
+import com.stefan.simplebackup.ui.fragments.LocalFragment
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
@@ -89,13 +90,13 @@ class MainActivity : BaseActivity() {
 
     override fun onBackPress() {
         if (animationFinished) {
-            if (navController.currentDestination?.doesMatchDestination(R.id.home) == false) {
-                navController.popBackStack()
-                return
-            }
             if (!selectionFinished) {
                 shouldExit = true
                 mainViewModel.setSelectionMode(false)
+                return
+            }
+            if (navController.currentDestination?.doesMatchDestination(R.id.home) == false) {
+                navController.popBackStack()
                 return
             }
             if (shouldExit && PreferenceHelper.shouldDoublePressToExit) {
@@ -181,7 +182,7 @@ class MainActivity : BaseActivity() {
                     deleteItem?.isVisible = false
                 }
                 numberOfSelectedItems >= 1 -> {
-                    changeOnFavorite(visibleFragment is FavoritesFragment)
+                    changeOnFavorite(isFavorite = visibleFragment is FavoritesFragment)
                 }
             }
         }
@@ -218,30 +219,37 @@ class MainActivity : BaseActivity() {
     }
 
     private fun ActivityMainBinding.bindToolBar() {
-        materialToolbar.inflateMenu(R.menu.main_tool_bar)
-        materialToolbar.setOnSearchAction()
-        materialToolbar.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.add_to_favorites -> {
-                    if (visibleFragment !is FavoritesFragment)
-                        mainViewModel.addToFavorites()
-                    else
-                        mainViewModel.removeFromFavorites()
-                }
-                R.id.delete -> {
-                    Log.d("Activity", "Setting up the delete action")
-                    if (visibleFragment is HomeFragment) {
-                        visibleFragment?.deleteSelectedItem()
+        materialToolbar.apply {
+            inflateMenu(R.menu.main_tool_bar)
+            setOnSearchAction()
+            setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.add_to_favorites -> {
+                        if (visibleFragment !is FavoritesFragment)
+                            mainViewModel.addToFavorites()
+                        else
+                            mainViewModel.removeFromFavorites()
+                    }
+                    R.id.delete -> {
+                        Log.d("Activity", "Setting up the delete action")
+                        when (visibleFragment) {
+                            is HomeFragment -> {
+                                visibleFragment?.deleteSelectedItem()
+                            }
+                            is LocalFragment -> {
+                                visibleFragment?.deleteLocalBackups()
+                            }
+                        }
+                    }
+                    R.id.select_all -> {
+                        visibleFragment?.selectAllItems()
+                    }
+                    else -> {
+                        return@setOnMenuItemClickListener false
                     }
                 }
-                R.id.select_all -> {
-                    visibleFragment?.selectAllItems()
-                }
-                else -> {
-                    return@setOnMenuItemClickListener false
-                }
+                true
             }
-            true
         }
     }
 

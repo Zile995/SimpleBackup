@@ -36,9 +36,6 @@ class WorkerHelper(
 
     fun createInputData(shouldBackup: Boolean): Data {
         val dataPreference = mapOf<String, Array<Boolean>>()
-//        workItems.forEach { packageName ->
-//            dataPreference[packageName] =
-//        }
         val builder = Data.Builder()
         return builder.putStringArray(INPUT_LIST, workItems)
             .putAll(dataPreference)

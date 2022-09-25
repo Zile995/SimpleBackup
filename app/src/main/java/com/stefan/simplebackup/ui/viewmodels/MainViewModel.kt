@@ -3,20 +3,23 @@ package com.stefan.simplebackup.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
+import com.stefan.simplebackup.MainApplication.Companion.backupDirPath
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
+import com.stefan.simplebackup.data.workers.MainWorker
+import com.stefan.simplebackup.data.workers.WorkerHelper
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.ioDispatcher
+import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.root.RootChecker
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 class MainViewModel(application: MainApplication) : ViewModel(),
     PackageListener by PackageListenerImpl(application.applicationContext) {
@@ -31,6 +34,9 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     private val rootChecker = RootChecker(application.applicationContext)
     private val hasCheckedRootGranted get() = PreferenceHelper.hasCheckedRootGranted
     private val hasCheckedDeviceRooted get() = PreferenceHelper.hasCheckedDeviceRooted
+
+    // Dispatchers
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 
     // Search
     private var _isSearching = MutableStateFlow(false)
@@ -129,6 +135,22 @@ class MainViewModel(application: MainApplication) : ViewModel(),
             launch {
                 delay(200)
                 setSelectionMode(false)
+            }
+        }
+    }
+
+    fun deleteSelectedBackups() {
+        viewModelScope.launch {
+            launch {
+                selectionList.forEach { packageName ->
+                    val packageBackupPath = "$backupDirPath/$packageName"
+                    FileUtil.deleteFile(packageBackupPath)
+                }
+            }.invokeOnCompletion {
+                launch {
+                    delay(200)
+                    setSelectionMode(false)
+                }
             }
         }
     }

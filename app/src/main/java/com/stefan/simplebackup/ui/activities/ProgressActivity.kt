@@ -2,11 +2,8 @@ package com.stefan.simplebackup.ui.activities
 
 import android.os.Bundle
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.work.WorkInfo
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
@@ -19,14 +16,10 @@ import com.stefan.simplebackup.databinding.ActivityProgressBinding
 import com.stefan.simplebackup.ui.viewmodels.ProgressViewModel
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
-import com.stefan.simplebackup.utils.extensions.loadBitmap
-import com.stefan.simplebackup.utils.extensions.viewBinding
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
+import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.launch
 
-class ProgressActivity : AppCompatActivity() {
+class ProgressActivity : BaseActivity() {
 
     // Binding properties
     private val binding: ActivityProgressBinding by viewBinding(ActivityProgressBinding::inflate)
@@ -35,14 +28,14 @@ class ProgressActivity : AppCompatActivity() {
     private var bitmap: ByteArray = byteArrayOf()
 
     private val progressViewModel: ProgressViewModel by viewModels {
-        val selection = intent?.extras?.getIntArray(SELECTION_EXTRA)
+        val selection = intent?.extras?.getStringArray(SELECTION_EXTRA)
         ViewModelFactory(application as MainApplication, selection)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        window.statusBarColor = getColorFromResource(R.color.background)
         setContentView(binding.root)
-
         binding.apply {
             savedInstanceState.restoreSavedData()
             bindViews()
@@ -50,10 +43,10 @@ class ProgressActivity : AppCompatActivity() {
         }
     }
 
-    override fun onBackPressed() {
+    override fun onBackPress() {
         println("OnBackPressed check: Is work in progress?: $isInProgress")
         if (!isInProgress)
-            super.onBackPressed()
+            super.onBackPress()
     }
 
     private fun Bundle?.restoreSavedData() {
@@ -68,13 +61,13 @@ class ProgressActivity : AppCompatActivity() {
     }
 
     private fun ActivityProgressBinding.initObservers() {
-        lifecycleScope.launch {
+        launchOnViewLifecycle {
             launch {
                 progressViewModel.getWorkManager.getWorkInfosByTagLiveData(REQUEST_TAG)
                     .observe(this@ProgressActivity, workInfoObserver())
             }
-            lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                MainWorker.notificationObserver.collect{ notificationData ->
+            repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
+                MainWorker.notificationObserver.collect { notificationData ->
                     updateViews(notificationData)
                 }
             }
@@ -99,7 +92,6 @@ class ProgressActivity : AppCompatActivity() {
     }
 
     private fun ActivityProgressBinding.bindViews() {
-        window.setBackgroundDrawableResource(R.color.background)
         bindProgressIndicator()
         bindBackButton()
     }
@@ -122,7 +114,7 @@ class ProgressActivity : AppCompatActivity() {
         backButton.isEnabled = !isInProgress
         backButton.apply {
             setOnClickListener {
-                onBackPressed()
+                onBackPress()
             }
         }
     }
