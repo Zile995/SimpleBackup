@@ -113,12 +113,14 @@ class SimpleMaterialToolbar(
     private fun setDefaultState() {
         if (!inSearchState && !inSelectionState && !inSettingsState && !hasOnClickListeners()) {
             Log.d("SimpleMaterialToolbar", "Setting to default state")
-            addRipple()
-            setDefaultTitle()
-            setDefaultMenuItems()
-            propagateClickEventsToParent()
-            setNavigationIcon(R.drawable.ic_search)
-            setNavigationContentDescription(R.string.search_for_apps)
+            postDelayed(50L) {
+                addRipple()
+                setDefaultTitle()
+                setDefaultMenuItems()
+                propagateClickEventsToParent()
+                setNavigationIcon(R.drawable.ic_search)
+                setNavigationContentDescription(R.string.search_for_apps)
+            }
         }
     }
 

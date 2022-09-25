@@ -1,7 +1,6 @@
 package com.stefan.simplebackup.ui.fragments.viewpager
 
 import android.content.Context
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -10,7 +9,7 @@ import androidx.fragment.app.viewModels
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
-import com.stefan.simplebackup.data.manager.MainPermissions
+import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentLocalViewPagerBinding
 import com.stefan.simplebackup.ui.fragments.BaseFragment
@@ -64,12 +63,8 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
     override fun onStart() {
         super.onStart()
         val appPermissionManager = AppPermissionManager(requireContext().applicationContext)
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-            isStoragePermissionGranted =
-                appPermissionManager.mainPermissionCheck(MainPermissions.STORAGE)
-        } else if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            isStoragePermissionGranted = appPermissionManager.checkManageAllFilesPermission()
-        }
+        isStoragePermissionGranted =
+            appPermissionManager.checkMainPermission(MainPermission.MANAGE_ALL_FILES)
     }
 
     private fun controlViewsOnPermissionChange(isGranted: Boolean) {

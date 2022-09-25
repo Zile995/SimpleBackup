@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.widget.ImageView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.ColorRes
 import androidx.appcompat.content.res.AppCompatResources
@@ -29,6 +30,7 @@ import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
 import com.stefan.simplebackup.databinding.ActivityDetailBinding
@@ -52,6 +54,24 @@ class AppDetailActivity : BaseActivity() {
         val selectedApp = intent?.extras?.parcelable<AppData>(PARCELABLE_EXTRA)
         ViewModelFactory(application as MainApplication, selectedApp)
     }
+
+    private val contactsPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                //
+            } else {
+                showStoragePermissionDialog()
+            }
+        }
+
+    private val storagePermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                //
+            } else {
+                showStoragePermissionDialog()
+            }
+        }
 
     private val packageReceiver by lazy {
         object : BroadcastReceiver() {
@@ -91,8 +111,17 @@ class AppDetailActivity : BaseActivity() {
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.CREATED) {
                 launch {
-                    detailsViewModel.favoriteChanged.collect { isChanged ->
-                        if (isChanged) detailsToolbar.menu?.setFavoritesIcon()
+                    detailsViewModel.favoriteChanged.collect { isSuccessfullyChanged ->
+                        if (isSuccessfullyChanged == true) {
+                            detailsToolbar.menu?.setFavoritesIcon()
+                            if (detailsViewModel.app?.favorite == true)
+                                showToast(R.string.added_to_favorites)
+                            else
+                                showToast(R.string.removed_from_favorites)
+                        }
+                        if (isSuccessfullyChanged == false) {
+                            showToast(R.string.unable_to_change_favorites)
+                        }
                     }
                 }
                 detailsViewModel.archNames.collect { archNames ->
@@ -109,6 +138,9 @@ class AppDetailActivity : BaseActivity() {
         launchOnViewLifecycle {
             bindToolBar()
             bindAppBarLayout()
+            bindDeleteButton()
+            bindCloudBackupButton()
+            bindLocalBackupButton()
             setData(detailsViewModel.app)
         }
     }
@@ -180,29 +212,53 @@ class AppDetailActivity : BaseActivity() {
             setNavigationContentDescription(R.string.back)
             setNavigationOnClickListener { onBackPress() }
             setOnMenuItemClickListener { menuItem ->
-                when (menuItem.itemId) {
-                    R.id.force_stop -> {
-                        detailsViewModel.app?.run {
+                detailsViewModel.app?.run {
+                    when (menuItem.itemId) {
+                        R.id.force_stop -> {
                             forceStopPackage(packageName)
-                            true
-                        } ?: false
-                    }
-                    R.id.settings_info -> {
-                        detailsViewModel.app?.run {
+                        }
+                        R.id.settings_info -> {
                             openPackageSettingsInfo(packageName)
-                            true
-                        } ?: false
-                    }
-                    R.id.add_to_favorites -> {
-                        detailsViewModel.app?.run {
+                        }
+                        R.id.add_to_favorites -> {
                             detailsViewModel.changeFavorites()
-                            true
-                        } ?: false
+                        }
                     }
-                    else -> {
-                        false
-                    }
-                }
+                    true
+                } ?: false
+            }
+        }
+    }
+
+    private fun ActivityDetailBinding.bindLocalBackupButton() {
+        localBackupButton.setOnClickListener {
+            requestStoragePermission(storagePermissionLauncher,
+                onPermissionAlreadyGranted = {
+                    //
+                })
+        }
+    }
+
+    private fun ActivityDetailBinding.bindCloudBackupButton() {
+        cloudBackupButton.setOnClickListener {
+            proceedWithPermission(
+                MainPermission.MANAGE_ALL_FILES,
+                onPermissionGranted = {
+                    requestContactsPermission(contactsPermissionLauncher,
+                        onPermissionAlreadyGranted = {
+                            //
+                        })
+                },
+                onPermissionDenied = {
+                    showStoragePermissionDialog()
+                })
+        }
+    }
+
+    private fun ActivityDetailBinding.bindDeleteButton() {
+        deleteButton.setOnClickListener {
+            detailsViewModel.app?.apply {
+                deletePackage(packageName)
             }
         }
     }
@@ -240,9 +296,6 @@ class AppDetailActivity : BaseActivity() {
             apkSizeLabel.text = getString(R.string.apk_size, apkSize.bytesToMegaBytesString())
             targetApiLabel.text = getString(R.string.target_sdk, targetSdk)
             minApiLabel.text = getString(R.string.min_sdk, minSdk)
-            deleteButton.setOnClickListener {
-                deletePackage(packageName)
-            }
         }
     }
 

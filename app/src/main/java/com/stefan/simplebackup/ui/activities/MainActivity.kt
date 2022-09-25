@@ -237,7 +237,8 @@ class MainActivity : BaseActivity() {
                 R.id.select_all -> {
                     visibleFragment?.selectAllItems()
                 }
-                else -> { return@setOnMenuItemClickListener false
+                else -> {
+                    return@setOnMenuItemClickListener false
                 }
             }
             true
@@ -343,7 +344,8 @@ class MainActivity : BaseActivity() {
             if (selectionFinished)
                 smoothSnapToPosition(0)
             else {
-                ConfigureSheetFragment().show(supportFragmentManager, "configureSheetTag")
+                if (mainViewModel.selectionList.isNotEmpty())
+                    ConfigureSheetFragment().show(supportFragmentManager, "configureSheetTag")
             }
         }
         hideAttachedButton(binding.floatingButton)

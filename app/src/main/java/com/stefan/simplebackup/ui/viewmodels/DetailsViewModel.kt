@@ -33,7 +33,7 @@ class DetailsViewModel(
     private var _archNames = MutableStateFlow<List<String>?>(null)
     val archNames get() = _archNames.asStateFlow()
 
-    private var _favoriteChanged = MutableStateFlow(false)
+    private var _favoriteChanged = MutableStateFlow<Boolean?>(null)
     val favoriteChanged get() = _favoriteChanged.asStateFlow()
 
     init {
@@ -53,7 +53,7 @@ class DetailsViewModel(
         viewModelScope.launch {
             try {
                 app?.apply {
-                    _favoriteChanged.value = false
+                    _favoriteChanged.value = null
                     appRepository.startRepositoryJob {
                         if (favorite)
                             removeFromFavorites(packageName)

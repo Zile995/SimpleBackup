@@ -1,11 +1,13 @@
 package com.stefan.simplebackup.data.manager
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.AppOpsManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Process
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 
 class AppPermissionManager(private val context: Context) {
@@ -50,14 +52,27 @@ class AppPermissionManager(private val context: Context) {
         else mode == AppOpsManager.MODE_ALLOWED
     }
 
-    fun mainPermissionCheck(mainPermissions: MainPermissions) =
-        ContextCompat.checkSelfPermission(
-            context,
-            mainPermissions.permissionString
-        ) == PackageManager.PERMISSION_GRANTED
+    fun checkMainPermission(mainPermission: MainPermission) =
+        when {
+            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) && mainPermission == MainPermission.MANAGE_ALL_FILES ->
+                checkManageAllFilesPermission()
+            (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) && mainPermission == MainPermission.MANAGE_ALL_FILES ->
+                ContextCompat.checkSelfPermission(
+                    context,
+                    MainPermission.STORAGE.permissionName
+                ) == PackageManager.PERMISSION_GRANTED
+            else -> {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    mainPermission.permissionName
+                ) == PackageManager.PERMISSION_GRANTED
+            }
+        }
 }
 
-enum class MainPermissions(val permissionString: String) {
+enum class MainPermission(val permissionName: String) {
     CONTACTS(Manifest.permission.READ_CONTACTS),
-    STORAGE(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+    STORAGE(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+    @SuppressLint("InlinedApi")
+    MANAGE_ALL_FILES(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
 }

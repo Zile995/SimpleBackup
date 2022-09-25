@@ -234,7 +234,7 @@ inline fun Context.permissionDialog(
     crossinline onNegativeButtonPress: () -> Unit = {}
 ) {
     val context = this
-    MaterialAlertDialogBuilder(context, R.style.Widget_SimpleBackup_MaterialAlertDialog).run {
+    MaterialAlertDialogBuilder(context, R.style.Widget_SimpleBackup_MaterialAlertDialog).apply {
         setTitle(title)
         setMessage(message)
         setPositiveButton(positiveButtonText) { dialog, _ ->

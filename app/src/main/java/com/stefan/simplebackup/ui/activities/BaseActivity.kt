@@ -7,7 +7,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
-import com.stefan.simplebackup.data.manager.MainPermissions
+import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.utils.extensions.openManageFilesPermissionSettings
 import com.stefan.simplebackup.utils.extensions.openPackageSettingsInfo
 import com.stefan.simplebackup.utils.extensions.permissionDialog
@@ -30,72 +30,97 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
         finish()
     }
 
-    inline fun onMainPermissionCheck(
-        mainPermission: MainPermissions,
+    inline fun onMainPermissionRequest(
+        mainPermission: MainPermission,
         permissionLauncher: ActivityResultLauncher<String>,
+        onPermissionAlreadyGranted: () -> Unit = {},
         onPermissionRationale: () -> Unit
     ) {
+        val appPermissionManager = AppPermissionManager(this)
         when {
-            shouldShowRequestPermissionRationale(mainPermission.permissionString) -> onPermissionRationale()
-            else -> permissionLauncher.launch(mainPermission.permissionString)
+            appPermissionManager.checkMainPermission(mainPermission) -> onPermissionAlreadyGranted()
+            shouldShowRequestPermissionRationale(mainPermission.permissionName) -> onPermissionRationale()
+            else -> permissionLauncher.launch(mainPermission.permissionName)
         }
     }
 
     inline fun requestStoragePermission(
         permissionLauncher: ActivityResultLauncher<String>,
+        crossinline onPermissionAlreadyGranted: () -> Unit = {},
         onPermissionRationale: () -> Unit = {}
     ) {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-            onMainPermissionCheck(
-                mainPermission = MainPermissions.STORAGE,
+            onMainPermissionRequest(
+                mainPermission = MainPermission.STORAGE,
                 permissionLauncher = permissionLauncher,
+                onPermissionAlreadyGranted = { onPermissionAlreadyGranted() },
                 onPermissionRationale = {
-                    permissionDialog(
-                        title = getString(R.string.storage_permission),
-                        message = getString(R.string.storage_perm_info),
-                        positiveButtonText = getString(R.string.ok),
-                        negativeButtonText = getString(R.string.set_manually),
-                        onNegativeButtonPress = {
-                            openPackageSettingsInfo(packageName)
-                        })
+                    showStoragePermissionDialog()
                     onPermissionRationale()
                 },
             )
-        } else if (Build.VERSION.SDK_INT > Build.VERSION_CODES.Q) {
-            val appPermissionManager = AppPermissionManager(applicationContext)
-            val isManageAllFilesGranted = appPermissionManager.checkManageAllFilesPermission()
-            if (!isManageAllFilesGranted) {
-                permissionDialog(
-                    title = getString(R.string.storage_permission),
-                    message = getString(R.string.storage_perm_info),
-                    positiveButtonText = getString(R.string.ok),
-                    negativeButtonText = getString(R.string.set_manually),
-                    onNegativeButtonPress = {
-                        openManageFilesPermissionSettings()
-                    }
-                )
-            }
+        } else {
+            proceedWithPermission(
+                mainPermission = MainPermission.MANAGE_ALL_FILES,
+                onPermissionGranted = {
+                    onPermissionAlreadyGranted()
+                },
+                onPermissionDenied = {
+                    showStoragePermissionDialog()
+                }
+            )
         }
     }
 
     inline fun requestContactsPermission(
         permissionLauncher: ActivityResultLauncher<String>,
+        onPermissionAlreadyGranted: () -> Unit = {},
         onPermissionRationale: () -> Unit = {}
-    ) = onMainPermissionCheck(
-        mainPermission = MainPermissions.CONTACTS,
+    ) = onMainPermissionRequest(
+        mainPermission = MainPermission.CONTACTS,
         permissionLauncher = permissionLauncher,
+        onPermissionAlreadyGranted = { onPermissionAlreadyGranted() },
         onPermissionRationale = {
-            permissionDialog(
-                title = getString(R.string.contacts_permission),
-                message = getString(R.string.contacts_perm_info),
-                positiveButtonText = getString(R.string.ok),
-                negativeButtonText = getString(R.string.set_manually),
-                onNegativeButtonPress = {
-                    openPackageSettingsInfo(packageName)
-                })
+            showContactsPermissionDialog()
             onPermissionRationale()
         }
     )
+
+    inline fun proceedWithPermission(
+        mainPermission: MainPermission,
+        crossinline onPermissionGranted: () -> Unit = {},
+        crossinline onPermissionDenied: () -> Unit = {}
+    ) {
+        val appPermissionManager = AppPermissionManager(this)
+        if (appPermissionManager.checkMainPermission(mainPermission))
+            onPermissionGranted()
+        else
+            onPermissionDenied()
+    }
+
+    fun showStoragePermissionDialog() =
+        permissionDialog(
+            title = getString(R.string.storage_permission),
+            message = getString(R.string.storage_perm_info),
+            positiveButtonText = getString(R.string.ok),
+            negativeButtonText = getString(R.string.set_manually),
+            onNegativeButtonPress = {
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q)
+                    openPackageSettingsInfo(packageName)
+                else
+                    openManageFilesPermissionSettings()
+            })
+
+
+    fun showContactsPermissionDialog() =
+        permissionDialog(
+            title = getString(R.string.contacts_permission),
+            message = getString(R.string.contacts_perm_info),
+            positiveButtonText = getString(R.string.ok),
+            negativeButtonText = getString(R.string.set_manually),
+            onNegativeButtonPress = {
+                openPackageSettingsInfo(packageName)
+            })
 }
 
 interface BackPressHandler {

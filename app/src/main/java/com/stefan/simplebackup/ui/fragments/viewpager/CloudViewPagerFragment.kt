@@ -8,7 +8,7 @@ import androidx.fragment.app.viewModels
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
-import com.stefan.simplebackup.data.manager.MainPermissions
+import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentCloudViewPagerBinding
 import com.stefan.simplebackup.ui.fragments.BaseFragment
@@ -61,7 +61,7 @@ class CloudViewPagerFragment : BaseViewPagerFragment<FragmentCloudViewPagerBindi
         super.onStart()
         val appPermissionManager = AppPermissionManager(requireContext().applicationContext)
         isContactsPermissionGranted =
-            appPermissionManager.mainPermissionCheck(MainPermissions.CONTACTS)
+            appPermissionManager.checkMainPermission(MainPermission.CONTACTS)
     }
 
     private fun controlViewsOnPermissionChange(isGranted: Boolean) {
