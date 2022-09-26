@@ -176,14 +176,12 @@ class MainActivity : BaseActivity() {
     }
 
     private fun SimpleMaterialToolbar.changeMenuItems(numberOfSelectedItems: Int) {
-        doOnLayout {
-            when {
-                numberOfSelectedItems > 1 && visibleFragment is HomeFragment -> {
-                    deleteItem?.isVisible = false
-                }
-                numberOfSelectedItems >= 1 -> {
-                    changeOnFavorite(isFavorite = visibleFragment is FavoritesFragment)
-                }
+        when {
+            numberOfSelectedItems > 1 && visibleFragment is HomeFragment -> {
+                deleteItem?.isVisible = false
+            }
+            numberOfSelectedItems >= 1 -> {
+                changeOnFavorite(isFavorite = visibleFragment is FavoritesFragment)
             }
         }
     }
@@ -295,13 +293,13 @@ class MainActivity : BaseActivity() {
                 mainViewModel.apply {
                     launch {
                         isSelected.collect { isSelected ->
-                            if (isSearching.value) return@collect
+                            if (isSearching.value || isSettingsDestination.value) return@collect
                             mainActivityAnimator.animateOnSelection(isSelected, setSelectionMode)
                         }
                     }
                     launch {
                         isSearching.collect { isSearching ->
-                            if (isSelected.value) return@collect
+                            if (isSelected.value || isSettingsDestination.value) return@collect
                             mainActivityAnimator.animateOnSearch(isSearching)
                             resetSearchResult()
                         }

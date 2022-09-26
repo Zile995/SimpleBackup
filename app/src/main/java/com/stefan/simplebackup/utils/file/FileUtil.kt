@@ -3,7 +3,7 @@ package com.stefan.simplebackup.utils.file
 import android.util.Log
 import com.stefan.simplebackup.MainApplication.Companion.backupDirPath
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.extensions.ioDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
@@ -18,6 +18,9 @@ const val TEMP_DIR_PATH: String = "SimpleBackup/temp"
 
 @Suppress("BlockingMethodInNonBlockingContext")
 object FileUtil {
+
+    private val ioDispatcher = Dispatchers.IO
+
     @Throws(IOException::class)
     suspend fun createDirectory(path: String) {
         withContext(ioDispatcher) {
@@ -77,12 +80,10 @@ object FileUtil {
     }
 
     suspend fun findJsonFiles(path: String) = flow {
-        File(path).listFiles()?.forEach { appDirList ->
-            appDirList.listFiles()?.filter { appDirFile ->
-                appDirFile.isFile && appDirFile.extension == "json"
-            }?.map { jsonFile ->
-                emit(jsonFile)
-            }
+        File(path).walkTopDown().filter {
+            it.isFile && it.extension == "json"
+        }.forEach { jsonFile ->
+            emit(jsonFile)
         }
     }.flowOn(ioDispatcher)
 
@@ -119,9 +120,8 @@ object FileUtil {
             val zipFile = ZipFile(file)
             val headerList = zipFile.fileHeaders
             headerList.map { fileHeader ->
-                if (fileHeader.fileName.endsWith("apk"))
-                    return zipFile
-            }
+                fileHeader.fileName.endsWith("apk")
+            }.all { it }
         }
         return null
     }

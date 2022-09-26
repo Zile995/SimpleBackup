@@ -77,7 +77,7 @@ object PreferenceHelper {
     suspend fun saveZipCompressionLevel(
         @FloatRange(
             from = 0.0,
-            to = 10.0
+            to = 9.0
         ) compressionLevel: Float
     ) {
         sharedPreferences.editPreference(ZIP_COMPRESSION_LEVEL, compressionLevel)

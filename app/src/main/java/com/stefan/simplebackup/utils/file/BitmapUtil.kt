@@ -6,13 +6,15 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
 import android.util.Log
-import com.stefan.simplebackup.utils.extensions.ioDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
 @Suppress("BlockingMethodInNonBlockingContext")
 object BitmapUtil {
+
+    private val ioDispatcher = Dispatchers.IO
 
     suspend fun Drawable.toBitmap(): Bitmap =
         withContext(ioDispatcher) {

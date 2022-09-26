@@ -78,7 +78,8 @@
         <activity
             android:name=".ui.activities.AppDetailActivity"
             android:exported="false"
-            android:parentActivityName=".ui.activities.MainActivity" />
+            android:parentActivityName=".ui.activities.MainActivity"
+            android:windowSoftInputMode="stateAlwaysHidden" />
         <activity
             android:name=".ui.activities.ProgressActivity"
             android:exported="false"

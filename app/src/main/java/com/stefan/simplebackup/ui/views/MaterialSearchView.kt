@@ -3,7 +3,6 @@ package com.stefan.simplebackup.ui.views
 import android.content.Context
 import android.graphics.Typeface
 import android.util.AttributeSet
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
@@ -11,7 +10,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
-import androidx.core.view.doOnLayout
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.utils.extensions.getInterFontTypeFace
 import com.stefan.simplebackup.utils.extensions.showSoftKeyboard
@@ -34,11 +32,9 @@ class MaterialSearchView(
     )
 
     init {
-        doOnLayout {
-            addCloseButton()
-            setTypeFace(context.getInterFontTypeFace())
-        }
+        addCloseButton()
         setSearchViewMargin()
+        setTypeFace(context.getInterFontTypeFace())
         preventFullScreenKeyboard()
         setOnQueryTextFocusChangeListener { view, hasFocus ->
             if (hasFocus)
@@ -47,10 +43,10 @@ class MaterialSearchView(
     }
 
     private fun addCloseButton() = closeButton?.apply {
-        setImageResource(R.drawable.ic_close)
         val layoutParams: LinearLayout.LayoutParams =
             this.layoutParams as LinearLayout.LayoutParams
         layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+        setImageResource(R.drawable.ic_close)
     }
 
     private fun preventFullScreenKeyboard() {
@@ -59,19 +55,18 @@ class MaterialSearchView(
 
     private fun setSearchViewMargin() {
         val params = searchEditFrame.layoutParams as LinearLayout.LayoutParams
-        params.gravity = Gravity.START
-        params.setMargins(-20, 0, 30, 0)
+        params.setMargins(-12, 0, 30, 0)
         searchEditFrame.layoutParams = params
         maxWidth = Integer.MAX_VALUE
     }
 
     private fun setTypeFace(typeface: Typeface?) {
-        searchText.typeface = typeface
         searchText.textSize = 17f
+        searchText.typeface = typeface
     }
 
     fun resetSearchView() {
-        clearFocus()
         setQuery("", false)
+        clearFocus()
     }
 }

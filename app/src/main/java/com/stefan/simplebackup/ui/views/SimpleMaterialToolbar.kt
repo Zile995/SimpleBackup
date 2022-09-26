@@ -52,8 +52,8 @@ class SimpleMaterialToolbar(
         if (isSearching) {
             removeTitle()
             removeRipple()
-            removeOnClickListener()
             setMenuItemsOnSearch()
+            removeOnClickListener()
             setNavigationIcon(R.drawable.ic_arrow_back)
             setNavigationContentDescription(R.string.back)
             setNavigationOnClickListener {
@@ -91,7 +91,7 @@ class SimpleMaterialToolbar(
     ) {
         inSettingsState = isInSettings
         if (isInSettings) {
-            postDelayed(50L) {
+            postDelayed(100L) {
                 removeRipple()
                 setDefaultMenuItems()
                 removeOnClickListener()
@@ -113,14 +113,12 @@ class SimpleMaterialToolbar(
     private fun setDefaultState() {
         if (!inSearchState && !inSelectionState && !inSettingsState && !hasOnClickListeners()) {
             Log.d("SimpleMaterialToolbar", "Setting to default state")
-            postDelayed(50L) {
-                addRipple()
-                setDefaultTitle()
-                setDefaultMenuItems()
-                propagateClickEventsToParent()
-                setNavigationIcon(R.drawable.ic_search)
-                setNavigationContentDescription(R.string.search_for_apps)
-            }
+            addRipple()
+            setDefaultTitle()
+            setDefaultMenuItems()
+            propagateClickEventsToParent()
+            setNavigationIcon(R.drawable.ic_search)
+            setNavigationContentDescription(R.string.search_for_apps)
         }
     }
 
@@ -160,7 +158,6 @@ class SimpleMaterialToolbar(
         searchViewItem?.isVisible = true
         selectAllItem?.isVisible = false
         addToFavoritesItem?.isVisible = false
-        searchActionView?.requestFocus()
     }
 
     private fun setMenuItemsOnSelection() {
@@ -171,7 +168,6 @@ class SimpleMaterialToolbar(
     }
 
     private fun setDefaultMenuItems() {
-        resetSearchActionView()
         deleteItem?.isVisible = false
         selectAllItem?.isVisible = false
         searchViewItem?.isVisible = false
@@ -185,8 +181,10 @@ class SimpleMaterialToolbar(
     private fun getDrawable(@DrawableRes resourceId: Int) =
         ContextCompat.getDrawable(context, resourceId)
 
-    private fun resetSearchActionView() = searchActionView?.resetSearchView()
     private fun findMenuItem(@IdRes resourceId: Int) = menu?.findItem(resourceId)
+
+    fun requestSearchActionViewFocus() = searchActionView?.requestFocus()
+    fun resetSearchActionView() = searchActionView?.resetSearchView()
 
     private fun addRipple() =
         with(TypedValue()) {
@@ -213,7 +211,6 @@ class SimpleMaterialToolbar(
         setCustomTitle(R.string.search_for_apps, R.style.TextAppearance_SimpleBackup_TitleSmall)
         setDefaultTitleTextColor()
     }
-
 
     private fun propagateClickEventsToParent() {
         val parentView by lazy { parent as View }
