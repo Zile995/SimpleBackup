@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Process
-import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 
 class AppPermissionManager(private val context: Context) {
@@ -57,22 +56,23 @@ class AppPermissionManager(private val context: Context) {
             (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) && mainPermission == MainPermission.MANAGE_ALL_FILES ->
                 checkManageAllFilesPermission()
             (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) && mainPermission == MainPermission.MANAGE_ALL_FILES ->
-                ContextCompat.checkSelfPermission(
-                    context,
-                    MainPermission.STORAGE.permissionName
-                ) == PackageManager.PERMISSION_GRANTED
+                isPermissionGranted(MainPermission.STORAGE.permissionName)
             else -> {
-                ContextCompat.checkSelfPermission(
-                    context,
-                    mainPermission.permissionName
-                ) == PackageManager.PERMISSION_GRANTED
+                isPermissionGranted(mainPermission.permissionName)
             }
         }
+
+    private fun isPermissionGranted(permissionName: String) =
+        ContextCompat.checkSelfPermission(
+            context,
+            permissionName
+        ) == PackageManager.PERMISSION_GRANTED
 }
 
 enum class MainPermission(val permissionName: String) {
     CONTACTS(Manifest.permission.READ_CONTACTS),
     STORAGE(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+
     @SuppressLint("InlinedApi")
     MANAGE_ALL_FILES(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
 }

@@ -56,11 +56,6 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
 
     private fun FragmentLocalBinding.initObservers() {
         launchOnViewLifecycle {
-            launch {
-                repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
-                    localViewModel.startPackagePolling()
-                }
-            }
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
                 localViewModel.spinner.collect { isSpinning ->
                     progressBar.isVisible = isSpinning

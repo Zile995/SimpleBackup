@@ -10,30 +10,29 @@ import kotlinx.coroutines.launch
 
 class FavoritesViewModel(
     repository: AppRepository,
-    appDataType: AppDataType?,
-    shouldControlSpinner: Boolean = false
-) : BaseViewModel(shouldControlSpinner) {
+    appDataType: AppDataType?
+) : BaseViewModel() {
 
     init {
         viewModelScope.launch(ioDispatcher) {
             appDataType?.let {
                 when (appDataType) {
                     AppDataType.USER -> {
-                        loadList {
+                        loadList(false) {
                             repository.installedApps.filterBy {
                                 it.favorite
                             }
                         }
                     }
                     AppDataType.LOCAL -> {
-                        loadList {
+                        loadList(false) {
                             repository.localApps.filterBy {
                                 it.favorite
                             }
                         }
                     }
                     AppDataType.CLOUD -> {
-                        loadList {
+                        loadList(false) {
                             repository.cloudApps.filterBy {
                                 it.favorite
                             }

@@ -9,21 +9,24 @@ import kotlinx.coroutines.flow.asStateFlow
 
 const val SELECTION_EXTRA = "SELECTION_LIST"
 
-sealed class BaseViewModel(private val shouldControlSpinner: Boolean = true) : ViewModel(),
+sealed class BaseViewModel : ViewModel(),
     RecyclerViewStateSaver by RecyclerViewStateSaverImpl() {
     // Observable spinner properties used for progressbar observing
-    private var _spinner = MutableStateFlow(true)
+    protected var _spinner = MutableStateFlow(true)
     val spinner get() = _spinner.asStateFlow()
 
     // Observable application properties used for list loading
-    private var _observableList = MutableStateFlow(listOf<AppData>())
+    protected var _observableList = MutableStateFlow(mutableListOf<AppData>())
     val observableList get() = _observableList.asStateFlow()
 
     fun setSpinning(shouldSpin: Boolean) {
         _spinner.value = shouldSpin
     }
 
-    protected suspend fun loadList(repositoryList: () -> Flow<List<AppData>>) {
+    protected suspend fun loadList(
+        shouldControlSpinner: Boolean = true,
+        repositoryList: () -> Flow<MutableList<AppData>>
+    ) {
         repositoryList().collect { list ->
             _observableList.value = list
             delay(400)

@@ -50,19 +50,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         }
     }
 
-//    private fun FragmentHomeBinding.bindBackupChip() {
-//        TODO: Add floating button action...
-//        batchBackup.setOnClickListener {
-//            // Fix passing empty list if user deselect last item quickly and click on backup button
-//            if (mainViewModel.selectionList.isEmpty()) return@setOnClickListener
-//            requireContext().apply {
-//                passBundleToActivity<ProgressActivity>(
-//                    SELECTION_EXTRA to mainViewModel.selectionList.toIntArray()
-//                )
-//            }
-//        }
-//    }
-
     private fun FragmentHomeBinding.initObservers() {
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {

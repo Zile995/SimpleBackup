@@ -6,15 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
-import androidx.work.WorkManager
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.databinding.FragmentConfigureSheetBinding
-import com.stefan.simplebackup.ui.activities.ProgressActivity
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
-import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
-import com.stefan.simplebackup.utils.extensions.passBundleToActivity
 import com.stefan.simplebackup.utils.extensions.viewBinding
 
 class ConfigureSheetFragment : BottomSheetDialogFragment() {
@@ -36,7 +32,9 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
     private val storagePermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                startProgressActivity()
+                onMainActivityCallback {
+                    startProgressActivity(mainViewModel.selectionList.toTypedArray())
+                }
             } else {
                 onMainActivityCallback {
                     showStoragePermissionDialog()
@@ -65,17 +63,9 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
             onMainActivityCallback {
                 requestStoragePermission(storagePermissionLauncher,
                     onPermissionAlreadyGranted = {
-                        startProgressActivity()
+                        startProgressActivity(mainViewModel.selectionList.toTypedArray())
                     })
             }
-        }
-    }
-
-    private fun startProgressActivity() {
-        requireContext().apply {
-            passBundleToActivity<ProgressActivity>(
-                SELECTION_EXTRA to mainViewModel.selectionList.toTypedArray()
-            )
         }
     }
 

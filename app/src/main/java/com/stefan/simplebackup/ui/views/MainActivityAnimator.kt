@@ -34,6 +34,10 @@ class MainActivityAnimator(
 
     fun animateOnSettings(isInSettings: Boolean) {
         binding?.apply {
+            floatingButton.hidePermanently = isInSettings
+            materialToolbar.changeOnSettings(isInSettings) {
+                activity?.onSupportNavigateUp()
+            }
             root.doOnPreDraw {
                 if (isInSettings) {
                     animatorSet = AnimatorSet().apply {
@@ -60,10 +64,6 @@ class MainActivityAnimator(
                     }
                 }
             }
-            floatingButton.hidePermanently = isInSettings
-            materialToolbar.changeOnSettings(isInSettings) {
-                activity?.onSupportNavigateUp()
-            }
         }
     }
 
@@ -72,6 +72,9 @@ class MainActivityAnimator(
         selectionModeCallBack: SelectionModeCallBack
     ) {
         binding?.apply {
+            expandAppBarLayout(isSelected)
+            floatingButton.changeOnSelection(isSelected)
+            materialToolbar.changeOnSelection(isSelected, selectionModeCallBack)
             root.doOnPreDraw {
                 if (isSelected) {
                     startAnimations(doOnStart = {
@@ -83,14 +86,16 @@ class MainActivityAnimator(
                     }
                 }
             }
-            expandAppBarLayout(isSelected)
-            floatingButton.changeOnSelection(isSelected)
-            materialToolbar.changeOnSelection(isSelected, selectionModeCallBack)
         }
     }
 
     fun animateOnSearch(isSearching: Boolean) {
         binding?.apply {
+            floatingButton.hidePermanently = isSearching
+            materialToolbar.changeOnSearch(isSearching,
+                setNavigationOnClickListener = {
+                    activity?.onSupportNavigateUp()
+                })
             root.doOnPreDraw {
                 if (isSearching) {
                     startAnimations(
@@ -107,11 +112,6 @@ class MainActivityAnimator(
                     }
                 }
             }
-            floatingButton.hidePermanently = isSearching
-            materialToolbar.changeOnSearch(isSearching,
-                setNavigationOnClickListener = {
-                    activity?.onSupportNavigateUp()
-                })
         }
     }
 

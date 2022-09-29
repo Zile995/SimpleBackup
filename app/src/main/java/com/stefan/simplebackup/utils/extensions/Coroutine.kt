@@ -32,9 +32,9 @@ private val coroutineExceptionHandler =
 /**
  * - Filter the given flow list
  */
-inline fun <T> Flow<List<T>>.filterBy(crossinline predicate: (T) -> Boolean) = run {
+inline fun <T> Flow<MutableList<T>>.filterBy(crossinline predicate: (T) -> Boolean) = run {
     map { list ->
-        list.filter(predicate)
+        list.filter(predicate).toMutableList()
     }
 }
 

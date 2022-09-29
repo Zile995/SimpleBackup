@@ -8,8 +8,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
 import com.stefan.simplebackup.data.manager.MainPermission
+import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.utils.extensions.openManageFilesPermissionSettings
 import com.stefan.simplebackup.utils.extensions.openPackageSettingsInfo
+import com.stefan.simplebackup.utils.extensions.passBundleToActivity
 import com.stefan.simplebackup.utils.extensions.permissionDialog
 
 abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
@@ -28,6 +30,11 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
 
     override fun onBackPress() {
         finish()
+    }
+
+    fun startProgressActivity(selection: Array<String>) {
+        if (selection.isEmpty()) return
+        passBundleToActivity<ProgressActivity>(SELECTION_EXTRA to selection)
     }
 
     inline fun onMainPermissionRequest(

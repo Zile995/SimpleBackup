@@ -35,8 +35,8 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
         getOnPageChangeCallback()
     }
 
-    abstract fun createFragments(): ArrayList<BaseFragment<out ViewBinding>>
-    abstract fun configureTabText(): ArrayList<String>
+    abstract fun onCreateFragments(): ArrayList<BaseFragment<out ViewBinding>>
+    abstract fun onConfigureTabText(): ArrayList<String>
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -109,7 +109,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
     private fun setupViewPager() {
         viewPager.apply {
             adapter = ViewPagerAdapter(
-                createFragments(),
+                onCreateFragments(),
                 childFragmentManager,
                 viewLifecycleOwner.lifecycle
             )
@@ -162,7 +162,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
     }
 
     private fun attachMediator() {
-        val tabsText = configureTabText()
+        val tabsText = onConfigureTabText()
         mediator = TabLayoutMediator(
             tabLayout, viewPager,
             true,
@@ -177,10 +177,11 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
 
     override fun onCleanUp() {
         viewPager.unregisterOnPageChangeCallback(cachedPageChangeCallback)
-        viewPager.adapter = null
+        removeAllFragments()
+        mediator?.detach()
+        _viewPager?.adapter = null
         _tabLayout = null
         _viewPager = null
-        mediator?.detach()
         mediator = null
     }
 }

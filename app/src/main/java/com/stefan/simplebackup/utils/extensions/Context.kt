@@ -155,8 +155,8 @@ fun Context.forceStopPackage(packageName: String) {
     showToast(R.string.application_stopped)
 }
 
-// ###
-// ### Settings intents
+// #
+// ## Settings intents
 
 @RequiresApi(Build.VERSION_CODES.R)
 fun Context.openManageFilesPermissionSettings() =
@@ -196,6 +196,8 @@ fun Context.launchPackage(packageName: String) {
     }
 }
 
+// ##
+
 fun Context.showToast(@StringRes resId: Int, longDuration: Boolean = false) =
     showToast(getString(resId), longDuration)
 
@@ -207,8 +209,8 @@ fun Context.showToast(message: String, longDuration: Boolean = false) {
 fun Context.getResourceDrawable(@DrawableRes drawable: Int) =
     ContextCompat.getDrawable(this, drawable)
 
-// ####
-// ### Parcelable / Bundle extensions
+// #
+// ## Parcelable / Bundle extensions
 
 inline fun <reified T : Enum<T>> Fragment.putEnumExtra(victim: T) {
     arguments = Bundle().apply { putInt(T::class.java.name, victim.ordinal) }
@@ -224,6 +226,8 @@ inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? =
         SDK_INT >= 33 -> getParcelable(key, T::class.java)
         else -> @Suppress("DEPRECATION") getParcelable(key) as? T
     }
+
+// ##
 
 inline fun Context.permissionDialog(
     title: String,
@@ -272,4 +276,3 @@ fun Context.rootDialog(title: String, message: String) {
         alert.show()
     }
 }
-

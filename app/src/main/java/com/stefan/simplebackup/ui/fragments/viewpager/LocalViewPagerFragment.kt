@@ -33,12 +33,16 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
         Log.d("PermissionStatus", "Is observable granted = $isGranted")
         controlViewsOnPermissionChange(isGranted)
         if (isGranted) {
+            localViewModel
             val fragmentList = arrayListOf(
                 LocalFragment(),
                 FavoritesFragment.newInstance(AppDataType.LOCAL)
             )
             addFragments(fragmentList)
-        } else removeAllFragments()
+        } else {
+            localViewModel
+            removeAllFragments()
+        }
     }
 
     private val storagePermissionLauncher by lazy {
@@ -75,9 +79,9 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
         }
     }
 
-    override fun createFragments(): ArrayList<BaseFragment<*>> = arrayListOf()
+    override fun onCreateFragments(): ArrayList<BaseFragment<*>> = arrayListOf()
 
-    override fun configureTabText(): ArrayList<String> =
+    override fun onConfigureTabText(): ArrayList<String> =
         arrayListOf(
             requireContext().applicationContext.getString(R.string.backups),
             requireContext().applicationContext.getString(R.string.favorites)

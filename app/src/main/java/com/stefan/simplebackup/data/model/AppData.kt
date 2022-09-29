@@ -16,6 +16,7 @@ import com.stefan.simplebackup.utils.file.BitmapUtil.saveByteArray
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.stefan.simplebackup.utils.file.JsonUtil
 import kotlinx.coroutines.withContext
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.io.IOException
@@ -273,4 +274,9 @@ data class AppData(
             }
         }
     }
+}
+
+@Parcelize
+enum class AppDataType : Parcelable {
+    USER, LOCAL, CLOUD
 }
