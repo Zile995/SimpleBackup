@@ -14,10 +14,10 @@ import com.stefan.simplebackup.utils.file.FileUtil.findJsonFiles
 import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
 import com.stefan.simplebackup.utils.file.asRecursiveFileWatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
+import kotlin.system.measureTimeMillis
 
 class LocalViewModel(
     application: MainApplication,
@@ -26,16 +26,16 @@ class LocalViewModel(
     BaseViewModel() {
 
     private val workManager = WorkManager.getInstance(application)
+    private val fileEventObserver = File(backupDirPath).asRecursiveFileWatcher().processFileEvents()
 
     init {
         Log.d("ViewModel", "LocalViewModel created")
+        refreshBackupList()
     }
 
     init {
         viewModelScope.launch {
-            fetchPackageList()
-            val fileWatcher = File(backupDirPath).asRecursiveFileWatcher()
-            fileWatcher.processFileEvents().collect { fileEvent ->
+            fileEventObserver.collect { fileEvent ->
                 val list = mutableListOf<AppData>()
                 list.addAll(_observableList.value)
                 when (fileEvent.kind) {
@@ -74,18 +74,22 @@ class LocalViewModel(
         }
     }
 
-    private suspend fun fetchPackageList() = coroutineScope {
-        val backupList = mutableListOf<AppData>()
-        findJsonFiles(backupDirPath).collect { jsonFile ->
-            val app = deserializeApp(jsonFile)
-            app?.let {
-                backupList.add(it)
+    fun refreshBackupList() =
+        viewModelScope.launch {
+            Log.d("ViewModel", "Refreshing the backup list")
+            val backupList = mutableListOf<AppData>()
+            val time = measureTimeMillis {
+                findJsonFiles(backupDirPath).collect { jsonFile ->
+                    val app = deserializeApp(jsonFile)
+                    app?.let {
+                        backupList.add(it)
+                    }
+                }
+                _observableList.value = backupList
             }
+            if (time < 400L && spinner.value) delay(400 - time)
+            _spinner.value = false
         }
-        _observableList.value = backupList
-        delay(400)
-        _spinner.value = false
-    }
 
     fun startRestoreWorker(packageName: String) {
         viewModelScope.launch(Dispatchers.Default) {

@@ -44,12 +44,9 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     private fun FragmentLocalBinding.bindSwipeContainer() {
         swipeRefresh.setOnRefreshListener {
             launchOnViewLifecycle {
-                val refresh = launch {
-                    // TODO: Could be deleted
+                localViewModel.refreshBackupList().invokeOnCompletion {
+                    swipeRefresh.isRefreshing = false
                 }
-                refresh.join()
-                swipeRefresh.isRefreshing = false
-                delay(250)
             }
         }
     }
@@ -61,7 +58,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
                     progressBar.isVisible = isSpinning
                     if (!isSpinning) {
                         localViewModel.observableList.collect { appList ->
-                            adapter.submitList(appList)
+                            adapter.submitList(appList.sortedBy { it.name })
                         }
                     }
                 }
