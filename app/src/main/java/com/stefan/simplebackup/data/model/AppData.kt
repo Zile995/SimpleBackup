@@ -130,10 +130,10 @@ data class AppData(
 
     private fun convertDateToString(): String {
         val locale = Locale.getDefault()
-        val time = SimpleDateFormat(
-            "dd MMM yyyy hh:mm", locale
+        val dateFormat = SimpleDateFormat(
+            "dd MMM yyyy HH:mm", locale
         )
-        return time.format(date)
+        return dateFormat.format(this.date)
     }
 
     suspend inline fun <reified T : AppCompatActivity> passToActivity(
@@ -155,8 +155,10 @@ data class AppData(
         }
     }
 
-    @Suppress("BlockingMethodInNonBlockingContext")
-    suspend fun setBitmap(context: Context, onFailure: suspend (Context) -> ByteArray) {
+    suspend inline fun setBitmapFromPrivateFolder(
+        context: Context,
+        crossinline onFailure: suspend (Context) -> ByteArray
+    ) {
         withContext(ioDispatcher) {
             try {
                 if (bitmap.isNotEmpty())
@@ -167,7 +169,7 @@ data class AppData(
                 context.deleteFile(name)
                 if (bitmap.isEmpty())
                     onFailure(context)
-            } catch (exception: IOException) {
+            } catch (e: IOException) {
                 bitmap = onFailure(context)
             }
         }

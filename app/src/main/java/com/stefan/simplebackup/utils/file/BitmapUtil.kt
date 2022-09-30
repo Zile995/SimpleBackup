@@ -34,12 +34,7 @@ object BitmapUtil {
             bitmap
         }
 
-    suspend fun Drawable.toByteArray(): ByteArray =
-        try {
-            toBitmap().toByteArray()
-        } catch (e: IOException) {
-            byteArrayOf()
-        }
+    suspend fun Drawable.toByteArray(): ByteArray = toBitmap().toByteArray()
 
     suspend fun ByteArray.saveByteArray(
         fileName: String,
@@ -47,15 +42,20 @@ object BitmapUtil {
     ) {
         val byteArray = this
         withContext(ioDispatcher) {
-            context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
-                output.write(byteArray)
-                Log.d("Bitmap", "Saved bytearray")
-                output.close()
+            try {
+                context.openFileOutput(fileName, Context.MODE_PRIVATE).use { output ->
+                    output.write(byteArray)
+                    Log.d("BitmapUtil", "Saved bytearray")
+                    output.close()
+                }
+            } catch (e: IOException) {
+                e.localizedMessage?.let { message ->
+                    Log.e("BitmapUtil", message)
+                }
             }
         }
     }
 
-    @Throws(IOException::class)
     suspend fun ByteArray.toBitmap(): Bitmap {
         val byteArray = this
         return withContext(ioDispatcher) {
@@ -63,7 +63,6 @@ object BitmapUtil {
         }
     }
 
-    @Throws(IOException::class)
     private suspend fun Bitmap.toByteArray(): ByteArray =
         withContext(ioDispatcher) {
             val bytes = ByteArrayOutputStream()

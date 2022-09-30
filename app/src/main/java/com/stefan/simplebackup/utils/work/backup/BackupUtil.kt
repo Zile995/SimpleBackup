@@ -55,7 +55,7 @@ class BackupUtil(
                 results.add(result)
             }
         }
-        return@coroutineScope results.toList()
+        results.toList()
     }
 
     private suspend fun createDirs(app: AppData) {

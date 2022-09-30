@@ -9,69 +9,27 @@ import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
-import com.stefan.simplebackup.utils.file.EventKind
 import com.stefan.simplebackup.utils.file.FileUtil.findJsonFiles
 import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
-import com.stefan.simplebackup.utils.file.asRecursiveFileWatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.File
 import kotlin.system.measureTimeMillis
 
 class LocalViewModel(
     application: MainApplication,
     private val repository: AppRepository
-) :
-    BaseViewModel() {
+) : BaseViewModel(), FileEventObserver<AppData> by BackupFilesObserver() {
 
     private val workManager = WorkManager.getInstance(application)
-    private val fileEventObserver = File(backupDirPath).asRecursiveFileWatcher().processFileEvents()
 
     init {
         Log.d("ViewModel", "LocalViewModel created")
         refreshBackupList()
-    }
-
-    init {
-        viewModelScope.launch {
-            fileEventObserver.collect { fileEvent ->
-                val list = mutableListOf<AppData>()
-                list.addAll(_observableList.value)
-                when (fileEvent.kind) {
-                    EventKind.MODIFIED -> {
-                        val jsonFile = findJsonFiles(fileEvent.file.absolutePath)
-                        jsonFile.collect {
-                            val modifiedApp = deserializeApp(it)
-                            modifiedApp?.apply {
-                                val oldIndex = _observableList.value.indexOfFirst { oldData ->
-                                    oldData.packageName == packageName
-                                }
-                                list.removeAt(oldIndex)
-                                list.add(oldIndex, modifiedApp)
-                            }
-                        }
-                    }
-                    EventKind.CREATED -> {
-                        val jsonFile = findJsonFiles(fileEvent.file.absolutePath)
-                        jsonFile.collect {
-                            val modifiedApp = deserializeApp(it)
-                            modifiedApp?.apply {
-                                list.add(this)
-                            }
-                        }
-                    }
-                    EventKind.DELETED -> {
-                        Log.d("ViewModel", "On delete if ${fileEvent.file.name}")
-                        val deletedApp = list.firstOrNull { appData ->
-                            appData.packageName == fileEvent.file.name
-                        }
-                        list.remove(deletedApp)
-                    }
-                }
-                _observableList.value = list
-            }
-        }
+        observeFilesEvents(
+            scope = viewModelScope,
+            observable = _observableList
+        )
     }
 
     fun refreshBackupList() =

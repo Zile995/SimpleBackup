@@ -77,9 +77,11 @@ class AppDetailActivity : BaseActivity() {
         object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 detailsViewModel.viewModelScope.launch {
-                    if ((intent.action == Intent.ACTION_PACKAGE_ADDED || (intent.action == Intent.ACTION_PACKAGE_REMOVED && intent.extras?.getBoolean(
-                            Intent.EXTRA_REPLACING
-                        ) == false)) && intent.data?.encodedSchemeSpecificPart == detailsViewModel.app?.packageName
+                    if ((intent.action == Intent.ACTION_PACKAGE_ADDED ||
+                                (intent.action == Intent.ACTION_PACKAGE_REMOVED && intent.extras?.getBoolean(
+                                    Intent.EXTRA_REPLACING
+                                ) == false))
+                        && intent.data?.encodedSchemeSpecificPart == detailsViewModel.app?.packageName
                     ) {
                         onBackPress()
                     }
@@ -256,13 +258,13 @@ class AppDetailActivity : BaseActivity() {
         }
     }
 
-    private suspend fun ActivityDetailBinding.setCollapsingToolbarData(app: AppData?) {
-        app?.apply {
+    private suspend fun ActivityDetailBinding.setCollapsingToolbarData(app: AppData) {
+        app.apply {
             val appImage = collapsingToolbar.findViewById<ImageView>(R.id.application_image)
             appImage.setOnClickListener {
                 launchPackage(packageName)
             }
-            setBitmap(context = this@AppDetailActivity, onFailure = {
+            setBitmapFromPrivateFolder(context = this@AppDetailActivity, onFailure = {
                 getResourceDrawable(R.drawable.ic_error)?.toByteArray() ?: byteArrayOf()
             })
             appImage.loadBitmap(bitmap)

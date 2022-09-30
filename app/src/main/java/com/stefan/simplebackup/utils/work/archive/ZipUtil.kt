@@ -59,16 +59,17 @@ object ZipUtil {
         }
     }
 
-    @Throws(ZipException::class)
     private suspend fun extractApks(app: AppData) {
         coroutineScope {
             val backupDirPath = getBackupDirPath(app)
             Log.d("ZipUtil", "Extracting the ${app.name} apks to $backupDirPath")
-            val zipFile = async { getApkZipFile(backupDirPath) }
-            zipFile.await()?.apply {
+            val zipFile = getApkZipFile(backupDirPath)
+            zipFile?.apply {
                 extractAll(backupDirPath)
                 Log.d("ZipUtil", "Successfully extracted ${app.name} apks")
-            } ?: Log.d("ZipUtil", "Unable to find zip file")
+            } ?: {
+                throw IOException("Unable to find zip file")
+            }
         }
     }
 

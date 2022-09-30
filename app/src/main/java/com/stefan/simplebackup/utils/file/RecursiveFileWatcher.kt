@@ -29,7 +29,6 @@ class RecursiveFileWatcher(private val path: Path) {
                 registerDirsRecursively()
                 shouldRegisterNewPaths = false
             }
-
             val newMonitorKey = watchService.take()
             val filePath = registeredKeys[newMonitorKey] ?: break
 
