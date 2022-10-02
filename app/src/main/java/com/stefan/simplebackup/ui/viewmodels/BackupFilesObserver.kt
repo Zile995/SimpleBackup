@@ -13,10 +13,10 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
 
-class BackupFilesObserver : FileEventObserver<AppData> {
+class BackupFilesObserver(rootDirPath: String) : FileEventObserver<AppData> {
 
     override val fileEventObserver =
-        File(backupDirPath).asRecursiveFileWatcher().processFileEvents()
+        File(rootDirPath).asRecursiveFileWatcher().processFileEvents()
 
     override fun observeFilesEvents(
         scope: CoroutineScope,
@@ -28,20 +28,6 @@ class BackupFilesObserver : FileEventObserver<AppData> {
                     val list = mutableListOf<AppData>()
                     list.addAll(observable.value)
                     when (kind) {
-                        EventKind.MODIFIED -> {
-                            Log.d("BackupFilesObserver", "On modified $file")
-                            if (file.isFile && file.extension == "json") {
-                                val modifiedApp = JsonUtil.deserializeApp(file)
-                                modifiedApp?.apply {
-                                    list.remove(modifiedApp)
-                                    Log.d(
-                                        "BackupFilesObserver",
-                                        "Adding ${modifiedApp.name}"
-                                    )
-                                    list.add(modifiedApp)
-                                }
-                            }
-                        }
                         EventKind.CREATED -> {
                             Log.d("BackupFilesObserver", "On create $file")
                             val jsonDirPath = if (file.isDirectory) file.absolutePath else
@@ -72,6 +58,20 @@ class BackupFilesObserver : FileEventObserver<AppData> {
                                 "Deleting ${list[deletedIndex].name}"
                             )
                             list.removeAt(deletedIndex)
+                        }
+                        EventKind.MODIFIED -> {
+                            Log.d("BackupFilesObserver", "On modified $file")
+                            if (file.isFile && file.extension == "json") {
+                                val modifiedApp = JsonUtil.deserializeApp(file)
+                                modifiedApp?.apply {
+                                    list.remove(modifiedApp)
+                                    Log.d(
+                                        "BackupFilesObserver",
+                                        "Adding ${modifiedApp.name}"
+                                    )
+                                    list.add(modifiedApp)
+                                }
+                            }
                         }
                     }
                     observable.value = list

@@ -19,7 +19,8 @@ import kotlin.system.measureTimeMillis
 class LocalViewModel(
     application: MainApplication,
     private val repository: AppRepository
-) : BaseViewModel(), FileEventObserver<AppData> by BackupFilesObserver() {
+) : BaseViewModel(),
+    FileEventObserver<AppData> by BackupFilesObserver(rootDirPath = backupDirPath) {
 
     private val workManager = WorkManager.getInstance(application)
 
