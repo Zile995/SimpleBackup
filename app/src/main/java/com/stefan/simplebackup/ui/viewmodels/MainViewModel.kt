@@ -3,14 +3,10 @@ package com.stefan.simplebackup.ui.viewmodels
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
-import com.stefan.simplebackup.MainApplication.Companion.backupDirPath
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
-import com.stefan.simplebackup.data.workers.MainWorker
-import com.stefan.simplebackup.data.workers.WorkerHelper
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
 import com.stefan.simplebackup.utils.PreferenceHelper
@@ -143,8 +139,7 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         viewModelScope.launch {
             launch {
                 selectionList.forEach { packageName ->
-                    val packageBackupPath = "$backupDirPath/$packageName"
-                    FileUtil.deleteFile(packageBackupPath)
+                    FileUtil.deleteLocalBackup(packageName)
                 }
             }.invokeOnCompletion {
                 launch {

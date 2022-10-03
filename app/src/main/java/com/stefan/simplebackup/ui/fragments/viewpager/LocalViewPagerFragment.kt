@@ -29,19 +29,15 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
         )
     }
 
-    private var isStoragePermissionGranted by Delegates.observable(false) { _, _, isGranted ->
+    private var isStoragePermissionGranted by Delegates.observable<Boolean?>(null) { _, _, isGranted ->
         Log.d("PermissionStatus", "Is observable granted = $isGranted")
         controlViewsOnPermissionChange(isGranted)
-        if (isGranted) {
-            localViewModel
-            val fragmentList = arrayListOf(
-                LocalFragment(),
-                FavoritesFragment.newInstance(AppDataType.LOCAL)
-            )
-            addFragments(fragmentList)
-        } else {
-            localViewModel
-            removeAllFragments()
+        isGranted?.let {
+            if (isGranted) {
+                addFragments(onCreateFragments())
+            } else {
+                removeAllFragments()
+            }
         }
     }
 
@@ -52,16 +48,15 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
         }
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        onMainActivityCallback {
-            requestStoragePermission(permissionLauncher = storagePermissionLauncher)
-        }
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         localViewModel
+        onMainActivityCallback {
+            requestStoragePermission(permissionLauncher = storagePermissionLauncher,
+            onPermissionAlreadyGranted = {
+                isStoragePermissionGranted = true
+            })
+        }
+        super.onViewCreated(view, savedInstanceState)
     }
 
     override fun onStart() {
@@ -71,15 +66,17 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
             appPermissionManager.checkMainPermission(MainPermission.MANAGE_ALL_FILES)
     }
 
-    private fun controlViewsOnPermissionChange(isGranted: Boolean) {
+    private fun controlViewsOnPermissionChange(isGranted: Boolean?) {
         binding.apply {
-            localViewPager.isVisible = isGranted
-            storagePermissionLabel.isVisible = !isGranted
-            controlTabs(isGranted)
+            localViewPager.isVisible = isGranted == true
+            storagePermissionLabel.isVisible = isGranted == false
         }
     }
 
-    override fun onCreateFragments(): ArrayList<BaseFragment<*>> = arrayListOf()
+    override fun onCreateFragments(): ArrayList<BaseFragment<*>> = arrayListOf(
+        LocalFragment(),
+        FavoritesFragment.newInstance(AppDataType.LOCAL)
+    )
 
     override fun onConfigureTabText(): ArrayList<String> =
         arrayListOf(

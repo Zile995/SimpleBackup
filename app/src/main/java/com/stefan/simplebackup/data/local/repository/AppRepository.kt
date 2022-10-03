@@ -20,14 +20,6 @@ class AppRepository(private val appDao: AppDao) {
         get() = appDao.getAllApps().filterBy { app ->
             app.isUserApp && !app.isLocal
         }
-    val localApps
-        get() = appDao.getAllApps().filterBy { app ->
-            app.isLocal
-        }
-    val cloudApps
-        get() = appDao.getAllApps().filterBy { app ->
-            app.isCloud
-        }
 
     suspend fun insertAppData(app: AppData) {
         if (isFavorite(app.packageName) == true) {

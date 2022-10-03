@@ -13,7 +13,7 @@ import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.extensions.showToast
 import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.file.FileUtil.createDirectory
-import com.stefan.simplebackup.utils.file.FileUtil.createMainDir
+import com.stefan.simplebackup.utils.file.FileUtil.createLocalDir
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.moveBackup
 import com.stefan.simplebackup.utils.work.archive.TarUtil
@@ -60,7 +60,7 @@ class BackupUtil(
 
     private suspend fun createDirs(app: AppData) {
         app.updateNotificationData(R.string.backup_progress_dir_info)
-        createMainDir()
+        createLocalDir()
         createDirectory(getTempDirPath(app))
     }
 

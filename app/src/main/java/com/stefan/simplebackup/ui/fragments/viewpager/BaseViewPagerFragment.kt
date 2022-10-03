@@ -118,7 +118,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
     }
 
     protected fun addFragments(fragmentList: ArrayList<BaseFragment<*>>) {
-        viewPager.apply {
+        _viewPager?.apply {
             val viewPagerAdapter = adapter as ViewPagerAdapter
             if (viewPagerAdapter.itemCount != 0) return
             fragmentList.forEach { baseFragment ->

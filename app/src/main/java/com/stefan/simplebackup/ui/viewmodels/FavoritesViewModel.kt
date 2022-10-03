@@ -2,40 +2,32 @@ package com.stefan.simplebackup.ui.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.viewModelScope
+import com.stefan.simplebackup.MainApplication.Companion.mainBackupDirPath
 import com.stefan.simplebackup.data.local.repository.AppRepository
+import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.AppDataType
-import com.stefan.simplebackup.utils.extensions.filterBy
-import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.launch
 
 class FavoritesViewModel(
     repository: AppRepository,
     appDataType: AppDataType?
-) : BaseViewModel() {
+) : BaseViewModel(),
+    FileEventObserver<AppData> by BackupFilesObserver(rootDirPath = mainBackupDirPath) {
 
     init {
-        viewModelScope.launch(ioDispatcher) {
+        viewModelScope.launch {
             appDataType?.let {
                 when (appDataType) {
                     AppDataType.USER -> {
-                        loadList(false) {
-                            repository.installedApps.filterBy {
-                                it.favorite
-                            }
-                        }
+                        loadList(false) { repository.installedApps }
                     }
                     AppDataType.LOCAL -> {
-                        loadList(false) {
-                            repository.localApps.filterBy {
-                                it.favorite
-                            }
-                        }
+                        refreshFileList(_observableList) { it.favorite }
+                        observeFileEvents(_observableList)
                     }
                     AppDataType.CLOUD -> {
                         loadList(false) {
-                            repository.cloudApps.filterBy {
-                                it.favorite
-                            }
+                            repository.installedApps
                         }
                     }
                 }

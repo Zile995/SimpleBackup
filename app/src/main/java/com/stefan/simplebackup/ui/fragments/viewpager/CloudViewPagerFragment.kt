@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.ui.fragments.viewpager
 
-import android.content.Context
 import android.os.Bundle
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
@@ -28,15 +27,13 @@ class CloudViewPagerFragment : BaseViewPagerFragment<FragmentCloudViewPagerBindi
         )
     }
 
-    private var isContactsPermissionGranted by Delegates.observable(false) { _, _, isGranted ->
+    private var isContactsPermissionGranted by Delegates.observable<Boolean?>(null) { _, _, isGranted ->
         controlViewsOnPermissionChange(isGranted)
-        if (isGranted) {
-            val fragmentList = arrayListOf(
-                CloudFragment(),
-                FavoritesFragment.newInstance(AppDataType.CLOUD)
-            )
-            addFragments(fragmentList)
-        } else removeAllFragments()
+        isGranted?.let {
+            if (isGranted) {
+                addFragments(onCreateFragments())
+            } else removeAllFragments()
+        }
     }
 
     private val contactsPermissionLauncher by lazy {
@@ -45,16 +42,15 @@ class CloudViewPagerFragment : BaseViewPagerFragment<FragmentCloudViewPagerBindi
         }
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        onMainActivityCallback {
-            requestContactsPermission(permissionLauncher = contactsPermissionLauncher)
-        }
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         homeViewModel
+        onMainActivityCallback {
+            requestContactsPermission(permissionLauncher = contactsPermissionLauncher,
+                onPermissionAlreadyGranted = {
+                    isContactsPermissionGranted = true
+                })
+        }
+        super.onViewCreated(view, savedInstanceState)
     }
 
     override fun onStart() {
@@ -64,15 +60,17 @@ class CloudViewPagerFragment : BaseViewPagerFragment<FragmentCloudViewPagerBindi
             appPermissionManager.checkMainPermission(MainPermission.CONTACTS)
     }
 
-    private fun controlViewsOnPermissionChange(isGranted: Boolean) {
+    private fun controlViewsOnPermissionChange(isGranted: Boolean?) {
         binding.apply {
-            cloudViewPager.isVisible = isGranted
-            contactsPermissionLabel.isVisible = !isGranted
-            controlTabs(isGranted)
+            cloudViewPager.isVisible = isGranted == true
+            contactsPermissionLabel.isVisible = isGranted == false
         }
     }
 
-    override fun onCreateFragments(): ArrayList<BaseFragment<*>> = arrayListOf()
+    override fun onCreateFragments(): ArrayList<BaseFragment<*>> = arrayListOf(
+        CloudFragment(),
+        FavoritesFragment.newInstance(AppDataType.CLOUD)
+    )
 
     override fun onConfigureTabText(): ArrayList<String> =
         arrayListOf(

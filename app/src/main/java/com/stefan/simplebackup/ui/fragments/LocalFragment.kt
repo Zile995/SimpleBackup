@@ -45,9 +45,8 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     private fun FragmentLocalBinding.bindSwipeContainer() {
         swipeRefresh.setOnRefreshListener {
             launchOnViewLifecycle {
-                localViewModel.refreshBackupList().invokeOnCompletion {
-                    swipeRefresh.isRefreshing = false
-                }
+                localViewModel.refreshBackupList()
+                swipeRefresh.isRefreshing = false
             }
         }
     }
@@ -60,6 +59,8 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
                     if (!isSpinning) {
                         localViewModel.observableList.collect { appList ->
                             adapter.submitList(appList.sortedBy { it.name })
+                            if (appList.isEmpty()) delay(150L)
+                            noBackupsLabel.isVisible = appList.isEmpty()
                         }
                     }
                 }

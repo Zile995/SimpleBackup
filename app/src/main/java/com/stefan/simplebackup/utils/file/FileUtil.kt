@@ -1,7 +1,7 @@
 package com.stefan.simplebackup.utils.file
 
 import android.util.Log
-import com.stefan.simplebackup.MainApplication.Companion.backupDirPath
+import com.stefan.simplebackup.MainApplication.Companion.mainBackupDirPath
 import com.stefan.simplebackup.data.model.AppData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -13,13 +13,17 @@ import java.io.File
 import java.io.IOException
 import kotlin.io.path.moveTo
 
-const val BACKUP_DIR_PATH: String = "SimpleBackup/local"
-const val TEMP_DIR_PATH: String = "SimpleBackup/temp"
+const val TEMP_DIR_NAME: String = "temp"
+const val LOCAL_DIR_NAME: String = "local"
+const val CLOUD_DIR_NAME: String = "cloud"
 
 @Suppress("BlockingMethodInNonBlockingContext")
 object FileUtil {
 
     private val ioDispatcher = Dispatchers.IO
+    val localDirPath get() = "${mainBackupDirPath}/$LOCAL_DIR_NAME"
+    private val tempDirPath get() = "${mainBackupDirPath}/$TEMP_DIR_NAME"
+    private val cloudDirPath get() = "${mainBackupDirPath}/$CLOUD_DIR_NAME"
 
     @Throws(IOException::class)
     suspend fun createDirectory(path: String) {
@@ -59,19 +63,14 @@ object FileUtil {
         }
     }
 
-    suspend fun createMainDir() {
-        FileUtil.apply {
-            createDirectory(backupDirPath)
-            createFile("${backupDirPath}/.nomedia")
-        }
-    }
+    suspend fun createLocalDir() = createDirectory(localDirPath)
 
-    fun getBackupDirPath(app: AppData) = "${backupDirPath}/${app.packageName}"
+    suspend fun deleteLocalBackup(packageName: String) =
+        deleteFile("$localDirPath/$packageName")
 
-    fun getTempDirPath(app: AppData): String {
-        val tempDirPath = backupDirPath.replace(BACKUP_DIR_PATH, TEMP_DIR_PATH)
-        return "$tempDirPath/${app.packageName}"
-    }
+    fun getBackupDirPath(app: AppData) = "$localDirPath/${app.packageName}"
+
+    fun getTempDirPath(app: AppData): String = "$tempDirPath/${app.packageName}"
 
     suspend fun moveBackup(app: AppData) {
         val sourceFile = File(getTempDirPath(app))

@@ -89,7 +89,7 @@ inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     }
 }
 
-private fun FragmentManager.getCurrentVisibleViewPagerFragment() =
+fun FragmentManager.getCurrentVisibleViewPagerFragment() =
     findFragmentById(R.id.nav_host_container)?.run {
         childFragmentManager.fragments.firstOrNull { childFragment ->
             childFragment.isVisible
@@ -109,19 +109,17 @@ inline fun <reified T : Fragment> FragmentManager.findFragmentByClass(): T? =
 inline fun <reified T : Fragment> FragmentManager.findFragmentsByClass(): List<T> =
     fragments.filterIsInstance<T>()
 
-inline fun Fragment.onMainActivityCallback(crossinline block: suspend MainActivity.() -> Unit) =
-    onActivityCallback<MainActivity> {
+inline fun <R> Fragment.onMainActivityCallback(crossinline block: MainActivity.() -> R): R? =
+    onActivityCallback<MainActivity, R> {
         block()
     }
 
-inline fun <T : AppCompatActivity> Fragment.onActivityCallback(
-    crossinline block: suspend T.() -> Unit
-) =
+inline fun <T : AppCompatActivity, R> Fragment.onActivityCallback(
+    crossinline block: T.() -> R
+): R? =
     @Suppress("UNCHECKED_CAST")
-    (activity as? T)?.apply {
-        launchOnViewLifecycle {
-            block()
-        }
+    (activity as? T)?.run {
+        block()
     }
 
 inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.() -> Unit = {}) =
