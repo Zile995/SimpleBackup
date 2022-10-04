@@ -49,6 +49,7 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         localViewModel
         onMainActivityCallback {
             requestStoragePermission(permissionLauncher = storagePermissionLauncher,
@@ -56,7 +57,6 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
                 isStoragePermissionGranted = true
             })
         }
-        super.onViewCreated(view, savedInstanceState)
     }
 
     override fun onStart() {

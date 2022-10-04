@@ -43,6 +43,7 @@ class CloudViewPagerFragment : BaseViewPagerFragment<FragmentCloudViewPagerBindi
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         homeViewModel
         onMainActivityCallback {
             requestContactsPermission(permissionLauncher = contactsPermissionLauncher,
@@ -50,7 +51,6 @@ class CloudViewPagerFragment : BaseViewPagerFragment<FragmentCloudViewPagerBindi
                     isContactsPermissionGranted = true
                 })
         }
-        super.onViewCreated(view, savedInstanceState)
     }
 
     override fun onStart() {

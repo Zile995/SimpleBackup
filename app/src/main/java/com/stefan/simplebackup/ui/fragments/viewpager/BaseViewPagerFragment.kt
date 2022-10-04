@@ -140,7 +140,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
         tabPositions
     }
 
-    protected fun controlTabs(shouldEnableTabs: Boolean) {
+    private fun controlTabs(shouldEnableTabs: Boolean) {
         // Have to doOnPreDraw because the selectedTabPosition update is slow on configuration change
         _tabLayout?.apply {
             doOnPreDraw {

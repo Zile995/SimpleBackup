@@ -38,11 +38,9 @@ object JsonUtil {
         val app: AppData
         return withContext(ioDispatcher) {
             try {
-                jsonFile.inputStream()
-                    .bufferedReader()
-                    .use { reader ->
-                        app = Json.decodeFromString(reader.readLine())
-                    }
+                jsonFile.inputStream().bufferedReader().use { reader ->
+                    app = Json.decodeFromString(reader.readLine())
+                }
                 app
             } catch (e: SerializationException) {
                 e.localizedMessage?.let { message ->

@@ -42,17 +42,17 @@ class RecursiveFileWatcher(private val rootDir: File) {
             val filePath = registeredKeys[newMonitorKey] ?: break
 
             newMonitorKey.pollEvents().forEach { watchEvent ->
-                val eventKind =
-                    when (watchEvent.kind()) {
-                        ENTRY_CREATE -> EventKind.CREATED
-                        ENTRY_DELETE -> EventKind.DELETED
-                        ENTRY_MODIFY -> EventKind.MODIFIED
-                        else -> EventKind.OVERFLOW
-                    }
+                val eventKind = when (watchEvent.kind()) {
+                    ENTRY_CREATE -> EventKind.CREATED
+                    ENTRY_DELETE -> EventKind.DELETED
+                    ENTRY_MODIFY -> EventKind.MODIFIED
+                    else -> EventKind.OVERFLOW
+                }
                 val eventFile = filePath.resolve(watchEvent.context() as Path).toFile()
 
                 // If any directory is created or deleted, re-register the whole dir tree.
-                shouldRegisterNewPaths = !(eventKind == EventKind.MODIFIED && !eventFile.isDirectory)
+                if (eventKind != EventKind.MODIFIED && eventFile.isDirectory)
+                    shouldRegisterNewPaths = true
 
                 // Finally emit the event
                 val event = FileEvent(file = eventFile, kind = eventKind)
@@ -96,8 +96,7 @@ class RecursiveFileWatcher(private val rootDir: File) {
 
     // WatchEvent wrapper
     data class FileEvent(
-        val file: File,
-        val kind: EventKind
+        val file: File, val kind: EventKind
     )
 }
 

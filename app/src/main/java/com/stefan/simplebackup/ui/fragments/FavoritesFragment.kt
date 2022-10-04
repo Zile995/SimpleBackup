@@ -83,7 +83,6 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
         /**
          * Use this factory method to create a new instance of
          * this fragment using the provided parameters.
-         *
          */
         fun newInstance(appDataType: AppDataType) =
             FavoritesFragment().apply {
