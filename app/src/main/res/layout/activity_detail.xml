@@ -357,6 +357,7 @@
                 style="@style/Widget.SimpleBackup.RoundedFloatingButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:tooltipText="@string/local_backup"
                 android:layout_gravity="center"
                 android:contentDescription="TODO"
                 android:src="@drawable/ic_storage" />
@@ -367,6 +368,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
+                android:tooltipText="@string/cloud_backup"
+                android:visibility="gone"
                 android:layout_marginStart="20dp"
                 android:contentDescription="TODO"
                 android:src="@drawable/ic_add_to_drive" />
@@ -376,6 +379,7 @@
                 style="@style/Widget.SimpleBackup.RoundedFloatingButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:tooltipText="@string/delete_app"
                 android:layout_gravity="center"
                 android:layout_marginStart="20dp"
                 android:contentDescription="TODO"

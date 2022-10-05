@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.stefan.simplebackup.data.manager.MainPermission
+import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentConfigureSheetBinding
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
@@ -33,7 +34,10 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
                 onMainActivityCallback {
-                    startProgressActivity(mainViewModel.selectionList.toTypedArray())
+                    startProgressActivity(
+                        mainViewModel.selectionList.toTypedArray(),
+                        AppDataType.USER
+                    )
                 }
             } else {
                 onMainActivityCallback {
@@ -63,7 +67,10 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
             onMainActivityCallback {
                 requestStoragePermission(storagePermissionLauncher,
                     onPermissionAlreadyGranted = {
-                        startProgressActivity(mainViewModel.selectionList.toTypedArray())
+                        startProgressActivity(
+                            mainViewModel.selectionList.toTypedArray(),
+                            AppDataType.USER
+                        )
                     })
             }
         }

@@ -32,6 +32,7 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
 import com.stefan.simplebackup.databinding.ActivityDetailBinding
 import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
@@ -67,7 +68,7 @@ class AppDetailActivity : BaseActivity() {
     private val storagePermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                //
+                startLocalWork()
             } else {
                 showStoragePermissionDialog()
             }
@@ -231,14 +232,23 @@ class AppDetailActivity : BaseActivity() {
     }
 
     private fun ActivityDetailBinding.bindLocalBackupButton() {
+        detailsViewModel.app?.apply {
+            if (isLocal) {
+                localBackupButton.setImageResource(R.drawable.ic_restore)
+                localBackupButton.tooltipText = getString(R.string.restore)
+            }
+        }
         localBackupButton.setOnClickListener {
             requestStoragePermission(storagePermissionLauncher, onPermissionAlreadyGranted = {
-                //
+                startLocalWork()
             })
         }
     }
 
     private fun ActivityDetailBinding.bindCloudBackupButton() {
+        detailsViewModel.app?.apply {
+            cloudBackupButton.isVisible = !isLocal
+        }
         cloudBackupButton.setOnClickListener {
             proceedWithPermission(MainPermission.MANAGE_ALL_FILES, onPermissionGranted = {
                 requestContactsPermission(contactsPermissionLauncher, onPermissionAlreadyGranted = {
@@ -251,9 +261,17 @@ class AppDetailActivity : BaseActivity() {
     }
 
     private fun ActivityDetailBinding.bindDeleteButton() {
+        detailsViewModel.app?.apply {
+            if (isLocal)
+                deleteButton.tooltipText = getString(R.string.delete_backup)
+        }
         deleteButton.setOnClickListener {
             detailsViewModel.app?.apply {
-                deletePackage(packageName)
+                if (isLocal)
+                    detailsViewModel.deleteLocalBackup().invokeOnCompletion {
+                        onBackPress()
+                    }
+                else deletePackage(packageName)
             }
         }
     }
@@ -325,6 +343,21 @@ class AppDetailActivity : BaseActivity() {
                 tooltipText = if (favorite) getString(R.string.remove_from_favorites)
                 else getString(R.string.add_to_favorites)
             }
+        }
+    }
+
+    private fun startLocalWork() {
+        detailsViewModel.app?.apply {
+            if (isLocal)
+                startProgressActivity(
+                    arrayOf(this.packageName),
+                    AppDataType.LOCAL
+                )
+            else
+                startProgressActivity(
+                    arrayOf(this.packageName),
+                    AppDataType.USER
+                )
         }
     }
 

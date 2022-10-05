@@ -33,6 +33,7 @@ class ViewModelFactory(
             )
             ProgressViewModel::class.java -> ProgressViewModel(
                 additionalProperty as? Array<String>?,
+                secondProperty as AppDataType?,
                 application
             )
             DetailsViewModel::class.java -> DetailsViewModel(

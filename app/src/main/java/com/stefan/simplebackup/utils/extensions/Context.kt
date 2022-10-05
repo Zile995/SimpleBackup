@@ -81,10 +81,12 @@ inline fun <T : ViewBinding> ViewGroup.viewBinding(
     factory(LayoutInflater.from(context), this, false)
 
 inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
-    value: Pair<String, Any?>
+    vararg values: Pair<String, Any?>
 ) {
     Intent(applicationContext, T::class.java).apply {
-        putExtras(bundleOf(value))
+        values.forEach { value ->
+            putExtras(bundleOf(value))
+        }
         startActivity(this)
     }
 }
@@ -210,14 +212,20 @@ fun Context.getResourceDrawable(@DrawableRes drawable: Int) =
 // #
 // ## Parcelable / Bundle extensions
 
+inline fun <reified T : Enum<T>> Bundle.putEnumInt(victim: T) =
+    apply { putInt(T::class.java.name, victim.ordinal) }
+
+inline fun <reified T : Enum<T>> Bundle.getEnumInt() =
+    getInt(T::class.java.name, -1)
+        .takeUnless { ordinal -> ordinal == -1 }
+        ?.let { T::class.java.enumConstants?.get(it) }
+
 inline fun <reified T : Enum<T>> Fragment.putEnumExtra(victim: T) {
-    arguments = Bundle().apply { putInt(T::class.java.name, victim.ordinal) }
+    arguments = Bundle().putEnumInt(victim)
 }
 
 inline fun <reified T : Enum<T>> Fragment.getEnumExtra(): T? =
-    arguments?.getInt(T::class.java.name, -1)
-        .takeUnless { ordinal -> ordinal == -1 }
-        ?.let { T::class.java.enumConstants?.get(it) }
+    arguments?.getEnumInt<T>()
 
 inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? =
     when {

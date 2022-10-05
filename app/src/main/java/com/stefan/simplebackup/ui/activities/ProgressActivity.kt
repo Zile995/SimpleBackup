@@ -5,8 +5,11 @@ import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.model.APP_DATA_TYPE_EXTRA
+import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.data.model.NotificationData
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
@@ -29,13 +32,16 @@ class ProgressActivity : BaseActivity() {
 
     private val progressViewModel: ProgressViewModel by viewModels {
         val selection = intent?.extras?.getStringArray(SELECTION_EXTRA)
-        ViewModelFactory(application as MainApplication, selection)
+        val appDataType = intent?.extras?.parcelable<AppDataType>(APP_DATA_TYPE_EXTRA)
+        ViewModelFactory(application as MainApplication, selection, appDataType)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         window.statusBarColor = getColorFromResource(R.color.background)
         setContentView(binding.root)
+
         binding.apply {
             savedInstanceState.restoreSavedData()
             bindViews()
@@ -61,9 +67,10 @@ class ProgressActivity : BaseActivity() {
     }
 
     private fun ActivityProgressBinding.initObservers() {
+        progressViewModel
         launchOnViewLifecycle {
             launch {
-                progressViewModel.getWorkManager.getWorkInfosByTagLiveData(REQUEST_TAG)
+                WorkManager.getInstance(application).getWorkInfosByTagLiveData(REQUEST_TAG)
                     .observe(this@ProgressActivity, workInfoObserver())
             }
             repeatOnViewLifecycle(Lifecycle.State.RESUMED) {

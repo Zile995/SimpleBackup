@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 const val PARCELABLE_EXTRA = "APPLICATION_DATA"
+const val APP_DATA_TYPE_EXTRA = "APP_DATA_TYPE"
 
 /**
  * - Main model data class

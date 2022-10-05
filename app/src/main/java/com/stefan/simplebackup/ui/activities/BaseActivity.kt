@@ -8,6 +8,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
 import com.stefan.simplebackup.data.manager.MainPermission
+import com.stefan.simplebackup.data.model.APP_DATA_TYPE_EXTRA
+import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.utils.extensions.openManageFilesPermissionSettings
 import com.stefan.simplebackup.utils.extensions.openPackageSettingsInfo
@@ -32,9 +34,12 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
         finish()
     }
 
-    fun startProgressActivity(selection: Array<String>) {
+    fun startProgressActivity(selection: Array<String>, appDataType: AppDataType) {
         if (selection.isEmpty()) return
-        passBundleToActivity<ProgressActivity>(SELECTION_EXTRA to selection)
+        passBundleToActivity<ProgressActivity>(
+            SELECTION_EXTRA to selection,
+            APP_DATA_TYPE_EXTRA to appDataType
+        )
     }
 
     inline fun onMainPermissionRequest(

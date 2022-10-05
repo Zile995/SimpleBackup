@@ -10,6 +10,7 @@
     <string name="press_back_again">Press BACK again to exit</string>
     <string name="details">App Details</string>
     <string name="delete">Delete</string>
+    <string name="delete_app">Delete app</string>
     <string name="delete_backup">Delete backup</string>
     <string name="home">Home</string>
     <string name="local">Local</string>

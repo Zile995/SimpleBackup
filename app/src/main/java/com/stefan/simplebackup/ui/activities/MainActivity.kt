@@ -294,6 +294,15 @@ class MainActivity : BaseActivity() {
                     launch {
                         isSelected.collect { isSelected ->
                             if (isSearching.value || isSettingsDestination.value) return@collect
+                            root.doOnLayout {
+                                if (visibleFragment is HomeFragment) {
+                                    floatingButton.setText(R.string.configure)
+                                    floatingButton.setIconResource(R.drawable.ic_configure)
+                                } else {
+                                    floatingButton.setText(R.string.restore)
+                                    floatingButton.setIconResource(R.drawable.ic_restore)
+                                }
+                            }
                             mainActivityAnimator.animateOnSelection(isSelected, setSelectionMode)
                         }
                     }
@@ -345,16 +354,20 @@ class MainActivity : BaseActivity() {
     }
 
     fun MainRecyclerView.controlFloatingButton() {
-        if (binding.floatingButton.hidePermanently) return
-        binding.floatingButton.setOnClickListener {
-            if (selectionFinished)
-                smoothSnapToPosition(0)
-            else {
-                if (mainViewModel.selectionList.isNotEmpty())
-                    ConfigureSheetFragment().show(supportFragmentManager, "configureSheetTag")
+        binding.apply {
+            if (floatingButton.hidePermanently) return
+            floatingButton.setOnClickListener {
+                if (selectionFinished)
+                    smoothSnapToPosition(0)
+                else {
+                    if (visibleFragment is HomeFragment &&
+                        mainViewModel.selectionList.isNotEmpty()
+                    )
+                        ConfigureSheetFragment().show(supportFragmentManager, "configureSheetTag")
+                }
             }
+            hideAttachedButton(floatingButton)
         }
-        hideAttachedButton(binding.floatingButton)
     }
 
     override fun onDestroy() {

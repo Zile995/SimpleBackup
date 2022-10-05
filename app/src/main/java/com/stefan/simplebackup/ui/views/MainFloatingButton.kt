@@ -42,10 +42,6 @@ class MainFloatingButton(
     fun changeOnSelection(isSelected: Boolean) {
         if (isSelected) {
             show()
-            doOnLayout {
-                setText(R.string.configure)
-                setIconResource(R.drawable.ic_configure)
-            }
         } else {
             doOnPreDraw {
                 setDefaultState()
