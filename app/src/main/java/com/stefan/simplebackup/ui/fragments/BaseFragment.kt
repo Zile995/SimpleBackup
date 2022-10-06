@@ -10,6 +10,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.snackbar.Snackbar
+import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
@@ -44,8 +45,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
             }
 
             override fun onLongItemViewClick(
-                holder: RecyclerView.ViewHolder,
-                position: Int
+                holder: RecyclerView.ViewHolder, position: Int
             ): Boolean {
                 if (!shouldEnableOnLongClick) return false
                 val item = adapter.currentList[position]
@@ -113,21 +113,23 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         _mainRecyclerView?.isNestedScrollingEnabled = shouldEnable
     }
 
-    fun deleteSelectedItem() {
-        context?.deletePackage(mainViewModel.selectionList.first())
+    fun uninstallSelectedApp() {
+        context?.uninstallPackage(mainViewModel.selectionList.first())
         mainViewModel.setSelectionMode(false)
     }
 
-    fun deleteLocalBackups() {
-        mainViewModel.deleteSelectedBackups()
+    fun deleteSelectedBackups() {
+        mainViewModel.deleteSelectedBackups(onSuccess = {
+            context?.showToast(R.string.successfully_deleted_backups)
+        }, onFailure = { message ->
+            context?.showToast("${getString(R.string.unsuccessfully_deleted_files)} $message", true)
+        })
     }
 
     fun selectAllItems() {
         adapter.selectAllItems()
         Snackbar.make(
-            binding.root,
-            "Selected ${mainViewModel.selectionList.size} apps",
-            1250
+            binding.root, "Selected ${mainViewModel.selectionList.size} items", 1250
         ).show()
     }
 

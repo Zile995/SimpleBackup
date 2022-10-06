@@ -12,6 +12,10 @@
     <string name="delete">Delete</string>
     <string name="delete_app">Delete app</string>
     <string name="delete_backup">Delete backup</string>
+    <string name="successfully_deleted_backups">Successfully deleted selected backups</string>
+    <string name="backup_deleted_successfully">Successfully deleted %1$s</string>
+    <string name="backup_deleted_unsuccessfully">Unsuccessfully deleted %1$s</string>
+    <string name="unsuccessfully_deleted_files">Unsuccessfully deleted selected backups</string>
     <string name="home">Home</string>
     <string name="local">Local</string>
     <string name="local_backup">Local backup</string>

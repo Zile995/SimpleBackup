@@ -10,13 +10,14 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentConfigureSheetBinding
+import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
 import com.stefan.simplebackup.utils.extensions.viewBinding
 
 class ConfigureSheetFragment : BottomSheetDialogFragment() {
-    private val binding by viewBinding(FragmentConfigureSheetBinding::inflate)
 
+    private val binding by viewBinding(FragmentConfigureSheetBinding::inflate)
     private val mainViewModel: MainViewModel by activityViewModels()
 
     private val contactsPermissionLauncher =
@@ -24,25 +25,16 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
             if (isGranted) {
                 //
             } else {
-                onMainActivityCallback {
-                    showContactsPermissionDialog()
-                }
+                onShowDialog { showContactsPermissionDialog() }
             }
         }
 
     private val storagePermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                onMainActivityCallback {
-                    startProgressActivity(
-                        mainViewModel.selectionList.toTypedArray(),
-                        AppDataType.USER
-                    )
-                }
+                startProgressActivity()
             } else {
-                onMainActivityCallback {
-                    showStoragePermissionDialog()
-                }
+                onShowDialog { showStoragePermissionDialog() }
             }
         }
 
@@ -65,23 +57,27 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
     private fun FragmentConfigureSheetBinding.bindLocalButton() {
         localBackupButton.setOnClickListener {
             onMainActivityCallback {
-                requestStoragePermission(storagePermissionLauncher,
-                    onPermissionAlreadyGranted = {
-                        startProgressActivity(
-                            mainViewModel.selectionList.toTypedArray(),
-                            AppDataType.USER
-                        )
-                    })
+                requestStoragePermission(storagePermissionLauncher, onPermissionAlreadyGranted = {
+                    startProgressActivity()
+                })
             }
         }
+    }
+
+    private inline fun onShowDialog(crossinline dialog: MainActivity.() -> Unit) =
+        onMainActivityCallback(dialog)
+
+    private fun startProgressActivity() = onMainActivityCallback {
+        startProgressActivity(
+            mainViewModel.selectionList.toTypedArray(), AppDataType.USER
+        )
     }
 
     private fun FragmentConfigureSheetBinding.bindCloudButton() {
         cloudBackupButton.setOnClickListener {
             onMainActivityCallback {
                 proceedWithPermission(MainPermission.MANAGE_ALL_FILES, onPermissionGranted = {
-                    requestContactsPermission(
-                        contactsPermissionLauncher,
+                    requestContactsPermission(contactsPermissionLauncher,
                         onPermissionAlreadyGranted = {
                             //
                         })

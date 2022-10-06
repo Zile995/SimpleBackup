@@ -68,6 +68,7 @@ class WorkNotificationBuilder(
                 else
                     ""
             }
+
             if (isBackupNotification) {
                 setContentTitle(context.getString(R.string.backup_completed))
                 setExpendableText(
@@ -84,13 +85,15 @@ class WorkNotificationBuilder(
                             context.getString(R.string.restored)
                 )
             }
-            setOnlyAlertOnce(true)
-            setAutoCancel(false)
-            setContentText(null)
-            setLargeIcon(null)
+
             setOngoing(false)
+            setLargeIcon(null)
+            setContentText(null)
+            setAutoCancel(false)
+            setOnlyAlertOnce(true)
             setProgress(0, 0, false)
             priority = NotificationCompat.PRIORITY_MAX
+            foregroundServiceBehavior = NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
         }.build()
     }
 

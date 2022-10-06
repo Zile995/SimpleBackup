@@ -78,11 +78,9 @@ class AppDetailActivity : BaseActivity() {
         object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 detailsViewModel.viewModelScope.launch {
-                    if ((intent.action == Intent.ACTION_PACKAGE_ADDED ||
-                                (intent.action == Intent.ACTION_PACKAGE_REMOVED && intent.extras?.getBoolean(
-                                    Intent.EXTRA_REPLACING
-                                ) == false))
-                        && intent.data?.encodedSchemeSpecificPart == detailsViewModel.app?.packageName
+                    if ((intent.action == Intent.ACTION_PACKAGE_ADDED || (intent.action == Intent.ACTION_PACKAGE_REMOVED && intent.extras?.getBoolean(
+                            Intent.EXTRA_REPLACING
+                        ) == false)) && intent.data?.encodedSchemeSpecificPart == detailsViewModel.app?.packageName
                     ) {
                         onBackPress()
                     }
@@ -262,16 +260,22 @@ class AppDetailActivity : BaseActivity() {
 
     private fun ActivityDetailBinding.bindDeleteButton() {
         detailsViewModel.app?.apply {
-            if (isLocal)
-                deleteButton.tooltipText = getString(R.string.delete_backup)
+            if (isLocal) deleteButton.tooltipText = getString(R.string.delete_backup)
         }
         deleteButton.setOnClickListener {
             detailsViewModel.app?.apply {
-                if (isLocal)
-                    detailsViewModel.deleteLocalBackup().invokeOnCompletion {
-                        onBackPress()
-                    }
-                else deletePackage(packageName)
+                if (isLocal) detailsViewModel.deleteLocalBackup(onSuccess = {
+                    showToast(getString(R.string.backup_deleted_successfully, name))
+                }, onFailure = { message ->
+                    showToast(
+                        getString(
+                            R.string.backup_deleted_successfully, "$name $message"
+                        )
+                    )
+                }).invokeOnCompletion {
+                    onBackPress()
+                }
+                else uninstallPackage(packageName)
             }
         }
     }
@@ -315,16 +319,12 @@ class AppDetailActivity : BaseActivity() {
     private fun ChipGroup.addArchChipsToChipGroup(archNames: List<String>) {
         if (archNames.isNotEmpty()) {
             archNames.forEach { archName ->
-                val chip = Chip(
-                    context, null, R.style.Widget_SimpleBackup_Chip
-                )
+                val chip = Chip(context, null, R.style.Widget_SimpleBackup_Chip)
                 chip.text = archName
                 addView(chip)
             }
         } else {
-            val chip = Chip(
-                context, null, R.style.Widget_SimpleBackup_Chip
-            )
+            val chip = Chip(context, null, R.style.Widget_SimpleBackup_Chip)
             chip.text = getString(R.string.all_arch)
             addView(chip)
         }
@@ -348,16 +348,12 @@ class AppDetailActivity : BaseActivity() {
 
     private fun startLocalWork() {
         detailsViewModel.app?.apply {
-            if (isLocal)
-                startProgressActivity(
-                    arrayOf(this.packageName),
-                    AppDataType.LOCAL
-                )
-            else
-                startProgressActivity(
-                    arrayOf(this.packageName),
-                    AppDataType.USER
-                )
+            if (isLocal) startProgressActivity(
+                arrayOf(this.packageName), AppDataType.LOCAL
+            )
+            else startProgressActivity(
+                arrayOf(this.packageName), AppDataType.USER
+            )
         }
     }
 

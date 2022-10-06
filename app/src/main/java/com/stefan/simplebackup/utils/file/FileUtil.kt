@@ -53,8 +53,8 @@ object FileUtil {
         }
     }
 
-    @Throws(IOException::class)
     // TODO: Fix file moving, as backup solutions...
+    @Throws(IOException::class)
     suspend fun File.moveFile(targetFile: File) {
         val sourceFilePath = this.toPath()
         withContext(ioDispatcher) {
@@ -65,6 +65,7 @@ object FileUtil {
 
     suspend fun createLocalDir() = createDirectory(localDirPath)
 
+    @Throws(IOException::class)
     suspend fun deleteLocalBackup(packageName: String) =
         deleteFile("$localDirPath/$packageName")
 

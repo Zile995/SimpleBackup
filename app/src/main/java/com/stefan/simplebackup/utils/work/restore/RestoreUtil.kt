@@ -21,7 +21,7 @@ class RestoreUtil(
     }
 
     suspend fun restore() = coroutineScope {
-        val database = AppDatabase.getInstance(appContext)
+        val database = AppDatabase.getInstance(appContext, this)
         val repository = AppRepository(database.appDao())
         restoreItems.forEach { item ->
             repository.getAppData(item)?.also { app ->

@@ -48,11 +48,6 @@ object ZipUtil {
             val tempDirPath = getTempDirPath(app)
             val zipParameters = getZipParameters()
             val zipFile = ZipFile("$tempDirPath/${app.name}.zip")
-            if (zipFile.isValidZipFile) {
-                return@coroutineScope
-            } else {
-                FileUtil.deleteFile(zipFile.file.absolutePath)
-            }
             Log.d("ZipUtil", "Zipping the ${app.name} apks to $tempDirPath")
             zipFile.addFiles(apkFiles.await(), zipParameters)
             Log.d("ZipUtil", "Successfully zipped ${app.name} apks")

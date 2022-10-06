@@ -10,15 +10,15 @@ import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
 import com.stefan.simplebackup.utils.PreferenceHelper
-import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.root.RootChecker
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.io.IOException
 
 class MainViewModel(application: MainApplication) : ViewModel(),
-    PackageListener by PackageListenerImpl(application.applicationContext) {
+    PackageListener by PackageListenerImpl(application) {
     // View saved states
     var isAppBarExpanded = true
         private set
@@ -32,7 +32,7 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     private val hasCheckedDeviceRooted get() = PreferenceHelper.hasCheckedDeviceRooted
 
     // Dispatchers
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     // Search
     private var _isSearching = MutableStateFlow(false)
@@ -70,8 +70,7 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     }
 
     suspend fun onRootCheck(
-        onRootNotGranted: () -> Unit,
-        onDeviceNotRooted: () -> Unit
+        onRootNotGranted: () -> Unit, onDeviceNotRooted: () -> Unit
     ) {
         val hasRootAccess = rootChecker.hasRootAccess()
         if (hasRootAccess == true) return
@@ -135,17 +134,21 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         }
     }
 
-    fun deleteSelectedBackups() {
+    inline fun deleteSelectedBackups(
+        crossinline onSuccess: () -> Unit, crossinline onFailure: (message: String) -> Unit
+    ) {
         viewModelScope.launch {
-            launch {
+            try {
                 selectionList.forEach { packageName ->
                     FileUtil.deleteLocalBackup(packageName)
                 }
-            }.invokeOnCompletion {
-                launch {
-                    delay(200)
-                    setSelectionMode(false)
-                }
+                onSuccess()
+            } catch (e: IOException) {
+                onFailure("$e ${e.message}")
+                Log.w("ViewModel", "Error occurred while deleting backups $e: ${e.message}")
+            } finally {
+                delay(200)
+                setSelectionMode(false)
             }
         }
     }

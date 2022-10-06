@@ -232,10 +232,10 @@ class MainActivity : BaseActivity() {
                         Log.d("Activity", "Setting up the delete action")
                         when (visibleFragment) {
                             is HomeFragment -> {
-                                visibleFragment?.deleteSelectedItem()
+                                visibleFragment?.uninstallSelectedApp()
                             }
                             is LocalFragment -> {
-                                visibleFragment?.deleteLocalBackups()
+                                visibleFragment?.deleteSelectedBackups()
                             }
                         }
                     }

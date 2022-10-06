@@ -9,7 +9,7 @@ import com.stefan.simplebackup.data.workers.BootPackageWorker
 
 class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if ("android.intent.action.BOOT_COMPLETED" == intent.action) {
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
             val workManager = WorkManager.getInstance(context)
             workManager.enqueue(OneTimeWorkRequest.from(BootPackageWorker::class.java))
         }

@@ -41,7 +41,7 @@ class BackupUtil(
 
     suspend fun backup(): List<WorkResult> = coroutineScope {
         val results = mutableListOf<WorkResult>()
-        val database = AppDatabase.getInstance(appContext)
+        val database = AppDatabase.getInstance(appContext, this)
         val repository = AppRepository(database.appDao())
         backupItems.forEach { item ->
             repository.getAppData(item).also { app ->
@@ -99,7 +99,7 @@ class BackupUtil(
                 } catch (exception: IOException) {
                     Log.e(
                         "BackupUtil",
-                        "Oh, an error occurred: $exception ${exception.localizedMessage}"
+                        "Oh, an error occurred: $exception ${exception.message}"
                     )
                     updateOnFailure()
                 }

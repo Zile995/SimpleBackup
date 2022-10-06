@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.ui.viewmodels
 
-import android.database.sqlite.SQLiteException
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,14 +13,18 @@ import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 class DetailsViewModel(
-    val app: AppData?,
-    application: MainApplication
+    val app: AppData?, application: MainApplication
 ) : ViewModel() {
 
     private val appRepository by lazy {
-        AppRepository(AppDatabase.getInstance(application).appDao())
+        AppRepository(
+            AppDatabase.getInstance(
+                application.applicationContext, application.applicationScope
+            ).appDao()
+        )
     }
 
     private var _archNames = MutableStateFlow<List<String>?>(null)
@@ -43,33 +46,37 @@ class DetailsViewModel(
         }
     }
 
-    fun deleteLocalBackup() =
-        viewModelScope.launch {
-            app?.apply {
-                FileUtil.deleteLocalBackup(packageName)
-            }
-        }
-
-    fun changeFavorites() =
-        viewModelScope.launch {
+    inline fun deleteLocalBackup(
+        crossinline onSuccess: () -> Unit, crossinline onFailure: (message: String) -> Unit
+    ) = viewModelScope.launch {
+        app?.apply {
             try {
-                app?.apply {
-                    _favoriteChanged.value = null
-                    appRepository.startRepositoryJob {
-                        if (favorite)
-                            removeFromFavorites(packageName)
-                        else
-                            addToFavorites(packageName)
-                    }.invokeOnCompletion {
-                        favorite = !favorite
-                        _favoriteChanged.value = true
-                    }
-                }
-            } catch (e: SQLiteException) {
-                Log.e("ViewModel", "Database exception: $e")
-                _favoriteChanged.value = false
+                FileUtil.deleteLocalBackup(packageName)
+                onSuccess()
+            } catch (e: IOException) {
+                onFailure("$e ${e.message}")
+                Log.w("ViewModel", "Error occurred while deleting backup $e: ${e.message}")
             }
         }
+    }
+
+    fun changeFavorites() = viewModelScope.launch {
+        try {
+            app?.apply {
+                _favoriteChanged.value = null
+                appRepository.startRepositoryJob {
+                    if (favorite) removeFromFavorites(packageName)
+                    else addToFavorites(packageName)
+                }.invokeOnCompletion {
+                    favorite = !favorite
+                    _favoriteChanged.value = true
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("ViewModel", "Database exception: $e")
+            _favoriteChanged.value = false
+        }
+    }
 
     override fun onCleared() {
         super.onCleared()

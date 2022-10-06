@@ -33,8 +33,7 @@ class AppRepository(private val appDao: AppDao) {
     suspend inline fun startRepositoryJob(
         permits: Int = 5,
         crossinline repositoryAction: RepositoryAction
-    ) =
-        coroutineScope {
+    ) = coroutineScope {
             launch(ioDispatcher) {
                 val time = measureTimeMillis {
                     val semaphore = Semaphore(permits)
@@ -50,7 +49,7 @@ class AppRepository(private val appDao: AppDao) {
     fun findAppsByName(name: String) = appDao.findAppsByName(name)
     suspend fun delete(packageName: String) = appDao.delete(packageName)
     suspend fun getAppData(packageName: String) = appDao.getData(packageName)
-    suspend fun isFavorite(packageName: String) = appDao.isFavorite(packageName)
+    private suspend fun isFavorite(packageName: String) = appDao.isFavorite(packageName)
 
     @Throws(SQLiteException::class)
     suspend fun addToFavorites(packageName: String) = appDao.addToFavorites(packageName)
