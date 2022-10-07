@@ -11,6 +11,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import java.io.IOException
 import kotlin.system.measureTimeMillis
 
 typealias RepositoryAction = suspend AppRepository.(CoroutineScope) -> Unit
@@ -38,6 +39,7 @@ class AppRepository(private val appDao: AppDao) {
                 val time = measureTimeMillis {
                     val semaphore = Semaphore(permits)
                     semaphore.withPermit {
+                        throw IOException()
                         repositoryAction.invoke(this@AppRepository, this)
                     }
                 }

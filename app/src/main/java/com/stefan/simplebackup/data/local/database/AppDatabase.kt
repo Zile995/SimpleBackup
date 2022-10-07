@@ -31,6 +31,7 @@ abstract class AppDatabase : RoomDatabase() {
     ) : Callback() {
 
         private var mainJob: Job? = null
+        private val ioDispatcher = Dispatchers.IO
         private val appDao by lazy { INSTANCE?.appDao() }
 
         private suspend fun insertAll() {
@@ -48,14 +49,14 @@ abstract class AppDatabase : RoomDatabase() {
                 PreferenceHelper.setDatabaseCreated(true)
                 Log.d("AppDatabase", "Insert time: $time")
             } catch (e: SQLiteException) {
-                Log.e("AppDatabase", "Error: ${e.localizedMessage}")
-                context.showToast("Database error, can't insert new items: ${e.localizedMessage}")
+                Log.e("AppDatabase", "Error: $e ${e.message}")
+                context.showToast("Database error, can't insert new items: $e ${e.message}")
             }
         }
 
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
-            mainJob = scope.launch {
+            mainJob = scope.launch(ioDispatcher) {
                 Log.d("AppDatabase", "Creating database")
                 insertAll()
             }
@@ -63,7 +64,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         override fun onOpen(db: SupportSQLiteDatabase) {
             super.onOpen(db)
-            scope.launch {
+            scope.launch(ioDispatcher) {
                 mainJob?.join()
                 if (!PreferenceHelper.isDatabaseCreated) {
                     Log.d("AppDatabase", "Updating database again")

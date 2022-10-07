@@ -41,12 +41,13 @@ class BackupFilesObserver(
                         Log.d("BackupFilesObserver", "On create $file")
                         val jsonDirPath = if (file.isDirectory) file.absolutePath else file.parent!!
                         val jsonFile = findJsonFiles(jsonDirPath)
-                        jsonFile.collectLatest {
-                            val modifiedApp = deserializeApp(it)
-                            modifiedApp?.apply {
+                        jsonFile.collect {
+                            val createdApp = deserializeApp(it)
+                            Log.d("BackupFilesObserver", "Created app = ${createdApp?.name}")
+                            createdApp?.apply {
                                 if (!list.contains(this)) {
                                     Log.d(
-                                        "BackupFilesObserver", "Adding ${modifiedApp.name}"
+                                        "BackupFilesObserver", "Adding created ${createdApp.name}"
                                     )
                                     list.add(this)
                                 }
@@ -56,7 +57,9 @@ class BackupFilesObserver(
                     EventKind.DELETED -> {
                         Log.d("BackupFilesObserver", "On delete $file")
                         if (file.absolutePath == FileUtil.localDirPath) {
+                            Log.d("BackupFilesObserver", "True, deleted local")
                             list.clear()
+                            observableList.value = list
                             return@apply
                         }
                         val deletedIndex = list.indexOfFirst { app ->
@@ -70,10 +73,11 @@ class BackupFilesObserver(
                         Log.d("BackupFilesObserver", "On modified $file")
                         if (file.isFile && file.extension == "json") {
                             val modifiedApp = deserializeApp(file)
+                            Log.d("BackupFilesObserver", "Modified app = ${modifiedApp?.name}")
                             modifiedApp?.apply {
                                 list.remove(modifiedApp)
                                 Log.d(
-                                    "BackupFilesObserver", "Adding ${modifiedApp.name}"
+                                    "BackupFilesObserver", "Adding modified ${modifiedApp.name}"
                                 )
                                 list.add(modifiedApp)
                             }

@@ -39,6 +39,7 @@ import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
+import com.stefan.simplebackup.utils.file.FileUtil
 import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.math.abs
@@ -110,19 +111,12 @@ class AppDetailActivity : BaseActivity() {
 
     private fun ActivityDetailBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
-                launch {
-                    detailsViewModel.favoriteChanged.collect { isSuccessfullyChanged ->
-                        if (isSuccessfullyChanged == true) {
-                            detailsToolbar.menu?.setFavoritesIcon()
-                            if (detailsViewModel.app?.favorite == true) showToast(R.string.added_to_favorites)
-                            else showToast(R.string.removed_from_favorites)
-                        }
-                        if (isSuccessfullyChanged == false) {
-                            showToast(R.string.unable_to_change_favorites)
-                        }
-                    }
+            detailsViewModel.observeLocalBackup(
+                onBackupFileChanged = {
+                    onBackPress()
                 }
+            )
+            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
                 detailsViewModel.archNames.collect { archNames ->
                     Log.d("ChipGroup", "Arch names = $archNames")
                     archNames?.let {
@@ -206,7 +200,7 @@ class AppDetailActivity : BaseActivity() {
     private fun ActivityDetailBinding.bindToolBar() {
         detailsToolbar.apply {
             inflateMenu(R.menu.details_tool_bar)
-            menu.setFavoritesIcon()
+            menu.setFavoriteIcon()
             setNavigationIcon(R.drawable.ic_arrow_back)
             setNavigationContentDescription(R.string.back)
             setNavigationOnClickListener { onBackPress() }
@@ -220,7 +214,23 @@ class AppDetailActivity : BaseActivity() {
                             openPackageSettingsInfo(packageName)
                         }
                         R.id.add_to_favorites -> {
-                            detailsViewModel.changeFavorites()
+                            detailsViewModel.changeFavorites(
+                                onSuccess = { isFavorite ->
+                                    menu?.setFavoriteIcon()
+                                    if (isFavorite)
+                                        showToast(R.string.added_to_favorites)
+                                    else
+                                        showToast(R.string.removed_from_favorites)
+                                },
+                                onFailure = { message ->
+                                    showToast(
+                                        getString(
+                                            R.string.unable_to_change_favorites,
+                                            message
+                                        )
+                                    )
+                                }
+                            )
                         }
                     }
                     true
@@ -284,7 +294,10 @@ class AppDetailActivity : BaseActivity() {
         app.apply {
             val appImage = collapsingToolbar.findViewById<ImageView>(R.id.application_image)
             appImage.setOnClickListener {
-                launchPackage(packageName)
+                if (isLocal)
+                    openFilePath("${FileUtil.localDirPath}/$packageName")
+                else
+                    launchPackage(packageName)
             }
             setBitmapFromPrivateFolder(context = this@AppDetailActivity, onFailure = {
                 getResourceDrawable(R.drawable.ic_error)?.toByteArray() ?: byteArrayOf()
@@ -331,7 +344,7 @@ class AppDetailActivity : BaseActivity() {
         fadeIn(300L)
     }
 
-    private fun Menu.setFavoritesIcon() {
+    private fun Menu.setFavoriteIcon() {
         findItem(R.id.add_to_favorites).apply {
             detailsViewModel.app?.apply {
                 icon = if (favorite) AppCompatResources.getDrawable(

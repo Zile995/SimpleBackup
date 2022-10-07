@@ -3,17 +3,16 @@ package com.stefan.simplebackup
 import android.app.Application
 import android.content.Context
 import com.stefan.simplebackup.utils.PreferenceHelper.initPreferences
-import kotlinx.coroutines.*
+import kotlinx.coroutines.MainScope
 
-private const val MAIN_BACKUP_DIR_PATH: String = "SimpleBackup"
+const val MAIN_BACKUP_DIR_NAME: String = "SimpleBackup"
 
 /**
  * - Main [Application] based class
  */
 class MainApplication : Application() {
 
-    private val ioDispatcher = Dispatchers.IO
-    val applicationScope = CoroutineScope(SupervisorJob() + ioDispatcher)
+    val applicationScope = MainScope()
 
     override fun onCreate() {
         super.onCreate()
@@ -30,11 +29,9 @@ class MainApplication : Application() {
 
         private fun Context.setMainBackupDir() {
             val externalFilesDir = this.getExternalFilesDir(null)?.absolutePath ?: ""
-            mainBackupDirPath =
-                externalFilesDir.substring(
-                    0,
-                    externalFilesDir.indexOf("Android")
-                ) + MAIN_BACKUP_DIR_PATH
+            mainBackupDirPath = externalFilesDir.substring(
+                0, externalFilesDir.indexOf("Android")
+            ) + MAIN_BACKUP_DIR_NAME
         }
     }
 }

@@ -25,7 +25,6 @@ object FileUtil {
     private val tempDirPath get() = "${mainBackupDirPath}/$TEMP_DIR_NAME"
     private val cloudDirPath get() = "${mainBackupDirPath}/$CLOUD_DIR_NAME"
 
-    @Throws(IOException::class)
     suspend fun createDirectory(path: String) {
         withContext(ioDispatcher) {
             val dir = File(path)
@@ -49,6 +48,7 @@ object FileUtil {
         withContext(ioDispatcher) {
             Log.d("FileUtil", "Deleting the $path")
             val file = File(path)
+            if (!file.exists()) throw IOException()
             if (file.isDirectory) file.deleteRecursively() else file.delete()
         }
     }

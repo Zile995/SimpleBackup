@@ -96,10 +96,10 @@ class BackupUtil(
                         updateProgress(actions.size)
                     }
                     updateOnSuccess()
-                } catch (exception: IOException) {
+                } catch (e: IOException) {
                     Log.e(
                         "BackupUtil",
-                        "Oh, an error occurred: $exception ${exception.message}"
+                        "Oh, an error occurred: $e ${e.message}"
                     )
                     updateOnFailure()
                 }
@@ -119,9 +119,14 @@ class BackupUtil(
     }
 
     private suspend fun AppData.updateOnFailure(): WorkResult {
-        FileUtil.deleteFile(getTempDirPath(this))
-        setNearestItemInterval()
-        updateNotificationData(R.string.backup_progress_failed)
+        try {
+            FileUtil.deleteFile(getTempDirPath(this))
+        } catch (e: IOException) {
+            Log.w("BackupUtil", "Failed to delete broken backup $e ${e.message}")
+        } finally {
+            setNearestItemInterval()
+            updateNotificationData(R.string.backup_progress_failed)
+        }
         return WorkResult.ERROR
     }
 

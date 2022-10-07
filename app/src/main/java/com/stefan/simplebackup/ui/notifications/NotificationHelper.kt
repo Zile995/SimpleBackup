@@ -14,22 +14,16 @@ interface NotificationHelper {
     val notificationBuilder: NotificationCompat.Builder
 
     fun Context.sendNotificationBroadcast(
-        notification: Notification,
-        actionName: String
+        notification: Notification, actionName: String
     ) {
-        applicationContext.sendBroadcast(
-            Intent(
-                applicationContext,
-                NotificationReceiver::class.java
-            ).apply {
-                action = actionName
-                putExtra(
-                    EXTRA_NOTIFICATION,
-                    notification
-                )
-                putExtra(EXTRA_NOTIFICATION_ID, notificationId)
-                setPackage(applicationContext.packageName)
-            })
+        val intent = Intent(this, NotificationReceiver::class.java)
+        intent.apply {
+            action = actionName
+            putExtra(EXTRA_NOTIFICATION, notification)
+            putExtra(EXTRA_NOTIFICATION_ID, notificationId)
+            setPackage(applicationContext.packageName)
+        }
+        sendBroadcast(intent)
     }
 
     fun NotificationCompat.Builder.setExpendableText(text: String) = run {

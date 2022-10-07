@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import kotlin.system.measureTimeMillis
 
 class LocalViewModel(
-    application: MainApplication, private val repository: AppRepository
+    application: MainApplication
 ) : BaseViewModel() {
 
     private val workManager = WorkManager.getInstance(application)

@@ -52,49 +52,47 @@ class WorkNotificationBuilder(
     override fun getFinishedNotification(
         results: List<WorkResult>,
         isBackupNotification: Boolean
-    ): Notification {
-        return notificationBuilder.apply {
-            val successful = results.count { workResult ->
-                workResult == WorkResult.SUCCESS
-            }
-            val failed = results.count { workResult ->
-                workResult == WorkResult.ERROR
-            }
-            val appText =
-                if (successful > 1) context.getString(R.string.apps) else context.getString(R.string.app)
-            val withFailed: () -> String = {
-                if (failed > 0)
-                    ", $failed $appText ${context.getString(R.string.unsuccessfully)}"
-                else
-                    ""
-            }
+    ): Notification = notificationBuilder.run {
+        val successful = results.count { workResult ->
+            workResult == WorkResult.SUCCESS
+        }
+        val failed = results.count { workResult ->
+            workResult == WorkResult.ERROR
+        }
+        val appText =
+            if (successful > 1) context.getString(R.string.apps) else context.getString(R.string.app)
+        val withFailed: () -> String = {
+            if (failed > 0)
+                ", $failed $appText ${context.getString(R.string.unsuccessfully)}"
+            else
+                ""
+        }
 
-            if (isBackupNotification) {
-                setContentTitle(context.getString(R.string.backup_completed))
-                setExpendableText(
-                    "$successful" +
-                            " $appText" +
-                            " ${context.getString(R.string.successfully)}" +
-                            withFailed() +
-                            " ${context.getString(R.string.backed_up)}"
-                )
-            } else {
-                setContentTitle(context.getString(R.string.restore_completed))
-                setExpendableText(
-                    "$successful $appText ${context.getString(R.string.successfully)} " +
-                            context.getString(R.string.restored)
-                )
-            }
+        if (isBackupNotification) {
+            setContentTitle(context.getString(R.string.backup_completed))
+            setExpendableText(
+                "$successful" +
+                        " $appText" +
+                        " ${context.getString(R.string.successfully)}" +
+                        withFailed() +
+                        " ${context.getString(R.string.backed_up)}"
+            )
+        } else {
+            setContentTitle(context.getString(R.string.restore_completed))
+            setExpendableText(
+                "$successful $appText ${context.getString(R.string.successfully)} " +
+                        context.getString(R.string.restored)
+            )
+        }
 
-            setOngoing(false)
-            setLargeIcon(null)
-            setContentText(null)
-            setAutoCancel(false)
-            setOnlyAlertOnce(true)
-            setProgress(0, 0, false)
-            priority = NotificationCompat.PRIORITY_MAX
-            foregroundServiceBehavior = NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
-        }.build()
+        setOngoing(false)
+        setLargeIcon(null)
+        setContentText(null)
+        setAutoCancel(false)
+        setOnlyAlertOnce(true)
+        setProgress(0, 0, false)
+        priority = NotificationCompat.PRIORITY_MAX
+        build()
     }
 
     override suspend fun getUpdatedNotification(notificationData: NotificationData): Notification {

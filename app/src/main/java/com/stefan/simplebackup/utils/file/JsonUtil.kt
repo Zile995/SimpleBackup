@@ -26,10 +26,11 @@ object JsonUtil {
                 }
             } catch (e: Exception) {
                 when (e) {
-                    is SerializationException -> e.localizedMessage?.let { message ->
-                        Log.w("Serialization", message)
-                    }
-                    else -> throw e
+                    is SerializationException -> Log.w(
+                        "Serialization",
+                        "Error occurred $e ${e.message}"
+                    )
+                    else -> throw IOException()
                 }
             }
         }
@@ -44,10 +45,8 @@ object JsonUtil {
                     app = Json.decodeFromString(reader.readLine())
                 }
                 app
-            } catch (e: Exception) {
-                e.localizedMessage?.let { message ->
-                    Log.w("Serialization", message)
-                }
+            } catch (e: IOException) {
+                Log.w("Serialization", "Error occurred $e ${e.message}")
                 null
             }
         }

@@ -34,6 +34,7 @@ import com.stefan.simplebackup.ui.fragments.FragmentViewBindingDelegate
 import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
 import java.lang.reflect.ParameterizedType
 
+
 inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
     crossinline bindingInflater: (LayoutInflater) -> T
 ) =
@@ -147,6 +148,18 @@ fun Context.uninstallPackage(packageName: String) =
     startActivity(Intent(Intent.ACTION_DELETE).apply {
         data = Uri.parse("package:${packageName}")
     })
+
+fun Context.openFilePath(path: String) {
+    val myDir: Uri = Uri.parse(path)
+    val intent = Intent(Intent.ACTION_VIEW)
+    intent.apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        setDataAndType(myDir, "resource/folder")
+        if (resolveActivity(packageManager) != null) {
+            startActivity(intent)
+        } else showToast("You don't have installed file managers")
+    }
+}
 
 fun Context.forceStopPackage(packageName: String) {
     val activityManager =
