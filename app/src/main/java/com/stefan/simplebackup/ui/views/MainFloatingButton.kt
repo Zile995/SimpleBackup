@@ -2,16 +2,12 @@ package com.stefan.simplebackup.ui.views
 
 import android.content.Context
 import android.util.AttributeSet
-import android.util.Log
-import androidx.core.view.doOnLayout
-import androidx.core.view.doOnPreDraw
+import androidx.core.view.doOnAttach
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.stefan.simplebackup.R
 
 class MainFloatingButton(
-    context: Context,
-    attrs: AttributeSet?,
-    defStyleAttr: Int
+    context: Context, attrs: AttributeSet?, defStyleAttr: Int
 ) : ExtendedFloatingActionButton(context, attrs, defStyleAttr) {
 
     var hidePermanently = false
@@ -20,19 +16,19 @@ class MainFloatingButton(
             if (value) {
                 hide()
                 setOnClickListener(null)
-            } else {
-                doOnPreDraw {
-                    shrink()
-                }
             }
         }
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(
-        context,
-        attrs,
-        R.attr.extendedFloatingActionButtonStyle
+        context, attrs, R.attr.extendedFloatingActionButtonStyle
     )
+
+    init {
+        doOnAttach {
+            shrink()
+        }
+    }
 
     override fun show() {
         if (hidePermanently) return
@@ -40,12 +36,16 @@ class MainFloatingButton(
     }
 
     fun changeOnSelection(isSelected: Boolean) {
-        if (isSelected) {
-            show()
+        if (isSelected) show() else setDefaultState()
+    }
+
+    fun changeOnHomeFragment(isHomeFragment: Boolean) {
+        if (isHomeFragment) {
+            setIconResource(R.drawable.ic_configure)
+            setText(R.string.configure)
         } else {
-            doOnPreDraw {
-                setDefaultState()
-            }
+            setIconResource(R.drawable.ic_restore)
+            setText(R.string.restore)
         }
     }
 

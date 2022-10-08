@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.ui.viewmodels
 
+import android.database.sqlite.SQLiteException
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -66,8 +67,9 @@ class DetailsViewModel(
                 FileUtil.deleteLocalBackup(packageName)
                 onSuccess()
             } catch (e: IOException) {
-                onFailure("$e ${e.message}")
-                Log.w("ViewModel", "Error occurred while deleting backup $e: ${e.message}")
+                val message = "$e: ${e.message}"
+                onFailure(message)
+                Log.w("ViewModel", "Error occurred while deleting backup $message")
             }
         }
     }
@@ -75,20 +77,22 @@ class DetailsViewModel(
     inline fun changeFavorites(
         crossinline onSuccess: (Boolean) -> Unit, crossinline onFailure: (message: String) -> Unit
     ) = viewModelScope.launch {
-        try {
-            app?.apply {
+        app?.apply {
+            try {
                 val appRepository = AppRepository(appDatabase.appDao())
                 appRepository.startRepositoryJob {
-                    if (favorite) removeFromFavorites(packageName)
-                    else addToFavorites(packageName)
+                    if (favorite)
+                        removeFromFavorites(packageName)
+                    else
+                        addToFavorites(packageName)
                 }.invokeOnCompletion {
                     favorite = !favorite
                     onSuccess(favorite)
                 }
+            } catch (e: SQLiteException) {
+                onFailure("$e ${e.message}")
+                Log.e("ViewModel", "Database exception: $e ${e.message}")
             }
-        } catch (e: Exception) {
-            Log.e("ViewModel", "Database exception: $e ${e.message}")
-            onFailure("$e ${e.message}")
         }
     }
 

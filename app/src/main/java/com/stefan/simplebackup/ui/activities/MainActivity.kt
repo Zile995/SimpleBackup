@@ -224,9 +224,43 @@ class MainActivity : BaseActivity() {
                 when (menuItem.itemId) {
                     R.id.add_to_favorites -> {
                         if (visibleFragment !is FavoritesFragment)
-                            mainViewModel.addToFavorites()
+                            mainViewModel.addToFavorites(
+                                onSuccess = { numberOfItems ->
+                                    showToast(
+                                        getString(
+                                            R.string.successfully_added_items_to_favorites,
+                                            numberOfItems
+                                        )
+                                    )
+                                },
+                                onFailure = { message ->
+                                    showToast(
+                                        getString(
+                                            R.string.unable_to_add_items_to_favorites,
+                                            message
+                                        )
+                                    )
+                                }
+                            )
                         else
-                            mainViewModel.removeFromFavorites()
+                            mainViewModel.removeFromFavorites(
+                                onSuccess = { numberOfItems ->
+                                    showToast(
+                                        getString(
+                                            R.string.successfully_removed_items_from_favorites,
+                                            numberOfItems
+                                        )
+                                    )
+                                },
+                                onFailure = { message ->
+                                    showToast(
+                                        getString(
+                                            R.string.unable_to_remove_items_from_favorites,
+                                            message
+                                        )
+                                    )
+                                }
+                            )
                     }
                     R.id.delete -> {
                         Log.d("Activity", "Setting up the delete action")
@@ -294,15 +328,6 @@ class MainActivity : BaseActivity() {
                     launch {
                         isSelected.collect { isSelected ->
                             if (isSearching.value || isSettingsDestination.value) return@collect
-                            root.doOnLayout {
-                                if (visibleFragment is HomeFragment) {
-                                    floatingButton.setText(R.string.configure)
-                                    floatingButton.setIconResource(R.drawable.ic_configure)
-                                } else {
-                                    floatingButton.setText(R.string.restore)
-                                    floatingButton.setIconResource(R.drawable.ic_restore)
-                                }
-                            }
                             mainActivityAnimator.animateOnSelection(isSelected, setSelectionMode)
                         }
                     }

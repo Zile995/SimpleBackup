@@ -60,7 +60,6 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     }
 
     companion object {
-        @Volatile
         var selectionFinished: Boolean = true
 
         private var mNumberOfSelected = MutableStateFlow(0)

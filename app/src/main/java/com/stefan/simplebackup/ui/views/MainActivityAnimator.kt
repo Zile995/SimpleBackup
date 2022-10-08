@@ -14,6 +14,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
+import com.stefan.simplebackup.ui.fragments.HomeFragment
 import com.stefan.simplebackup.utils.extensions.getColorFromResource
 import com.stefan.simplebackup.utils.extensions.getVisibleFragment
 import java.lang.ref.WeakReference
@@ -75,6 +76,8 @@ class MainActivityAnimator(
             expandAppBarLayout(isSelected)
             floatingButton.changeOnSelection(isSelected)
             materialToolbar.changeOnSelection(isSelected, selectionModeCallBack)
+            if (isSelected)
+                floatingButton.changeOnHomeFragment(visibleFragment is HomeFragment)
             root.doOnPreDraw {
                 if (isSelected) {
                     startAnimations(doOnStart = {
@@ -190,7 +193,6 @@ class MainActivityAnimator(
     }
 
     companion object {
-        @Volatile
         var animationFinished: Boolean = true
     }
 }

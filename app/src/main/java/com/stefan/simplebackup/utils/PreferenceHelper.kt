@@ -41,8 +41,7 @@ object PreferenceHelper {
 
     @Suppress("UNCHECKED_CAST")
     private fun <T> SharedPreferences.getPreference(
-        preferenceName: String,
-        defaultValue: T
+        preferenceName: String, defaultValue: T
     ): T = when (defaultValue) {
         is Int -> getInt(preferenceName, defaultValue)
         is Float -> getFloat(preferenceName, defaultValue)
@@ -74,12 +73,7 @@ object PreferenceHelper {
         sharedPreferences.editPreference(EXCLUDE_APPS_CACHE, shouldExclude)
     }
 
-    suspend fun saveZipCompressionLevel(
-        @FloatRange(
-            from = 0.0,
-            to = 9.0
-        ) compressionLevel: Float
-    ) {
+    suspend fun saveZipCompressionLevel(@FloatRange(from = 0.0, to = 9.0) compressionLevel: Float) {
         sharedPreferences.editPreference(ZIP_COMPRESSION_LEVEL, compressionLevel)
     }
 
@@ -104,15 +98,13 @@ object PreferenceHelper {
     }
 
     fun registerPreferenceListener(
-        listener: SharedPreferences
-        .OnSharedPreferenceChangeListener
+        listener: SharedPreferences.OnSharedPreferenceChangeListener
     ) {
         sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
     }
 
     fun unregisterPreferenceListener(
-        listener: SharedPreferences
-        .OnSharedPreferenceChangeListener
+        listener: SharedPreferences.OnSharedPreferenceChangeListener
     ) {
         sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
     }

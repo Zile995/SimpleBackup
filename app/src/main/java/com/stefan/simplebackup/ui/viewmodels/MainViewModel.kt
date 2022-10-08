@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.ui.viewmodels
 
+import android.database.sqlite.SQLiteException
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -109,24 +110,46 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         _searchResult.value = listOf()
     }
 
-    fun addToFavorites() = viewModelScope.launch {
-        repository.startRepositoryJob { scope: CoroutineScope ->
-            selectionList.forEach { packageName ->
-                scope.launch {
-                    addToFavorites(packageName)
+    inline fun addToFavorites(
+        crossinline onSuccess: (number: Int) -> Unit,
+        crossinline onFailure: (message: String) -> Unit
+    ) = viewModelScope.launch {
+        try {
+            repository.startRepositoryJob { ioScope: CoroutineScope ->
+                selectionList.forEach { packageName ->
+                    ioScope.launch {
+                        addToFavorites(packageName)
+                    }
                 }
+            }.invokeOnCompletion {
+                onSuccess(selectionList.size)
             }
+        } catch (e: SQLiteException) {
+            val message = "$e: ${e.message}"
+            onFailure(message)
+            Log.w("ViewModel", "Error occurred while removing favorites $message")
         }
     }
 
-    fun removeFromFavorites() = viewModelScope.launch {
-        repository.startRepositoryJob(permits = 10) { scope: CoroutineScope ->
-            selectionList.forEach { packageName ->
-                scope.launch {
-                    removeFromFavorites(packageName)
+    inline fun removeFromFavorites(
+        crossinline onSuccess: (number: Int) -> Unit,
+        crossinline onFailure: (message: String) -> Unit
+    ) = viewModelScope.launch {
+        try {
+            repository.startRepositoryJob { ioScope: CoroutineScope ->
+                selectionList.forEach { packageName ->
+                    ioScope.launch {
+                        removeFromFavorites(packageName)
+                    }
                 }
+            }.invokeOnCompletion {
+                onSuccess(selectionList.size)
             }
-        }.invokeOnCompletion {
+        } catch (e: SQLiteException) {
+            val message = "$e: ${e.message}"
+            onFailure(message)
+            Log.w("ViewModel", "Error occurred while removing favorites $message")
+        } finally {
             launch {
                 delay(200)
                 setSelectionMode(false)

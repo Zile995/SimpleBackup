@@ -225,7 +225,7 @@ class AppDetailActivity : BaseActivity() {
                                 onFailure = { message ->
                                     showToast(
                                         getString(
-                                            R.string.unable_to_change_favorites,
+                                            R.string.unable_to_add_to_favorites,
                                             message
                                         )
                                     )

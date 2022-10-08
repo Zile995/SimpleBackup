@@ -92,7 +92,11 @@
     <string name="added_to_favorites">Added to favorites</string>
     <string name="remove_from_favorites">Remove from favorites</string>
     <string name="removed_from_favorites">Removed from favorites</string>
-    <string name="unable_to_change_favorites">Unable to change favorites %1$s</string>
+    <string name="unable_to_add_to_favorites">Unable to add app to favorites %1$s</string>
+    <string name="successfully_added_items_to_favorites">Successfully added %1$d items to favorites</string>
+    <string name="unable_to_add_items_to_favorites">Unable to add selected items to favorites %1$s</string>
+    <string name="successfully_removed_items_from_favorites">Successfully removed %1$d items from favorites</string>
+    <string name="unable_to_remove_items_from_favorites">Unable to remove selected items from favorites %1$s</string>
     <string name="target_sdk">Target SDK %1$d</string>
     <string name="min_sdk">Min SDK %1$d</string>
     <string name="notification_channel_name">Backup notification</string>

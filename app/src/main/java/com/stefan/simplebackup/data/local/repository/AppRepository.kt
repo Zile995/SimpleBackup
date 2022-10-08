@@ -9,9 +9,6 @@ import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
-import java.io.IOException
 import kotlin.system.measureTimeMillis
 
 typealias RepositoryAction = suspend AppRepository.(CoroutineScope) -> Unit
@@ -31,31 +28,27 @@ class AppRepository(private val appDao: AppDao) {
         }
     }
 
-    suspend inline fun startRepositoryJob(
-        permits: Int = 5,
-        crossinline repositoryAction: RepositoryAction
-    ) = coroutineScope {
+    @Throws(SQLiteException::class)
+    suspend inline fun startRepositoryJob(crossinline repositoryAction: RepositoryAction) =
+        coroutineScope {
             launch(ioDispatcher) {
                 val time = measureTimeMillis {
-                    val semaphore = Semaphore(permits)
-                    semaphore.withPermit {
-                        throw IOException()
-                        repositoryAction.invoke(this@AppRepository, this)
-                    }
+                    repositoryAction.invoke(this@AppRepository, this)
                 }
                 Log.d("AppRepository", "Finished action in $time ms")
             }
         }
 
-    suspend fun insert(app: AppData) = appDao.insert(app)
-    fun findAppsByName(name: String) = appDao.findAppsByName(name)
-    suspend fun delete(packageName: String) = appDao.delete(packageName)
-    suspend fun getAppData(packageName: String) = appDao.getData(packageName)
-    private suspend fun isFavorite(packageName: String) = appDao.isFavorite(packageName)
+    @Throws(SQLiteException::class)
+    suspend fun removeFromFavorites(packageName: String) = appDao.removeFromFavorites(packageName)
 
     @Throws(SQLiteException::class)
     suspend fun addToFavorites(packageName: String) = appDao.addToFavorites(packageName)
 
-    @Throws(SQLiteException::class)
-    suspend fun removeFromFavorites(packageName: String) = appDao.removeFromFavorites(packageName)
+    suspend fun insert(app: AppData) = appDao.insert(app)
+    fun findAppsByName(name: String) = appDao.findAppsByName(name)
+    suspend fun delete(packageName: String) = appDao.delete(packageName)
+    suspend fun getAppData(packageName: String) = appDao.getData(packageName)
+
+    private suspend fun isFavorite(packageName: String) = appDao.isFavorite(packageName)
 }
