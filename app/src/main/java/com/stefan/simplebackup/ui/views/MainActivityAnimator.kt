@@ -77,7 +77,7 @@ class MainActivityAnimator(
             floatingButton.changeOnSelection(isSelected)
             materialToolbar.changeOnSelection(isSelected, selectionModeCallBack)
             if (isSelected)
-                floatingButton.changeOnHomeFragment(visibleFragment is HomeFragment)
+                root.post { floatingButton.changeOnHomeFragment(visibleFragment is HomeFragment) }
             root.doOnPreDraw {
                 if (isSelected) {
                     startAnimations(doOnStart = {
