@@ -1,58 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!--  Common colors -->
+    <color name="color_accent">#213B61</color>
     <color name="error">#D35151</color>
-    <color name="textColorPrimary">#FFFFFFFF</color>
-    <color name="colorAccent">#213B61</color>
     <color name="outline">#6C8ABD</color>
 
     <!-- Backgrounds -->
-    <color name="background">#172641</color>
+    <color name="main_background">#172641</color>
 
     <!-- Dialogs -->
-    <color name="negativeDialog">#D35151</color>
-    <color name="positiveDialog">#2F7EE6</color>
-
-    <!-- Chips -->
-    <color name="redChip">#FF7878</color>
-    <color name="textInRedChip">#531F1F</color>>
-    <color name="blueChip">#6C8ABD</color>
-    <color name="textInBlueChip">#192231</color>
-    <color name="greenChip">#79B4B7</color>
-    <color name="textInGreenChip">#FF07433A</color>
-    <color name="weakRedChip">#FFA5A5</color>
+    <color name="negative_dialog_text">#D35151</color>
+    <color name="positive_dialog_text">#2F7EE6</color>
 
     <!-- TextViews -->
-    <color name="greenChipLabel">@color/greenChip</color>
-    <color name="redChipLabel">@color/redChip</color>
-    <color name="appNameLabel">@color/textColorPrimary</color>
-    <color name="textView">#B9CDF4</color>
+    <color name="secondary_text">#B9CDF4</color>
+    <color name="primary_text">#FFFFFFFF</color>
 
     <!-- Buttons -->
-    <color name="button">#5B77A8</color>
-    <color name="floatingButton">#55709E</color>
-    <color name="backupButtonText">#222D42</color>
-    <color name="localStorageIcon">#67B8BC</color>
-    <color name="driveStorageIcon">#D1CF8F</color>
+    <color name="primary_button_color">#5E79A6</color>
+    <color name="button_text">#192231</color>
 
     <!-- CardViews -->
-    <color name="cardView">#1D3558</color>
-    <color name="cardViewSelected">#294878</color>
-    <color name="cardViewRipple">#223E69</color>
+    <color name="card_view">#1D3558</color>
+    <color name="card_view_ripple">#223E69</color>
+    <color name="card_view_selected">#294878</color>
 
     <!-- Tab Layouts -->
     <color name="selectedTab">#9FB8F6</color>
 
-    <!-- Bars -->
-    <color name="bottomView">@color/colorAccent</color>
-    <color name="bottomLabelActive">@color/textView</color>
-    <color name="bottomLabelInactive">#929FB6</color>
-    <color name="scrollBar">#274570</color>
-    <color name="searchBar">#1C2E4C</color>
+    <!-- Bottom View -->
+    <color name="bottom_view">@color/color_accent</color>
+    <color name="bottom_label_active">@color/secondary_text</color>
+    <color name="bottom_label_inactive">#929FB6</color>
+
+    <!-- Scroll bar -->
+    <color name="scroll_bar">#274570</color>
+    <color name="search_bar">#1C2E4C</color>
 
     <!-- Switch disabled -->
-    <color name="switchDisabled">#3E5070</color>
-
-    <color name="shimmer_placeholder">#dddddd</color>
+    <color name="switch_disabled">#3E5070</color>
 
 </resources>

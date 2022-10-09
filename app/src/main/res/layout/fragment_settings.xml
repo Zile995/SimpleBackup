@@ -192,8 +192,8 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/zip_image"
                 app:layout_constraintTop_toTopOf="parent"
-                app:tickColorActive="@color/blueChip"
-                app:trackColorInactive="@color/blueChip" />
+                app:tickColorActive="@color/primary_button_color"
+                app:trackColorInactive="@color/primary_button_color" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/fastest_compression"
@@ -202,7 +202,7 @@
                 android:layout_marginStart="6dp"
                 android:text="@string/fastest"
                 android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                android:textColor="@color/textColorPrimary"
+                android:textColor="@color/primary_text"
                 android:textSize="13sp"
                 app:layout_constraintStart_toStartOf="@id/zip_compression_slider"
                 app:layout_constraintTop_toBottomOf="@+id/zip_compression_slider" />
@@ -215,7 +215,7 @@
                 android:layout_marginBottom="20dp"
                 android:text="@string/slowest"
                 android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                android:textColor="@color/textColorPrimary"
+                android:textColor="@color/primary_text"
                 android:textSize="13sp"
                 app:layout_constraintEnd_toEndOf="@id/zip_compression_slider"
                 app:layout_constraintTop_toBottomOf="@+id/zip_compression_slider" />
@@ -261,7 +261,7 @@
                 android:layout_marginStart="14dp"
                 android:text="@string/exclude_app_cache_info"
                 android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                android:textColor="@color/textColorPrimary"
+                android:textColor="@color/primary_text"
                 android:textSize="15sp"
                 app:thumbTint="@color/selectedTab" />
 
@@ -306,7 +306,7 @@
                 android:layout_marginStart="14dp"
                 android:text="@string/double_press_back"
                 android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                android:textColor="@color/textColorPrimary"
+                android:textColor="@color/primary_text"
                 android:textSize="15sp"
                 app:thumbTint="@color/selectedTab" />
 

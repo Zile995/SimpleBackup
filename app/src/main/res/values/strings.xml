@@ -28,28 +28,25 @@
     <string name="restore">Restore</string>
     <string name="batch_restore">Batch Restore</string>
     <string name="drive">Drive</string>
-    <string name="data_in">Data in</string>
-    <string name="confirm_restore">Confirm Restore</string>
-    <string name="restore_confirmation_message">Are you sure you want to restore this application?</string>
+    <string name="data_in">Data in %1$s</string>
     <string name="yes">YES</string>
     <string name="no">NO</string>
-    <string name="apk">APK </string>
     <string name="apk_size">Apk size %1$s</string>
+    <string name="apk_size_tooltip">Apk size</string>
     <string name="all_arch">All architectures</string>
     <string name="first_installed_on">First installed on %1$s</string>
     <string name="backed_up_on">Backed up on %1$s</string>
     <string name="force_stop">Force Stop</string>
     <string name="application_stopped">Application stopped!</string>
     <string name="data">Data</string>
-    <string name="date">Date: </string>
     <string name="ok">OK</string>
     <string name="split">SPLIT</string>
     <string name="settings_info">App info</string>
-    <string name="root_detected">Root detected, but…</string>
-    <string name="not_granted">You did not grant root access.
+    <string name="root_detected_title">Root detected, but…</string>
+    <string name="not_granted_info">You did not grant root access.
         \nRoot access is needed, in order to
         \nbackup/restore application data</string>
-    <string name="not_rooted">Your phone is not rooted</string>
+    <string name="not_rooted_title">Your phone is not rooted</string>
     <string name="not_rooted_info">However, you will only be able to back up / restore applications without their data</string>
     <string name="storage_permission">Storage permission not granted.</string>
     <string name="contacts_permission">Contacts permission not granted.</string>

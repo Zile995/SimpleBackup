@@ -50,7 +50,7 @@ class MaterialSearchBar(
     override fun setEnabled(enabled: Boolean) {
         super.setEnabled(enabled)
         if (enabled)
-            setRippleColorResource(R.color.cardViewRipple)
+            setRippleColorResource(R.color.card_view_ripple)
         else
             rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
     }

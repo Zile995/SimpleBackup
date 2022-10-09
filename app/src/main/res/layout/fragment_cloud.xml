@@ -34,7 +34,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="@dimen/bottom_navigation_height"
-        android:indeterminateTint="@color/floatingButton"
+        android:indeterminateTint="@color/primary_button_color"
         android:scaleX="0.12"
         android:scaleY="0.12"
         android:visibility="gone"

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="@color/main_background"
     tools:context=".ui.fragments.viewpager.HomeViewPagerFragment">
 
     <com.google.android.material.tabs.TabLayout
@@ -12,14 +12,14 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/tab_layout_height"
         app:tabTextAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-        android:background="@color/bottomView"
+        android:background="@color/bottom_view"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:tabIndicatorColor="@color/selectedTab"
         app:tabIndicatorFullWidth="false"
         app:tabMode="fixed"
-        app:tabRippleColor="@color/cardViewRipple"
+        app:tabRippleColor="@color/card_view_ripple"
         app:tabSelectedTextColor="@color/selectedTab">
 
     </com.google.android.material.tabs.TabLayout>

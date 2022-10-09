@@ -93,7 +93,7 @@ class AppDetailActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        window.statusBarColor = getColorFromResource(R.color.background)
+        window.statusBarColor = getColorFromResource(R.color.main_background)
         binding.apply {
             bindViews()
             initObservers()
@@ -161,7 +161,7 @@ class AppDetailActivity : BaseActivity() {
                     animateStatusBarColor(android.R.color.transparent)
                 }
                 totalScrollRange -> {
-                    animateStatusBarColor(R.color.bottomView)
+                    animateStatusBarColor(R.color.bottom_view)
                     mainActions.translationY = totalScrollRange.toFloat()
                 }
             }

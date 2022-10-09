@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/backup_card_item"
     style="@style/Widget.SimpleBackup.CardView"
-    android:id="@+id/card_restore_item"
     android:layout_width="match_parent"
     android:layout_height="100dp"
     android:layout_marginStart="10dp"
@@ -16,106 +16,132 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:outlineProvider="none">
+        android:clipChildren="false"
+        android:clipToPadding="false">
 
-        <ImageView
-            android:id="@+id/restore_application_image"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+        <FrameLayout
+            android:id="@+id/image_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginStart="15dp"
             android:layout_marginBottom="30dp"
-            android:contentDescription="@string/application_image"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/backup_application_image"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:contentDescription="@string/application_image"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/favorites_badge"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="-4dp"
+                android:layout_marginEnd="-8dp"
+                android:background="@color/primary_button_color"
+                android:scaleType="centerInside"
+                android:adjustViewBounds="true"
+                android:tint="@color/button_text"
+                android:visibility="visible"
+                app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SimpleBackup.ImageView"
+                app:srcCompat="@drawable/ic_favorite" />
+
+        </FrameLayout>
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/restore_version_name"
+            android:id="@+id/backup_version_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="14dp"
             android:fontFamily="@font/inter_family"
-            android:textColor="@color/textView"
-            android:textSize="6pt"
-            app:layout_constraintBottom_toTopOf="@+id/restore_application_name"
-            app:layout_constraintStart_toEndOf="@+id/restore_application_image"
-            app:layout_constraintTop_toTopOf="@+id/restore_application_image" />
+            android:textColor="@color/secondary_text"
+            android:textSize="11sp"
+            app:layout_constraintStart_toEndOf="@+id/image_layout"
+            app:layout_constraintTop_toTopOf="@+id/image_layout" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/restore_application_name"
+            android:id="@+id/backup_application_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter"
             android:maxLines="1"
             android:textAlignment="textStart"
             android:textAppearance="?attr/textAppearanceBody1"
-            android:textColor="@color/appNameLabel"
-            android:textSize="7pt"
+            android:textColor="@color/primary_text"
+            android:textSize="12sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/restore_package_name"
-            app:layout_constraintStart_toStartOf="@+id/restore_version_name"
-            app:layout_constraintTop_toTopOf="@+id/restore_version_name" />
+            app:layout_constraintBottom_toBottomOf="@+id/backup_package_name"
+            app:layout_constraintStart_toStartOf="@+id/backup_version_name"
+            app:layout_constraintTop_toTopOf="@+id/backup_version_name" />
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/restore_package_name"
+            android:id="@+id/backup_package_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/inter_family"
-            android:textColor="@color/textView"
-            android:textSize="6pt"
-            app:layout_constraintBottom_toBottomOf="@+id/restore_application_image"
-            app:layout_constraintStart_toStartOf="@+id/restore_application_name"
-            app:layout_constraintTop_toBottomOf="@+id/restore_application_name" />
+            android:textColor="@color/secondary_text"
+            android:textSize="11sp"
+            app:layout_constraintBottom_toBottomOf="@+id/image_layout"
+            app:layout_constraintStart_toStartOf="@id/backup_version_name"
+            app:layout_constraintTop_toBottomOf="@+id/backup_application_name" />
 
         <com.google.android.material.chip.Chip
-            android:id="@+id/restore_data_size"
+            android:id="@+id/backup_data_size"
             style="@style/Widget.SimpleBackup.Chip"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_marginEnd="6dp"
-            android:clickable="false"
-            android:fontFamily="@font/inter"
-            android:textAlignment="center"
-            android:textColor="@color/textInBlueChip"
+            android:textColor="@color/button_text"
             android:textSize="11sp"
             android:textStyle="bold"
-            app:chipBackgroundColor="@color/blueChip"
-            app:chipEndPadding="2dp"
-            app:chipStartPadding="2dp"
+            app:chipBackgroundColor="@color/primary_button_color"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/linearLayoutCompat" />
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/date_label"
+        <androidx.appcompat.widget.LinearLayoutCompat
+            android:id="@+id/linearLayoutCompat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
-            android:fontFamily="@font/inter_family"
-            android:text="@string/date"
-            android:textColor="@color/textView"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/backup_date"
-            app:layout_constraintStart_toStartOf="@+id/restore_application_image"
-            app:layout_constraintTop_toTopOf="@id/backup_date"/>
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/backup_date"
-            style="@style/Widget.SimpleBackup.Chip"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginStart="4dp"
-            android:clickable="false"
-            android:fontFamily="@font/inter"
-            android:textAlignment="center"
-            android:textColor="@color/textInBlueChip"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            app:chipBackgroundColor="@color/blueChip"
-            app:chipEndPadding="2dp"
-            app:chipStartPadding="2dp"
+            android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/date_label" />
+            app:layout_constraintStart_toStartOf="@id/image_layout"
+            app:layout_constraintTop_toBottomOf="@+id/image_layout">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/split_apk"
+                style="@style/Widget.SimpleBackup.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:textColor="@color/button_text"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                app:chipBackgroundColor="@color/primary_button_color"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/install_date"
+                app:layout_constraintTop_toTopOf="@+id/install_date" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/backup_date"
+                style="@style/Widget.SimpleBackup.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginStart="4dp"
+                android:textColor="@color/button_text"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                app:chipBackgroundColor="@color/primary_button_color"
+                app:chipIcon="@drawable/ic_date"
+                app:chipIconTint="@color/button_text" />
+
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

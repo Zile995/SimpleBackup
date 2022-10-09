@@ -271,9 +271,9 @@ inline fun Context.permissionDialog(
         val alert = create()
         alert.setOnShowListener {
             alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-                .setTextColor(context.getColor(R.color.negativeDialog))
+                .setTextColor(context.getColor(R.color.negative_dialog_text))
             alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setTextColor(context.getColor(R.color.positiveDialog))
+                .setTextColor(context.getColor(R.color.positive_dialog_text))
         }
         alert.show()
     }
@@ -290,7 +290,7 @@ fun Context.rootDialog(title: String, message: String) {
         val alert = create()
         alert.setOnShowListener {
             alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setTextColor(context.getColor(R.color.positiveDialog))
+                .setTextColor(context.getColor(R.color.positive_dialog_text))
         }
         alert.show()
     }

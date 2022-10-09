@@ -4,14 +4,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="@color/main_background"
     tools:context=".ui.fragments.SearchFragment">
 
     <com.google.android.material.divider.MaterialDivider
         android:id="@+id/toolbar_divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        app:dividerColor="@color/background"
+        app:dividerColor="@color/main_background"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -21,7 +21,7 @@
         android:id="@+id/horizontal_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/searchBar"
+        android:background="@color/search_bar"
         android:scrollbars="none"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -50,9 +50,9 @@
                 android:checked="true"
                 android:text="@string/installed_apps"
                 android:textAlignment="center"
-                android:textColor="@color/textColorPrimary"
+                android:textColor="@color/primary_text"
                 app:checkedIcon="@drawable/ic_checked"
-                app:checkedIconTint="@color/textColorPrimary"
+                app:checkedIconTint="@color/primary_text"
                 app:checkedIconVisible="true" />
 
             <com.google.android.material.chip.Chip
@@ -62,9 +62,9 @@
                 android:checkable="true"
                 android:text="@string/local_backups"
                 android:textAlignment="center"
-                android:textColor="@color/textColorPrimary"
+                android:textColor="@color/primary_text"
                 app:checkedIcon="@drawable/ic_checked"
-                app:checkedIconTint="@color/textColorPrimary"
+                app:checkedIconTint="@color/primary_text"
                 app:checkedIconVisible="true" />
 
             <com.google.android.material.chip.Chip
@@ -74,9 +74,9 @@
                 android:checkable="true"
                 android:text="@string/cloud_backups"
                 android:textAlignment="center"
-                android:textColor="@color/textColorPrimary"
+                android:textColor="@color/primary_text"
                 app:checkedIcon="@drawable/ic_checked"
-                app:checkedIconTint="@color/textColorPrimary"
+                app:checkedIconTint="@color/primary_text"
                 app:checkedIconVisible="true" />
 
         </com.stefan.simplebackup.ui.views.AnimatedChipGroup>
@@ -128,9 +128,9 @@
                 android:layout_gravity="bottom|end"
                 android:layout_marginEnd="10dp"
                 android:layout_marginBottom="10dp"
-                android:background="@color/blueChip"
+                android:background="@color/primary_button_color"
                 android:scaleType="centerInside"
-                android:tint="@color/textInBlueChip"
+                android:tint="@color/button_text"
                 android:visibility="visible"
                 app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SimpleBackup.ImageView"
                 app:srcCompat="@drawable/ic_search" />

@@ -51,7 +51,7 @@ class SplashActivity : AppCompatActivity() {
         }
         binding.apply {
             binding.root.background =
-                AppCompatResources.getDrawable(applicationContext, R.color.bottomView)
+                AppCompatResources.getDrawable(applicationContext, R.color.bottom_view)
             usageStatsCard.isVisible = !newGrantedStatus.isUsageStatsGranted
             storagePermissionCard.isVisible = !newGrantedStatus.isManageAllFilesGranted
             applicationImage.isVisible =

@@ -46,7 +46,7 @@ class MainActivityAnimator(
                         interpolator = DecelerateInterpolator()
                         play(materialSearchBar.animateToParentSize())
                         doOnEnd {
-                            changeStatusBarColor(R.color.searchBar)
+                            changeStatusBarColor(R.color.search_bar)
                             appBarLayout.setExpanded(true)
                         }
                         start()
@@ -59,7 +59,7 @@ class MainActivityAnimator(
                         removeAllListeners()
                         interpolator = AccelerateInterpolator()
                         doOnStart {
-                            changeStatusBarColor(R.color.bottomView)
+                            changeStatusBarColor(R.color.bottom_view)
                         }
                         reverse()
                     }
@@ -133,7 +133,7 @@ class MainActivityAnimator(
             )
             doOnStart {
                 appBarLayout.setExpanded(true)
-                changeStatusBarColor(R.color.searchBar)
+                changeStatusBarColor(R.color.search_bar)
                 doOnStart()
             }
             doOnEnd {
@@ -154,7 +154,7 @@ class MainActivityAnimator(
             duration = animationDuration
             interpolator = AccelerateInterpolator()
             doOnStart {
-                changeStatusBarColor(R.color.bottomView)
+                changeStatusBarColor(R.color.bottom_view)
                 doOnStart()
             }
             doOnEnd {

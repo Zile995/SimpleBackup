@@ -18,7 +18,7 @@
             android:id="@+id/collapsing_toolbar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/background"
+            android:background="@color/main_background"
             android:fitsSystemWindows="true"
             app:collapsedTitleTextAppearance="@style/TextAppearance.SimpleBackup.TitleLarge"
             app:contentScrim="@null"
@@ -113,11 +113,11 @@
                         android:layout_marginEnd="10dp"
                         android:clickable="false"
                         android:text="@string/split"
-                        android:textColor="@color/textInBlueChip"
+                        android:textColor="@color/button_text"
                         android:textSize="11sp"
                         android:textStyle="bold"
                         android:visibility="visible"
-                        app:chipBackgroundColor="@color/blueChip"
+                        app:chipBackgroundColor="@color/primary_button_color"
                         app:chipEndPadding="2dp"
                         app:chipStartPadding="2dp" />
 
@@ -128,11 +128,11 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="20dp"
                         android:clickable="false"
-                        android:textColor="@color/textInBlueChip"
+                        android:textColor="@color/button_text"
                         android:textSize="11sp"
                         android:layout_toEndOf="@id/is_split_chip"
                         android:textStyle="bold"
-                        app:chipBackgroundColor="@color/blueChip"
+                        app:chipBackgroundColor="@color/primary_button_color"
                         app:chipEndPadding="2dp"
                         app:chipStartPadding="2dp" />
 
@@ -291,7 +291,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:layout_marginStart="20dp"
-                    android:src="@drawable/ic_installed_on" />
+                    android:src="@drawable/ic_date" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/installed_date_label"

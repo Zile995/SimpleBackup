@@ -1,10 +1,12 @@
 package com.stefan.simplebackup.ui.adapters.viewholders
 
+import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.databinding.LocalItemBinding
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.utils.extensions.bytesToMegaBytesString
 import com.stefan.simplebackup.utils.extensions.checkedString
+import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.loadBitmap
 
 class LocalViewHolder(
@@ -12,16 +14,21 @@ class LocalViewHolder(
     clickListener: OnClickListener
 ) : BaseViewHolder(binding, clickListener) {
 
-    override val cardView = binding.cardRestoreItem
+    override val cardView = binding.backupCardItem
 
     override fun bind(item: AppData) {
         binding.apply {
-            restoreApplicationImage.loadBitmap(item.bitmap)
-            restoreApplicationName.text = item.name.checkedString()
-            restoreVersionName.text = item.versionName.checkedString()
-            restorePackageName.text = item.packageName.checkedString()
-            restoreDataSize.text = item.dataSize.bytesToMegaBytesString()
+            backupApplicationImage.loadBitmap(item.bitmap)
+            backupApplicationName.text = item.name.checkedString()
+            backupVersionName.text = item.versionName.checkedString()
+            backupPackageName.text = item.packageName.checkedString()
+            backupDataSize.text = item.dataSize.bytesToMegaBytesString()
             backupDate.text = item.getDateString()
+            splitApk.isVisible = if (item.isSplit) {
+                splitApk.text = root.resources.getString(R.string.split)
+                true
+            } else
+                false
         }
     }
 }

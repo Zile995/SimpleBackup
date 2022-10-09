@@ -39,7 +39,7 @@ class ProgressActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        window.statusBarColor = getColorFromResource(R.color.background)
+        window.statusBarColor = getColorFromResource(R.color.main_background)
         setContentView(binding.root)
 
         binding.apply {

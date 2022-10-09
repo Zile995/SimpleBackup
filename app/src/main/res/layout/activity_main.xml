@@ -12,7 +12,7 @@
         android:id="@+id/app_bar_layout"
         android:layout_width="match_parent"
         android:layout_height="@dimen/toolbar_height"
-        android:background="@color/bottomView">
+        android:background="@color/bottom_view">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/search_bar_layout"
@@ -28,12 +28,12 @@
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
                 android:elevation="2dp"
-                app:cardBackgroundColor="@color/searchBar"
+                app:cardBackgroundColor="@color/search_bar"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:rippleColor="@color/cardViewRipple">
+                app:rippleColor="@color/card_view_ripple">
 
                 <com.stefan.simplebackup.ui.views.SimpleMaterialToolbar
                     android:id="@+id/material_toolbar"
@@ -67,9 +67,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="35dp"
-        android:backgroundTint="@color/floatingButton"
+        android:layout_marginEnd="18dp"
+        android:layout_marginBottom="32dp"
+        android:backgroundTint="@color/primary_button_color"
         android:contentDescription="@string/scroll_to_top"
         android:text="@string/configure"
         android:visibility="gone"
@@ -82,7 +82,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/bottom_navigation_height"
         android:layout_gravity="bottom"
-        android:background="@color/bottomView"
+        android:background="@color/bottom_view"
         app:labelVisibilityMode="labeled"
         app:layout_insetEdge="bottom"
         app:menu="@menu/nav_bar" />

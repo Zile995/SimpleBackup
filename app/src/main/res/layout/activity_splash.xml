@@ -17,9 +17,9 @@
             android:id="@+id/application_image"
             android:layout_width="75dp"
             android:layout_height="75dp"
-            android:background="@color/blueChip"
+            android:background="@color/primary_button_color"
             android:scaleType="center"
-            android:tint="@color/textInBlueChip"
+            android:tint="@color/button_text"
             android:visibility="gone"
             app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SimpleBackup.ImageView"
             app:srcCompat="@drawable/ic_launcher_foreground" />

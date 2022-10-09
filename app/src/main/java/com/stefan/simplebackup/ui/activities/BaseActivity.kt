@@ -21,7 +21,7 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         addOnBackPressedHandler()
-        window.setBackgroundDrawableResource(R.color.background)
+        window.setBackgroundDrawableResource(R.color.main_background)
     }
 
     private fun addOnBackPressedHandler() {

@@ -39,7 +39,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
-
 class MainActivity : BaseActivity() {
     // Binding properties
     private val binding by viewBinding(ActivityMainBinding::inflate)
@@ -365,14 +364,14 @@ class MainActivity : BaseActivity() {
             mainViewModel.onRootCheck(
                 onRootNotGranted = {
                     rootDialog(
-                        getString(R.string.root_detected),
-                        getString(R.string.not_granted)
+                        title = getString(R.string.root_detected_title),
+                        message = getString(R.string.not_granted_info)
                     )
                 },
                 onDeviceNotRooted = {
                     rootDialog(
-                        getString(R.string.not_rooted),
-                        getString(R.string.not_rooted_info)
+                        title = getString(R.string.not_rooted_title),
+                        message = getString(R.string.not_rooted_info)
                     )
                 })
         }

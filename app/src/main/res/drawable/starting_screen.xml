@@ -3,7 +3,7 @@
     <item>
         <shape>
             <!-- background -->
-            <solid android:color="@color/bottomView" />
+            <solid android:color="@color/bottom_view" />
         </shape>
     </item>
     <!-- launcher icon -->
