@@ -62,9 +62,13 @@ class MainActivity : BaseActivity() {
     private val packageReceiver: PackageReceiver by lazy {
         PackageReceiver(
             mainViewModel.viewModelScope,
-            mainViewModel
+            mainViewModel,
+            onPackageRemovedActivityCallback = { packageName ->
+                visibleFragment?.removeSelectedItem(packageName)
+            }
         )
     }
+
     private val notificationReceiver: NotificationReceiver by lazy {
         NotificationReceiver()
     }

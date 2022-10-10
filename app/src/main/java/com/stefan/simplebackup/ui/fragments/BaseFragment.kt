@@ -126,6 +126,8 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         })
     }
 
+    private fun clearSelection() = adapter.clearSelection()
+
     fun selectAllItems() {
         adapter.selectAllItems()
         Snackbar.make(
@@ -133,7 +135,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         ).show()
     }
 
-    private fun clearSelection() = adapter.clearSelection()
+    fun removeSelectedItem(packageName: String) = adapter.removeSelected(item = packageName)
 
     fun shouldMoveFragmentUp() = _mainRecyclerView?.shouldMoveAtLastCompletelyVisibleItem() ?: false
 

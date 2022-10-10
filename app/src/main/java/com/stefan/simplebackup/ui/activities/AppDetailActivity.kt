@@ -53,7 +53,7 @@ class AppDetailActivity : BaseActivity() {
     private var isToolbarAnimating = false
 
     private val detailsViewModel: DetailsViewModel by viewModels {
-        val selectedApp = intent?.extras?.parcelable<AppData>(PARCELABLE_EXTRA)
+        val selectedApp = intent.extras?.parcelable<AppData>(PARCELABLE_EXTRA)
         ViewModelFactory(application as MainApplication, selectedApp)
     }
 
