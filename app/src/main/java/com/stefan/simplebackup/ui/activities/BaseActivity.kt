@@ -114,8 +114,6 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
         permissionDialog(
             title = getString(R.string.storage_permission),
             message = getString(R.string.storage_perm_info),
-            positiveButtonText = getString(R.string.ok),
-            negativeButtonText = getString(R.string.set_manually),
             onNegativeButtonPress = {
                 if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q)
                     openPackageSettingsInfo(packageName)
@@ -128,8 +126,6 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
         permissionDialog(
             title = getString(R.string.contacts_permission),
             message = getString(R.string.contacts_perm_info),
-            positiveButtonText = getString(R.string.ok),
-            negativeButtonText = getString(R.string.set_manually),
             onNegativeButtonPress = {
                 openPackageSettingsInfo(packageName)
             })

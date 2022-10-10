@@ -18,7 +18,7 @@ class FavoritesViewModel(
             appDataType?.let {
                 when (appDataType) {
                     AppDataType.USER -> {
-                        loadList {
+                        loadList(false) {
                             repository.installedApps.filterBy {
                                 it.favorite
                             }
@@ -31,7 +31,7 @@ class FavoritesViewModel(
                         }
                     }
                     AppDataType.CLOUD -> {
-                        loadList {
+                        loadList(false) {
                             repository.installedApps.filterBy {
                                 it.favorite
                             }

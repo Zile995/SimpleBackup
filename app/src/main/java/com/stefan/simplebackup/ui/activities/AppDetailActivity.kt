@@ -39,6 +39,7 @@ import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
+import com.stefan.simplebackup.utils.file.EventKind
 import com.stefan.simplebackup.utils.file.FileUtil
 import kotlinx.coroutines.launch
 import java.util.*
@@ -102,25 +103,38 @@ class AppDetailActivity : BaseActivity() {
     }
 
     private fun registerPackageReceiver() {
-        registerReceiver(packageReceiver, intentFilter(
-            Intent.ACTION_PACKAGE_ADDED, Intent.ACTION_PACKAGE_REMOVED
-        ) {
-            addDataScheme("package")
-        })
+        if (detailsViewModel.app?.isLocal == false) {
+            registerReceiver(packageReceiver, intentFilter(
+                Intent.ACTION_PACKAGE_ADDED, Intent.ACTION_PACKAGE_REMOVED
+            ) {
+                addDataScheme("package")
+            })
+        }
     }
 
     private fun ActivityDetailBinding.initObservers() {
         launchOnViewLifecycle {
-            detailsViewModel.observeLocalBackup(
-                onBackupFileChanged = {
-                    onBackPress()
-                }
-            )
             repeatOnViewLifecycle(Lifecycle.State.CREATED) {
-                detailsViewModel.archNames.collect { archNames ->
-                    Log.d("ChipGroup", "Arch names = $archNames")
-                    archNames?.let {
-                        architectureChipGroup.addArchChipsToChipGroup(archNames)
+                detailsViewModel.apply {
+                    launch {
+                        app?.apply {
+                            if (isLocal) {
+                                detailsViewModel.backupFileEvents.collect { fileEvent ->
+                                    Log.d("ViewModel", "DetailsViewModel fileEvent = $fileEvent")
+                                    fileEvent?.apply {
+                                        if (kind != EventKind.OVERFLOW && (file.extension == "json" || file.name == packageName)) {
+                                            finish()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    archNames.collect { archNames ->
+                        Log.d("ChipGroup", "Arch names = $archNames")
+                        archNames?.let {
+                            architectureChipGroup.addArchChipsToChipGroup(archNames)
+                        }
                     }
                 }
             }
@@ -214,23 +228,17 @@ class AppDetailActivity : BaseActivity() {
                             openPackageSettingsInfo(packageName)
                         }
                         R.id.add_to_favorites -> {
-                            detailsViewModel.changeFavorites(
-                                onSuccess = { isFavorite ->
-                                    menu?.setFavoriteIcon()
-                                    if (isFavorite)
-                                        showToast(R.string.added_to_favorites)
-                                    else
-                                        showToast(R.string.removed_from_favorites)
-                                },
-                                onFailure = { message ->
-                                    showToast(
-                                        getString(
-                                            R.string.unable_to_add_to_favorites,
-                                            message
-                                        )
+                            detailsViewModel.changeFavorites(onSuccess = { isFavorite ->
+                                menu?.setFavoriteIcon()
+                                if (isFavorite) showToast(R.string.added_to_favorites)
+                                else showToast(R.string.removed_from_favorites)
+                            }, onFailure = { message ->
+                                showToast(
+                                    getString(
+                                        R.string.unable_to_add_to_favorites, message
                                     )
-                                }
-                            )
+                                )
+                            })
                         }
                     }
                     true
@@ -271,21 +279,28 @@ class AppDetailActivity : BaseActivity() {
     private fun ActivityDetailBinding.bindDeleteButton() {
         detailsViewModel.app?.apply {
             if (isLocal) deleteButton.tooltipText = getString(R.string.delete_backup)
-        }
-        deleteButton.setOnClickListener {
-            detailsViewModel.app?.apply {
-                if (isLocal) detailsViewModel.deleteLocalBackup(onSuccess = {
-                    showToast(getString(R.string.backup_deleted_successfully, name))
-                }, onFailure = { message ->
-                    showToast(
-                        getString(
-                            R.string.backup_deleted_successfully, "$name $message"
-                        )
+            deleteButton.setOnClickListener {
+                if (isLocal) {
+                    materialDialog(
+                        title = name,
+                        message = getString(R.string.delete_backup_question),
+                        positiveButtonText = getString(R.string.ok),
+                        negativeButtonText = getString(R.string.cancel),
+                        onPositiveButtonPress = {
+                            detailsViewModel.deleteLocalBackup(onSuccess = {
+                                showToast(getString(R.string.backup_deleted_successfully, name))
+                            }, onFailure = { message ->
+                                showToast(
+                                    getString(
+                                        R.string.backup_deleted_successfully, "$name $message"
+                                    )
+                                )
+                            }).invokeOnCompletion {
+                                onBackPress()
+                            }
+                        }
                     )
-                }).invokeOnCompletion {
-                    onBackPress()
-                }
-                else uninstallPackage(packageName)
+                } else uninstallPackage(packageName)
             }
         }
     }
@@ -294,10 +309,8 @@ class AppDetailActivity : BaseActivity() {
         app.apply {
             val appImage = collapsingToolbar.findViewById<ImageView>(R.id.application_image)
             appImage.setOnClickListener {
-                if (isLocal)
-                    openFilePath("${FileUtil.localDirPath}/$packageName")
-                else
-                    launchPackage(packageName)
+                if (isLocal) openFilePath("${FileUtil.localDirPath}/$packageName")
+                else launchPackage(packageName)
             }
             setBitmapFromPrivateFolder(context = this@AppDetailActivity, onFailure = {
                 getResourceDrawable(R.drawable.ic_error)?.toByteArray() ?: byteArrayOf()
@@ -372,7 +385,9 @@ class AppDetailActivity : BaseActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceivers(packageReceiver)
+        if (detailsViewModel.app?.isLocal == false) {
+            unregisterReceivers(packageReceiver)
+        }
     }
 
     @Deprecated("Deprecated in Java")
@@ -388,10 +403,11 @@ class AppDetailActivity : BaseActivity() {
 
     @Suppress("DEPRECATION")
     private fun requestSignIn() {
-        val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).apply {
-            requestEmail()
-            requestScopes(Scope(DriveScopes.DRIVE_FILE))
-        }.build()
+        val signInOptions =
+            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).apply {
+                requestEmail()
+                requestScopes(Scope(DriveScopes.DRIVE_FILE))
+            }.build()
         val client = GoogleSignIn.getClient(this, signInOptions)
         startActivityForResult(client.signInIntent, REQUEST_CODE_SIGN_IN)
     }

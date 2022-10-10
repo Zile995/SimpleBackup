@@ -17,7 +17,7 @@ import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.*
 
 class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
-    private val homeViewModel: FavoritesViewModel by viewModels {
+    private val favoritesViewModel: FavoritesViewModel by viewModels {
         val appDataType = getEnumExtra<AppDataType>()
         ViewModelFactory(
             requireActivity().application as MainApplication,
@@ -45,10 +45,10 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     private fun FragmentFavoritesBinding.initObservers() {
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.STARTED) {
-                homeViewModel.spinner.collect { isSpinning ->
+                favoritesViewModel.spinner.collect { isSpinning ->
                     progressBar.isVisible = isSpinning
                     if (!isSpinning)
-                        homeViewModel.observableList.collect { appList ->
+                        favoritesViewModel.observableList.collect { appList ->
                             adapter.submitList(appList)
                         }
                 }
@@ -57,16 +57,16 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     }
 
     fun stopProgressBarSpinning() =
-        homeViewModel.setSpinning(shouldSpin = false)
+        favoritesViewModel.setSpinning(shouldSpin = false)
 
     override fun FragmentFavoritesBinding.saveRecyclerViewState() {
         favoritesRecyclerView.onSaveRecyclerViewState { stateParcelable ->
-            homeViewModel.saveRecyclerViewState(stateParcelable)
+            favoritesViewModel.saveRecyclerViewState(stateParcelable)
         }
     }
 
     override fun FragmentFavoritesBinding.restoreRecyclerViewState() {
-        favoritesRecyclerView.restoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
+        favoritesRecyclerView.restoreRecyclerViewState(favoritesViewModel.savedRecyclerViewState)
     }
 
     override fun onDestroyView() {

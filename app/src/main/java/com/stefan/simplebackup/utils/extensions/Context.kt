@@ -14,10 +14,7 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.annotation.ColorRes
-import androidx.annotation.DrawableRes
-import androidx.annotation.RequiresApi
-import androidx.annotation.StringRes
+import androidx.annotation.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -37,10 +34,9 @@ import java.lang.reflect.ParameterizedType
 
 inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
     crossinline bindingInflater: (LayoutInflater) -> T
-) =
-    lazy(LazyThreadSafetyMode.NONE) {
-        bindingInflater(layoutInflater)
-    }
+) = lazy(LazyThreadSafetyMode.NONE) {
+    bindingInflater(layoutInflater)
+}
 
 fun <T : ViewBinding> BaseFragment<T>.viewBinding(
 ) = reflectionViewBinding<T>(::onCleanUp)
@@ -66,20 +62,16 @@ inline fun <T : ViewBinding> Fragment.reflectionViewBinding(
 }
 
 inline fun <T : ViewBinding> Fragment.viewBinding(
-    crossinline bindingInflater: (LayoutInflater) -> T,
-    noinline onCleanUp: () -> Unit = {}
+    crossinline bindingInflater: (LayoutInflater) -> T, noinline onCleanUp: () -> Unit = {}
 ): FragmentViewBindingDelegate<T> = FragmentViewBindingDelegate(
-    fragment = this,
-    viewBindingFactory = {
+    fragment = this, viewBindingFactory = {
         bindingInflater(layoutInflater)
-    },
-    onCleanUp = onCleanUp
+    }, onCleanUp = onCleanUp
 )
 
 inline fun <T : ViewBinding> ViewGroup.viewBinding(
     factory: (LayoutInflater, ViewGroup, Boolean) -> T
-) =
-    factory(LayoutInflater.from(context), this, false)
+) = factory(LayoutInflater.from(context), this, false)
 
 inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     vararg values: Pair<String, Any?>
@@ -119,11 +111,9 @@ inline fun <R> Fragment.onMainActivityCallback(crossinline block: MainActivity.(
 
 inline fun <T : AppCompatActivity, R> Fragment.onActivityCallback(
     crossinline block: T.() -> R
-): R? =
-    @Suppress("UNCHECKED_CAST")
-    (activity as? T)?.run {
-        block()
-    }
+): R? = @Suppress("UNCHECKED_CAST") (activity as? T)?.run {
+    block()
+}
 
 inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.() -> Unit = {}) =
     IntentFilter().apply {
@@ -229,69 +219,76 @@ inline fun <reified T : Enum<T>> Bundle.putEnumInt(victim: T) =
     apply { putInt(T::class.java.name, victim.ordinal) }
 
 inline fun <reified T : Enum<T>> Bundle.getEnumInt() =
-    getInt(T::class.java.name, -1)
-        .takeUnless { ordinal -> ordinal == -1 }
+    getInt(T::class.java.name, -1).takeUnless { ordinal -> ordinal == -1 }
         ?.let { T::class.java.enumConstants?.get(it) }
 
 inline fun <reified T : Enum<T>> Fragment.putEnumExtra(victim: T) {
     arguments = Bundle().putEnumInt(victim)
 }
 
-inline fun <reified T : Enum<T>> Fragment.getEnumExtra(): T? =
-    arguments?.getEnumInt<T>()
+inline fun <reified T : Enum<T>> Fragment.getEnumExtra(): T? = arguments?.getEnumInt<T>()
 
-inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? =
-    when {
-        SDK_INT >= 33 -> getParcelable(key, T::class.java)
-        else -> @Suppress("DEPRECATION") getParcelable(key) as? T
-    }
+inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? = when {
+    SDK_INT >= 33 -> getParcelable(key, T::class.java)
+    else -> @Suppress("DEPRECATION") getParcelable(key) as? T
+}
 
 // ##
 
-inline fun Context.permissionDialog(
+inline fun Context.materialDialog(
     title: String,
     message: String,
-    positiveButtonText: String,
-    negativeButtonText: String,
+    positiveButtonText: String? = null,
+    negativeButtonText: String? = null,
+    enablePositiveButton: Boolean = true,
+    enableNegativeButton: Boolean = true,
     crossinline onPositiveButtonPress: () -> Unit = {},
-    crossinline onNegativeButtonPress: () -> Unit = {}
+    crossinline onNegativeButtonPress: () -> Unit = {},
+    @ColorInt positiveColor: Int = getColor(R.color.positive_dialog_text),
+    @ColorInt negativeColor: Int = getColor(R.color.negative_dialog_text)
 ) {
     val context = this
     MaterialAlertDialogBuilder(context, R.style.Widget_SimpleBackup_MaterialAlertDialog).apply {
         setTitle(title)
         setMessage(message)
-        setPositiveButton(positiveButtonText) { dialog, _ ->
-            dialog.cancel()
-            onPositiveButtonPress()
+        if (enablePositiveButton) {
+            setPositiveButton(positiveButtonText) { dialog, _ ->
+                onPositiveButtonPress()
+            }
         }
-        setNegativeButton(negativeButtonText) { dialog, _ ->
-            dialog.cancel()
-            onNegativeButtonPress()
+        if (enableNegativeButton) {
+            setNegativeButton(negativeButtonText) { dialog, _ ->
+                onNegativeButtonPress()
+            }
         }
         val alert = create()
         alert.setOnShowListener {
-            alert.getButton(AlertDialog.BUTTON_NEGATIVE)
-                .setTextColor(context.getColor(R.color.negative_dialog_text))
-            alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setTextColor(context.getColor(R.color.positive_dialog_text))
+            alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(positiveColor)
+            alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(negativeColor)
         }
         alert.show()
     }
 }
 
-fun Context.rootDialog(title: String, message: String) {
-    val context = this
-    MaterialAlertDialogBuilder(context, R.style.Widget_SimpleBackup_MaterialAlertDialog).apply {
-        setTitle(title)
-        setMessage(message)
-        setPositiveButton(getString(R.string.ok)) { dialog, _ ->
-            dialog.cancel()
-        }
-        val alert = create()
-        alert.setOnShowListener {
-            alert.getButton(AlertDialog.BUTTON_POSITIVE)
-                .setTextColor(context.getColor(R.color.positive_dialog_text))
-        }
-        alert.show()
-    }
-}
+inline fun Context.permissionDialog(
+    title: String,
+    message: String,
+    crossinline onPositiveButtonPress: () -> Unit = {},
+    crossinline onNegativeButtonPress: () -> Unit = {}
+) = materialDialog(
+    title = title,
+    message = message,
+    positiveButtonText = getString(R.string.ok),
+    negativeButtonText = getString(R.string.set_manually),
+    onPositiveButtonPress = onPositiveButtonPress,
+    onNegativeButtonPress = onNegativeButtonPress,
+    positiveColor = getColor(R.color.negative_dialog_text),
+    negativeColor = getColor(R.color.positive_dialog_text)
+)
+
+fun Context.rootDialog(title: String, message: String) = materialDialog(
+    title = title,
+    message = message,
+    positiveButtonText = getString(R.string.ok),
+    enableNegativeButton = false
+)

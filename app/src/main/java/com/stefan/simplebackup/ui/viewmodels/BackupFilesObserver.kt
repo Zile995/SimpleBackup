@@ -9,7 +9,6 @@ import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
 import com.stefan.simplebackup.utils.file.asRecursiveFileWatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
 

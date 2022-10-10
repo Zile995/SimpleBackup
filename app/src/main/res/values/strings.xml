@@ -10,8 +10,9 @@
     <string name="press_back_again">Press BACK again to exit</string>
     <string name="details">App Details</string>
     <string name="delete">Delete</string>
-    <string name="delete_app">Delete app</string>
+    <string name="uninstall_app">Uninstall app</string>
     <string name="delete_backup">Delete backup</string>
+    <string name="delete_backup_question">Do you want to delete this backup?</string>
     <string name="successfully_deleted_backups">Successfully deleted selected backups</string>
     <string name="backup_deleted_successfully">Successfully deleted %1$s</string>
     <string name="backup_deleted_unsuccessfully">Unsuccessfully deleted %1$s</string>
@@ -29,8 +30,7 @@
     <string name="batch_restore">Batch Restore</string>
     <string name="drive">Drive</string>
     <string name="data_in">Data in %1$s</string>
-    <string name="yes">YES</string>
-    <string name="no">NO</string>
+    <string name="cancel">Cancel</string>
     <string name="apk_size">Apk size %1$s</string>
     <string name="apk_size_tooltip">Apk size</string>
     <string name="all_arch">All architectures</string>

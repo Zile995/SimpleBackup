@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.ui.fragments.viewpager
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,9 +32,8 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
     private val tabLayout get() = _tabLayout!!
     private var mediator: TabLayoutMediator? = null
 
-    private val cachedPageChangeCallback by lazy {
-        getOnPageChangeCallback()
-    }
+    private var _cachedPageChangeCallback: ViewPager2.OnPageChangeCallback? = null
+    private val cachedPageChangeCallback get() = _cachedPageChangeCallback!!
 
     abstract fun onCreateFragments(): ArrayList<BaseFragment<out ViewBinding>>
     abstract fun onConfigureTabText(): ArrayList<String>
@@ -113,6 +113,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
                 childFragmentManager,
                 viewLifecycleOwner.lifecycle
             )
+            _cachedPageChangeCallback = getOnPageChangeCallback()
             viewPager.registerOnPageChangeCallback(cachedPageChangeCallback)
         }
     }

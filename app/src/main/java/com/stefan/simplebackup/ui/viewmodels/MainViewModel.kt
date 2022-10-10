@@ -149,12 +149,9 @@ class MainViewModel(application: MainApplication) : ViewModel(),
             val message = "$e: ${e.message}"
             onFailure(message)
             Log.w("ViewModel", "Error occurred while removing favorites $message")
-        } finally {
-            launch {
-                delay(200)
-                setSelectionMode(false)
-            }
         }
+        delay(200)
+        setSelectionMode(false)
     }
 
     inline fun deleteSelectedBackups(
