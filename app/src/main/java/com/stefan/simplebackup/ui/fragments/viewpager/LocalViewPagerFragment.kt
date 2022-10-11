@@ -30,7 +30,6 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
     }
 
     private var isStoragePermissionGranted by Delegates.observable<Boolean?>(null) { _, _, isGranted ->
-        Log.d("PermissionStatus", "Is observable granted = $isGranted")
         controlViewsOnPermissionChange(isGranted)
         isGranted?.let {
             if (isGranted) {
@@ -43,7 +42,6 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
 
     private val storagePermissionLauncher by lazy {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
-            Log.d("PermissionStatus", "First time status = $isGranted")
             isStoragePermissionGranted = isGranted
         }
     }

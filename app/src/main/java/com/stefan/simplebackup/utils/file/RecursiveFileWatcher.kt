@@ -1,38 +1,44 @@
 package com.stefan.simplebackup.utils.file
 
 import android.util.Log
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.WatchKey
-import kotlin.coroutines.coroutineContext
 
 // File extension function. Get the RecursiveFileWatcher instance from File.
-fun File.asRecursiveFileWatcher() = RecursiveFileWatcher(rootDir = this)
+fun File.asRecursiveFileWatcher(scope: CoroutineScope) =
+    RecursiveFileWatcher(scope = scope, rootDir = this)
 
-class RecursiveFileWatcher(private val rootDir: File) {
+class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDir: File) {
 
     private val ioDispatcher = Dispatchers.IO
     private val registeredKeys = HashMap<WatchKey, Path>()
     private val watchService = FileSystems.getDefault().newWatchService()
 
+    private val _fileEvents = MutableSharedFlow<FileEvent>()
+    val fileEvent get() = _fileEvents.asSharedFlow()
+
     init {
         if (!rootDir.isDirectory)
             throw IllegalArgumentException("rootDir must be verified to be directory beforehand.")
+        processFileEvents()
     }
 
     // Suppress the warning, we are running this code on IO Dispatcher
     @Suppress("BlockingMethodInNonBlockingContext")
-    fun processFileEvents() = flow {
+    fun processFileEvents() = scope.launch(ioDispatcher) {
         var shouldRegisterNewPaths = true
         // Emit an event while the coroutine job is still active
-        while (coroutineContext.isActive) {
+        while (isActive) {
             if (shouldRegisterNewPaths) {
                 registerDirsRecursively()
                 shouldRegisterNewPaths = false
@@ -56,7 +62,8 @@ class RecursiveFileWatcher(private val rootDir: File) {
 
                 // Finally emit the event
                 val event = FileEvent(file = eventFile, kind = eventKind)
-                emit(event).also { Log.d("RecursiveFileWatcher", "Emitting $event") }
+                Log.d("RecursiveFileWatcher", "Emitting $event")
+                _fileEvents.emit(event)
             }
 
             // Reset key and remove from HashMap if directory no longer accessible
@@ -65,7 +72,7 @@ class RecursiveFileWatcher(private val rootDir: File) {
                 registeredKeys.remove(newMonitorKey)
             }
         }
-    }.flowOn(ioDispatcher)
+    }
 
     private fun registerDirsRecursively() {
         // Cancel the key registration and clear the HashMap

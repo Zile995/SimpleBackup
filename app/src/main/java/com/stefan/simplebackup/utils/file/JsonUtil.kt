@@ -2,7 +2,8 @@ package com.stefan.simplebackup.utils.file
 
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.extensions.ioDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.decodeFromString
@@ -13,6 +14,9 @@ import java.io.IOException
 
 @Suppress("BlockingMethodInNonBlockingContext")
 object JsonUtil {
+
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
     @Throws(IOException::class)
     suspend fun serializeApp(app: AppData, dir: String) {
         Log.d("Serialization", "Saving json to $dir/${app.name}.json")
@@ -45,7 +49,7 @@ object JsonUtil {
                     app = Json.decodeFromString(reader.readLine())
                 }
                 app
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 Log.w("Serialization", "Error occurred $e ${e.message}")
                 null
             }

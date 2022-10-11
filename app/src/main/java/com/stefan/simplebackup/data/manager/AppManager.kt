@@ -6,15 +6,18 @@ import android.content.pm.PackageManager
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
-import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
 import com.stefan.simplebackup.utils.file.FileUtil.getApkFileSizeSplitInfo
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 
 class AppManager(private val context: Context) {
+
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     /**
      * - [PackageManager]

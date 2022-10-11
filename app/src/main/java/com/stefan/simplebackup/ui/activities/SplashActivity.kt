@@ -12,6 +12,8 @@ import com.stefan.simplebackup.data.manager.AppPermissionManager
 import com.stefan.simplebackup.databinding.ActivitySplashBinding
 import com.stefan.simplebackup.utils.extensions.*
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.properties.Delegates
 
@@ -31,6 +33,7 @@ class SplashActivity : AppCompatActivity() {
         }
     }
 
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val binding by viewBinding(ActivitySplashBinding::inflate)
 
     private var permissionHolder: PermissionHolder by Delegates.observable(PermissionHolder()) { _, _, newGrantedStatus ->

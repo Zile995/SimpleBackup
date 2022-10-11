@@ -13,9 +13,14 @@ import java.io.File
 import java.io.IOException
 import kotlin.io.path.moveTo
 
-const val TEMP_DIR_NAME: String = "temp"
-const val LOCAL_DIR_NAME: String = "local"
-const val CLOUD_DIR_NAME: String = "cloud"
+const val LIB_FILE_EXTENSION: String = "so"
+const val APK_FILE_EXTENSION: String = "apk"
+const val TAR_FILE_EXTENSION: String = "tar"
+const val ZIP_FILE_EXTENSION: String = "zip"
+const val JSON_FILE_EXTENSION: String = "json"
+private const val TEMP_DIR_NAME: String = "temp"
+private const val CLOUD_DIR_NAME: String = "cloud"
+private const val LOCAL_DIR_NAME: String = "local"
 
 @Suppress("BlockingMethodInNonBlockingContext")
 object FileUtil {
@@ -79,50 +84,49 @@ object FileUtil {
         sourceFile.moveFile(targetFile)
     }
 
-    suspend fun findJsonFiles(path: String) = flow {
-        File(path).walkTopDown().filter {
-            it.isFile && it.extension == "json"
+    suspend fun findFirstJsonInDir(jsonDirPath: String) = withContext(ioDispatcher) {
+        File(jsonDirPath).walkTopDown().firstOrNull {
+            it.isFile && it.extension == JSON_FILE_EXTENSION
+        }
+    }
+
+    fun findJsonFilesRecursively(jsonDirPath: String) = flow {
+        File(jsonDirPath).walkTopDown().filter {
+            it.isFile && it.extension == JSON_FILE_EXTENSION
         }.forEach { jsonFile ->
             emit(jsonFile)
         }
     }.flowOn(ioDispatcher)
 
     fun getApkFilesInsideDir(app: AppData): MutableList<File> {
-        val apkFiles = mutableListOf<File>()
         val dir = File(app.apkDir)
-        dir.walkTopDown().filter {
-            it.extension == "apk"
-        }.forEach { apkFile ->
-            apkFiles.add(apkFile)
+        return dir.walkTopDown().filter {
+            it.extension == APK_FILE_EXTENSION
+        }.toMutableList().also { apkFiles ->
+            Log.d("FileUtil", "Got the apk list for ${app.name}: ${apkFiles.map { it.name }}")
         }
-        Log.d("FileUtil", "Got the apk list for ${app.name}: ${apkFiles.map { it.name }}")
-        return apkFiles
     }
 
     suspend fun getApkFileSizeSplitInfo(apkDirPath: String): Pair<Float, Boolean> = coroutineScope {
         val isSplit: Boolean
-        File(apkDirPath).listFiles()?.let { apkDirFiles ->
-            apkDirFiles.filter { dirFile ->
-                dirFile.isFile && dirFile.name.endsWith(".apk")
+        File(apkDirPath).walkTopDown()
+            .filter { dirFile ->
+                dirFile.isFile && dirFile.extension == APK_FILE_EXTENSION
             }.also { apkFiles ->
-                isSplit = apkFiles.size > 1
+                isSplit = apkFiles.count() > 1
             }.sumOf { apkFile ->
                 apkFile.length()
             }.toFloat() to isSplit
-        } ?: (0f to false)
     }
 
-    fun getApkZipFile(apkZipDirPath: String): ZipFile? {
-        val backupFiles = File(apkZipDirPath)
-        backupFiles.listFiles()?.filter { backupFile ->
-            backupFile.isFile and (backupFile.extension == "zip")
-        }?.forEach { file ->
-            val zipFile = ZipFile(file)
-            val headerList = zipFile.fileHeaders
-            headerList.map { fileHeader ->
-                fileHeader.fileName.endsWith("apk")
-            }.all { it }
+    fun getApkZipFile(appBackupDirPath: String) = File(appBackupDirPath).walkTopDown()
+        .filter { backupFile ->
+            backupFile.isFile && backupFile.extension == ZIP_FILE_EXTENSION
+        }.map { fileWithZipExtension ->
+            ZipFile(fileWithZipExtension)
+        }.firstOrNull { zipFile ->
+            zipFile.fileHeaders.map { fileHeader ->
+                fileHeader.fileName.endsWith(".$APK_FILE_EXTENSION")
+            }.all { fileNameHasApkExtension -> fileNameHasApkExtension }
         }
-        return null
-    }
 }

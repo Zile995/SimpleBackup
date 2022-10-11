@@ -5,15 +5,15 @@ import android.util.Log
 import com.stefan.simplebackup.data.local.database.AppDao
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.extensions.filterBy
-import com.stefan.simplebackup.utils.extensions.ioDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlin.system.measureTimeMillis
 
 typealias RepositoryAction = suspend AppRepository.(CoroutineScope) -> Unit
 
 class AppRepository(private val appDao: AppDao) {
+
+    val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
     val installedApps
         get() = appDao.getAllApps().filterBy { app ->
             app.isUserApp && !app.isLocal

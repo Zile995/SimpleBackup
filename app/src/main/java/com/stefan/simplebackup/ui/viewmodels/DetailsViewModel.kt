@@ -8,16 +8,13 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.extensions.ioDispatcher
-import com.stefan.simplebackup.utils.file.EventKind
 import com.stefan.simplebackup.utils.file.FileUtil
-import com.stefan.simplebackup.utils.file.RecursiveFileWatcher
 import com.stefan.simplebackup.utils.file.asRecursiveFileWatcher
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
@@ -33,19 +30,26 @@ class DetailsViewModel(
 
     val backupFileEvents by lazy {
         val backupDir = File(FileUtil.localDirPath)
-        backupDir.asRecursiveFileWatcher().processFileEvents().stateIn(
-            scope = viewModelScope,
-            SharingStarted.WhileSubscribed(),
-            initialValue = null
-        )
+        backupDir.asRecursiveFileWatcher(viewModelScope).fileEvent
     }
+
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     private var _archNames = MutableStateFlow<List<String>?>(null)
     val archNames get() = _archNames.asStateFlow()
 
     init {
         Log.d("ViewModel", "DetailsViewModel created")
+        recreateLocalDir()
         getApkArchitectures()
+    }
+
+    private fun recreateLocalDir() {
+        viewModelScope.launch {
+            app?.apply {
+                if (isLocal) FileUtil.createDirectory(FileUtil.localDirPath)
+            }
+        }
     }
 
     private fun getApkArchitectures() {
@@ -87,8 +91,9 @@ class DetailsViewModel(
                     onSuccess(favorite)
                 }
             } catch (e: SQLiteException) {
-                onFailure("$e ${e.message}")
-                Log.e("ViewModel", "Database exception: $e ${e.message}")
+                val message = "$e: ${e.message}"
+                onFailure(message)
+                Log.e("ViewModel", "Database exception: $message")
             }
         }
     }

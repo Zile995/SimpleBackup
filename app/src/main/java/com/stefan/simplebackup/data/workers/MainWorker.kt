@@ -11,17 +11,13 @@ import com.stefan.simplebackup.data.model.NotificationData
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.ui.notifications.WorkNotificationBuilder
 import com.stefan.simplebackup.ui.notifications.WorkNotificationHelper
-import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.extensions.showToast
 import com.stefan.simplebackup.utils.work.backup.BackupUtil
 import com.stefan.simplebackup.utils.work.backup.WorkResult
 import com.stefan.simplebackup.utils.work.restore.RestoreUtil
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.withContext
 import kotlin.system.measureTimeMillis
 
 const val PROGRESS_MAX = 10_000
@@ -34,6 +30,8 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     appContext,
     params
 ), WorkNotificationHelper by WorkNotificationBuilder(appContext) {
+
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     private val items: Array<String>?
         get() = inputData.getStringArray(INPUT_LIST)

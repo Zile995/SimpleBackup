@@ -2,8 +2,8 @@ package com.stefan.simplebackup.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.stefan.simplebackup.MainApplication.Companion.mainBackupDirPath
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.utils.file.FileUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +16,7 @@ sealed class BaseViewModel : ViewModel(), RecyclerViewStateSaver by RecyclerView
     // Backup files observer
     protected val backupFilesObserver by lazy {
         BackupFilesObserver(
-            rootDirPath = mainBackupDirPath,
+            rootDirPath = FileUtil.localDirPath,
             scope = viewModelScope,
             observableList = _observableList
         )

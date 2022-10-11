@@ -3,16 +3,15 @@ package com.stefan.simplebackup.utils.work.archive
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
-import com.stefan.simplebackup.utils.extensions.ioDispatcher
-import com.stefan.simplebackup.utils.file.FileUtil
+import com.stefan.simplebackup.utils.file.APK_FILE_EXTENSION
 import com.stefan.simplebackup.utils.file.FileUtil.getApkFilesInsideDir
 import com.stefan.simplebackup.utils.file.FileUtil.getApkZipFile
 import com.stefan.simplebackup.utils.file.FileUtil.getBackupDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.stefan.simplebackup.utils.file.LIB_FILE_EXTENSION
+import com.stefan.simplebackup.utils.file.TAR_FILE_EXTENSION
+import com.stefan.simplebackup.utils.file.ZIP_FILE_EXTENSION
+import kotlinx.coroutines.*
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import net.lingala.zip4j.model.ZipParameters
@@ -26,6 +25,9 @@ import java.io.IOException
 @Suppress("BlockingMethodInNonBlockingContext")
 object ZipUtil {
 
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
+    @Throws(ZipException::class)
     suspend fun zipAllData(app: AppData) {
         withContext(ioDispatcher) {
             launch {
@@ -35,6 +37,7 @@ object ZipUtil {
         }
     }
 
+    @Throws(ZipException::class)
     suspend fun extractAllData(app: AppData) {
         withContext(ioDispatcher) {
             extractApks(app)
@@ -47,18 +50,19 @@ object ZipUtil {
             val apkFiles = async { getApkFilesInsideDir(app) }
             val tempDirPath = getTempDirPath(app)
             val zipParameters = getZipParameters()
-            val zipFile = ZipFile("$tempDirPath/${app.name}.zip")
+            val zipFile = ZipFile("$tempDirPath/${app.name}.$ZIP_FILE_EXTENSION")
             Log.d("ZipUtil", "Zipping the ${app.name} apks to $tempDirPath")
             zipFile.addFiles(apkFiles.await(), zipParameters)
             Log.d("ZipUtil", "Successfully zipped ${app.name} apks")
         }
     }
 
+    @Throws(ZipException::class)
     private suspend fun extractApks(app: AppData) {
         coroutineScope {
             val backupDirPath = getBackupDirPath(app)
             Log.d("ZipUtil", "Extracting the ${app.name} apks to $backupDirPath")
-            val zipFile = getApkZipFile(backupDirPath)
+            val zipFile = getApkZipFile(appBackupDirPath = backupDirPath)
             zipFile?.apply {
                 extractAll(backupDirPath)
                 Log.d("ZipUtil", "Successfully extracted ${app.name} apks")
@@ -75,14 +79,10 @@ object ZipUtil {
             val zipParameters = getZipParameters(isApk = false)
             tempDirPath.findTarArchive(app)?.let { tarArchive ->
                 val zipFile = ZipFile(
-                    "${getTempDirPath(app)}/${app.packageName}.zip",
-                    "pass123".toCharArray()
+                    "${getTempDirPath(app)}/${app.packageName}.$ZIP_FILE_EXTENSION", "pass123".toCharArray()
                 )
                 if (zipFile.file.exists()) zipFile.file.delete()
-                Log.d(
-                    "ZipUtil",
-                    "Zipping the ${app.packageName} tar archive to $tempDirPath"
-                )
+                Log.d("ZipUtil", "Zipping the ${app.packageName} tar archive to $tempDirPath")
                 zipFile.addFile(tarArchive, zipParameters)
                 tarArchive.delete()
                 Log.d("ZipUtil", "Successfully zipped ${app.name} data")
@@ -91,44 +91,33 @@ object ZipUtil {
     }
 
     private fun String.findTarArchive(app: AppData): File? {
-        val tarArchive = File("$this/${app.packageName}.tar")
+        val tarArchive = File("$this/${app.packageName}.$TAR_FILE_EXTENSION")
         return if (tarArchive.exists()) tarArchive else null
     }
 
-    suspend fun getAppAbiList(app: AppData) = coroutineScope {
-        val abiList = mutableListOf<String>()
-        val apkFiles = File(app.apkDir).listFiles()?.filter { file ->
-            file.extension == "apk"
+    suspend fun getAppAbiList(app: AppData) = withContext(ioDispatcher) {
+        File(app.apkDir).run {
+            walkTopDown().filter { file ->
+                file.extension == APK_FILE_EXTENSION
+            }.flatMap { apkFile ->
+                getApkAbiList(apkFile)
+            }.toList()
         }
-        apkFiles?.forEach { apkFile ->
-            val apkAbiList = getApkAbiList(apkFile)
-            abiList.addAll(apkAbiList)
-        }
-        abiList.distinct()
     }
 
-    private suspend fun getApkAbiList(apkFile: File) = coroutineScope {
-        val abiList = mutableListOf<String>()
-        try {
-            val zipFile = ZipFile(apkFile)
-            val headerList = zipFile.fileHeaders
-            abiList.addAll(headerList.map { fileHeader ->
-                fileHeader.fileName
-            }.filter { fileName ->
-                fileName.contains("lib") && fileName.endsWith(".so")
-            }.map {
-                it.substringAfter("/").substringBeforeLast("/")
-            }.distinct())
-        } catch (e: IOException) {
-            e.message?.let { message ->
-                Log.e(
-                    "ZipUtil",
-                    "${apkFile.name}: $message"
-                )
-            }
-            abiList.clear()
-        }
-        abiList
+    private fun getApkAbiList(apkFile: File) = try {
+        val zipFile = ZipFile(apkFile)
+        val headerList = zipFile.fileHeaders
+        headerList.map { fileHeader ->
+            fileHeader.fileName
+        }.filter { fileName ->
+            fileName.contains("lib") && fileName.endsWith(".$LIB_FILE_EXTENSION")
+        }.map {
+            it.substringAfter(File.separator).substringBeforeLast(File.separator)
+        }.distinct()
+    } catch (e: IOException) {
+        Log.e("ZipUtil", "${apkFile.name}: $e ${e.message}")
+        mutableListOf()
     }
 
     private fun getZipParameters(isApk: Boolean = true): ZipParameters {

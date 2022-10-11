@@ -3,7 +3,8 @@ package com.stefan.simplebackup.utils
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.FloatRange
-import com.stefan.simplebackup.utils.extensions.ioDispatcher
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private const val MAIN_PREFERENCE = "main_preference"
@@ -16,7 +17,9 @@ private const val CHECKED_DEVICE_ROOTED = "checked_device_rooted"
 private const val ZIP_COMPRESSION_LEVEL = "zip_compression_level"
 
 object PreferenceHelper {
+
     private lateinit var sharedPreferences: SharedPreferences
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     val savedSequenceNumber: Int
         get() = sharedPreferences.getPreference(SEQUENCE_NUMBER, 0)

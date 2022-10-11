@@ -41,6 +41,7 @@ import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
 import com.stefan.simplebackup.utils.file.EventKind
 import com.stefan.simplebackup.utils.file.FileUtil
+import com.stefan.simplebackup.utils.file.JSON_FILE_EXTENSION
 import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.math.abs
@@ -121,8 +122,8 @@ class AppDetailActivity : BaseActivity() {
                             if (isLocal) {
                                 detailsViewModel.backupFileEvents.collect { fileEvent ->
                                     Log.d("ViewModel", "DetailsViewModel fileEvent = $fileEvent")
-                                    fileEvent?.apply {
-                                        if (kind != EventKind.OVERFLOW && (file.extension == "json" || file.name == packageName)) {
+                                    fileEvent.apply {
+                                        if (kind != EventKind.OVERFLOW && (file.extension == JSON_FILE_EXTENSION || file.name == packageName)) {
                                             finish()
                                         }
                                     }
