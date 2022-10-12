@@ -31,10 +31,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
     }
 
     override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =
-        HomeAdapter(
-            mainViewModel.selectionList,
-            mainViewModel.setSelectionMode,
-        ) { onClickListener }
+        HomeAdapter(mainViewModel.selectionList, mainViewModel.setSelectionMode, onClickListener)
 
     private fun FragmentHomeBinding.bindViews() {
         bindSwipeContainer()

@@ -31,6 +31,10 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     override fun removeSelected(item: String) {
         selectedItems.remove(item)
         mNumberOfSelected.value = selectedItems.size
+        if (selectedItems.isEmpty()) {
+            onSelectionModeCallback(false)
+            selectionFinished = true
+        }
     }
 
     override fun removeAllSelectedItems() {
@@ -50,10 +54,6 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
                 holder.setSelected()
                 item.isSelected = true
                 addSelected(item.packageName)
-            }
-            if (selectedItems.isEmpty()) {
-                onSelectionModeCallback(false)
-                selectionFinished = true
             }
         }
         Log.d("SelectionListener", "Selection list: $selectedItems")

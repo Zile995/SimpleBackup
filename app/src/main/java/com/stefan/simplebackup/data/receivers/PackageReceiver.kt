@@ -10,8 +10,7 @@ import kotlinx.coroutines.launch
 
 class PackageReceiver(
     private val scope: CoroutineScope,
-    private val packageListener: PackageListener,
-    private val onPackageRemovedActivityCallback: (String) -> Unit
+    private val packageListener: PackageListener
 ) : BroadcastReceiver() {
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
@@ -30,7 +29,6 @@ class PackageReceiver(
                         }
                         intent.action == Intent.ACTION_PACKAGE_REMOVED &&
                                 intent.extras?.getBoolean(Intent.EXTRA_REPLACING) == false -> {
-                            onPackageRemovedActivityCallback(packageName)
                             onActionPackageRemoved(packageName)
                         }
                     }

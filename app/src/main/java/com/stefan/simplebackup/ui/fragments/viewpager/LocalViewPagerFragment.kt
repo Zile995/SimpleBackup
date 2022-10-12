@@ -1,12 +1,8 @@
 package com.stefan.simplebackup.ui.fragments.viewpager
 
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.fragment.app.viewModels
-import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
 import com.stefan.simplebackup.data.manager.MainPermission
@@ -15,20 +11,11 @@ import com.stefan.simplebackup.databinding.FragmentLocalViewPagerBinding
 import com.stefan.simplebackup.ui.fragments.BaseFragment
 import com.stefan.simplebackup.ui.fragments.FavoritesFragment
 import com.stefan.simplebackup.ui.fragments.LocalFragment
-import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
-import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
 import kotlin.properties.Delegates
 
 class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBinding>() {
-    private val localViewModel: LocalViewModel by viewModels {
-        ViewModelFactory(
-            requireActivity().application as MainApplication,
-            mainViewModel.repository
-        )
-    }
-
     private var isStoragePermissionGranted by Delegates.observable<Boolean?>(null) { _, _, isGranted ->
         controlViewsOnPermissionChange(isGranted)
         isGranted?.let {
@@ -48,12 +35,11 @@ class LocalViewPagerFragment : BaseViewPagerFragment<FragmentLocalViewPagerBindi
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        localViewModel
         onMainActivityCallback {
             requestStoragePermission(permissionLauncher = storagePermissionLauncher,
-            onPermissionAlreadyGranted = {
-                isStoragePermissionGranted = true
-            })
+                onPermissionAlreadyGranted = {
+                    isStoragePermissionGranted = true
+                })
         }
     }
 

@@ -2,9 +2,7 @@ package com.stefan.simplebackup.ui.fragments
 
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.activity.addCallback
 import androidx.core.view.children
 import androidx.fragment.app.viewModels
@@ -18,7 +16,10 @@ import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.viewmodels.SearchViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
-import com.stefan.simplebackup.utils.extensions.*
+import com.stefan.simplebackup.utils.extensions.isVisible
+import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
+import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
 import kotlinx.coroutines.delay
 
 class SearchFragment : BaseFragment<FragmentSearchBinding>() {
@@ -83,10 +84,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     }
 
     override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =
-        SearchAdapter(
-            mainViewModel.selectionList,
-            mainViewModel.setSelectionMode
-        ) { onClickListener }
+        SearchAdapter(mainViewModel.selectionList, mainViewModel.setSelectionMode, onClickListener)
 
     override fun onDestroyView() {
         super.onDestroyView()

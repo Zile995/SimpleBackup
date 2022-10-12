@@ -27,9 +27,6 @@ class ViewModelFactory(
                 additionalProperty as AppRepository,
                 secondProperty as AppDataType?
             )
-            LocalViewModel::class.java -> LocalViewModel(
-                application
-            )
             ProgressViewModel::class.java -> ProgressViewModel(
                 additionalProperty as? Array<String>?,
                 secondProperty as AppDataType?,

@@ -13,12 +13,27 @@ typealias SelectionModeCallBack = (Boolean) -> Unit
 abstract class BaseAdapter(
     override val selectedItems: MutableList<String>,
     private val onSelectionModeCallback: SelectionModeCallBack,
-    val clickListener: () -> OnClickListener
+    val clickListener: OnClickListener
 ) : ListAdapter<AppData, BaseViewHolder>(DiffCallback()),
     SelectionListener<BaseViewHolder> by BaseSelectionListenerImpl(
         selectedItems,
         onSelectionModeCallback
     ) {
+
+    @Synchronized
+    override fun submitList(list: List<AppData>?) {
+        list?.let { newList ->
+            if (newList.size < currentList.size) {
+                val packageNameDifference = currentList.asSequence().minus(newList.toSet()).map { it.packageName }
+                packageNameDifference.forEach { packageName ->
+                    if (selectedItems.contains(packageName)) {
+                        removeSelected(packageName)
+                    }
+                }
+            }
+        }
+        super.submitList(list)
+    }
 
     override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
         val item = getItem(position)

@@ -10,9 +10,9 @@ import com.stefan.simplebackup.utils.extensions.viewBinding
 class SearchAdapter(
     selectedItems: MutableList<String>,
     onSelectionModeCallback: SelectionModeCallBack,
-    clickListener: () -> OnClickListener
+    clickListener: OnClickListener
 ) : BaseAdapter(selectedItems, onSelectionModeCallback, clickListener) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder =
-        SearchViewHolder(parent.viewBinding(SearchItemBinding::inflate), clickListener())
+        SearchViewHolder(parent.viewBinding(SearchItemBinding::inflate), clickListener)
 }

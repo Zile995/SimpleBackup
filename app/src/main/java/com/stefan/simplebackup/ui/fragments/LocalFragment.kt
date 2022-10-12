@@ -1,27 +1,27 @@
 package com.stefan.simplebackup.ui.fragments
 
 import android.os.Bundle
-import android.os.FileObserver
 import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.databinding.FragmentLocalBinding
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.LocalAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
+import com.stefan.simplebackup.ui.viewmodels.LocalViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class LocalFragment : BaseFragment<FragmentLocalBinding>() {
-    private val localViewModel: LocalViewModel by viewModels(
-        ownerProducer = { requireParentFragment() }
-    )
+    private val localViewModel: LocalViewModel by viewModels {
+        LocalViewModelFactory(requireActivity().application as MainApplication)
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -33,10 +33,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     }
 
     override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =
-        LocalAdapter(
-            mainViewModel.selectionList,
-            mainViewModel.setSelectionMode
-        ) { onClickListener }
+        LocalAdapter(mainViewModel.selectionList, mainViewModel.setSelectionMode, onClickListener)
 
     private fun FragmentLocalBinding.bindViews() {
         bindSwipeContainer()

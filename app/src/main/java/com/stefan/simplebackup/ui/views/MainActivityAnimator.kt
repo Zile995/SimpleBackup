@@ -14,8 +14,9 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
-import com.stefan.simplebackup.ui.fragments.HomeFragment
+import com.stefan.simplebackup.ui.fragments.viewpager.HomeViewPagerFragment
 import com.stefan.simplebackup.utils.extensions.getColorFromResource
+import com.stefan.simplebackup.utils.extensions.getCurrentVisibleViewPagerFragment
 import com.stefan.simplebackup.utils.extensions.getVisibleFragment
 import java.lang.ref.WeakReference
 
@@ -77,7 +78,11 @@ class MainActivityAnimator(
             floatingButton.changeOnSelection(isSelected)
             materialToolbar.changeOnSelection(isSelected, selectionModeCallBack)
             if (isSelected)
-                root.post { floatingButton.changeOnHomeFragment(visibleFragment is HomeFragment) }
+                root.post {
+                    floatingButton.changeOnHomeFragment(
+                        activity?.supportFragmentManager?.getCurrentVisibleViewPagerFragment() is HomeViewPagerFragment
+                    )
+                }
             root.doOnPreDraw {
                 if (isSelected) {
                     startAnimations(doOnStart = {

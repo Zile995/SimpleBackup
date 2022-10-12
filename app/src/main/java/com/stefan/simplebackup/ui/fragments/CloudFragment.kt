@@ -48,10 +48,7 @@ class CloudFragment : BaseFragment<FragmentCloudBinding>() {
     }
 
     override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =
-        CloudAdapter(
-            mainViewModel.selectionList,
-            mainViewModel.setSelectionMode
-        ) { onClickListener }
+        CloudAdapter(mainViewModel.selectionList, mainViewModel.setSelectionMode, onClickListener)
 
     private fun FragmentCloudBinding.initObservers() {
         launchOnViewLifecycle {

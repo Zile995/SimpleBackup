@@ -35,12 +35,7 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     }
 
     override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =
-        FavoritesAdapter(
-            mainViewModel.selectionList,
-            mainViewModel.setSelectionMode
-        ) {
-            onClickListener
-        }
+        FavoritesAdapter(mainViewModel.selectionList, mainViewModel.setSelectionMode, onClickListener)
 
     private fun FragmentFavoritesBinding.initObservers() {
         launchOnViewLifecycle {

@@ -1,10 +1,11 @@
 package com.stefan.simplebackup.ui.viewmodels
 
 import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
-import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +30,7 @@ class LocalViewModel(
         viewModelScope.launch {
             val refreshJob: Job
             val time = measureTimeMillis {
-               refreshJob = backupFilesObserver.refreshBackupFileList()
+                refreshJob = backupFilesObserver.refreshBackupFileList()
             }
             refreshJob.join()
             Log.d("ViewModel", "Refreshed after $time")
@@ -48,5 +49,17 @@ class LocalViewModel(
     override fun onCleared() {
         super.onCleared()
         Log.d("ViewModel", "LocalViewModel cleared")
+    }
+}
+
+class LocalViewModelFactory(
+    private val application: MainApplication,
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(LocalViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return LocalViewModel(application) as T
+        }
+        throw IllegalArgumentException("Unable to construct LocalViewModel")
     }
 }

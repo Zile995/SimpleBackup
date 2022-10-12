@@ -27,9 +27,9 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
 
     private var _adapter: BaseAdapter? = null
     protected val adapter: BaseAdapter get() = _adapter!!
+    private var _mainRecyclerView: MainRecyclerView? = null
 
     protected var shouldEnableOnLongClick = true
-    private var _mainRecyclerView: MainRecyclerView? = null
 
     private val onClickListener by lazy {
         object : OnClickListener {
@@ -134,8 +134,6 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
             binding.root, "Selected ${mainViewModel.selectionList.size} items", 1250
         ).show()
     }
-
-    fun removeSelectedItem(packageName: String) = adapter.removeSelected(item = packageName)
 
     fun shouldMoveFragmentUp() = _mainRecyclerView?.shouldMoveAtLastCompletelyVisibleItem() ?: false
 

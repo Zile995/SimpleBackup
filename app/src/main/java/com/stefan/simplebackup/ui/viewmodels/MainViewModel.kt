@@ -159,7 +159,8 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     ) {
         viewModelScope.launch {
             try {
-                selectionList.forEach { packageName ->
+                // Convert toSet, to avoid concurrent modifications.
+                selectionList.toSet().forEach { packageName ->
                     FileUtil.deleteLocalBackup(packageName)
                 }
                 onSuccess()

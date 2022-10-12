@@ -26,6 +26,7 @@ import com.stefan.simplebackup.ui.fragments.ConfigureSheetFragment
 import com.stefan.simplebackup.ui.fragments.FavoritesFragment
 import com.stefan.simplebackup.ui.fragments.HomeFragment
 import com.stefan.simplebackup.ui.fragments.LocalFragment
+import com.stefan.simplebackup.ui.fragments.viewpager.HomeViewPagerFragment
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
@@ -62,10 +63,7 @@ class MainActivity : BaseActivity() {
     private val packageReceiver: PackageReceiver by lazy {
         PackageReceiver(
             mainViewModel.viewModelScope,
-            mainViewModel,
-            onPackageRemovedActivityCallback = { packageName ->
-                visibleFragment?.removeSelectedItem(packageName)
-            }
+            mainViewModel
         )
     }
 
@@ -388,7 +386,7 @@ class MainActivity : BaseActivity() {
                 if (selectionFinished)
                     smoothSnapToPosition(0)
                 else {
-                    if (visibleFragment is HomeFragment &&
+                    if (supportFragmentManager.getCurrentVisibleViewPagerFragment() is HomeViewPagerFragment &&
                         mainViewModel.selectionList.isNotEmpty()
                     )
                         ConfigureSheetFragment().show(supportFragmentManager, "configureSheetTag")
