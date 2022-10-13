@@ -56,7 +56,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
                     if (!isSpinning) {
                         localViewModel.observableList.collect { appList ->
                             adapter.submitList(appList.sortedBy { it.name })
-                            if (appList.isEmpty()) delay(150L)
+                            if (appList.isEmpty()) delay(250L)
                             noBackupsLabel.isVisible = appList.isEmpty()
                         }
                     }

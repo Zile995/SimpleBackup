@@ -68,9 +68,8 @@ class DetailsViewModel(
                 FileUtil.deleteLocalBackup(packageName)
                 onSuccess()
             } catch (e: IOException) {
-                val message = "$e: ${e.message}"
-                onFailure(message)
-                Log.w("ViewModel", "Error occurred while deleting backup $message")
+                onFailure(e.toString())
+                Log.w("ViewModel", "Error occurred while deleting backup $e")
             }
         }
     }
@@ -91,9 +90,8 @@ class DetailsViewModel(
                     onSuccess(favorite)
                 }
             } catch (e: SQLiteException) {
-                val message = "$e: ${e.message}"
-                onFailure(message)
-                Log.e("ViewModel", "Database exception: $message")
+                onFailure(e.toString())
+                Log.e("ViewModel", "Database exception: $e")
             }
         }
     }

@@ -5,7 +5,6 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.databinding.HomeItemBinding
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.utils.extensions.bytesToMegaBytesString
-import com.stefan.simplebackup.utils.extensions.checkedString
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.loadBitmap
 

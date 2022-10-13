@@ -53,8 +53,14 @@ object FileUtil {
         withContext(ioDispatcher) {
             Log.d("FileUtil", "Deleting the $path")
             val file = File(path)
-            if (!file.exists()) throw IOException()
-            if (file.isDirectory) file.deleteRecursively() else file.delete()
+            if (!file.exists()) throw IOException("File or directory doesn't exist")
+            if (file.isDirectory) {
+                val isDeletionSuccessful = file.deleteRecursively()
+                if (!isDeletionSuccessful) throw IllegalArgumentException("Unable to delete all files")
+                else return@withContext
+            } else {
+                file.delete()
+            }
         }
     }
 
@@ -71,8 +77,7 @@ object FileUtil {
     suspend fun createLocalDir() = createDirectory(localDirPath)
 
     @Throws(IOException::class)
-    suspend fun deleteLocalBackup(packageName: String) =
-        deleteFile("$localDirPath/$packageName")
+    suspend fun deleteLocalBackup(packageName: String) = deleteFile("$localDirPath/$packageName")
 
     fun getBackupDirPath(app: AppData) = "$localDirPath/${app.packageName}"
 
@@ -98,19 +103,18 @@ object FileUtil {
         }
     }.flowOn(ioDispatcher)
 
-    fun getApkFilesInsideDir(app: AppData): MutableList<File> {
+    fun getApkFilesInsideDir(app: AppData): List<File> {
         val dir = File(app.apkDir)
         return dir.walkTopDown().filter {
             it.extension == APK_FILE_EXTENSION
-        }.toMutableList().also { apkFiles ->
+        }.toList().also { apkFiles ->
             Log.d("FileUtil", "Got the apk list for ${app.name}: ${apkFiles.map { it.name }}")
         }
     }
 
     suspend fun getApkFileSizeSplitInfo(apkDirPath: String): Pair<Float, Boolean> = coroutineScope {
         val isSplit: Boolean
-        File(apkDirPath).walkTopDown()
-            .filter { dirFile ->
+        File(apkDirPath).walkTopDown().filter { dirFile ->
                 dirFile.isFile && dirFile.extension == APK_FILE_EXTENSION
             }.also { apkFiles ->
                 isSplit = apkFiles.count() > 1
@@ -119,14 +123,14 @@ object FileUtil {
             }.toFloat() to isSplit
     }
 
-    fun getApkZipFile(appBackupDirPath: String) = File(appBackupDirPath).walkTopDown()
-        .filter { backupFile ->
-            backupFile.isFile && backupFile.extension == ZIP_FILE_EXTENSION
-        }.map { fileWithZipExtension ->
-            ZipFile(fileWithZipExtension)
-        }.firstOrNull { zipFile ->
-            zipFile.fileHeaders.map { fileHeader ->
-                fileHeader.fileName.endsWith(".$APK_FILE_EXTENSION")
-            }.all { fileNameHasApkExtension -> fileNameHasApkExtension }
-        }
+    fun getApkZipFile(appBackupDirPath: String) =
+        File(appBackupDirPath).walkTopDown().filter { backupFile ->
+                backupFile.isFile && backupFile.extension == ZIP_FILE_EXTENSION
+            }.map { fileWithZipExtension ->
+                ZipFile(fileWithZipExtension)
+            }.firstOrNull { zipFile ->
+                zipFile.fileHeaders.map { fileHeader ->
+                    fileHeader.fileName.endsWith(".$APK_FILE_EXTENSION")
+                }.all { fileNameHasApkExtension -> fileNameHasApkExtension }
+            }
 }

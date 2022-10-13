@@ -123,7 +123,7 @@ class AppDetailActivity : BaseActivity() {
                                 detailsViewModel.backupFileEvents.collect { fileEvent ->
                                     Log.d("ViewModel", "DetailsViewModel fileEvent = $fileEvent")
                                     fileEvent.apply {
-                                        if (kind != EventKind.OVERFLOW && (file.extension == JSON_FILE_EXTENSION || file.name == packageName)) {
+                                        if (file.extension == JSON_FILE_EXTENSION || file.name == packageName) {
                                             finish()
                                         }
                                     }

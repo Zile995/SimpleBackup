@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
@@ -24,8 +25,8 @@ class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDi
     private val registeredKeys = HashMap<WatchKey, Path>()
     private val watchService = FileSystems.getDefault().newWatchService()
 
-    private val _fileEvents = MutableSharedFlow<FileEvent>()
-    val fileEvent get() = _fileEvents.asSharedFlow()
+    private val _fileEvent = MutableSharedFlow<FileEvent>()
+    val fileEvent get() = _fileEvent.asSharedFlow()
 
     init {
         if (!rootDir.isDirectory)
@@ -35,41 +36,56 @@ class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDi
 
     // Suppress the warning, we are running this code on IO Dispatcher
     @Suppress("BlockingMethodInNonBlockingContext")
-    fun processFileEvents() = scope.launch(ioDispatcher) {
+    private fun processFileEvents() = scope.launch(ioDispatcher) {
         var shouldRegisterNewPaths = true
         // Emit an event while the coroutine job is still active
         while (isActive) {
-            if (shouldRegisterNewPaths) {
-                registerDirsRecursively()
-                shouldRegisterNewPaths = false
-            }
-
-            val newMonitorKey = watchService.take()
-            val filePath = registeredKeys[newMonitorKey] ?: break
-
-            newMonitorKey.pollEvents().forEach { watchEvent ->
-                val eventKind = when (watchEvent.kind()) {
-                    ENTRY_CREATE -> EventKind.CREATED
-                    ENTRY_DELETE -> EventKind.DELETED
-                    ENTRY_MODIFY -> EventKind.MODIFIED
-                    else -> EventKind.OVERFLOW
+            run polling@{
+                if (shouldRegisterNewPaths) {
+                    registerDirsRecursively()
+                    shouldRegisterNewPaths = false
                 }
-                val eventFile = filePath.resolve(watchEvent.context() as Path).toFile()
 
-                // If any directory is created or deleted, re-register the whole dir tree.
-                if (eventKind != EventKind.MODIFIED && eventFile.isDirectory)
-                    shouldRegisterNewPaths = true
+                val newMonitorKey = try {
+                    watchService.take()
+                } catch (e: InterruptedException) {
+                    Log.e("RecursiveFileWatcher", "$e")
+                    return@polling
+                }
 
-                // Finally emit the event
-                val event = FileEvent(file = eventFile, kind = eventKind)
-                Log.d("RecursiveFileWatcher", "Emitting $event")
-                _fileEvents.emit(event)
-            }
+                val filePath = registeredKeys[newMonitorKey] ?: return@polling
 
-            // Reset key and remove from HashMap if directory no longer accessible
-            val isNewMonitorKeyValid = newMonitorKey.reset()
-            if (!isNewMonitorKeyValid) {
-                registeredKeys.remove(newMonitorKey)
+                newMonitorKey.pollEvents().forEach { watchEvent ->
+                    val watchEventKind = watchEvent.kind()
+
+                    // Handle OVERFLOW event, by skipping it.
+                    if (watchEventKind == OVERFLOW) {
+                        Log.w("RecursiveFileWatcher", "An overflow has occurred!")
+                        return@forEach
+                    }
+
+                    val eventKind = when (watchEventKind) {
+                        ENTRY_CREATE -> EventKind.CREATED
+                        ENTRY_DELETE -> EventKind.DELETED
+                        else -> EventKind.MODIFIED
+                    }
+                    val eventFile = filePath.resolve(watchEvent.context() as Path).toFile()
+
+                    // If any directory is created or deleted, re-register the whole dir tree.
+                    if (eventKind != EventKind.MODIFIED && eventFile.isDirectory)
+                        shouldRegisterNewPaths = true
+
+                    // Finally emit the event
+                    val event = FileEvent(file = eventFile, kind = eventKind)
+                    Log.d("RecursiveFileWatcher", "Emitting $event")
+                    _fileEvent.emit(event)
+                }
+
+                // Reset key and remove from HashMap if directory no longer accessible
+                val isNewMonitorKeyValid = newMonitorKey.reset()
+                if (!isNewMonitorKeyValid) {
+                    registeredKeys.remove(newMonitorKey)
+                }
             }
         }
     }
@@ -97,20 +113,20 @@ class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDi
                 filePath.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)
             registeredKeys[newWatchKey] = filePath
         } catch (e: IOException) {
-            Log.e("RecursiveFileWatcher", "I/O Error, unable to register new watch key")
+            Log.e(
+                "RecursiveFileWatcher",
+                "I/O Error, unable to register new watch key $e"
+            )
         }
     }
 
     // WatchEvent wrapper
-    data class FileEvent(
-        val file: File, val kind: EventKind
-    )
+    data class FileEvent(val file: File, val kind: EventKind)
 }
 
 // WatchEvent.Kind wrapper
 enum class EventKind(val value: String) {
     CREATED("created"),
     DELETED("deleted"),
-    MODIFIED("modified"),
-    OVERFLOW("overflow")
+    MODIFIED("modified")
 }

@@ -47,6 +47,4 @@ class FavoritesViewModel(
         super.onCleared()
         Log.d("ViewModel", "FavoritesViewModel cleared")
     }
-
-
 }

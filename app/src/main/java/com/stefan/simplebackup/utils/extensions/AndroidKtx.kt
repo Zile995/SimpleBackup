@@ -31,7 +31,6 @@ import com.stefan.simplebackup.ui.fragments.FragmentViewBindingDelegate
 import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
 import java.lang.reflect.ParameterizedType
 
-
 inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
     crossinline bindingInflater: (LayoutInflater) -> T
 ) = lazy(LazyThreadSafetyMode.NONE) {

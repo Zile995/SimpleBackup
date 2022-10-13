@@ -6,7 +6,6 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.databinding.SearchItemBinding
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.utils.extensions.bytesToMegaBytesString
-import com.stefan.simplebackup.utils.extensions.checkedString
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.loadBitmap
 
@@ -20,9 +19,9 @@ class SearchViewHolder(
     override fun bind(item: AppData) {
         binding.apply {
             applicationImage.loadBitmap(item.bitmap)
-            applicationName.text = item.name.checkedString()
-            versionName.text = item.versionName.checkedString()
-            packageName.text = item.packageName.checkedString()
+            applicationName.text = item.name
+            versionName.text = item.versionName
+            packageName.text = item.packageName
             apkSize.text = item.apkSize.bytesToMegaBytesString()
             splitApk.isVisible = if (item.isSplit) {
                 splitApk.text = root.resources.getString(R.string.split)

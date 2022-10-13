@@ -42,3 +42,4 @@ class SettingsViewModel(application: MainApplication) : ViewModel() {
         Log.d("ViewModel", "SettingsViewModel cleared")
     }
 }
+

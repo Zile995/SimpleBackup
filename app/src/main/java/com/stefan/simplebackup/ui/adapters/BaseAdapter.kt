@@ -23,9 +23,9 @@ abstract class BaseAdapter(
     @Synchronized
     override fun submitList(list: List<AppData>?) {
         list?.let { newList ->
-            if (newList.size < currentList.size) {
-                val packageNameDifference = currentList.asSequence().minus(newList.toSet()).map { it.packageName }
-                packageNameDifference.forEach { packageName ->
+            if (newList.size < currentList.size && !BaseSelectionListenerImpl.selectionFinished) {
+                val deletedPackageNames = currentList.asSequence().minus(newList.toSet()).map { it.packageName }
+                deletedPackageNames.forEach { packageName ->
                     if (selectedItems.contains(packageName)) {
                         removeSelected(packageName)
                     }

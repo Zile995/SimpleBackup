@@ -10,11 +10,11 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.stefan.simplebackup.utils.extensions.ioDispatcher
 import com.stefan.simplebackup.utils.extensions.passBundleToActivity
 import com.stefan.simplebackup.utils.file.BitmapUtil.saveByteArray
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.stefan.simplebackup.utils.file.JsonUtil
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
@@ -160,7 +160,7 @@ data class AppData(
         context: Context,
         crossinline onFailure: suspend (Context) -> ByteArray
     ) {
-        withContext(ioDispatcher) {
+        withContext(Dispatchers.IO) {
             try {
                 if (bitmap.isNotEmpty())
                     return@withContext

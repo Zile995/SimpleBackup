@@ -13,8 +13,6 @@ import kotlinx.coroutines.flow.map
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-
 private val coroutineExceptionHandler =
     CoroutineExceptionHandler { coroutineContext, throwable ->
         when (throwable) {

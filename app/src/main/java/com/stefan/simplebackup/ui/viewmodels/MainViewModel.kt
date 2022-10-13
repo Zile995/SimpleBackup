@@ -125,9 +125,8 @@ class MainViewModel(application: MainApplication) : ViewModel(),
                 onSuccess(selectionList.size)
             }
         } catch (e: SQLiteException) {
-            val message = "$e: ${e.message}"
-            onFailure(message)
-            Log.w("ViewModel", "Error occurred while removing favorites $message")
+            onFailure(e.toString())
+            Log.w("ViewModel", "Error occurred while removing favorites $e")
         }
     }
 
@@ -146,9 +145,8 @@ class MainViewModel(application: MainApplication) : ViewModel(),
                 onSuccess(selectionList.size)
             }
         } catch (e: SQLiteException) {
-            val message = "$e: ${e.message}"
-            onFailure(message)
-            Log.w("ViewModel", "Error occurred while removing favorites $message")
+            onFailure(e.toString())
+            Log.w("ViewModel", "Error occurred while removing favorites $e")
         }
         delay(200)
         setSelectionMode(false)
@@ -165,8 +163,8 @@ class MainViewModel(application: MainApplication) : ViewModel(),
                 }
                 onSuccess()
             } catch (e: IOException) {
-                onFailure("$e ${e.message}")
-                Log.w("ViewModel", "Error occurred while deleting backups $e: ${e.message}")
+                onFailure(e.toString())
+                Log.w("ViewModel", "Error occurred while deleting backups $e")
             } finally {
                 delay(200)
                 setSelectionMode(false)

@@ -5,7 +5,6 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.databinding.LocalItemBinding
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.utils.extensions.bytesToMegaBytesString
-import com.stefan.simplebackup.utils.extensions.checkedString
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.loadBitmap
 
@@ -19,9 +18,9 @@ class LocalViewHolder(
     override fun bind(item: AppData) {
         binding.apply {
             backupApplicationImage.loadBitmap(item.bitmap)
-            backupApplicationName.text = item.name.checkedString()
-            backupVersionName.text = item.versionName.checkedString()
-            backupPackageName.text = item.packageName.checkedString()
+            backupApplicationName.text = item.name
+            backupVersionName.text = item.versionName
+            backupPackageName.text = item.packageName
             backupDataSize.text = item.dataSize.bytesToMegaBytesString()
             backupDate.text = item.getDateString()
             splitApk.isVisible = if (item.isSplit) {

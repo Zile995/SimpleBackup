@@ -108,7 +108,7 @@ object ZipUtil {
     private fun getApkAbiList(apkFile: File) = try {
         val zipFile = ZipFile(apkFile)
         val headerList = zipFile.fileHeaders
-        headerList.map { fileHeader ->
+        headerList.asSequence().map { fileHeader ->
             fileHeader.fileName
         }.filter { fileName ->
             fileName.contains("lib") && fileName.endsWith(".$LIB_FILE_EXTENSION")
@@ -117,16 +117,17 @@ object ZipUtil {
         }.distinct()
     } catch (e: IOException) {
         Log.e("ZipUtil", "${apkFile.name}: $e ${e.message}")
-        mutableListOf()
+        sequenceOf()
     }
 
     private fun getZipParameters(isApk: Boolean = true): ZipParameters {
+        val zipParameters = ZipParameters()
         return if (isApk) {
-            ZipParameters().apply {
+            zipParameters.apply {
                 compressionMethod = CompressionMethod.STORE
             }
         } else {
-            ZipParameters().apply {
+            zipParameters.apply {
                 isEncryptFiles = true
                 compressionMethod = CompressionMethod.DEFLATE
                 compressionLevel =
