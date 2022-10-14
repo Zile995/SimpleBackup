@@ -40,16 +40,7 @@ class DetailsViewModel(
 
     init {
         Log.d("ViewModel", "DetailsViewModel created")
-        recreateLocalDir()
         getApkArchitectures()
-    }
-
-    private fun recreateLocalDir() {
-        viewModelScope.launch {
-            app?.apply {
-                if (isLocal) FileUtil.createDirectory(FileUtil.localDirPath)
-            }
-        }
     }
 
     private fun getApkArchitectures() {
