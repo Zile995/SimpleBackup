@@ -1,16 +1,10 @@
 package com.stefan.simplebackup.utils.file
 
 import android.util.Log
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
+import java.io.*
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds.*
@@ -24,12 +18,13 @@ fun File.asRecursiveFileWatcher(scope: CoroutineScope) =
 // Suppress the warning, we are running this code on IO Dispatcher
 class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDir: File) {
 
+    private var currentFileSize = 0L
     private val ioDispatcher = Dispatchers.IO
     private val registeredKeys = HashMap<WatchKey, Path>()
     private val watchService = FileSystems.getDefault().newWatchService()
 
     private val _fileEvent = MutableSharedFlow<FileEvent>()
-    val fileEvent get() = _fileEvent.asSharedFlow().distinctUntilChanged()
+    val fileEvent get() = _fileEvent.asSharedFlow()
 
     init {
         processFileEvents()
@@ -71,8 +66,14 @@ class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDi
                     }
                     val eventFile = filePath.resolve(watchEvent.context() as Path).toFile()
 
-                    if (eventKind == EventKind.MODIFIED)
-                        acquireLockOnModifiedEvent(modifiedFile = eventFile)
+                    // If file is modified (the file is still being copied or written),
+                    // wait before emitting MODIFIED event
+                    if (eventKind == EventKind.MODIFIED && !eventFile.isDirectory) {
+                        if (currentFileSize == eventFile.length())
+                            return@forEach
+                        else
+                            acquireLockOnModifiedEvent(modifiedFile = eventFile)
+                    } else currentFileSize = 0L
 
                     // If any directory is created or deleted, re-register the whole dir tree.
                     if (eventKind != EventKind.MODIFIED && eventFile.isDirectory)
@@ -80,18 +81,20 @@ class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDi
 
                     // Finally emit the event
                     val event = FileEvent(file = eventFile, kind = eventKind)
-                    _fileEvent.emit(event).also {
-                        Log.d("RecursiveFileWatcher", "Emitting $event")
-                    }
+                    Log.d("RecursiveFileWatcher", "Emitting $event")
+                    _fileEvent.emit(event)
                 }
 
-                // Reset key and remove it from HashMap if directory no longer accessible
+                // Reset key and check if directory no longer accessible
                 val isNewMonitorKeyValid = newMonitorKey.reset()
                 if (!isNewMonitorKeyValid) {
                     if (registeredKeys[newMonitorKey] == rootDir.toPath()) {
+                        // Re-create main rootDir and re-register dir tree
+                        // Do not break watch service polling
                         rootDir.mkdirs()
                         shouldRegisterNewPaths = true
                     }
+                    // Remove invalid key with an inaccessible path from HashMap
                     registeredKeys.remove(newMonitorKey)
                 }
             }
@@ -99,17 +102,26 @@ class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDi
     }
 
     private fun acquireLockOnModifiedEvent(modifiedFile: File) {
-        val fileChannel = FileInputStream(modifiedFile).channel
-        while (true) {
+        do {
             try {
                 Log.d("RecursiveFileWatcher", "Acquiring lock for ${modifiedFile.absolutePath}")
-                if (fileChannel.tryLock(0L, Long.MAX_VALUE, true) != null) break
-            } catch (e: IOException) {
-                Log.e("RecursiveFileWatcher", "Exception while acquiring $e")
-            } finally {
-                fileChannel.close()
+                currentFileSize = 0L
+                val fileInputStream = FileInputStream(modifiedFile)
+                fileInputStream.use {
+                    while (fileInputStream.available() > 0) {
+                        // Read the 1024 bytes and calculate the current file size
+                        val bytes = ByteArray(1024)
+                        val numOfReadBytes = fileInputStream.read(bytes)
+                        currentFileSize += numOfReadBytes.toLong()
+
+                        // If end of the stream is reached, exit the inner while loop
+                        if (numOfReadBytes < 0) break
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w("RecursiveFileWatcher", "Exception while acquiring $e")
             }
-        }
+        } while (currentFileSize != modifiedFile.length())
     }
 
     private fun registerDirsRecursively() {

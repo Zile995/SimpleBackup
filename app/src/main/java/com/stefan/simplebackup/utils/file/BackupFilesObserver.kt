@@ -31,18 +31,14 @@ class BackupFilesObserver(
                             val jsonFile = when {
                                 file.isFile && file.extension == JSON_FILE_EXTENSION -> file
                                 file.isDirectory && file.parentFile?.absolutePath == rootDirPath -> {
-                                    Log.d(
-                                        "BackupFilesObserver",
-                                        "finding json in ${file.absolutePath}"
-                                    )
                                     FileUtil.findFirstJsonInDir(file.absolutePath)
                                 }
                                 else -> null
                             }
                             jsonFile?.let {
                                 val createdApp = deserializeApp(it)
-                                createdApp?.apply {
-                                    if (file.parentFile!!.name == packageName) {
+                                if (jsonFile.parentFile?.name == createdApp?.packageName) {
+                                    createdApp?.apply {
                                         if (!currentList.contains(this)) {
                                             Log.d("BackupFilesObserver", "Adding created $name")
                                             currentList.add(this)
@@ -54,10 +50,7 @@ class BackupFilesObserver(
 
                         EventKind.DELETED -> {
                             val deletedApp = currentList.firstOrNull { app ->
-                                (app.name == file.nameWithoutExtension
-                                        && app.packageName == file.parentFile?.name
-                                        && file.extension == JSON_FILE_EXTENSION)
-                                        || (app.packageName == file.name)
+                                (app.name == file.nameWithoutExtension && app.packageName == file.parentFile?.name && file.extension == JSON_FILE_EXTENSION) || (app.packageName == file.name)
                             }
                             currentList.remove(deletedApp)
                             Log.d("BackupFilesObserver", "Removing deleted ${deletedApp?.name}")
@@ -68,10 +61,7 @@ class BackupFilesObserver(
                                 val modifiedApp = deserializeApp(file)
                                 modifiedApp?.apply {
                                     if (file.parentFile?.name == packageName) {
-                                        Log.d(
-                                            "BackupFilesObserver",
-                                            "Adding modified $name"
-                                        )
+                                        Log.d("BackupFilesObserver", "Adding modified $name")
                                         val indexOfDeleted =
                                             currentList.indexOfFirst { it.packageName == packageName }
                                         if (indexOfDeleted < 0) return@updateCurrentList
@@ -98,13 +88,10 @@ class BackupFilesObserver(
         Log.d("BackupFilesObserver", "Refreshing the backup list")
         val backupList = mutableListOf<AppData>()
         findJsonFilesRecursively(jsonDirPath = rootDirPath).collect { jsonFile ->
-            if (jsonFile.parentFile?.parentFile?.absolutePath != rootDirPath)
-                return@collect
+            if (jsonFile.parentFile?.parentFile?.absolutePath != rootDirPath) return@collect
             val app = deserializeApp(jsonFile)
             app?.let {
-                if (jsonFile.parentFile?.isDirectory == true
-                    && jsonFile.parentFile?.name == it.packageName
-                ) {
+                if (jsonFile.parentFile?.isDirectory == true && jsonFile.parentFile?.name == it.packageName) {
                     if (predicate(it)) {
                         backupList.add(it)
                     }

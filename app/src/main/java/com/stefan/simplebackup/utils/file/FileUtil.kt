@@ -115,22 +115,22 @@ object FileUtil {
     suspend fun getApkFileSizeSplitInfo(apkDirPath: String): Pair<Float, Boolean> = coroutineScope {
         val isSplit: Boolean
         File(apkDirPath).walkTopDown().filter { dirFile ->
-                dirFile.isFile && dirFile.extension == APK_FILE_EXTENSION
-            }.also { apkFiles ->
-                isSplit = apkFiles.count() > 1
-            }.sumOf { apkFile ->
-                apkFile.length()
-            }.toFloat() to isSplit
+            dirFile.isFile && dirFile.extension == APK_FILE_EXTENSION
+        }.also { apkFiles ->
+            isSplit = apkFiles.count() > 1
+        }.sumOf { apkFile ->
+            apkFile.length()
+        }.toFloat() to isSplit
     }
 
     fun getApkZipFile(appBackupDirPath: String) =
         File(appBackupDirPath).walkTopDown().filter { backupFile ->
-                backupFile.isFile && backupFile.extension == ZIP_FILE_EXTENSION
-            }.map { fileWithZipExtension ->
-                ZipFile(fileWithZipExtension)
-            }.firstOrNull { zipFile ->
-                zipFile.fileHeaders.map { fileHeader ->
-                    fileHeader.fileName.endsWith(".$APK_FILE_EXTENSION")
-                }.all { fileNameHasApkExtension -> fileNameHasApkExtension }
-            }
+            backupFile.isFile && backupFile.extension == ZIP_FILE_EXTENSION
+        }.map { fileWithZipExtension ->
+            ZipFile(fileWithZipExtension)
+        }.firstOrNull { zipFile ->
+            zipFile.fileHeaders.map { fileHeader ->
+                fileHeader.fileName.endsWith(".$APK_FILE_EXTENSION")
+            }.all { fileNameHasApkExtension -> fileNameHasApkExtension }
+        }
 }
