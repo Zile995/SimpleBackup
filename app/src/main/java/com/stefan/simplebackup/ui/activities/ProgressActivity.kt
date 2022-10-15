@@ -17,8 +17,8 @@ import com.stefan.simplebackup.data.workers.REQUEST_TAG
 import com.stefan.simplebackup.data.workers.WORK_PROGRESS
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
 import com.stefan.simplebackup.ui.viewmodels.ProgressViewModel
+import com.stefan.simplebackup.ui.viewmodels.ProgressViewModelFactory
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
-import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.launch
 
@@ -31,9 +31,13 @@ class ProgressActivity : BaseActivity() {
     private var bitmap: ByteArray = byteArrayOf()
 
     private val progressViewModel: ProgressViewModel by viewModels {
-        val selection = intent?.extras?.getStringArray(SELECTION_EXTRA)
+        val selectionList = intent?.extras?.getStringArray(SELECTION_EXTRA)
         val appDataType = intent?.extras?.parcelable<AppDataType>(APP_DATA_TYPE_EXTRA)
-        ViewModelFactory(application as MainApplication, selection, appDataType)
+        ProgressViewModelFactory(
+            selectionList = selectionList,
+            appDataType = appDataType,
+            application = application as MainApplication
+        )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

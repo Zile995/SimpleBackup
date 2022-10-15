@@ -12,8 +12,8 @@ import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.ui.notifications.WorkNotificationBuilder
 import com.stefan.simplebackup.ui.notifications.WorkNotificationHelper
 import com.stefan.simplebackup.utils.extensions.showToast
+import com.stefan.simplebackup.utils.work.WorkResult
 import com.stefan.simplebackup.utils.work.backup.BackupUtil
-import com.stefan.simplebackup.utils.work.backup.WorkResult
 import com.stefan.simplebackup.utils.work.restore.RestoreUtil
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -90,7 +90,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
     private suspend fun restore() {
         items?.let { restoreItems ->
-            val restoreUtil = RestoreUtil(applicationContext, restoreItems)
+            val restoreUtil = RestoreUtil(applicationContext, restoreItems, foregroundCallBack)
             restoreUtil.restore()
         }
     }

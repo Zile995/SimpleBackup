@@ -2,6 +2,7 @@ package com.stefan.simplebackup.ui.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.work.WorkManager
 import com.stefan.simplebackup.MainApplication
@@ -39,5 +40,19 @@ class ProgressViewModel(
     override fun onCleared() {
         super.onCleared()
         Log.d("ProgressViewModel", "ProgressViewModel cleared")
+    }
+}
+
+class ProgressViewModelFactory(
+    private val selectionList: Array<String>?,
+    private val appDataType: AppDataType?,
+    private val application: MainApplication
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ProgressViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return ProgressViewModel(selectionList, appDataType, application) as T
+        }
+        throw IllegalArgumentException("Unable to construct ProgressViewModel")
     }
 }

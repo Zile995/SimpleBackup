@@ -36,10 +36,9 @@ import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.data.model.PARCELABLE_EXTRA
 import com.stefan.simplebackup.databinding.ActivityDetailBinding
 import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
-import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.DetailsViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
-import com.stefan.simplebackup.utils.file.EventKind
 import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.file.JSON_FILE_EXTENSION
 import kotlinx.coroutines.launch
@@ -56,7 +55,10 @@ class AppDetailActivity : BaseActivity() {
 
     private val detailsViewModel: DetailsViewModel by viewModels {
         val selectedApp = intent.extras?.parcelable<AppData>(PARCELABLE_EXTRA)
-        ViewModelFactory(application as MainApplication, selectedApp)
+        DetailsViewModelFactory(
+            app = selectedApp,
+            application = application as MainApplication
+        )
     }
 
     private val contactsPermissionLauncher =

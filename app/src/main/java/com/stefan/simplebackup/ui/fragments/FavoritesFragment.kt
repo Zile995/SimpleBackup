@@ -5,24 +5,22 @@ import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentFavoritesBinding
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.FavoritesAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.viewmodels.FavoritesViewModel
-import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.FavoritesViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.*
 
 class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     private val favoritesViewModel: FavoritesViewModel by viewModels {
         val appDataType = getEnumExtra<AppDataType>()
-        ViewModelFactory(
-            requireActivity().application as MainApplication,
-            mainViewModel.repository,
-            appDataType
+        FavoritesViewModelFactory(
+            repository = mainViewModel.repository,
+            appDataType = appDataType
         )
     }
 
@@ -35,7 +33,11 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     }
 
     override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =
-        FavoritesAdapter(mainViewModel.selectionList, mainViewModel.setSelectionMode, onClickListener)
+        FavoritesAdapter(
+            mainViewModel.selectionList,
+            mainViewModel.setSelectionMode,
+            onClickListener
+        )
 
     private fun FragmentFavoritesBinding.initObservers() {
         launchOnViewLifecycle {

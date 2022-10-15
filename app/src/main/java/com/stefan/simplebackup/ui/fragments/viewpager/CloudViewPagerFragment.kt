@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
-import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
 import com.stefan.simplebackup.data.manager.MainPermission
@@ -14,17 +13,14 @@ import com.stefan.simplebackup.ui.fragments.BaseFragment
 import com.stefan.simplebackup.ui.fragments.CloudFragment
 import com.stefan.simplebackup.ui.fragments.FavoritesFragment
 import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
-import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.HomeViewModelFactory
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
 import kotlin.properties.Delegates
 
 class CloudViewPagerFragment : BaseViewPagerFragment<FragmentCloudViewPagerBinding>() {
     private val homeViewModel: HomeViewModel by viewModels {
-        ViewModelFactory(
-            requireActivity().application as MainApplication,
-            mainViewModel
-        )
+        HomeViewModelFactory(packageListener = mainViewModel)
     }
 
     private var isContactsPermissionGranted by Delegates.observable<Boolean?>(null) { _, _, isGranted ->

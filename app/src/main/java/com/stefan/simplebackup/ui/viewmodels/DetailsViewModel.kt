@@ -3,6 +3,7 @@ package com.stefan.simplebackup.ui.viewmodels
 import android.database.sqlite.SQLiteException
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.local.database.AppDatabase
@@ -21,12 +22,8 @@ import java.io.IOException
 
 class DetailsViewModel(
     val app: AppData?,
-    application: MainApplication,
+    val application: MainApplication,
 ) : ViewModel() {
-
-    val appDatabase = AppDatabase.getInstance(
-        application, application.applicationScope
-    )
 
     val backupFileEvents by lazy {
         val backupDir = File(FileUtil.localDirPath)
@@ -35,7 +32,7 @@ class DetailsViewModel(
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
-    private var _archNames = MutableStateFlow<List<String>?>(null)
+    private val _archNames = MutableStateFlow<List<String>?>(null)
     val archNames get() = _archNames.asStateFlow()
 
     init {
@@ -70,6 +67,9 @@ class DetailsViewModel(
     ) = viewModelScope.launch {
         app?.apply {
             try {
+                val appDatabase = AppDatabase.getInstance(
+                    application, application.applicationScope
+                )
                 val appRepository = AppRepository(appDatabase.appDao())
                 appRepository.startRepositoryJob {
                     if (favorite)
@@ -90,5 +90,18 @@ class DetailsViewModel(
     override fun onCleared() {
         super.onCleared()
         Log.d("ViewModel", "DetailsViewModel cleared")
+    }
+}
+
+class DetailsViewModelFactory(
+    private val app: AppData?,
+    private val application: MainApplication,
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(DetailsViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return DetailsViewModel(app, application) as T
+        }
+        throw IllegalArgumentException("Unable to construct DetailsViewModel")
     }
 }

@@ -2,7 +2,7 @@ package com.stefan.simplebackup.ui.notifications
 
 import android.app.Notification
 import com.stefan.simplebackup.data.model.NotificationData
-import com.stefan.simplebackup.utils.work.backup.WorkResult
+import com.stefan.simplebackup.utils.work.WorkResult
 
 interface WorkNotificationHelper : NotificationHelper {
     fun getFinishedNotification(

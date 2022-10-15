@@ -12,8 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 
 const val SELECTION_EXTRA = "SELECTION_LIST"
 
-sealed class BaseViewModel : ViewModel(), RecyclerViewStateSaver by RecyclerViewStateSaverImpl() {
-
+abstract class BaseViewModel : ViewModel(), RecyclerViewStateSaver by RecyclerViewStateSaverImpl() {
     // Backup files observer
     protected val backupFilesObserver by lazy {
         BackupFilesObserver(
@@ -24,7 +23,7 @@ sealed class BaseViewModel : ViewModel(), RecyclerViewStateSaver by RecyclerView
     }
 
     // Observable spinner properties used for progressbar observing
-    protected var _spinner = MutableStateFlow(true)
+    protected val _spinner = MutableStateFlow(true)
     val spinner get() = _spinner.asStateFlow()
 
     // Observable application properties used for list loading

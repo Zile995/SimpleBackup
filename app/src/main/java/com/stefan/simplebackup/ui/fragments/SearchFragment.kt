@@ -8,13 +8,12 @@ import androidx.core.view.children
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import com.google.android.material.chip.Chip
-import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.databinding.FragmentSearchBinding
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.SearchAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.viewmodels.SearchViewModel
-import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.SearchViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
@@ -24,7 +23,7 @@ import kotlinx.coroutines.delay
 
 class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     private val searchViewModel: SearchViewModel by viewModels {
-        ViewModelFactory(requireActivity().application as MainApplication)
+        SearchViewModelFactory()
     }
 
     init {

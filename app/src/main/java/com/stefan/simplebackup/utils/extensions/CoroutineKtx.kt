@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -34,6 +35,14 @@ inline fun <T> Flow<MutableList<T>>.filterBy(crossinline predicate: (T) -> Boole
     map { list ->
         list.filter(predicate).toMutableList()
     }
+}
+
+inline fun <T> MutableStateFlow<MutableList<T>>.updateCurrentList(
+    action: (MutableList<T>) -> Unit
+) {
+    val newValue = value.toMutableList()
+    action(newValue)
+    value = newValue
 }
 
 fun CoroutineScope.launchWithLogging(

@@ -28,7 +28,7 @@ import com.stefan.simplebackup.ui.fragments.HomeFragment
 import com.stefan.simplebackup.ui.fragments.LocalFragment
 import com.stefan.simplebackup.ui.fragments.viewpager.HomeViewPagerFragment
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
-import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.MainViewModelFactory
 import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
 import com.stefan.simplebackup.ui.views.MainActivityAnimator
 import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
@@ -51,7 +51,7 @@ class MainActivity : BaseActivity() {
 
     // ViewModel
     private val mainViewModel: MainViewModel by viewModels {
-        ViewModelFactory(application as MainApplication)
+        MainViewModelFactory(application = application as MainApplication)
     }
 
     // Create MainActivityAnimator class instance lazily

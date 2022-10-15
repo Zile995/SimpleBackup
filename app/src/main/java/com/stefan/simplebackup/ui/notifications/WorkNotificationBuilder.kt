@@ -9,7 +9,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.NotificationData
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.file.BitmapUtil.toBitmap
-import com.stefan.simplebackup.utils.work.backup.WorkResult
+import com.stefan.simplebackup.utils.work.WorkResult
 
 private const val CHANNEL_ID = "WORK_NOTIFICATION"
 

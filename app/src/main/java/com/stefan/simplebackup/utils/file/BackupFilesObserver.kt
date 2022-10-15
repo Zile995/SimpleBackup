@@ -2,6 +2,7 @@ package com.stefan.simplebackup.utils.file
 
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.utils.extensions.updateCurrentList
 import com.stefan.simplebackup.utils.file.FileUtil.findJsonFilesRecursively
 import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
 import kotlinx.coroutines.CoroutineScope
@@ -13,7 +14,7 @@ import java.io.File
 class BackupFilesObserver(
     private val rootDirPath: String,
     private val scope: CoroutineScope,
-    private var observableList: MutableStateFlow<MutableList<AppData>>
+    private val observableList: MutableStateFlow<MutableList<AppData>>
 ) {
 
     private val recursiveFileWatcher by lazy {
@@ -74,14 +75,6 @@ class BackupFilesObserver(
                 }
             }
         }
-    }
-
-    private inline fun <T> MutableStateFlow<MutableList<T>>.updateCurrentList(
-        action: (MutableList<T>) -> Unit
-    ) {
-        val newValue = value.toMutableList()
-        action(newValue)
-        value = newValue
     }
 
     fun refreshBackupFileList(predicate: (AppData) -> Boolean = { it.isLocal }) = scope.launch {

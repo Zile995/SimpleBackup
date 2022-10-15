@@ -12,7 +12,7 @@ class RecyclerViewStateSaverImpl : RecyclerViewStateSaver {
 
     // Save RecyclerView state
     override fun saveRecyclerViewState(parcelable: Parcelable) {
-        Log.d("RVStateSaver", "Saving recyclerview state")
+        Log.d("RecyclerViewStateSaver", "Saving recyclerview state")
         state = parcelable
     }
 }

@@ -10,7 +10,7 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.FragmentSettingsBinding
 import com.stefan.simplebackup.ui.viewmodels.SettingsViewModel
-import com.stefan.simplebackup.ui.viewmodels.ViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.SettingsViewModelFactory
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.openAppNotificationSettings
 import com.stefan.simplebackup.utils.extensions.openStorageSettings
@@ -20,7 +20,9 @@ class SettingsFragment : Fragment() {
     private val binding by viewBinding(FragmentSettingsBinding::inflate)
 
     private val settingsViewModel: SettingsViewModel by viewModels {
-        ViewModelFactory(requireActivity().application as MainApplication)
+        SettingsViewModelFactory(
+            application = requireActivity().application as MainApplication
+        )
     }
 
     override fun onCreateView(

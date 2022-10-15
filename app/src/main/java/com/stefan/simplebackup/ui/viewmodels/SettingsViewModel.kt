@@ -2,6 +2,7 @@ package com.stefan.simplebackup.ui.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.manager.AppStorageManager
@@ -43,3 +44,14 @@ class SettingsViewModel(application: MainApplication) : ViewModel() {
     }
 }
 
+class SettingsViewModelFactory(
+    private val application: MainApplication,
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return SettingsViewModel(application) as T
+        }
+        throw IllegalArgumentException("Unable to construct SettingsViewModel")
+    }
+}

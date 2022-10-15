@@ -3,6 +3,7 @@ package com.stefan.simplebackup.ui.viewmodels
 import android.database.sqlite.SQLiteException
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.model.AppData
@@ -175,5 +176,17 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     override fun onCleared() {
         super.onCleared()
         Log.d("ViewModel", "MainViewModel cleared")
+    }
+}
+
+class MainViewModelFactory(
+    private val application: MainApplication,
+) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return MainViewModel(application) as T
+        }
+        throw IllegalArgumentException("Unable to construct MainViewModel")
     }
 }
