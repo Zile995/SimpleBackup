@@ -37,14 +37,6 @@ inline fun <T> Flow<MutableList<T>>.filterBy(crossinline predicate: (T) -> Boole
     }
 }
 
-inline fun <T> MutableStateFlow<MutableList<T>>.updateCurrentList(
-    action: (MutableList<T>) -> Unit
-) {
-    val newValue = value.toMutableList()
-    action(newValue)
-    value = newValue
-}
-
 fun CoroutineScope.launchWithLogging(
     context: CoroutineContext = EmptyCoroutineContext,
     block: suspend CoroutineScope.() -> Unit

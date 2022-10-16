@@ -17,11 +17,7 @@ import com.stefan.simplebackup.utils.extensions.*
 
 class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     private val favoritesViewModel: FavoritesViewModel by viewModels {
-        val appDataType = getEnumExtra<AppDataType>()
-        FavoritesViewModelFactory(
-            repository = mainViewModel.repository,
-            appDataType = appDataType
-        )
+        FavoritesViewModelFactory(repository = mainViewModel.repository,)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -75,17 +71,5 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
         super.onDestroy()
         Log.d("Fragments", "Destroyed FavoritesFragment completely")
     }
-
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         */
-        fun newInstance(appDataType: AppDataType) =
-            FavoritesFragment().apply {
-                putEnumExtra(appDataType)
-            }
-    }
-
 }
 

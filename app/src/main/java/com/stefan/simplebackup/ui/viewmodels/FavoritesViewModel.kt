@@ -9,32 +9,12 @@ import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.utils.extensions.filterBy
 import kotlinx.coroutines.launch
 
-class FavoritesViewModel(
-    repository: AppRepository, appDataType: AppDataType?
-) : BaseViewModel() {
+class FavoritesViewModel(repository: AppRepository) : BaseViewModel() {
 
     init {
         viewModelScope.launch {
-            appDataType?.let {
-                when (appDataType) {
-                    AppDataType.USER -> {
-                        loadList(false) {
-                            repository.installedApps.filterBy {
-                                it.favorite
-                            }
-                        }
-                    }
-                    AppDataType.LOCAL -> {
-
-                    }
-                    AppDataType.CLOUD -> {
-                        loadList(false) {
-                            repository.installedApps.filterBy {
-                                it.favorite
-                            }
-                        }
-                    }
-                }
+            loadList(false) {
+                repository.installedApps.filterBy { it.favorite }
             }
         }
         Log.d("ViewModel", "FavoritesViewModel created")
@@ -46,14 +26,11 @@ class FavoritesViewModel(
     }
 }
 
-class FavoritesViewModelFactory(
-    private val repository: AppRepository,
-    private val appDataType: AppDataType?,
-) : ViewModelProvider.Factory {
+class FavoritesViewModelFactory(private val repository: AppRepository) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(FavoritesViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return FavoritesViewModel(repository, appDataType) as T
+            return FavoritesViewModel(repository) as T
         }
         throw IllegalArgumentException("Unable to construct FavoritesViewModel")
     }

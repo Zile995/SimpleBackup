@@ -11,14 +11,9 @@
         tools:layout="@layout/fragment_home_view_pager" />
     <fragment
         android:id="@+id/local"
-        android:name="com.stefan.simplebackup.ui.fragments.viewpager.LocalViewPagerFragment"
-        android:label="fragment_local_view_pager"
-        tools:layout="@layout/fragment_local_view_pager" />
-    <fragment
-        android:id="@+id/cloud"
-        android:name="com.stefan.simplebackup.ui.fragments.viewpager.CloudViewPagerFragment"
-        android:label="fragment_cloud_view_pager"
-        tools:layout="@layout/fragment_cloud_view_pager" />
+        android:name="com.stefan.simplebackup.ui.fragments.LocalFragment"
+        android:label="fragment_local"
+        tools:layout="@layout/fragment_local" />
     <fragment
         android:id="@+id/settings"
         android:name="com.stefan.simplebackup.ui.fragments.SettingsFragment"

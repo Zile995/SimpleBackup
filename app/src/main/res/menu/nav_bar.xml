@@ -9,10 +9,6 @@
         android:icon="@drawable/ic_local_animated"
         android:title="@string/local" />
     <item
-        android:id="@+id/cloud"
-        android:icon="@drawable/ic_cloud_animated"
-        android:title="@string/cloud" />
-    <item
         android:id="@+id/settings"
         android:icon="@drawable/ic_settings_animated"
         android:title="@string/settings" />

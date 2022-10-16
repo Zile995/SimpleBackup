@@ -14,9 +14,10 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
+import com.stefan.simplebackup.ui.fragments.BaseFragment
+import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
 import com.stefan.simplebackup.ui.fragments.viewpager.HomeViewPagerFragment
 import com.stefan.simplebackup.utils.extensions.getColorFromResource
-import com.stefan.simplebackup.utils.extensions.getCurrentVisibleViewPagerFragment
 import com.stefan.simplebackup.utils.extensions.getVisibleFragment
 import java.lang.ref.WeakReference
 
@@ -26,7 +27,7 @@ class MainActivityAnimator(
 ) {
     private val binding get() = bindingReference.get()
     private val activity get() = activityReference.get()
-    private val visibleFragment get() = activity?.getVisibleFragment()
+    private val visibleFragment get() = activity?.supportFragmentManager?.getVisibleFragment()
 
     private val animationDuration = 250L
     private var animatorSet = AnimatorSet().apply {
@@ -80,7 +81,7 @@ class MainActivityAnimator(
             if (isSelected)
                 root.post {
                     floatingButton.changeOnHomeFragment(
-                        activity?.supportFragmentManager?.getCurrentVisibleViewPagerFragment() is HomeViewPagerFragment
+                        activity?.supportFragmentManager?.getVisibleFragment() is HomeViewPagerFragment
                     )
                 }
             root.doOnPreDraw {
@@ -90,7 +91,10 @@ class MainActivityAnimator(
                     })
                 } else {
                     reverseAnimations {
-                        visibleFragment?.fixRecyclerViewScrollPosition()
+                        when (val currentlyVisibleFragment = visibleFragment) {
+                            is BaseFragment<*> -> currentlyVisibleFragment.fixRecyclerViewScrollPosition()
+                            is BaseViewPagerFragment<*> -> currentlyVisibleFragment.getCurrentFragment()?.fixRecyclerViewScrollPosition()
+                        }
                     }
                 }
             }
@@ -175,7 +179,13 @@ class MainActivityAnimator(
             if (shouldExpand)
                 appBarLayout.setExpanded(true)
             else {
-                if (visibleFragment?.shouldMoveFragmentUp() == true) {
+                val shouldMoveUp = when (val currentlyVisibleFragment = visibleFragment) {
+                    is BaseFragment<*> -> currentlyVisibleFragment.shouldMoveFragmentUp()
+                    is BaseViewPagerFragment<*> -> currentlyVisibleFragment.getCurrentFragment()
+                        ?.shouldMoveFragmentUp()
+                    else -> true
+                }
+                if (shouldMoveUp == true) {
                     Log.d("MainAnimator", "Collapsing the AppBarLayout")
                     appBarLayout.setExpanded(false)
                 }

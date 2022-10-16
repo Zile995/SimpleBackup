@@ -22,10 +22,8 @@ import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.numberOfSelected
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
-import com.stefan.simplebackup.ui.fragments.ConfigureSheetFragment
-import com.stefan.simplebackup.ui.fragments.FavoritesFragment
-import com.stefan.simplebackup.ui.fragments.HomeFragment
-import com.stefan.simplebackup.ui.fragments.LocalFragment
+import com.stefan.simplebackup.ui.fragments.*
+import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
 import com.stefan.simplebackup.ui.fragments.viewpager.HomeViewPagerFragment
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.MainViewModelFactory
@@ -44,7 +42,7 @@ class MainActivity : BaseActivity() {
     // Binding properties
     private val binding by viewBinding(ActivityMainBinding::inflate)
 
-    private val visibleFragment get() = getVisibleFragment()
+    private val getVisibleViewPagerFragment get() = getVisibleViewPagerFragment()
 
     // NavController, used for navigation
     private lateinit var navController: NavController
@@ -178,11 +176,15 @@ class MainActivity : BaseActivity() {
 
     private fun SimpleMaterialToolbar.changeMenuItems(numberOfSelectedItems: Int) {
         when {
-            numberOfSelectedItems > 1 && visibleFragment is HomeFragment -> {
+            numberOfSelectedItems > 1 && getVisibleViewPagerFragment is HomeFragment -> {
                 deleteItem?.isVisible = false
             }
-            numberOfSelectedItems >= 1 -> {
-                changeOnFavorite(isFavorite = visibleFragment is FavoritesFragment)
+            numberOfSelectedItems > 0 && supportFragmentManager.getVisibleFragment() is LocalFragment -> {
+                deleteItem?.isVisible = true
+                addToFavoritesItem?.isVisible = false
+            }
+            numberOfSelectedItems > 0 && supportFragmentManager.getVisibleFragment() is HomeViewPagerFragment -> {
+                changeOnFavorite(isFavorite = getVisibleViewPagerFragment is FavoritesFragment)
             }
         }
     }
@@ -224,7 +226,7 @@ class MainActivity : BaseActivity() {
             setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {
                     R.id.add_to_favorites -> {
-                        if (visibleFragment !is FavoritesFragment)
+                        if (getVisibleViewPagerFragment !is FavoritesFragment)
                             mainViewModel.addToFavorites(
                                 onSuccess = { numberOfItems ->
                                     showToast(
@@ -265,17 +267,20 @@ class MainActivity : BaseActivity() {
                     }
                     R.id.delete -> {
                         Log.d("Activity", "Setting up the delete action")
-                        when (visibleFragment) {
-                            is HomeFragment -> {
-                                visibleFragment?.uninstallSelectedApp()
+                        when (val visibleFragment = supportFragmentManager.getVisibleFragment()) {
+                            is BaseViewPagerFragment<*> -> {
+                                getVisibleViewPagerFragment?.uninstallSelectedApp()
                             }
                             is LocalFragment -> {
-                                visibleFragment?.deleteSelectedBackups()
+                                visibleFragment.deleteSelectedBackups()
                             }
                         }
                     }
                     R.id.select_all -> {
-                        visibleFragment?.selectAllItems()
+                        when (val currentlyVisibleFragment = supportFragmentManager.getVisibleFragment()) {
+                            is BaseFragment<*> -> currentlyVisibleFragment.selectAllItems()
+                            is BaseViewPagerFragment<*> -> currentlyVisibleFragment.getCurrentFragment()?.selectAllItems()
+                        }
                     }
                     else -> {
                         return@setOnMenuItemClickListener false
@@ -303,7 +308,7 @@ class MainActivity : BaseActivity() {
     private fun ActivityMainBinding.bindBottomNavigationView() =
         navigationBar.navigateWithAnimation(navController,
             doBeforeNavigating = {
-                visibleFragment?.stopScrolling()
+                getVisibleViewPagerFragment?.stopScrolling()
                 floatingButton.setOnClickListener(null)
                 !(mainViewModel.isSearching.value
                         || mainViewModel.isSelected.value) && animationFinished
@@ -386,7 +391,7 @@ class MainActivity : BaseActivity() {
                 if (selectionFinished)
                     smoothSnapToPosition(0)
                 else {
-                    if (supportFragmentManager.getCurrentVisibleViewPagerFragment() is HomeViewPagerFragment &&
+                    if (supportFragmentManager.getVisibleFragment() is HomeViewPagerFragment &&
                         mainViewModel.selectionList.isNotEmpty()
                     )
                         ConfigureSheetFragment().show(supportFragmentManager, "configureSheetTag")

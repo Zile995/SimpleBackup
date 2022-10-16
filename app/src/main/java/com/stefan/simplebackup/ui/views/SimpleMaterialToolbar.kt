@@ -32,7 +32,7 @@ class SimpleMaterialToolbar(
         get() =
             searchViewItem?.actionView as? MaterialSearchView
 
-    private val addToFavoritesItem
+    val addToFavoritesItem
         get() = findMenuItem(R.id.add_to_favorites)
 
     private val selectAllItem
@@ -161,7 +161,7 @@ class SimpleMaterialToolbar(
     }
 
     private fun setMenuItemsOnSelection() {
-        deleteItem?.isVisible = false
+        deleteItem?.isVisible = true
         selectAllItem?.isVisible = true
         searchViewItem?.isVisible = false
         addToFavoritesItem?.isVisible = true

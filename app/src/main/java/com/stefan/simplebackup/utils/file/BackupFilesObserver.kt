@@ -2,7 +2,6 @@ package com.stefan.simplebackup.utils.file
 
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.extensions.updateCurrentList
 import com.stefan.simplebackup.utils.file.FileUtil.findJsonFilesRecursively
 import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
 import kotlinx.coroutines.CoroutineScope
@@ -77,6 +76,14 @@ class BackupFilesObserver(
         }
     }
 
+    private inline fun MutableStateFlow<MutableList<AppData>>.updateCurrentList(
+        action: (MutableList<AppData>) -> Unit
+    ) {
+        val newValue = value.toMutableList()
+        action(newValue)
+        value = newValue.sortedBy { it.name }.toMutableList()
+    }
+
     fun refreshBackupFileList(predicate: (AppData) -> Boolean = { it.isLocal }) = scope.launch {
         Log.d("BackupFilesObserver", "Refreshing the backup list")
         val backupList = mutableListOf<AppData>()
@@ -91,6 +98,6 @@ class BackupFilesObserver(
                 }
             }
         }
-        observableList.value = backupList
+        observableList.value = backupList.sortedBy { it.name }.toMutableList()
     }
 }

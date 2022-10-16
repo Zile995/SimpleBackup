@@ -23,7 +23,7 @@ class HomeViewPagerFragment : BaseViewPagerFragment<FragmentHomeViewPagerBinding
     }
 
     override fun onCreateFragments(): ArrayList<BaseFragment<*>> =
-        arrayListOf(HomeFragment(), FavoritesFragment.newInstance(AppDataType.USER))
+        arrayListOf(HomeFragment(), FavoritesFragment())
 
     override fun onConfigureTabText(): ArrayList<String> =
         arrayListOf(

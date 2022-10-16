@@ -67,18 +67,6 @@
                 app:checkedIconTint="@color/primary_text"
                 app:checkedIconVisible="true" />
 
-            <com.google.android.material.chip.Chip
-                style="@style/Widget.MaterialComponents.Chip.Choice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:checkable="true"
-                android:text="@string/cloud_backups"
-                android:textAlignment="center"
-                android:textColor="@color/primary_text"
-                app:checkedIcon="@drawable/ic_checked"
-                app:checkedIconTint="@color/primary_text"
-                app:checkedIconVisible="true" />
-
         </com.stefan.simplebackup.ui.views.AnimatedChipGroup>
 
     </HorizontalScrollView>

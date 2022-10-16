@@ -217,6 +217,7 @@ class AppDetailActivity : BaseActivity() {
     private fun ActivityDetailBinding.bindToolBar() {
         detailsToolbar.apply {
             inflateMenu(R.menu.details_tool_bar)
+            menu.setMoreOptions()
             menu.setFavoriteIcon()
             setNavigationIcon(R.drawable.ic_arrow_back)
             setNavigationContentDescription(R.string.back)
@@ -231,17 +232,21 @@ class AppDetailActivity : BaseActivity() {
                             openPackageSettingsInfo(packageName)
                         }
                         R.id.add_to_favorites -> {
-                            detailsViewModel.changeFavorites(onSuccess = { isFavorite ->
-                                menu?.setFavoriteIcon()
-                                if (isFavorite) showToast(R.string.added_to_favorites)
-                                else showToast(R.string.removed_from_favorites)
-                            }, onFailure = { message ->
-                                showToast(
-                                    getString(
-                                        R.string.unable_to_add_to_favorites, message
+                            if (isLocal) return@run false
+                            detailsViewModel.changeFavorites(
+                                onSuccess = { isFavorite ->
+                                    menu?.setFavoriteIcon()
+                                    if (isFavorite)
+                                        showToast(R.string.added_to_favorites)
+                                    else
+                                        showToast(R.string.removed_from_favorites)
+                                }, onFailure = { message ->
+                                    showToast(
+                                        getString(
+                                            R.string.unable_to_add_to_favorites, message
+                                        )
                                     )
-                                )
-                            })
+                                })
                         }
                     }
                     true
@@ -360,6 +365,13 @@ class AppDetailActivity : BaseActivity() {
         fadeIn(300L)
     }
 
+    private fun Menu.setMoreOptions() {
+        detailsViewModel.app?.apply {
+            findItem(R.id.force_stop).isVisible = !isLocal
+            findItem(R.id.settings_info).isVisible = !isLocal
+        }
+    }
+
     private fun Menu.setFavoriteIcon() {
         findItem(R.id.add_to_favorites).apply {
             detailsViewModel.app?.apply {
@@ -369,8 +381,18 @@ class AppDetailActivity : BaseActivity() {
                 else AppCompatResources.getDrawable(
                     this@AppDetailActivity, R.drawable.ic_unstarred
                 )
-                tooltipText = if (favorite) getString(R.string.remove_from_favorites)
-                else getString(R.string.add_to_favorites)
+                if (isLocal) {
+                    if (favorite)
+                        tooltipText = getString(R.string.favorite_backup)
+                    else
+                        isVisible = false
+                } else {
+                    tooltipText =
+                        if (favorite)
+                            getString(R.string.remove_from_favorites)
+                        else
+                            getString(R.string.add_to_favorites)
+                }
             }
         }
     }
