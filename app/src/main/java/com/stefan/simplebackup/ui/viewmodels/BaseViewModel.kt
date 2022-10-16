@@ -27,7 +27,7 @@ abstract class BaseViewModel : ViewModel(), RecyclerViewStateSaver by RecyclerVi
     val spinner get() = _spinner.asStateFlow()
 
     // Observable application properties used for list loading
-    private var _observableList = MutableStateFlow(mutableListOf<AppData>())
+    private val _observableList = MutableStateFlow(mutableListOf<AppData>())
     val observableList get() = _observableList.asStateFlow()
 
     fun setSpinning(shouldSpin: Boolean) {

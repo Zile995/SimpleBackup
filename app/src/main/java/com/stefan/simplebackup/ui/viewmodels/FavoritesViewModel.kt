@@ -25,10 +25,7 @@ class FavoritesViewModel(
                         }
                     }
                     AppDataType.LOCAL -> {
-                        backupFilesObserver.apply {
-                            refreshBackupFileList { it.favorite }
-                            observeBackupFiles()
-                        }
+
                     }
                     AppDataType.CLOUD -> {
                         loadList(false) {

@@ -41,22 +41,14 @@ object FileUtil {
     }
 
     @Throws(IOException::class)
-    suspend fun createFile(path: String) {
-        withContext(ioDispatcher) {
-            val file = File(path)
-            file.createNewFile()
-        }
-    }
-
-    @Throws(IOException::class)
     suspend fun deleteFile(path: String) {
         withContext(ioDispatcher) {
-            Log.d("FileUtil", "Deleting the $path")
             val file = File(path)
             if (!file.exists()) throw IOException("File or directory doesn't exist")
+            Log.d("FileUtil", "Deleting the $path")
             if (file.isDirectory) {
                 val isDeletionSuccessful = file.deleteRecursively()
-                if (!isDeletionSuccessful) throw IllegalArgumentException("Unable to delete all files")
+                if (!isDeletionSuccessful) throw IOException("Unable to delete all files")
                 else return@withContext
             } else {
                 file.delete()
@@ -64,13 +56,25 @@ object FileUtil {
         }
     }
 
-    // TODO: Fix file moving, as backup solutions...
     @Throws(IOException::class)
-    suspend fun File.moveFile(targetFile: File) {
-        val sourceFilePath = this.toPath()
+    suspend fun moveFiles(sourceDir: File, targetFile: File) {
+        if (!sourceDir.isDirectory) throw IOException("File must be verified to be directory beforehand")
         withContext(ioDispatcher) {
-            targetFile.delete()
-            sourceFilePath.moveTo(targetFile.toPath(), true)
+            sourceDir.walkTopDown().map { file ->
+                file.toPath()
+            }.forEach { filePath ->
+                filePath.moveTo(target = targetFile.toPath(), overwrite = true)
+            }
+        }
+    }
+
+    @Throws(IOException::class)
+    suspend fun deleteDirectoryFiles(dir: File) {
+        if (!dir.isDirectory) throw IOException("File must be verified to be directory beforehand")
+        withContext(ioDispatcher) {
+            dir.walkTopDown().forEach { dirFile ->
+                deleteFile(dirFile.absolutePath)
+            }
         }
     }
 
@@ -79,25 +83,19 @@ object FileUtil {
     @Throws(IOException::class)
     suspend fun deleteLocalBackup(packageName: String) = deleteFile("$localDirPath/$packageName")
 
-    fun getBackupDirPath(app: AppData) = "$localDirPath/${app.packageName}"
+    fun getBackupDirPath(app: AppData): String = "$localDirPath/${app.packageName}"
 
     fun getTempDirPath(app: AppData): String = "$tempDirPath/${app.packageName}"
 
-    suspend fun moveBackup(app: AppData) {
-        val sourceFile = File(getTempDirPath(app))
-        val targetFile = File(getBackupDirPath(app) + "/")
-        sourceFile.moveFile(targetFile)
-    }
-
     suspend fun findFirstJsonInDir(jsonDirPath: String) = withContext(ioDispatcher) {
-        File(jsonDirPath).walkTopDown().firstOrNull {
-            it.isFile && it.extension == JSON_FILE_EXTENSION
+        File(jsonDirPath).walkTopDown().firstOrNull { dirFile ->
+            dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION
         }
     }
 
     fun findJsonFilesRecursively(jsonDirPath: String) = flow {
-        File(jsonDirPath).walkTopDown().filter {
-            it.isFile && it.extension == JSON_FILE_EXTENSION
+        File(jsonDirPath).walkTopDown().filter { dirFile ->
+            dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION
         }.forEach { jsonFile ->
             emit(jsonFile)
         }
@@ -105,8 +103,8 @@ object FileUtil {
 
     fun getApkFilesInsideDir(app: AppData): List<File> {
         val dir = File(app.apkDir)
-        return dir.walkTopDown().filter {
-            it.extension == APK_FILE_EXTENSION
+        return dir.walkTopDown().filter { apkDirFile ->
+            apkDirFile.extension == APK_FILE_EXTENSION
         }.toList().also { apkFiles ->
             Log.d("FileUtil", "Got the apk list for ${app.name}: ${apkFiles.map { it.name }}")
         }

@@ -148,9 +148,10 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         } catch (e: SQLiteException) {
             onFailure(e.toString())
             Log.w("ViewModel", "Error occurred while removing favorites $e")
+        } finally {
+            delay(200)
+            setSelectionMode(false)
         }
-        delay(200)
-        setSelectionMode(false)
     }
 
     inline fun deleteSelectedBackups(

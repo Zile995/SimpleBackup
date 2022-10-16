@@ -13,6 +13,7 @@ import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
+import com.stefan.simplebackup.utils.extensions.fadeIn
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
@@ -55,9 +56,10 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
                     progressBar.isVisible = isSpinning
                     if (!isSpinning) {
                         localViewModel.observableList.collect { appList ->
-                            adapter.submitList(appList.sortedBy { it.name })
+                            adapter.submitList(appList)
                             if (appList.isEmpty()) delay(250L)
-                            noBackupsLabel.isVisible = appList.isEmpty()
+                            if (appList.isEmpty()) noBackupsLabel.fadeIn(animationDuration = 250L)
+                            else noBackupsLabel.isVisible = false
                         }
                     }
                 }

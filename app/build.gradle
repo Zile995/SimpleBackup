@@ -134,5 +134,5 @@ dependencies {
     implementation "io.coil-kt:coil:$coil"
 
     // Leak Canary
-    debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"
+//    debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"
 }

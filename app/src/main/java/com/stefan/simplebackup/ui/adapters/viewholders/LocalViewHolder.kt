@@ -28,6 +28,7 @@ class LocalViewHolder(
                 true
             } else
                 false
+            favoritesBadge.isVisible = item.favorite
         }
     }
 }

@@ -135,6 +135,8 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         ).show()
     }
 
+    fun getSelectedAppData() = adapter.getCurrentlySelectedItems()
+
     fun shouldMoveFragmentUp() = _mainRecyclerView?.shouldMoveAtLastCompletelyVisibleItem() ?: false
 
     fun fixRecyclerViewScrollPosition() {

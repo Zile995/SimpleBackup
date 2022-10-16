@@ -47,6 +47,8 @@ abstract class BaseAdapter(
         holder.setSelectedItem(item)
     }
 
+    fun getCurrentlySelectedItems() = currentList.filter { app -> selectedItems.contains(app.packageName) }
+
     private fun BaseViewHolder.setSelectedItem(item: AppData) {
         if (selectedItems.contains(item.packageName)) {
             item.isSelected = true

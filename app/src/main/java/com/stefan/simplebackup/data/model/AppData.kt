@@ -124,9 +124,10 @@ data class AppData(
         date = System.currentTimeMillis()
     }
 
-    suspend fun serializeApp() {
+    @Throws(IOException::class)
+    suspend fun serializeApp(destinationPath: String) {
         isLocal = true
-        JsonUtil.serializeApp(this, getTempDirPath(this))
+        JsonUtil.serializeApp(app = this, destinationPath = destinationPath)
     }
 
     private fun convertDateToString(): String {

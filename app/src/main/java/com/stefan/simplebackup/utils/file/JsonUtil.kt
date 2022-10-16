@@ -18,12 +18,12 @@ object JsonUtil {
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     @Throws(IOException::class)
-    suspend fun serializeApp(app: AppData, dir: String) {
-        Log.d("Serialization", "Saving json to $dir/${app.name}.json")
+    suspend fun serializeApp(app: AppData, destinationPath: String) {
+        Log.d("Serialization", "Saving json to $destinationPath/${app.name}.json")
         withContext(ioDispatcher) {
             try {
                 Json.encodeToString(app).let { jsonString ->
-                    val file = File(dir, app.name + ".json")
+                    val file = File(destinationPath, app.name + ".json")
                     file.bufferedWriter().use { bufferedWriter ->
                         bufferedWriter.append(jsonString)
                     }
@@ -34,7 +34,7 @@ object JsonUtil {
                         "Serialization",
                         "Error occurred $e ${e.message}"
                     )
-                    else -> throw IOException()
+                    else -> throw e
                 }
             }
         }

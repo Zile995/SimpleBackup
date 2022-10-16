@@ -62,10 +62,10 @@ class BackupFilesObserver(
                                 val modifiedApp = deserializeApp(file)
                                 modifiedApp?.apply {
                                     if (file.parentFile?.name == packageName) {
-                                        Log.d("BackupFilesObserver", "Adding modified $name")
                                         val indexOfDeleted =
                                             currentList.indexOfFirst { it.packageName == packageName }
                                         if (indexOfDeleted < 0) return@updateCurrentList
+                                        Log.d("BackupFilesObserver", "Adding modified $name")
                                         currentList[indexOfDeleted] = this
                                     }
                                 }
