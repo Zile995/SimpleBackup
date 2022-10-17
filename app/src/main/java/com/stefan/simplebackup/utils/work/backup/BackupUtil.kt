@@ -93,7 +93,7 @@ class BackupUtil(
         try {
             deleteFile(getTempDirPath(this))
         } catch (e: IOException) {
-            Log.w("BackupUtil", "Failed to delete broken backup $e ${e.message}")
+            Log.w("BackupUtil", "Failed to delete broken backup $e")
         } finally {
             setNearestItemInterval()
             updateNotificationData(R.string.backup_progress_failed)

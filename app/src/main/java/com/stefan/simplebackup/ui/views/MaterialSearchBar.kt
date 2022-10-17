@@ -47,14 +47,6 @@ class MaterialSearchBar(
         }
     }
 
-    override fun setEnabled(enabled: Boolean) {
-        super.setEnabled(enabled)
-        if (enabled)
-            setRippleColorResource(R.color.card_view_ripple)
-        else
-            rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
-    }
-
     inline fun animateToParentSize(
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}

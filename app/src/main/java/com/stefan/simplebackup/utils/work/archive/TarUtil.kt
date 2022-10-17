@@ -9,6 +9,7 @@ import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.IOException
 
 object TarUtil {
@@ -25,6 +26,8 @@ object TarUtil {
             Log.d("TarUtil", "Creating the ${app.packageName} data archive")
             val tarArchiveName = "${app.packageName}.$TAR_FILE_EXTENSION"
             val tarArchivePath = getTempDirPath(app) + "/$tarArchiveName"
+            val tarArchiveFile = File(tarArchivePath)
+            if (tarArchiveFile.exists()) tarArchiveFile.delete()
             val result = Shell.cmd(
                 "tar -cf $tarArchivePath" + " $excludeCommand" + " -C ${app.dataDir} . "
             ).exec()
@@ -35,7 +38,10 @@ object TarUtil {
                 else -> {
                     val message = "Unable to create data archive"
                     Log.w("TarUtil", message)
-                    throw IOException(message)
+                    if (Shell.isAppGrantedRoot() == true)
+                        throw IOException(message)
+                    else
+                        Log.w("TarUtil", "App doesn't have root access, unable to backup data")
                 }
             }
         }

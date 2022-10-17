@@ -38,7 +38,7 @@ fun ImageView.loadBitmap(byteArray: ByteArray) {
     val imageLoader = context.imageLoader
     val request = ImageRequest.Builder(context)
         .data(byteArray)
-        .crossfade(true)
+        .crossfade(false)
         .target(this)
         .diskCachePolicy(CachePolicy.ENABLED)
         .build()

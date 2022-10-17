@@ -39,10 +39,19 @@ import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 class MainActivity : BaseActivity() {
+
+    // Visible BaseFragment getter
+    val getCurrentlyVisibleBaseFragment: BaseFragment<*>?
+        get() {
+            return when (val visibleFragment = supportFragmentManager.getVisibleFragment()) {
+                is BaseFragment<*> -> visibleFragment
+                is BaseViewPagerFragment<*> -> visibleFragment.getCurrentFragment()
+                else -> null
+            }
+        }
+
     // Binding properties
     private val binding by viewBinding(ActivityMainBinding::inflate)
-
-    private val getVisibleViewPagerFragment get() = getVisibleViewPagerFragment()
 
     // NavController, used for navigation
     private lateinit var navController: NavController
@@ -111,6 +120,9 @@ class MainActivity : BaseActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
+        binding.apply {
+            materialSearchBar.post { materialToolbar.searchActionView?.clearSearchViewText() }
+        }
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
 
@@ -176,15 +188,15 @@ class MainActivity : BaseActivity() {
 
     private fun SimpleMaterialToolbar.changeMenuItems(numberOfSelectedItems: Int) {
         when {
-            numberOfSelectedItems > 1 && getVisibleViewPagerFragment is HomeFragment -> {
+            numberOfSelectedItems > 1 && getCurrentlyVisibleBaseFragment is HomeFragment -> {
                 deleteItem?.isVisible = false
             }
-            numberOfSelectedItems > 0 && supportFragmentManager.getVisibleFragment() is LocalFragment -> {
+            numberOfSelectedItems > 0 && getCurrentlyVisibleBaseFragment is LocalFragment -> {
                 deleteItem?.isVisible = true
                 addToFavoritesItem?.isVisible = false
             }
             numberOfSelectedItems > 0 && supportFragmentManager.getVisibleFragment() is HomeViewPagerFragment -> {
-                changeOnFavorite(isFavorite = getVisibleViewPagerFragment is FavoritesFragment)
+                changeOnFavorite(isFavorite = getCurrentlyVisibleBaseFragment is FavoritesFragment)
             }
         }
     }
@@ -226,7 +238,7 @@ class MainActivity : BaseActivity() {
             setOnMenuItemClickListener { menuItem ->
                 when (menuItem.itemId) {
                     R.id.add_to_favorites -> {
-                        if (getVisibleViewPagerFragment !is FavoritesFragment)
+                        if (getCurrentlyVisibleBaseFragment !is FavoritesFragment)
                             mainViewModel.addToFavorites(
                                 onSuccess = { numberOfItems ->
                                     showToast(
@@ -266,10 +278,9 @@ class MainActivity : BaseActivity() {
                             )
                     }
                     R.id.delete -> {
-                        Log.d("Activity", "Setting up the delete action")
-                        when (val visibleFragment = supportFragmentManager.getVisibleFragment()) {
-                            is BaseViewPagerFragment<*> -> {
-                                getVisibleViewPagerFragment?.uninstallSelectedApp()
+                        when (val visibleFragment = getCurrentlyVisibleBaseFragment) {
+                            is HomeFragment -> {
+                                visibleFragment.uninstallSelectedApp()
                             }
                             is LocalFragment -> {
                                 visibleFragment.deleteSelectedBackups()
@@ -277,10 +288,7 @@ class MainActivity : BaseActivity() {
                         }
                     }
                     R.id.select_all -> {
-                        when (val currentlyVisibleFragment = supportFragmentManager.getVisibleFragment()) {
-                            is BaseFragment<*> -> currentlyVisibleFragment.selectAllItems()
-                            is BaseViewPagerFragment<*> -> currentlyVisibleFragment.getCurrentFragment()?.selectAllItems()
-                        }
+                        getCurrentlyVisibleBaseFragment?.selectAllItems()
                     }
                     else -> {
                         return@setOnMenuItemClickListener false
@@ -308,8 +316,8 @@ class MainActivity : BaseActivity() {
     private fun ActivityMainBinding.bindBottomNavigationView() =
         navigationBar.navigateWithAnimation(navController,
             doBeforeNavigating = {
-                getVisibleViewPagerFragment?.stopScrolling()
                 floatingButton.setOnClickListener(null)
+                getCurrentlyVisibleBaseFragment?.stopScrolling()
                 !(mainViewModel.isSearching.value
                         || mainViewModel.isSelected.value) && animationFinished
             },

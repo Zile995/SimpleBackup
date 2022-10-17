@@ -87,6 +87,12 @@ object FileUtil {
 
     fun getTempDirPath(app: AppData): String = "$tempDirPath/${app.packageName}"
 
+    fun findTarArchive(dirPath: String, app: AppData): File {
+        val tarArchive = File("$dirPath/${app.packageName}.$TAR_FILE_EXTENSION")
+        if (!tarArchive.exists()) throw IOException("Unable to find tar archive")
+        return tarArchive
+    }
+
     suspend fun findFirstJsonInDir(jsonDirPath: String) = withContext(ioDispatcher) {
         File(jsonDirPath).walkTopDown().firstOrNull { dirFile ->
             dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION

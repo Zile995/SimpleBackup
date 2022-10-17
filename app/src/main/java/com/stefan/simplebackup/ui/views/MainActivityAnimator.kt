@@ -14,8 +14,6 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
-import com.stefan.simplebackup.ui.fragments.BaseFragment
-import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
 import com.stefan.simplebackup.ui.fragments.viewpager.HomeViewPagerFragment
 import com.stefan.simplebackup.utils.extensions.getColorFromResource
 import com.stefan.simplebackup.utils.extensions.getVisibleFragment
@@ -27,7 +25,6 @@ class MainActivityAnimator(
 ) {
     private val binding get() = bindingReference.get()
     private val activity get() = activityReference.get()
-    private val visibleFragment get() = activity?.supportFragmentManager?.getVisibleFragment()
 
     private val animationDuration = 250L
     private var animatorSet = AnimatorSet().apply {
@@ -37,10 +34,6 @@ class MainActivityAnimator(
 
     fun animateOnSettings(isInSettings: Boolean) {
         binding?.apply {
-            floatingButton.hidePermanently = isInSettings
-            materialToolbar.changeOnSettings(isInSettings) {
-                activity?.onSupportNavigateUp()
-            }
             root.doOnPreDraw {
                 if (isInSettings) {
                     animatorSet = AnimatorSet().apply {
@@ -67,6 +60,10 @@ class MainActivityAnimator(
                     }
                 }
             }
+            floatingButton.hidePermanently = isInSettings
+            materialToolbar.changeOnSettings(isInSettings) {
+                activity?.onSupportNavigateUp()
+            }
         }
     }
 
@@ -76,8 +73,6 @@ class MainActivityAnimator(
     ) {
         binding?.apply {
             expandAppBarLayout(isSelected)
-            floatingButton.changeOnSelection(isSelected)
-            materialToolbar.changeOnSelection(isSelected, selectionModeCallBack)
             if (isSelected)
                 root.post {
                     floatingButton.changeOnHomeFragment(
@@ -91,28 +86,26 @@ class MainActivityAnimator(
                     })
                 } else {
                     reverseAnimations {
-                        when (val currentlyVisibleFragment = visibleFragment) {
-                            is BaseFragment<*> -> currentlyVisibleFragment.fixRecyclerViewScrollPosition()
-                            is BaseViewPagerFragment<*> -> currentlyVisibleFragment.getCurrentFragment()?.fixRecyclerViewScrollPosition()
-                        }
+                        activity?.getCurrentlyVisibleBaseFragment?.fixRecyclerViewScrollPosition()
                     }
                 }
             }
+            floatingButton.changeOnSelection(isSelected)
+            materialToolbar.changeOnSelection(isSelected, selectionModeCallBack)
         }
     }
 
     fun animateOnSearch(isSearching: Boolean) {
         binding?.apply {
-            floatingButton.hidePermanently = isSearching
-            materialToolbar.changeOnSearch(isSearching,
-                setNavigationOnClickListener = {
-                    activity?.onSupportNavigateUp()
-                })
             root.doOnPreDraw {
                 if (isSearching) {
                     startAnimations(
                         doOnStart = {
-                            setFragmentBottomMargin(-materialToolbar.height * 2)
+                            setFragmentBottomMargin(
+                                -materialToolbar.height + root.resources.getDimensionPixelSize(
+                                    R.dimen.chip_group_height
+                                )
+                            )
                         },
                         doOnEnd = {
                             materialToolbar.requestSearchActionViewFocus()
@@ -124,6 +117,11 @@ class MainActivityAnimator(
                     }
                 }
             }
+            floatingButton.hidePermanently = isSearching
+            materialToolbar.changeOnSearch(isSearching,
+                setNavigationOnClickListener = {
+                    activity?.onSupportNavigateUp()
+                })
         }
     }
 
@@ -179,12 +177,8 @@ class MainActivityAnimator(
             if (shouldExpand)
                 appBarLayout.setExpanded(true)
             else {
-                val shouldMoveUp = when (val currentlyVisibleFragment = visibleFragment) {
-                    is BaseFragment<*> -> currentlyVisibleFragment.shouldMoveFragmentUp()
-                    is BaseViewPagerFragment<*> -> currentlyVisibleFragment.getCurrentFragment()
-                        ?.shouldMoveFragmentUp()
-                    else -> true
-                }
+                val visibleFragment = activity?.getCurrentlyVisibleBaseFragment
+                val shouldMoveUp = visibleFragment?.shouldMoveFragmentUp()
                 if (shouldMoveUp == true) {
                     Log.d("MainAnimator", "Collapsing the AppBarLayout")
                     appBarLayout.setExpanded(false)
@@ -198,12 +192,17 @@ class MainActivityAnimator(
         val layoutParams =
             navHostContainer.layoutParams as CoordinatorLayout.LayoutParams
         layoutParams.bottomMargin = bottomMargin
-        navHostContainer.post { navHostContainer.layoutParams = layoutParams }
+        navHostContainer.post {
+            navHostContainer.layoutParams = layoutParams
+            navHostContainer.requestLayout()
+        }
     }
 
     private fun changeStatusBarColor(@ColorRes resId: Int) {
-        activity?.apply {
-            window.statusBarColor = getColorFromResource(resId)
+        binding?.materialSearchBar?.post {
+            activity?.apply {
+                window.statusBarColor = getColorFromResource(resId)
+            }
         }
     }
 

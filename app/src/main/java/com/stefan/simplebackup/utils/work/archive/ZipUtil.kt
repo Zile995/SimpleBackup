@@ -4,12 +4,12 @@ import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.file.APK_FILE_EXTENSION
+import com.stefan.simplebackup.utils.file.FileUtil.findTarArchive
 import com.stefan.simplebackup.utils.file.FileUtil.getApkFilesInsideDir
 import com.stefan.simplebackup.utils.file.FileUtil.getApkZipFile
 import com.stefan.simplebackup.utils.file.FileUtil.getBackupDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.stefan.simplebackup.utils.file.LIB_FILE_EXTENSION
-import com.stefan.simplebackup.utils.file.TAR_FILE_EXTENSION
 import com.stefan.simplebackup.utils.file.ZIP_FILE_EXTENSION
 import kotlinx.coroutines.*
 import net.lingala.zip4j.ZipFile
@@ -27,7 +27,7 @@ object ZipUtil {
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
-    @Throws(ZipException::class)
+    @Throws(ZipException::class, IOException::class)
     suspend fun zipAllData(app: AppData) {
         withContext(ioDispatcher) {
             launch {
@@ -37,14 +37,14 @@ object ZipUtil {
         }
     }
 
-    @Throws(ZipException::class)
+    @Throws(ZipException::class, IOException::class)
     suspend fun extractAllData(app: AppData) {
         withContext(ioDispatcher) {
             extractApks(app)
         }
     }
 
-    @Throws(ZipException::class)
+    @Throws(ZipException::class, IOException::class)
     private suspend fun zipApks(app: AppData) {
         coroutineScope {
             val apkFiles = async { getApkFilesInsideDir(app) }
@@ -57,7 +57,7 @@ object ZipUtil {
         }
     }
 
-    @Throws(ZipException::class)
+    @Throws(ZipException::class, IOException::class)
     private suspend fun extractApks(app: AppData) {
         coroutineScope {
             val backupDirPath = getBackupDirPath(app)
@@ -72,15 +72,14 @@ object ZipUtil {
         }
     }
 
-    @Throws(ZipException::class)
+    @Throws(ZipException::class, IOException::class)
     private suspend fun zipTarArchive(app: AppData) {
         coroutineScope {
             val tempDirPath = getTempDirPath(app)
             val zipParameters = getZipParameters(isApk = false)
-            tempDirPath.findTarArchive(app)?.let { tarArchive ->
+            findTarArchive(dirPath = tempDirPath, app = app).let { tarArchive ->
                 val zipFile = ZipFile(
-                    "${getTempDirPath(app)}/${app.packageName}.$ZIP_FILE_EXTENSION", "pass123".toCharArray()
-                )
+                    "${getTempDirPath(app)}/${app.packageName}.$ZIP_FILE_EXTENSION")
                 if (zipFile.file.exists()) zipFile.file.delete()
                 Log.d("ZipUtil", "Zipping the ${app.packageName} tar archive to $tempDirPath")
                 zipFile.addFile(tarArchive, zipParameters)
@@ -88,11 +87,6 @@ object ZipUtil {
                 Log.d("ZipUtil", "Successfully zipped ${app.name} data")
             }
         }
-    }
-
-    private fun String.findTarArchive(app: AppData): File? {
-        val tarArchive = File("$this/${app.packageName}.$TAR_FILE_EXTENSION")
-        return if (tarArchive.exists()) tarArchive else null
     }
 
     suspend fun getAppAbiList(app: AppData) = withContext(ioDispatcher) {
@@ -132,8 +126,6 @@ object ZipUtil {
                 compressionMethod = CompressionMethod.DEFLATE
                 compressionLevel =
                     enumValues<CompressionLevel>()[PreferenceHelper.savedZipCompressionLevel.toInt()]
-                encryptionMethod = EncryptionMethod.AES
-                aesKeyStrength = AesKeyStrength.KEY_STRENGTH_256
             }
         }
     }

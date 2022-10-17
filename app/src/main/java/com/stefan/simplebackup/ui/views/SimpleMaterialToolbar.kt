@@ -21,10 +21,6 @@ class SimpleMaterialToolbar(
     defStyleAttr: Int
 ) : MaterialToolbar(context, attrs, defStyleAttr) {
 
-    private var inSearchState = false
-    private var inSettingsState = false
-    private var inSelectionState = false
-
     val deleteItem
         get() = findMenuItem(R.id.delete)
 
@@ -44,11 +40,10 @@ class SimpleMaterialToolbar(
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, R.attr.toolbarStyle)
 
-    fun changeOnSearch(
+    inline fun changeOnSearch(
         isSearching: Boolean,
-        setNavigationOnClickListener: () -> Unit = {}
+        crossinline setNavigationOnClickListener: () -> Unit = {}
     ) {
-        inSearchState = isSearching
         if (isSearching) {
             removeTitle()
             removeRipple()
@@ -57,19 +52,19 @@ class SimpleMaterialToolbar(
             setNavigationIcon(R.drawable.ic_arrow_back)
             setNavigationContentDescription(R.string.back)
             setNavigationOnClickListener {
-                if (animationFinished)
+                if (animationFinished) {
                     setNavigationOnClickListener()
+                }
             }
         } else {
             setDefaultState()
         }
     }
 
-    fun changeOnSelection(
+    inline fun changeOnSelection(
         isSelected: Boolean,
-        selectionModeCallBack: SelectionModeCallBack = {}
+        crossinline selectionModeCallBack: SelectionModeCallBack = {}
     ) {
-        inSelectionState = isSelected
         if (isSelected) {
             removeRipple()
             removeOnClickListener()
@@ -85,13 +80,12 @@ class SimpleMaterialToolbar(
         }
     }
 
-    fun changeOnSettings(
+    inline fun changeOnSettings(
         isInSettings: Boolean,
-        setNavigationOnClickListener: () -> Unit = {}
+        crossinline setNavigationOnClickListener: () -> Unit = {}
     ) {
-        inSettingsState = isInSettings
         if (isInSettings) {
-            postDelayed(100L) {
+            postDelayed(50L) {
                 removeRipple()
                 setDefaultMenuItems()
                 removeOnClickListener()
@@ -109,16 +103,17 @@ class SimpleMaterialToolbar(
         }
     }
 
-    @Synchronized
-    private fun setDefaultState() {
-        if (!inSearchState && !inSelectionState && !inSettingsState && !hasOnClickListeners()) {
+    fun setDefaultState() {
+        if (!hasOnClickListeners()) {
             Log.d("SimpleMaterialToolbar", "Setting to default state")
             addRipple()
             setDefaultTitle()
             setDefaultMenuItems()
             propagateClickEventsToParent()
-            setNavigationIcon(R.drawable.ic_search)
-            setNavigationContentDescription(R.string.search_for_apps)
+            post {
+                setNavigationIcon(R.drawable.ic_search)
+                setNavigationContentDescription(R.string.search_for_apps)
+            }
         }
     }
 
@@ -138,14 +133,14 @@ class SimpleMaterialToolbar(
     }
 
     fun setCustomTitle(
-        titleText: String,
+        titleText: String?,
         @StyleRes resId: Int = R.style.TextAppearance_SimpleBackup_TitleSmall
     ) {
         setTitleTextAppearance(context, resId)
         title = titleText
     }
 
-    private fun setCustomTitle(
+    fun setCustomTitle(
         @StringRes customTitle: Int,
         @StyleRes styleResId: Int
     ) {
@@ -153,38 +148,41 @@ class SimpleMaterialToolbar(
         title = context.getString(customTitle)
     }
 
-    private fun setMenuItemsOnSearch() {
-        deleteItem?.isVisible = false
+    fun setMenuItemsOnSearch() {
         searchViewItem?.isVisible = true
-        selectAllItem?.isVisible = false
         addToFavoritesItem?.isVisible = false
+        deleteItem?.isVisible = false
+        selectAllItem?.isVisible = false
     }
 
-    private fun setMenuItemsOnSelection() {
-        deleteItem?.isVisible = true
-        selectAllItem?.isVisible = true
+    fun setMenuItemsOnSelection() {
         searchViewItem?.isVisible = false
         addToFavoritesItem?.isVisible = true
+        deleteItem?.isVisible = true
+        selectAllItem?.isVisible = true
     }
 
-    private fun setDefaultMenuItems() {
+    fun setDefaultMenuItems() {
         deleteItem?.isVisible = false
         selectAllItem?.isVisible = false
-        searchViewItem?.isVisible = false
         addToFavoritesItem?.isVisible = false
     }
 
-    private fun removeTitle() = run { title = null }
-    private fun removeRipple() = setBackgroundResource(0)
-    private fun removeOnClickListener() = setOnClickListener(null)
+    fun removeTitle() = run { title = null }
+    fun removeRipple() = setBackgroundResource(0)
+    fun removeOnClickListener() {
+        setOnClickListener(null)
+        setNavigationOnClickListener(null)
+    }
+    fun resetSearchActionView() {
+        searchActionView?.clearFocus()
+        searchViewItem?.isVisible = false
+    }
+    fun requestSearchActionViewFocus() = searchActionView?.requestFocus()
 
     private fun getDrawable(@DrawableRes resourceId: Int) =
         ContextCompat.getDrawable(context, resourceId)
-
     private fun findMenuItem(@IdRes resourceId: Int) = menu?.findItem(resourceId)
-
-    fun requestSearchActionViewFocus() = searchActionView?.requestFocus()
-    fun resetSearchActionView() = searchActionView?.resetSearchView()
 
     private fun addRipple() =
         with(TypedValue()) {

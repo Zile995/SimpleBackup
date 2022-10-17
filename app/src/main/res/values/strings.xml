@@ -47,7 +47,7 @@
         \nRoot access is needed, in order to
         \nbackup/restore application data</string>
     <string name="not_rooted_title">Your phone is not rooted</string>
-    <string name="not_rooted_info">However, you will only be able to back up / restore applications without their data</string>
+    <string name="not_rooted_info">However, you will only be able to back up apks without their data</string>
     <string name="storage_permission">Storage permission not granted.</string>
     <string name="contacts_permission">Contacts permission not granted.</string>
     <string name="storage_perm_info">This permission is required to manage backup files and folders.
@@ -72,7 +72,6 @@
     <string name="backed_up">backed up</string>
     <string name="storage_perm_success">Storage permission granted successfully</string>
     <string name="set_manually">Set Manually</string>
-    <string name="filter">Filter</string>
     <string name="select_all">Select all</string>
     <string name="clear_selection">Clear selection</string>
     <string name="scroll_to_top">Scroll to top</string>

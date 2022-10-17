@@ -1,7 +1,6 @@
 package com.stefan.simplebackup.ui.views
 
 import android.content.Context
-import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
@@ -11,7 +10,6 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.utils.extensions.getInterFontTypeFace
 import com.stefan.simplebackup.utils.extensions.showSoftKeyboard
 
 class MaterialSearchView(
@@ -34,7 +32,7 @@ class MaterialSearchView(
     init {
         addCloseButton()
         setSearchViewMargin()
-        setTypeFace(context.getInterFontTypeFace())
+        setSearchTextAppearance()
         preventFullScreenKeyboard()
         setOnQueryTextFocusChangeListener { view, hasFocus ->
             if (hasFocus)
@@ -55,18 +53,13 @@ class MaterialSearchView(
 
     private fun setSearchViewMargin() {
         val params = searchEditFrame.layoutParams as LinearLayout.LayoutParams
-        params.setMargins(-12, 0, 30, 0)
+        params.setMargins(-15, 0, 30, 0)
         searchEditFrame.layoutParams = params
         maxWidth = Integer.MAX_VALUE
     }
 
-    private fun setTypeFace(typeface: Typeface?) {
-        searchText.textSize = 17f
-        searchText.typeface = typeface
-    }
+    private fun setSearchTextAppearance() =
+        searchText.setTextAppearance(R.style.TextAppearance_SimpleBackup_TitleSmall)
 
-    fun resetSearchView() {
-        setQuery("", false)
-        clearFocus()
-    }
+    fun clearSearchViewText() = setQuery("", false)
 }
