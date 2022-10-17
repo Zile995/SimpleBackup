@@ -1,8 +1,10 @@
 package com.stefan.simplebackup.data.local.repository
 
+import android.content.Context
 import android.database.sqlite.SQLiteException
 import android.util.Log
 import com.stefan.simplebackup.data.local.database.AppDao
+import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.extensions.filterBy
 import kotlinx.coroutines.*
@@ -48,7 +50,16 @@ class AppRepository(private val appDao: AppDao) {
     suspend fun insert(app: AppData) = appDao.insert(app)
     fun findAppsByName(name: String) = appDao.findAppsByName(name)
     suspend fun delete(packageName: String) = appDao.delete(packageName)
-    suspend fun getAppData(packageName: String) = appDao.getData(packageName)
+
+    suspend fun getAppData(context: Context, packageName: String): AppData? {
+        val appManager = AppManager(context)
+        return if (appManager.doesPackageExists(packageName))
+            appDao.getData(packageName)
+        else {
+            delete(packageName)
+            null
+        }
+    }
 
     private suspend fun isFavorite(packageName: String) = appDao.isFavorite(packageName)
 }

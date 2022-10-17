@@ -26,7 +26,6 @@ abstract class WorkUtil(
         generateIntervals()
     }
 
-    abstract fun updateWhenAppDoesNotExists(): WorkResult
     abstract suspend fun AppData.updateOnSuccess(): WorkResult
     abstract suspend fun AppData.updateOnFailure(): WorkResult
 
@@ -64,6 +63,11 @@ abstract class WorkUtil(
                 }
             }
         }
+    }
+
+    private fun updateWhenAppDoesNotExists(): WorkResult {
+        setNearestItemInterval()
+        return WorkResult.ERROR
     }
 
     protected suspend fun AppData.updateNotificationData(@StringRes info: Int) {

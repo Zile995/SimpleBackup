@@ -23,8 +23,10 @@
             android:id="@+id/image_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="15dp"
+            android:layout_marginStart="@dimen/card_item_content_margin"
             android:layout_marginBottom="30dp"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -33,10 +35,8 @@
                 android:id="@+id/backup_application_image"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:contentDescription="@string/application_image"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                android:layout_gravity="center"
+                android:contentDescription="@string/application_image" />
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/favorites_badge"
@@ -47,7 +47,6 @@
                 android:layout_marginEnd="-8dp"
                 android:background="@color/primary_button_color"
                 android:scaleType="centerInside"
-                android:adjustViewBounds="true"
                 android:tint="@color/button_text"
                 android:visibility="visible"
                 app:shapeAppearanceOverlay="@style/ShapeAppearanceOverlay.SimpleBackup.ImageView"
@@ -55,59 +54,53 @@
 
         </FrameLayout>
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/backup_version_name"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
-            android:fontFamily="@font/inter_family"
-            android:textColor="@color/secondary_text"
-            android:textSize="11sp"
-            app:layout_constraintStart_toEndOf="@+id/image_layout"
-            app:layout_constraintTop_toTopOf="@+id/image_layout" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/backup_application_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/inter"
-            android:maxLines="1"
-            android:textAlignment="textStart"
-            android:textAppearance="?attr/textAppearanceBody1"
-            android:textColor="@color/primary_text"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/backup_package_name"
-            app:layout_constraintStart_toStartOf="@+id/backup_version_name"
-            app:layout_constraintTop_toTopOf="@+id/backup_version_name" />
-
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/backup_package_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/inter_family"
-            android:textColor="@color/secondary_text"
-            android:textSize="11sp"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="@dimen/card_item_content_margin"
+            android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="@+id/image_layout"
-            app:layout_constraintStart_toStartOf="@id/backup_version_name"
-            app:layout_constraintTop_toBottomOf="@+id/backup_application_name" />
-
-        <com.google.android.material.chip.Chip
-            android:id="@+id/backup_data_size"
-            style="@style/Widget.SimpleBackup.Chip"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:layout_marginEnd="6dp"
-            android:textColor="@color/button_text"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            app:chipBackgroundColor="@color/primary_button_color"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/linearLayoutCompat" />
+            app:layout_constraintStart_toEndOf="@+id/image_layout"
+            app:layout_constraintTop_toTopOf="@+id/image_layout">
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/backup_version_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                android:textColor="@color/secondary_text"
+                android:textSize="12sp" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/backup_application_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                android:textColor="@color/primary_text"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/backup_package_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="@font/inter_family"
+                android:maxLines="1"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                android:textColor="@color/secondary_text"
+                android:textSize="12sp" />
+
+        </LinearLayout>
 
         <androidx.appcompat.widget.LinearLayoutCompat
-            android:id="@+id/linearLayoutCompat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -123,7 +116,6 @@
                 android:textColor="@color/button_text"
                 android:textSize="11sp"
                 android:textStyle="bold"
-                app:chipBackgroundColor="@color/primary_button_color"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toEndOf="@id/install_date"
                 app:layout_constraintTop_toTopOf="@+id/install_date" />
@@ -137,11 +129,24 @@
                 android:textColor="@color/button_text"
                 android:textSize="11sp"
                 android:textStyle="bold"
-                app:chipBackgroundColor="@color/primary_button_color"
                 app:chipIcon="@drawable/ic_date"
                 app:chipIconTint="@color/button_text" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/backup_data_size"
+            style="@style/Widget.SimpleBackup.Chip"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:textColor="@color/button_text"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:tooltipText="@string/data_size_tooltip"
+            app:chipIcon="@drawable/ic_data"
+            app:chipIconTint="@color/button_text"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/linearLayout" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

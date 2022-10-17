@@ -53,6 +53,7 @@ object ZipUtil {
             val zipFile = ZipFile("$tempDirPath/${app.name}.$ZIP_FILE_EXTENSION")
             Log.d("ZipUtil", "Zipping the ${app.name} apks to $tempDirPath")
             zipFile.addFiles(apkFiles.await(), zipParameters)
+            app.dataSize += zipFile.file.length()
             Log.d("ZipUtil", "Successfully zipped ${app.name} apks")
         }
     }
@@ -78,6 +79,8 @@ object ZipUtil {
             val tempDirPath = getTempDirPath(app)
             val zipParameters = getZipParameters(isApk = false)
             findTarArchive(dirPath = tempDirPath, app = app).let { tarArchive ->
+                // Save dataSize to app
+                app.dataSize += tarArchive.length()
                 val zipFile = ZipFile(
                     "${getTempDirPath(app)}/${app.packageName}.$ZIP_FILE_EXTENSION")
                 if (zipFile.file.exists()) zipFile.file.delete()
@@ -122,7 +125,6 @@ object ZipUtil {
             }
         } else {
             zipParameters.apply {
-                isEncryptFiles = true
                 compressionMethod = CompressionMethod.DEFLATE
                 compressionLevel =
                     enumValues<CompressionLevel>()[PreferenceHelper.savedZipCompressionLevel.toInt()]

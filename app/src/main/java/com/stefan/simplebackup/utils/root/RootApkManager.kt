@@ -7,7 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class RootApkInstaller(context: Context) {
+class RootApkManager(context: Context) {
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val packageInstaller = context.packageManager.packageInstaller
@@ -25,6 +25,13 @@ class RootApkInstaller(context: Context) {
             }
         }
     }
+
+    suspend fun uninstallApk(packageName: String) {
+        withContext(ioDispatcher) {
+
+        }
+    }
+
 
     private fun startInstalling(apkSizeMap: HashMap<File, Long>, totalSize: Long) {
         Shell.cmd("pm install-create -S $totalSize").exec()

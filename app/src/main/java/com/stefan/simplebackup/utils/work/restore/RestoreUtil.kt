@@ -19,10 +19,6 @@ class RestoreUtil(
         }
     }
 
-    override fun updateWhenAppDoesNotExists(): WorkResult {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun AppData.updateOnSuccess(): WorkResult {
         TODO("Not yet implemented")
     }

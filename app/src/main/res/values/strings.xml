@@ -33,6 +33,7 @@
     <string name="cancel">Cancel</string>
     <string name="apk_size">Apk size %1$s</string>
     <string name="apk_size_tooltip">Apk size</string>
+    <string name="data_size_tooltip">Data size</string>
     <string name="all_arch">All architectures</string>
     <string name="first_installed_on">First installed on %1$s</string>
     <string name="backed_up_on">Backed up on %1$s</string>
@@ -58,7 +59,6 @@
     <string name="work_in_progress">Work in progress</string>
     <string name="backing_up">Backing up</string>
     <string name="backup_progress_dir_info">Creating backup dirs</string>
-    <string name="app_does_not_exist">Application doesn\'t exist!</string>
     <string name="backup_progress_data_info">Backing up app data</string>
     <string name="backup_progress_zip_info">Zipping all data</string>
     <string name="backup_progress_saving_application_data">Saving application data</string>

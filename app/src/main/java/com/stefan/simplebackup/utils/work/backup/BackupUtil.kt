@@ -5,9 +5,11 @@ import android.util.Log
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.AppRepository
+import com.stefan.simplebackup.data.manager.AppInfoManager
+import com.stefan.simplebackup.data.manager.AppStorageManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.ForegroundCallback
-import com.stefan.simplebackup.utils.extensions.showToast
+import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.file.FileUtil.createDirectory
 import com.stefan.simplebackup.utils.file.FileUtil.deleteDirectoryFiles
 import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
@@ -18,6 +20,7 @@ import com.stefan.simplebackup.utils.work.WorkResult
 import com.stefan.simplebackup.utils.work.WorkUtil
 import com.stefan.simplebackup.utils.work.archive.TarUtil
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
+import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.coroutineScope
 import java.io.File
 import java.io.IOException
@@ -33,15 +36,17 @@ class BackupUtil(
         val database = AppDatabase.getInstance(appContext, this)
         val repository = AppRepository(database.appDao())
         backupItems.forEach { item ->
-            repository.getAppData(item).also { app ->
-                val result = app.startWork(
-                    ::createDirs,
-                    ::backupData,
-                    ::zipData,
-                    ::serializeAppData,
-                    ::moveBackup
-                )
-                results.add(result)
+            repository.getAppData(appContext, item).also { app ->
+                withSuspend(app) {
+                    val result = startWork(
+                        ::createDirs,
+                        ::backupData,
+                        ::zipData,
+                        ::serializeAppData,
+                        ::moveBackup
+                    )
+                    results.add(result)
+                }
             }
         }
         results.toList()
@@ -71,17 +76,37 @@ class BackupUtil(
         }
     }
 
+    private suspend inline fun withSuspend(
+        app: AppData?,
+        crossinline doWhileSuspended: suspend AppData?.() -> Unit
+    ) {
+        app.apply {
+            this?.run { Shell.cmd("cmd package suspend $packageName").exec() }
+            doWhileSuspended()
+            this?.run { Shell.cmd("cmd package unsuspend $packageName").exec() }
+        }
+    }
+
+    private fun setDataSize(app: AppData) {
+        if (Shell.isAppGrantedRoot() == true) {
+            if (!PreferenceHelper.shouldExcludeAppsCache) {
+                // TODO: Calculate data / cache size
+            }
+        } else {
+            val appInfoManager = AppInfoManager(appContext.packageManager, 0)
+            val appStorageManager = AppStorageManager(appContext)
+            val appInfo = appInfoManager.getAppInfo(app.packageName)
+            val apkSizeStats = appStorageManager.getApkSizeStats(appInfo)
+            app.dataSize = apkSizeStats.dataSize
+            app.cacheSize = apkSizeStats.cacheSize
+        }
+    }
+
     private suspend fun moveBackup(app: AppData) {
         val tempDirFile = File(getTempDirPath(app))
         val localDirFile = File(getBackupDirPath(app))
         deleteDirectoryFiles(localDirFile)
         moveFiles(sourceDir = tempDirFile, targetFile = localDirFile)
-    }
-
-    override fun updateWhenAppDoesNotExists(): WorkResult {
-        appContext.showToast(R.string.app_does_not_exist)
-        setNearestItemInterval()
-        return WorkResult.ERROR
     }
 
     override suspend fun AppData.updateOnSuccess(): WorkResult {

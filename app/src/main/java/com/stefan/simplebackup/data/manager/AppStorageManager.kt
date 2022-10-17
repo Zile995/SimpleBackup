@@ -43,8 +43,9 @@ class AppStorageManager(context: Context) {
         return ApkSizeStats(storageStats.cacheBytes, storageStats.dataBytes)
     }
 
-    data class ApkSizeStats(
-        val dataSize: Long,
-        val cacheSize: Long
-    )
 }
+
+data class ApkSizeStats(
+    val dataSize: Long,
+    val cacheSize: Long
+)

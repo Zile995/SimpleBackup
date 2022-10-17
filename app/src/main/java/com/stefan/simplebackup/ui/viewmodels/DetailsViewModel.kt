@@ -48,6 +48,12 @@ class DetailsViewModel(
         }
     }
 
+    fun getApkSizes() {
+        app?.apply {
+            // TODO: Get stored or calculated sizes
+        }
+    }
+
     inline fun deleteLocalBackup(
         crossinline onSuccess: () -> Unit, crossinline onFailure: (message: String) -> Unit
     ) = viewModelScope.launch {
