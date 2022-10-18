@@ -2,6 +2,7 @@ package com.stefan.simplebackup.utils.file
 
 import android.util.Log
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import java.io.*
@@ -23,7 +24,11 @@ class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDi
     private val registeredKeys = HashMap<WatchKey, Path>()
     private val watchService = FileSystems.getDefault().newWatchService()
 
-    private val _fileEvent = MutableSharedFlow<FileEvent>()
+    private val _fileEvent = MutableSharedFlow<FileEvent>(
+        replay = 1,
+        extraBufferCapacity = Int.MAX_VALUE,
+        onBufferOverflow = BufferOverflow.SUSPEND
+    )
     val fileEvent get() = _fileEvent.asSharedFlow()
 
     init {
@@ -82,7 +87,7 @@ class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDi
                     // Finally emit the event
                     val event = FileEvent(file = eventFile, kind = eventKind)
                     Log.d("RecursiveFileWatcher", "Emitting $event")
-                    _fileEvent.emit(event)
+                    _fileEvent.tryEmit(event)
                 }
 
                 // Reset key and check if directory no longer accessible

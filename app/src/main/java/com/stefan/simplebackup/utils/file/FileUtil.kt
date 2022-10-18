@@ -21,6 +21,7 @@ const val JSON_FILE_EXTENSION: String = "json"
 private const val TEMP_DIR_NAME: String = "temp"
 private const val CLOUD_DIR_NAME: String = "cloud"
 private const val LOCAL_DIR_NAME: String = "local"
+const val APK_TMP_INSTALL_DIR_PATH = "/data/local/tmp"
 
 @Suppress("BlockingMethodInNonBlockingContext")
 object FileUtil {
@@ -73,12 +74,11 @@ object FileUtil {
         if (!dir.isDirectory) throw IOException("File must be verified to be directory beforehand")
         withContext(ioDispatcher) {
             dir.walkTopDown().forEach { dirFile ->
+                if (dirFile == dir) return@forEach
                 deleteFile(dirFile.absolutePath)
             }
         }
     }
-
-    suspend fun createLocalDir() = createDirectory(localDirPath)
 
     @Throws(IOException::class)
     suspend fun deleteLocalBackup(packageName: String) = deleteFile("$localDirPath/$packageName")
@@ -87,22 +87,32 @@ object FileUtil {
 
     fun getTempDirPath(app: AppData): String = "$tempDirPath/${app.packageName}"
 
+    fun getTempApkInstallDirPath(app: AppData): String = "$APK_TMP_INSTALL_DIR_PATH/${app.packageName}"
+
     fun findTarArchive(dirPath: String, app: AppData): File {
         val tarArchive = File("$dirPath/${app.packageName}.$TAR_FILE_EXTENSION")
         if (!tarArchive.exists()) throw IOException("Unable to find tar archive")
         return tarArchive
     }
 
-    suspend fun findFirstJsonInDir(jsonDirPath: String) = withContext(ioDispatcher) {
-        File(jsonDirPath).walkTopDown().firstOrNull { dirFile ->
+    tailrec suspend fun findFirstJsonInDir(jsonDirPath: String): File = withContext(ioDispatcher) {
+        val jsonFile = File(jsonDirPath).walkTopDown().firstOrNull { dirFile ->
             dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION
+        }
+        if (jsonFile == null) {
+            FileUtil.findFirstJsonInDir(jsonDirPath)
+        } else
+        return@withContext jsonFile
+    }
+
+    suspend fun getJsonFiles(jsonDirPath: String, filterDirNames: (String?) -> Boolean = { true }) = coroutineScope {
+        File(jsonDirPath).walkTopDown().filter { dirFile ->
+            dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION && filterDirNames(dirFile.parentFile?.name)
         }
     }
 
-    fun findJsonFilesRecursively(jsonDirPath: String) = flow {
-        File(jsonDirPath).walkTopDown().filter { dirFile ->
-            dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION
-        }.forEach { jsonFile ->
+    fun emitJsonFiles(jsonDirPath: String) = flow {
+        getJsonFiles(jsonDirPath).forEach { jsonFile ->
             emit(jsonFile)
         }
     }.flowOn(ioDispatcher)

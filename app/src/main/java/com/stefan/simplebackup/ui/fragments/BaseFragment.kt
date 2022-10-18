@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.snackbar.Snackbar
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
@@ -72,7 +73,10 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
 
     override fun onResume() {
         super.onResume()
-        onMainActivityCallback { _mainRecyclerView?.controlFloatingButton() }
+        onMainActivityCallback { _mainRecyclerView?.controlFloatingButton(
+            customSelectionAction = {
+                startProgressActivity(mainViewModel.selectionList.toTypedArray(), AppDataType.LOCAL)
+            }) }
     }
 
     @Suppress("UNCHECKED_CAST")

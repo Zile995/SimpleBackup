@@ -36,7 +36,7 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
                 if (!cloudBackupClicked)
-                    startProgressActivity(AppDataType.LOCAL)
+                    startProgressActivity(AppDataType.USER)
             } else {
                 onShowDialog { showStoragePermissionDialog() }
             }
@@ -63,7 +63,7 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
             cloudBackupClicked = false
             onMainActivityCallback {
                 requestStoragePermission(storagePermissionLauncher, onPermissionAlreadyGranted = {
-                    startProgressActivity(AppDataType.LOCAL)
+                    startProgressActivity(AppDataType.USER)
                 })
             }
         }

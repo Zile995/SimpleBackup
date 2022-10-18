@@ -13,8 +13,8 @@ import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.data.model.NotificationData
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
-import com.stefan.simplebackup.data.workers.WORK_REQUEST_TAG
 import com.stefan.simplebackup.data.workers.WORK_PROGRESS
+import com.stefan.simplebackup.data.workers.WORK_REQUEST_TAG
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
 import com.stefan.simplebackup.ui.viewmodels.ProgressViewModel
 import com.stefan.simplebackup.ui.viewmodels.ProgressViewModelFactory
@@ -30,7 +30,6 @@ class ProgressActivity : BaseActivity() {
     private val workManager by lazy { WorkManager.getInstance(application) }
 
     private var isInProgress: Boolean = true
-    private var bitmap: ByteArray = byteArrayOf()
 
     private val progressViewModel: ProgressViewModel by viewModels {
         val selectionList = intent?.extras?.getStringArray(SELECTION_EXTRA)
@@ -112,11 +111,8 @@ class ProgressActivity : BaseActivity() {
 
     private fun ActivityProgressBinding.updateViews(notificationData: NotificationData?) {
         notificationData?.apply {
-            if (!bitmap.contentEquals(image)) {
-                applicationImageProgress.loadBitmap(image)
-                applicationNameProgress.text = name
-                bitmap = image
-            }
+            applicationImageProgress.loadBitmap(image)
+            applicationNameProgress.text = name
         }
     }
 

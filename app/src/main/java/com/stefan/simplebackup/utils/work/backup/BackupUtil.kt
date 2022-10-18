@@ -16,6 +16,7 @@ import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
 import com.stefan.simplebackup.utils.file.FileUtil.getBackupDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.moveFiles
+import com.stefan.simplebackup.utils.root.RootApkManager
 import com.stefan.simplebackup.utils.work.WorkResult
 import com.stefan.simplebackup.utils.work.WorkUtil
 import com.stefan.simplebackup.utils.work.archive.TarUtil
@@ -28,7 +29,8 @@ import java.io.IOException
 class BackupUtil(
     private val appContext: Context,
     private val backupItems: Array<String>,
-    updateForegroundInfo: ForegroundCallback
+    updateForegroundInfo: ForegroundCallback,
+    private val shouldBackupToCloud: Boolean = false
 ) : WorkUtil(appContext, backupItems, updateForegroundInfo) {
 
     suspend fun backup(): List<WorkResult> = coroutineScope {

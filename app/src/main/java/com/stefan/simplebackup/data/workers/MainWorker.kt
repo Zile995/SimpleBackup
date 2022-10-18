@@ -38,16 +38,18 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         get() = inputData.getStringArray(INPUT_LIST)
     private val shouldBackup: Boolean
         get() = inputData.getBoolean(SHOULD_BACKUP, true)
+    private val shouldBackupToCloud: Boolean
+        get() = inputData.getBoolean(SHOULD_BACKUP_TO_CLOUD, false)
 
     private lateinit var workResults: List<WorkResult>
+
+    private val updateForegroundInfo = createForegroundInfo(notificationId)
 
     private val foregroundCallBack: ForegroundCallback = { notificationData ->
         progressState.value = notificationData
         updateForegroundInfo(getUpdatedNotification(notificationData))
         setProgress(workDataOf(WORK_PROGRESS to notificationData.progress))
     }
-
-    private val updateForegroundInfo = createForegroundInfo(notificationId)
 
     override suspend fun doWork(): Result = coroutineScope {
         try {
@@ -84,7 +86,12 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
     private suspend fun backup() {
         items?.let { backupItems ->
-            val backupUtil = BackupUtil(applicationContext, backupItems, foregroundCallBack)
+            val backupUtil = BackupUtil(
+                appContext = applicationContext,
+                backupItems = backupItems,
+                updateForegroundInfo = foregroundCallBack,
+                shouldBackupToCloud = shouldBackupToCloud
+            )
             workResults = backupUtil.backup()
         }
     }
@@ -92,7 +99,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     private suspend fun restore() {
         items?.let { restoreItems ->
             val restoreUtil = RestoreUtil(applicationContext, restoreItems, foregroundCallBack)
-            restoreUtil.restore()
+            workResults = restoreUtil.restore()
         }
     }
 
@@ -109,9 +116,10 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         private var progressState: MutableStateFlow<NotificationData?> =
             MutableStateFlow(null)
 
-        val notificationObserver get() = progressState.asStateFlow().distinctUntilChanged { old, new ->
-            old?.image.contentEquals(new?.image)
-        }
+        val notificationObserver
+            get() = progressState.asStateFlow().distinctUntilChanged { old, new ->
+                old?.image.contentEquals(new?.image)
+            }
     }
 
 }

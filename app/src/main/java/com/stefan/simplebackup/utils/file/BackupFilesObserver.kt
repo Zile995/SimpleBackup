@@ -2,7 +2,7 @@ package com.stefan.simplebackup.utils.file
 
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.file.FileUtil.findJsonFilesRecursively
+import com.stefan.simplebackup.utils.file.FileUtil.emitJsonFiles
 import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -87,7 +87,7 @@ class BackupFilesObserver(
     fun refreshBackupFileList(predicate: (AppData) -> Boolean = { it.isLocal }) = scope.launch {
         Log.d("BackupFilesObserver", "Refreshing the backup list")
         val backupList = mutableListOf<AppData>()
-        findJsonFilesRecursively(jsonDirPath = rootDirPath).collect { jsonFile ->
+        emitJsonFiles(jsonDirPath = rootDirPath).collect { jsonFile ->
             if (jsonFile.parentFile?.parentFile?.absolutePath != rootDirPath) return@collect
             val app = deserializeApp(jsonFile)
             app?.let {

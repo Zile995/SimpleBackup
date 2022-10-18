@@ -53,14 +53,18 @@ class WorkNotificationBuilder(
         results: List<WorkResult>,
         isBackupNotification: Boolean
     ): Notification = notificationBuilder.run {
+
         val successful = results.count { workResult ->
             workResult == WorkResult.SUCCESS
         }
+
         val failed = results.count { workResult ->
             workResult == WorkResult.ERROR
         }
+
         val appText =
             if (successful > 1) context.getString(R.string.apps) else context.getString(R.string.app)
+
         val withFailed: () -> String = {
             if (failed > 0)
                 ", $failed $appText ${context.getString(R.string.unsuccessfully)}"

@@ -392,7 +392,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    fun MainRecyclerView.controlFloatingButton() {
+    fun MainRecyclerView.controlFloatingButton(customSelectionAction: () -> Unit) {
         binding.apply {
             if (floatingButton.hidePermanently) return
             floatingButton.setOnClickListener {
@@ -403,6 +403,8 @@ class MainActivity : BaseActivity() {
                         mainViewModel.selectionList.isNotEmpty()
                     )
                         ConfigureSheetFragment().show(supportFragmentManager, "configureSheetTag")
+                    else
+                        customSelectionAction()
                 }
             }
             hideAttachedButton(floatingButton)

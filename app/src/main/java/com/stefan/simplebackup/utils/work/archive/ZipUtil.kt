@@ -63,7 +63,7 @@ object ZipUtil {
             Log.d("ZipUtil", "Extracting the ${app.name} apks to $backupDirPath")
             val zipFile = getApkZipFile(appBackupDirPath = backupDirPath)
             zipFile?.apply {
-                extractAll(backupDirPath)
+                extractAll(getTempDirPath(app))
                 Log.d("ZipUtil", "Successfully extracted ${app.name} apks")
             } ?: {
                 throw IOException("Unable to find zip file")
