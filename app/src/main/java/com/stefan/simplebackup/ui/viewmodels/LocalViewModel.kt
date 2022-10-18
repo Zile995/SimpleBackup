@@ -17,7 +17,7 @@ class LocalViewModel(
     application: MainApplication
 ) : BaseViewModel() {
 
-    private val workManager = WorkManager.getInstance(application)
+    private val workManager by lazy { WorkManager.getInstance(application) }
 
     init {
         Log.d("ViewModel", "LocalViewModel created")
@@ -39,7 +39,7 @@ class LocalViewModel(
     fun startRestoreWorker(packageName: String) {
         viewModelScope.launch(Dispatchers.Default) {
             val workerHelper = WorkerHelper(packageName = packageName, workManager)
-            workerHelper.beginUniqueWork<MainWorker>(shouldBackup = false)
+            workerHelper.beginUniqueLocalWork<MainWorker>(shouldBackup = false)
         }
     }
 

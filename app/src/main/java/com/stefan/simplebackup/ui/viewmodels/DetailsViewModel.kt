@@ -8,6 +8,9 @@ import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.AppRepository
+import com.stefan.simplebackup.data.manager.ApkSizeStats
+import com.stefan.simplebackup.data.manager.AppInfoManager
+import com.stefan.simplebackup.data.manager.AppStorageManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.file.asRecursiveFileWatcher
@@ -31,26 +34,43 @@ class DetailsViewModel(
     }
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 
-    private val _archNames = MutableStateFlow<List<String>?>(null)
-    val archNames get() = _archNames.asStateFlow()
+    private val _nativeLibs = MutableStateFlow<List<String>?>(null)
+    val nativeLibs get() = _nativeLibs.asStateFlow()
+
+    private val _apkSizeStats = MutableStateFlow<ApkSizeStats?>(null)
+    val apkSizeStats get() = _apkSizeStats.asStateFlow()
 
     init {
         Log.d("ViewModel", "DetailsViewModel created")
-        getApkArchitectures()
+        getNativeLibs()
+        getApkSizes()
     }
 
-    private fun getApkArchitectures() {
+    private fun getNativeLibs() {
         viewModelScope.launch(ioDispatcher) {
             app?.apply {
-                _archNames.value = ZipUtil.getAppAbiList(this)
+                _nativeLibs.value = ZipUtil.getAppNativeLibs(this)
             }
         }
     }
 
-    fun getApkSizes() {
-        app?.apply {
-            // TODO: Get stored or calculated sizes
+    private fun getApkSizes() {
+        viewModelScope.launch(defaultDispatcher) {
+            app?.run {
+                if (!isLocal) {
+                    if (dataSize != 0L || cacheSize != 0L)
+                        _apkSizeStats.value = ApkSizeStats(dataSize, cacheSize)
+                    else {
+                        val appInfoManager = AppInfoManager(application.packageManager, 0)
+                        val appInfo = appInfoManager.getAppInfo(app.packageName)
+                        val appStorageManager = AppStorageManager(application)
+                        _apkSizeStats.value = appStorageManager.getApkSizeStats(appInfo)
+                    }
+                } else
+                    _apkSizeStats.value = ApkSizeStats(dataSize, cacheSize)
+            }
         }
     }
 
@@ -68,8 +88,9 @@ class DetailsViewModel(
         }
     }
 
-    inline fun changeFavorites(
-        crossinline onSuccess: (Boolean) -> Unit, crossinline onFailure: (message: String) -> Unit
+    inline fun changeFavoritesForInstalledApp(
+        crossinline onSuccess: (Boolean) -> Unit,
+        crossinline onFailure: (message: String) -> Unit
     ) = viewModelScope.launch {
         app?.apply {
             try {

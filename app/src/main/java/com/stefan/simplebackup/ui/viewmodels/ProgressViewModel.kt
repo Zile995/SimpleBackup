@@ -29,10 +29,13 @@ class ProgressViewModel(
 
     private fun startWorker() {
         selectionList?.let { appList ->
-            appDataType?.let {
-                val shouldBackup = it == AppDataType.USER
+            appDataType?.run {
                 val workerHelper = WorkerHelper(appList, workManager)
-                workerHelper.beginUniqueWork<MainWorker>(shouldBackup = shouldBackup)
+                when (this) {
+                    AppDataType.USER -> workerHelper.beginUniqueLocalWork<MainWorker>(shouldBackup = true)
+                    AppDataType.LOCAL -> workerHelper.beginUniqueLocalWork<MainWorker>(shouldBackup = false)
+                    AppDataType.CLOUD -> workerHelper.beginUniqueCloudWork<MainWorker>()
+                }
             }
         }
     }

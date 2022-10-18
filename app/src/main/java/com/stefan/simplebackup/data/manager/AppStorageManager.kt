@@ -46,6 +46,6 @@ class AppStorageManager(context: Context) {
 }
 
 data class ApkSizeStats(
-    val dataSize: Long,
-    val cacheSize: Long
+    val dataSize: Long = 0L,
+    val cacheSize: Long = 0L
 )

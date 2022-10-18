@@ -15,10 +15,8 @@ import kotlinx.coroutines.*
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
 import net.lingala.zip4j.model.ZipParameters
-import net.lingala.zip4j.model.enums.AesKeyStrength
 import net.lingala.zip4j.model.enums.CompressionLevel
 import net.lingala.zip4j.model.enums.CompressionMethod
-import net.lingala.zip4j.model.enums.EncryptionMethod
 import java.io.File
 import java.io.IOException
 
@@ -92,17 +90,17 @@ object ZipUtil {
         }
     }
 
-    suspend fun getAppAbiList(app: AppData) = withContext(ioDispatcher) {
+    suspend fun getAppNativeLibs(app: AppData) = withContext(ioDispatcher) {
         File(app.apkDir).run {
             walkTopDown().filter { file ->
                 file.extension == APK_FILE_EXTENSION
             }.flatMap { apkFile ->
-                getApkAbiList(apkFile)
+                getApkNativeLibs(apkFile)
             }.toList()
         }
     }
 
-    private fun getApkAbiList(apkFile: File) = try {
+    private fun getApkNativeLibs(apkFile: File) = try {
         val zipFile = ZipFile(apkFile)
         val headerList = zipFile.fileHeaders
         headerList.asSequence().map { fileHeader ->

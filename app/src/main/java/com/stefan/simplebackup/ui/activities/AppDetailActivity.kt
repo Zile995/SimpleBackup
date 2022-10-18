@@ -52,6 +52,7 @@ class AppDetailActivity : BaseActivity() {
     private val binding by viewBinding(ActivityDetailBinding::inflate)
 
     private var isToolbarAnimating = false
+    private var cloudBackupClicked = false
 
     private val detailsViewModel: DetailsViewModel by viewModels {
         val selectedApp = intent.extras?.parcelable<AppData>(PARCELABLE_EXTRA)
@@ -64,7 +65,8 @@ class AppDetailActivity : BaseActivity() {
     private val contactsPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                //
+                if(cloudBackupClicked)
+                    startWork(shouldBackupToCloud = true)
             } else {
                 showStoragePermissionDialog()
             }
@@ -73,7 +75,8 @@ class AppDetailActivity : BaseActivity() {
     private val storagePermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                startLocalWork()
+                if (!cloudBackupClicked)
+                    startWork()
             } else {
                 showStoragePermissionDialog()
             }
@@ -133,10 +136,10 @@ class AppDetailActivity : BaseActivity() {
                             }
                         }
                     }
-                    archNames.collect { archNames ->
-                        Log.d("ChipGroup", "Arch names = $archNames")
-                        archNames?.let {
-                            architectureChipGroup.addArchChipsToChipGroup(archNames)
+                    nativeLibs.collect { nativeLibs ->
+                        Log.d("ChipGroup", "Arch names = $nativeLibs")
+                        nativeLibs?.let {
+                            architectureChipGroup.addArchChipsToChipGroup(nativeLibs)
                         }
                     }
                 }
@@ -233,7 +236,7 @@ class AppDetailActivity : BaseActivity() {
                         }
                         R.id.add_to_favorites -> {
                             if (isLocal) return@run false
-                            detailsViewModel.changeFavorites(
+                            detailsViewModel.changeFavoritesForInstalledApp(
                                 onSuccess = { isFavorite ->
                                     menu?.setFavoriteIcon()
                                     if (isFavorite)
@@ -258,29 +261,33 @@ class AppDetailActivity : BaseActivity() {
     private fun ActivityDetailBinding.bindLocalBackupButton() {
         detailsViewModel.app?.apply {
             if (isLocal) {
-                localBackupButton.setImageResource(R.drawable.ic_restore)
-                localBackupButton.tooltipText = getString(R.string.restore)
+                localWorkButton.setImageResource(R.drawable.ic_restore)
+                localWorkButton.tooltipText = getString(R.string.restore)
             }
-        }
-        localBackupButton.setOnClickListener {
-            requestStoragePermission(storagePermissionLauncher, onPermissionAlreadyGranted = {
-                startLocalWork()
-            })
+            localWorkButton.setOnClickListener {
+                cloudBackupClicked = false
+                requestStoragePermission(storagePermissionLauncher, onPermissionAlreadyGranted = {
+                    startWork(shouldBackupToCloud = false)
+                })
+            }
         }
     }
 
     private fun ActivityDetailBinding.bindCloudBackupButton() {
         detailsViewModel.app?.apply {
             cloudBackupButton.isVisible = !isLocal
-        }
-        cloudBackupButton.setOnClickListener {
-            proceedWithPermission(MainPermission.MANAGE_ALL_FILES, onPermissionGranted = {
-                requestContactsPermission(contactsPermissionLauncher, onPermissionAlreadyGranted = {
-                    //
+            cloudBackupButton.setOnClickListener {
+                cloudBackupClicked = true
+                proceedWithPermission(MainPermission.MANAGE_ALL_FILES, onPermissionGranted = {
+                    requestContactsPermission(
+                        contactsPermissionLauncher,
+                        onPermissionAlreadyGranted = {
+                            startWork(shouldBackupToCloud = true)
+                        })
+                }, onPermissionDenied = {
+                    requestStoragePermission(storagePermissionLauncher)
                 })
-            }, onPermissionDenied = {
-                showStoragePermissionDialog()
-            })
+            }
         }
     }
 
@@ -350,9 +357,9 @@ class AppDetailActivity : BaseActivity() {
         }
     }
 
-    private fun ChipGroup.addArchChipsToChipGroup(archNames: List<String>) {
-        if (archNames.isNotEmpty()) {
-            archNames.forEach { archName ->
+    private fun ChipGroup.addArchChipsToChipGroup(nativeLibs: List<String>) {
+        if (nativeLibs.isNotEmpty()) {
+            nativeLibs.forEach { archName ->
                 val chip = Chip(context, null, R.style.Widget_SimpleBackup_Chip)
                 chip.text = archName
                 addView(chip)
@@ -397,14 +404,16 @@ class AppDetailActivity : BaseActivity() {
         }
     }
 
-    private fun startLocalWork() {
-        detailsViewModel.app?.apply {
-            if (isLocal) startProgressActivity(
-                arrayOf(this.packageName), AppDataType.LOCAL
-            )
-            else startProgressActivity(
-                arrayOf(this.packageName), AppDataType.USER
-            )
+    private fun startWork(shouldBackupToCloud: Boolean = false) {
+        detailsViewModel.app?.run {
+            if (isLocal) {
+                startProgressActivity(arrayOf(this.packageName), AppDataType.LOCAL)
+                return
+            }
+            if (shouldBackupToCloud)
+                startProgressActivity(arrayOf(this.packageName), AppDataType.CLOUD)
+            else
+                startProgressActivity(arrayOf(this.packageName), AppDataType.USER)
         }
     }
 

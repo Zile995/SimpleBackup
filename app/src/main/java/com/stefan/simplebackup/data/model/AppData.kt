@@ -75,10 +75,10 @@ data class AppData(
     val isSplit: Boolean,
 
     @ColumnInfo(name = "data_size")
-    var dataSize: Long = 0,
+    var dataSize: Long = 0L,
 
     @ColumnInfo(name = "cache_size")
-    var cacheSize: Long = 0,
+    var cacheSize: Long = 0L,
 
     @ColumnInfo(name = "favorite")
     var favorite: Boolean = false,

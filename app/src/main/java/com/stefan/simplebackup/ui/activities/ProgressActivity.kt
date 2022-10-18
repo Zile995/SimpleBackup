@@ -13,7 +13,7 @@ import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.data.model.NotificationData
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
-import com.stefan.simplebackup.data.workers.REQUEST_TAG
+import com.stefan.simplebackup.data.workers.WORK_REQUEST_TAG
 import com.stefan.simplebackup.data.workers.WORK_PROGRESS
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
 import com.stefan.simplebackup.ui.viewmodels.ProgressViewModel
@@ -26,6 +26,8 @@ class ProgressActivity : BaseActivity() {
 
     // Binding properties
     private val binding: ActivityProgressBinding by viewBinding(ActivityProgressBinding::inflate)
+
+    private val workManager by lazy { WorkManager.getInstance(application) }
 
     private var isInProgress: Boolean = true
     private var bitmap: ByteArray = byteArrayOf()
@@ -74,7 +76,7 @@ class ProgressActivity : BaseActivity() {
         progressViewModel
         launchOnViewLifecycle {
             launch {
-                WorkManager.getInstance(application).getWorkInfosByTagLiveData(REQUEST_TAG)
+                workManager.getWorkInfosByTagLiveData(WORK_REQUEST_TAG)
                     .observe(this@ProgressActivity, workInfoObserver())
             }
             repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
@@ -98,6 +100,7 @@ class ProgressActivity : BaseActivity() {
                 backButton.isEnabled = true
                 isInProgress = false
                 progressIndicator.setProgress(PROGRESS_MAX, true)
+                workManager.pruneWork()
             }
         }
     }

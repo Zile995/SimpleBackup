@@ -353,7 +353,7 @@
             android:orientation="horizontal">
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/local_backup_button"
+                android:id="@+id/local_work_button"
                 style="@style/Widget.SimpleBackup.RoundedFloatingButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
