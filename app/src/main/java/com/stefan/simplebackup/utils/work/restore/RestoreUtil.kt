@@ -7,10 +7,15 @@ import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.ForegroundCallback
 import com.stefan.simplebackup.utils.file.FileUtil
+import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
+import com.stefan.simplebackup.utils.file.FileUtil.getTempApkInstallDirPath
+import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
+import com.stefan.simplebackup.utils.file.FileUtil.localDirPath
 import com.stefan.simplebackup.utils.file.JsonUtil
 import com.stefan.simplebackup.utils.root.RootApkManager
 import com.stefan.simplebackup.utils.work.WorkResult
 import com.stefan.simplebackup.utils.work.WorkUtil
+import com.stefan.simplebackup.utils.work.archive.TarUtil
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import kotlinx.coroutines.coroutineScope
 import java.io.IOException
@@ -31,7 +36,8 @@ class RestoreUtil(
             val result = restoreApp.startWork(
                 ::createDirs,
                 ::unzipData,
-                ::installApk
+                ::installApk,
+                ::restoreData
             )
             results.add(result)
         }
@@ -39,7 +45,7 @@ class RestoreUtil(
     }
 
     private suspend fun addRestoreApps() {
-        val jsonFiles = FileUtil.getJsonFiles(FileUtil.localDirPath) { dirName ->
+        val jsonFiles = FileUtil.getJsonFiles(localDirPath) { dirName ->
             restoreItems.contains(dirName)
         }
         jsonFiles.forEach { jsonFile ->
@@ -50,13 +56,13 @@ class RestoreUtil(
 
     private suspend fun createDirs(app: AppData) {
         app.updateNotificationData(R.string.restore_progress_dir_info)
-        FileUtil.createDirectory(FileUtil.getTempDirPath(app))
+        FileUtil.createDirectory(getTempDirPath(app))
         rootApkManager.createTempInstallDir(app)
     }
 
     private suspend fun unzipData(app: AppData) {
         app.updateNotificationData(R.string.restore_progress_dir_info)
-        ZipUtil.extractAllData(app)
+        ZipUtil.unzipAllData(app)
         rootApkManager.moveApkFilesToTempDir(app)
     }
 
@@ -66,7 +72,14 @@ class RestoreUtil(
         val doesExists = appManager.doesPackageExists(packageName = app.packageName)
         if (doesExists)
             rootApkManager.uninstallApk(app.packageName)
-        rootApkManager.installApk(FileUtil.getTempApkInstallDirPath(app))
+        rootApkManager.installApk(getTempApkInstallDirPath(app = app))
+        rootApkManager.deleteTempInstallDir(app = app)
+    }
+
+    private suspend fun restoreData(app: AppData) {
+        app.updateNotificationData(R.string.restore_progress_data_info)
+        TarUtil.restoreData(app)
+        deleteFile(getTempDirPath(app))
     }
 
     override suspend fun AppData.updateOnSuccess(): WorkResult {
@@ -76,7 +89,7 @@ class RestoreUtil(
 
     override suspend fun AppData.updateOnFailure(): WorkResult {
         try {
-            FileUtil.deleteFile(FileUtil.getTempDirPath(this))
+            deleteFile(getTempDirPath(this))
         } catch (e: IOException) {
             Log.w("RestoreUtil", "Failed to delete broken restore files $e")
         } finally {
@@ -86,32 +99,3 @@ class RestoreUtil(
         return WorkResult.ERROR
     }
 }
-
-//private suspend fun installApp(context: Context, app: AppData) {
-//        withContext(Dispatchers.IO) {
-//            val internalStoragePath = (context.getExternalFilesDir(null)!!.absolutePath).run {
-//                substring(0, indexOf("Android")).plus(
-//                    ROOT
-//                )
-//            }
-//            println(internalStoragePath)
-//            val backupDir = app.dataDir
-//            val tempDir = LOCAL.plus(backupDir.removePrefix(internalStoragePath))
-//            println(tempDir)
-//            val packageName = app.packageName
-//            val packageDataDir = "$DATA/$packageName"
-//            try {
-//                with(Installer) {
-//                    // TODO: To be fixed.
-//                    Shell.su("x=$(echo -e \"$tempDir\") && mkdir -p \"\$x\"").exec()
-//                    Shell.su("x=$(echo -e \"$backupDir/${app.packageName}.tar\")" +
-//                            " && y=$(echo -e \"$tempDir/\")" +
-//                            " && tar -zxf \"\$x\" -C \"\$y\"").exec()
-//                    Shell.su("rm -rf $packageDataDir/*").exec()
-//                    Shell.su("restorecon -R $packageDataDir").exec()
-//                }
-//            } catch (e: Exception) {
-//                e.printStackTrace()
-//            }
-//        }
-//    }

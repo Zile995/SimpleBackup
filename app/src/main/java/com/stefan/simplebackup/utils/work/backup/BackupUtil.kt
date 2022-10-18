@@ -9,14 +9,12 @@ import com.stefan.simplebackup.data.manager.AppInfoManager
 import com.stefan.simplebackup.data.manager.AppStorageManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.ForegroundCallback
-import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.file.FileUtil.createDirectory
 import com.stefan.simplebackup.utils.file.FileUtil.deleteDirectoryFiles
 import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
 import com.stefan.simplebackup.utils.file.FileUtil.getBackupDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.moveFiles
-import com.stefan.simplebackup.utils.root.RootApkManager
 import com.stefan.simplebackup.utils.work.WorkResult
 import com.stefan.simplebackup.utils.work.WorkUtil
 import com.stefan.simplebackup.utils.work.archive.TarUtil
@@ -45,7 +43,8 @@ class BackupUtil(
                         ::backupData,
                         ::zipData,
                         ::serializeAppData,
-                        ::moveBackup
+                        ::moveBackup,
+                        ::uploadToCloud
                     )
                     results.add(result)
                 }
@@ -74,6 +73,7 @@ class BackupUtil(
         app.apply {
             updateNotificationData(R.string.backup_progress_saving_application_data)
             setCurrentDate()
+            setDataSize(app)
             serializeApp(getTempDirPath(app = this))
         }
     }
@@ -90,17 +90,22 @@ class BackupUtil(
     }
 
     private fun setDataSize(app: AppData) {
-        if (Shell.isAppGrantedRoot() == true) {
-            if (!PreferenceHelper.shouldExcludeAppsCache) {
-                // TODO: Calculate data / cache size
-            }
-        } else {
+        if (Shell.isAppGrantedRoot() == false) {
             val appInfoManager = AppInfoManager(appContext.packageManager, 0)
             val appStorageManager = AppStorageManager(appContext)
             val appInfo = appInfoManager.getAppInfo(app.packageName)
             val apkSizeStats = appStorageManager.getApkSizeStats(appInfo)
             app.dataSize = apkSizeStats.dataSize
             app.cacheSize = apkSizeStats.cacheSize
+        }
+    }
+
+    private suspend fun uploadToCloud(app: AppData) {
+        if (shouldBackupToCloud) {
+            app.apply {
+                updateNotificationData(R.string.upload_to_cloud)
+                // TODO: Upload code
+            }
         }
     }
 

@@ -42,13 +42,24 @@ class RootApkManager(context: Context) {
     }
 
     @Throws(IOException::class)
+    suspend fun deleteTempInstallDir(app: AppData) {
+        withContext(ioDispatcher) {
+            val tempApkInstallDirPath = FileUtil.getTempApkInstallDirPath(app)
+            val result = Shell.cmd("rm -rf $tempApkInstallDirPath").exec()
+            if (!result.isSuccess) {
+                throw IOException("Unable to delete temp install dirs")
+            }
+        }
+    }
+
+    @Throws(IOException::class)
     suspend fun moveApkFilesToTempDir(app: AppData) {
         withContext(ioDispatcher) {
             val tempApkDir = FileUtil.getTempDirPath(app)
             val tempApkInstallDirPath = FileUtil.getTempApkInstallDirPath(app)
-            val result = Shell.cmd("mv $tempApkDir/* $tempApkInstallDirPath/").exec()
+            val result = Shell.cmd("mv $tempApkDir/*.$APK_FILE_EXTENSION $tempApkInstallDirPath/").exec()
             if (!result.isSuccess) {
-                Shell.cmd("rm -rf $tempApkInstallDirPath").exec()
+                deleteTempInstallDir(app)
                 throw IOException("Unable to move apk's")
             }
         }
@@ -82,6 +93,9 @@ class RootApkManager(context: Context) {
         for ((apkFile, apkSize) in apkSizeMap) {
             installSplitApk(apkFile, apkSize, sessionId)
         }
-        commitSession(sessionId)
+        val result = commitSession(sessionId)
+        if (!result.isSuccess) {
+            throw IOException("Unable to install app")
+        }
     }
 }

@@ -50,7 +50,8 @@ class BackupFilesObserver(
 
                         EventKind.DELETED -> {
                             val deletedApp = currentList.firstOrNull { app ->
-                                (app.name == file.nameWithoutExtension && app.packageName == file.parentFile?.name && file.extension == JSON_FILE_EXTENSION) || (app.packageName == file.name)
+                                (app.name == file.nameWithoutExtension && app.packageName == file.parentFile?.name && file.extension == JSON_FILE_EXTENSION)
+                                        || (app.packageName == file.name && file.parentFile?.name != file.name)
                             }
                             currentList.remove(deletedApp)
                             Log.d("BackupFilesObserver", "Removing deleted ${deletedApp?.name}")

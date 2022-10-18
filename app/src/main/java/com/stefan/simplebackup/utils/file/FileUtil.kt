@@ -13,6 +13,7 @@ import java.io.File
 import java.io.IOException
 import kotlin.io.path.moveTo
 
+const val LIB_DIR_NAME: String = "lib"
 const val LIB_FILE_EXTENSION: String = "so"
 const val APK_FILE_EXTENSION: String = "apk"
 const val TAR_FILE_EXTENSION: String = "tar"
@@ -74,7 +75,6 @@ object FileUtil {
         if (!dir.isDirectory) throw IOException("File must be verified to be directory beforehand")
         withContext(ioDispatcher) {
             dir.walkTopDown().forEach { dirFile ->
-                if (dirFile == dir) return@forEach
                 deleteFile(dirFile.absolutePath)
             }
         }
@@ -95,14 +95,10 @@ object FileUtil {
         return tarArchive
     }
 
-    tailrec suspend fun findFirstJsonInDir(jsonDirPath: String): File = withContext(ioDispatcher) {
-        val jsonFile = File(jsonDirPath).walkTopDown().firstOrNull { dirFile ->
+    suspend fun findFirstJsonInDir(jsonDirPath: String) = withContext(ioDispatcher) {
+        File(jsonDirPath).walkTopDown().firstOrNull { dirFile ->
             dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION
         }
-        if (jsonFile == null) {
-            FileUtil.findFirstJsonInDir(jsonDirPath)
-        } else
-        return@withContext jsonFile
     }
 
     suspend fun getJsonFiles(jsonDirPath: String, filterDirNames: (String?) -> Boolean = { true }) = coroutineScope {
@@ -137,14 +133,4 @@ object FileUtil {
         }.toFloat() to isSplit
     }
 
-    fun getApkZipFile(appBackupDirPath: String) =
-        File(appBackupDirPath).walkTopDown().filter { backupFile ->
-            backupFile.isFile && backupFile.extension == ZIP_FILE_EXTENSION
-        }.map { fileWithZipExtension ->
-            ZipFile(fileWithZipExtension)
-        }.firstOrNull { zipFile ->
-            zipFile.fileHeaders.map { fileHeader ->
-                fileHeader.fileName.endsWith(".$APK_FILE_EXTENSION")
-            }.all { fileNameHasApkExtension -> fileNameHasApkExtension }
-        }
 }

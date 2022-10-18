@@ -25,7 +25,6 @@ class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDi
     private val watchService = FileSystems.getDefault().newWatchService()
 
     private val _fileEvent = MutableSharedFlow<FileEvent>(
-        replay = 1,
         extraBufferCapacity = Int.MAX_VALUE,
         onBufferOverflow = BufferOverflow.SUSPEND
     )
@@ -87,7 +86,7 @@ class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDi
                     // Finally emit the event
                     val event = FileEvent(file = eventFile, kind = eventKind)
                     Log.d("RecursiveFileWatcher", "Emitting $event")
-                    _fileEvent.tryEmit(event)
+                    _fileEvent.emit(event)
                 }
 
                 // Reset key and check if directory no longer accessible

@@ -62,6 +62,7 @@
     <string name="restore_progress_dir_info">Creating restore dirs</string>
     <string name="restore_apk_install_info">Installing apks</string>
     <string name="backup_progress_data_info">Backing up app data</string>
+    <string name="restore_progress_data_info">Restoring app data</string>
     <string name="backup_progress_zip_info">Zipping all data</string>
     <string name="restore_progress_zip_info">Unzipping all data</string>
     <string name="backup_progress_saving_application_data">Saving application data</string>
@@ -73,6 +74,7 @@
     <string name="unsuccessfully">unsuccessfully</string>
     <string name="restore_progress_successful">Restore successful</string>
     <string name="restore_progress_failed">Application restore failed</string>
+    <string name="upload_to_cloud">Uploading backup to cloud</string>
     <string name="restored">restored</string>
     <string name="backed_up">backed up</string>
     <string name="storage_perm_success">Storage permission granted successfully</string>

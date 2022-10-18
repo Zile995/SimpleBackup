@@ -4,6 +4,7 @@ import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
+import com.stefan.simplebackup.utils.file.LIB_DIR_NAME
 import com.stefan.simplebackup.utils.file.TAR_FILE_EXTENSION
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineDispatcher
@@ -12,7 +13,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 
-const val LIB_PRIVATE_DIR_NAME = "lib"
 const val CACHE_PRIVATE_DIR_NAME = "cache"
 const val CODE_CACHE_PRIVATE_DIR_NAME = "code_cache"
 
@@ -27,7 +27,7 @@ object TarUtil {
             val excludeCommand = getExcludeCommand()
 
             // Set archive name and path
-            val tarArchiveName = setArchiveName(app)
+            val tarArchiveName = getArchiveName(app)
             val tarArchivePath = getTempDirPath(app) + "/$tarArchiveName"
 
             val tarArchiveFile = File(tarArchivePath)
@@ -52,22 +52,46 @@ object TarUtil {
         }
     }
 
-    private fun getExcludeCommand(): String {
-        val shouldExcludeCache = PreferenceHelper.shouldExcludeAppsCache
-        return if (shouldExcludeCache)
-            "--exclude={\"$CACHE_PRIVATE_DIR_NAME\",\"$LIB_PRIVATE_DIR_NAME\",\"$CODE_CACHE_PRIVATE_DIR_NAME\"}"
-        else
-            "--exclude={\"$LIB_PRIVATE_DIR_NAME\"}"
+    @Throws(IOException::class)
+    suspend fun restoreData(app: AppData) {
+        withContext(ioDispatcher) {
+            val tarArchiveName = getArchiveName(app)
+            val tarArchivePath = getTempDirPath(app) + "/$tarArchiveName"
+
+            Log.d("TarUtil", "Unarchiving the ${app.packageName} tar archive")
+            val result = unarchiveData(
+                archivePath = tarArchivePath,
+                dataPath = app.dataDir
+            )
+            Shell.cmd("restorecon -R ${app.dataDir}").exec()
+            if (result.isSuccess)
+                Log.d("TarUtil", "Successfully restored $tarArchiveName data archive")
+            else {
+                val message = "Unable to restore data"
+                Log.w("TarUtil", message)
+                if (Shell.isAppGrantedRoot() == true)
+                    throw IOException(message)
+                else
+                    Log.w("TarUtil", "App doesn't have root access, unable to restore data")
+            }
+        }
     }
 
-    private fun setArchiveName(app: AppData) = "${app.packageName}.$TAR_FILE_EXTENSION"
+
+    private fun getArchiveName(app: AppData) = "${app.packageName}.$TAR_FILE_EXTENSION"
 
     private fun archiveData(archivePath: String, excludeCommand: String, dataPath: String) =
         Shell.cmd("tar -cf $archivePath $excludeCommand -C $dataPath . ").exec()
 
-    suspend fun restoreData(app: AppData) {
-        withContext(ioDispatcher) {
+    private fun unarchiveData(archivePath: String, dataPath: String) =
+        Shell.cmd("tar -xf $archivePath -C $dataPath").exec()
 
-        }
+    private fun getExcludeCommand(): String {
+        val shouldExcludeCache = PreferenceHelper.shouldExcludeAppsCache
+        return if (shouldExcludeCache)
+            "--exclude={\"$CACHE_PRIVATE_DIR_NAME\",\"$LIB_DIR_NAME\",\"$CODE_CACHE_PRIVATE_DIR_NAME\"}"
+        else
+            "--exclude={\"$LIB_DIR_NAME\"}"
     }
+
 }
