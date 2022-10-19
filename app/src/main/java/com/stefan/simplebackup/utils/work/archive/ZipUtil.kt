@@ -120,7 +120,7 @@ object ZipUtil {
         }
     }
 
-    private fun getTarZipFile(appBackupDirPath: String) =
+    fun getTarZipFile(appBackupDirPath: String) =
         File(appBackupDirPath).walkTopDown().filter { backupFile ->
             backupFile.isFile && backupFile.extension == ZIP_FILE_EXTENSION
         }.map { fileWithZipExtension ->
@@ -131,7 +131,7 @@ object ZipUtil {
             }.all { fileNameHasTarExtension -> fileNameHasTarExtension }
         }
 
-    private fun getApkZipFile(appBackupDirPath: String) =
+    fun getApkZipFile(appBackupDirPath: String) =
         File(appBackupDirPath).walkTopDown().filter { backupFile ->
             backupFile.isFile && backupFile.extension == ZIP_FILE_EXTENSION
         }.map { fileWithZipExtension ->

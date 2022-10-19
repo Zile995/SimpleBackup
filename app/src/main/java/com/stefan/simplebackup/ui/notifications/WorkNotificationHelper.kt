@@ -10,6 +10,6 @@ interface WorkNotificationHelper : NotificationHelper {
         isBackupNotification: Boolean = true
     ): Notification
 
-    suspend fun getUpdatedNotification(notificationData: NotificationData)
+    suspend fun getUpdatedNotification(notificationData: NotificationData, isBackupNotification: Boolean)
             : Notification
 }

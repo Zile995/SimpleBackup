@@ -10,7 +10,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentConfigureSheetBinding
-import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
 import com.stefan.simplebackup.utils.extensions.viewBinding
@@ -25,10 +24,9 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
     private val contactsPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                if (cloudBackupClicked)
-                    startProgressActivity(AppDataType.CLOUD)
+                onMainActivityCallback { requestSignIn() }
             } else {
-                onShowDialog { showContactsPermissionDialog() }
+                onMainActivityCallback { showContactsPermissionDialog() }
             }
         }
 
@@ -38,7 +36,7 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
                 if (!cloudBackupClicked)
                     startProgressActivity(AppDataType.USER)
             } else {
-                onShowDialog { showStoragePermissionDialog() }
+                onMainActivityCallback { showStoragePermissionDialog() }
             }
         }
 
@@ -69,9 +67,6 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
         }
     }
 
-    private inline fun onShowDialog(crossinline dialog: MainActivity.() -> Unit) =
-        onMainActivityCallback(dialog)
-
     private fun startProgressActivity(appDataType: AppDataType) = onMainActivityCallback {
         startProgressActivity(mainViewModel.selectionList.toTypedArray(), appDataType)
     }
@@ -84,7 +79,7 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
                     onPermissionGranted = {
                         requestContactsPermission(contactsPermissionLauncher,
                             onPermissionAlreadyGranted = {
-                                startProgressActivity(AppDataType.CLOUD)
+                                requestSignIn()
                             })
                     }, onPermissionDenied = {
                         requestStoragePermission(storagePermissionLauncher)

@@ -18,16 +18,8 @@ import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.Scope
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
-import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.gson.GsonFactory
-import com.google.api.services.drive.Drive
-import com.google.api.services.drive.DriveScopes
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.MainPermission
@@ -45,8 +37,6 @@ import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.math.abs
 
-private const val TAG: String = "AppDetailActivity"
-private const val REQUEST_CODE_SIGN_IN: Int = 400
 
 class AppDetailActivity : BaseActivity() {
     private val binding by viewBinding(ActivityDetailBinding::inflate)
@@ -65,8 +55,7 @@ class AppDetailActivity : BaseActivity() {
     private val contactsPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                if (cloudBackupClicked)
-                    startWork(shouldBackupToCloud = true)
+                requestSignIn()
             } else {
                 showStoragePermissionDialog()
             }
@@ -139,7 +128,8 @@ class AppDetailActivity : BaseActivity() {
                     launch {
                         apkSizeStats.collect { sizeStats ->
                             sizeStats?.apply {
-                                dataSizeLabel.text = getString(R.string.data_size,
+                                dataSizeLabel.text = getString(
+                                    R.string.data_size,
                                     (sizeStats.dataSize + sizeStats.cacheSize).bytesToMegaBytesString()
                                 )
                             }
@@ -291,7 +281,7 @@ class AppDetailActivity : BaseActivity() {
                     requestContactsPermission(
                         contactsPermissionLauncher,
                         onPermissionAlreadyGranted = {
-                            startWork(shouldBackupToCloud = true)
+                            requestSignIn()
                         })
                 }, onPermissionDenied = {
                     requestStoragePermission(storagePermissionLauncher)
@@ -415,58 +405,43 @@ class AppDetailActivity : BaseActivity() {
 
     private fun startWork(shouldBackupToCloud: Boolean = false) {
         detailsViewModel.app?.run {
+            val packageNames = arrayOf(this.packageName)
             if (isLocal) {
-                startProgressActivity(arrayOf(this.packageName), AppDataType.LOCAL)
+                startProgressActivity(packageNames, AppDataType.LOCAL)
                 return
             }
             if (shouldBackupToCloud)
-                startProgressActivity(arrayOf(this.packageName), AppDataType.CLOUD)
+                startProgressActivity(packageNames, AppDataType.CLOUD)
             else
-                startProgressActivity(arrayOf(this.packageName), AppDataType.USER)
+                startProgressActivity(packageNames, AppDataType.USER)
         }
+    }
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when (requestCode) {
+            REQUEST_CODE_SIGN_IN -> {
+                if (resultCode == RESULT_OK && data != null) {
+                    handleSignInIntent(
+                        signInIntentData = data,
+                        onSuccess = {
+                            startWork(true)
+                        },
+                        onFailure = {
+                            showToast(R.string.unable_to_sign_in)
+                            Log.e("GoogleSignIn", "${getString(R.string.unable_to_sign_in)} $it")
+                        })
+                }
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         if (detailsViewModel.app?.isLocal == false) {
             unregisterReceivers(packageReceiver)
-        }
-    }
-
-    @Deprecated("Deprecated in Java")
-    @Suppress("DEPRECATION")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        when (requestCode) {
-            REQUEST_CODE_SIGN_IN -> if (resultCode == RESULT_OK && data != null) {
-                handleSignInIntent(data)
-            }
-        }
-        super.onActivityResult(requestCode, resultCode, data)
-    }
-
-    @Suppress("DEPRECATION")
-    private fun requestSignIn() {
-        val signInOptions =
-            GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).apply {
-                requestEmail()
-                requestScopes(Scope(DriveScopes.DRIVE_FILE))
-            }.build()
-        val client = GoogleSignIn.getClient(this, signInOptions)
-        startActivityForResult(client.signInIntent, REQUEST_CODE_SIGN_IN)
-    }
-
-    private fun handleSignInIntent(data: Intent) {
-        GoogleSignIn.getSignedInAccountFromIntent(data).addOnSuccessListener { googleAccount ->
-            Log.d(TAG, "Signed in as " + googleAccount.email)
-            val credential = GoogleAccountCredential.usingOAuth2(
-                this, Collections.singleton(DriveScopes.DRIVE_FILE)
-            )
-            credential.selectedAccount = googleAccount.account
-            val googleDriveService = Drive.Builder(
-                NetHttpTransport(), GsonFactory.getDefaultInstance(), credential
-            ).setApplicationName("Simple Backup/1.0").build()
-        }.addOnFailureListener { exception: Exception? ->
-            Log.e(TAG, "Unable to sign in.", exception)
         }
     }
 }

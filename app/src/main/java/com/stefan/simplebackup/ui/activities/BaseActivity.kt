@@ -1,20 +1,29 @@
 package com.stefan.simplebackup.ui.activities
 
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.addCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.Scope
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.gson.GsonFactory
+import com.google.api.services.drive.Drive
+import com.google.api.services.drive.DriveScopes
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
 import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.APP_DATA_TYPE_EXTRA
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
-import com.stefan.simplebackup.utils.extensions.openManageFilesPermissionSettings
-import com.stefan.simplebackup.utils.extensions.openPackageSettingsInfo
-import com.stefan.simplebackup.utils.extensions.passBundleToActivity
-import com.stefan.simplebackup.utils.extensions.permissionDialog
+import com.stefan.simplebackup.utils.extensions.*
+import java.util.*
 
 abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
 
@@ -129,6 +138,60 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
             onNegativeButtonPress = {
                 openPackageSettingsInfo(packageName)
             })
+
+    private fun buildGoogleSignInClient(): GoogleSignInClient {
+        val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).run {
+            requestEmail()
+            requestScopes(Scope(DriveScopes.DRIVE_FILE))
+            build()
+        }
+        return GoogleSignIn.getClient(this, signInOptions)
+    }
+
+    @Suppress("DEPRECATION")
+    fun requestSignIn() {
+        val client = buildGoogleSignInClient()
+        startActivityForResult(client.signInIntent, REQUEST_CODE_SIGN_IN)
+    }
+
+    fun handleSignInIntent(
+        signInIntentData: Intent,
+        onSuccess: () -> Unit,
+        onFailure: (String) -> Unit
+    ) {
+        GoogleSignIn.getSignedInAccountFromIntent(signInIntentData)
+            .addOnSuccessListener { googleAccount ->
+                // Get credential on success
+                Log.d("GoogleServiceHandler", "Signed in as " + googleAccount.email)
+                val credential = GoogleAccountCredential.usingOAuth2(
+                    applicationContext, mutableSetOf(DriveScopes.DRIVE_FILE)
+                )
+                credential.selectedAccount = googleAccount.account
+
+                // Get Google Drive Builder
+                val googleDriveBuilder = Drive.Builder(
+                    NetHttpTransport(),
+                    GsonFactory.getDefaultInstance(),
+                    credential
+                )
+                // Google drive service
+                googleDriveService = googleDriveBuilder.run {
+                    applicationName = applicationContext.getString(R.string.app_name)
+                    build()
+                }
+                onSuccess()
+            }.addOnFailureListener { exception ->
+                onFailure(exception.toString())
+            }
+    }
+
+    companion object {
+        var googleDriveService: Drive? = null
+            private set
+
+        const val REQUEST_CODE_SIGN_IN: Int = 400
+    }
+
 }
 
 interface BackPressHandler {

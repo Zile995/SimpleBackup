@@ -249,12 +249,12 @@ inline fun Context.materialDialog(
         setTitle(title)
         setMessage(message)
         if (enablePositiveButton) {
-            setPositiveButton(positiveButtonText) { dialog, _ ->
+            setPositiveButton(positiveButtonText) { _, _ ->
                 onPositiveButtonPress()
             }
         }
         if (enableNegativeButton) {
-            setNegativeButton(negativeButtonText) { dialog, _ ->
+            setNegativeButton(negativeButtonText) { _, _ ->
                 onNegativeButtonPress()
             }
         }

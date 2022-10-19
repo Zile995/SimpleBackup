@@ -50,6 +50,16 @@
             android:shell="true"
             tools:targetApi="q" />
 
+        <provider
+            android:name="com.stefan.simplebackup.MyFileProvider"
+            android:authorities="com.stefan.simplebackup.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths"/>
+        </provider>
+
         <receiver
             android:name=".data.receivers.NotificationReceiver"
             android:enabled="true"

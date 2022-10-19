@@ -1,10 +1,12 @@
 package com.stefan.simplebackup.ui.activities
 
+import android.content.Intent
 import android.content.Intent.ACTION_PACKAGE_ADDED
 import android.content.Intent.ACTION_PACKAGE_REMOVED
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnLayout
@@ -16,6 +18,7 @@ import androidx.navigation.navOptions
 import com.google.android.material.appbar.AppBarLayout
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.NotificationReceiver
 import com.stefan.simplebackup.data.receivers.PackageReceiver
@@ -409,6 +412,33 @@ class MainActivity : BaseActivity() {
             }
             hideAttachedButton(floatingButton)
         }
+    }
+
+    @Suppress("DEPRECATION")
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        when (requestCode) {
+            REQUEST_CODE_SIGN_IN -> {
+                if (resultCode == AppCompatActivity.RESULT_OK && data != null) {
+                    handleSignInIntent(
+                        signInIntentData = data,
+                        onSuccess = {
+                            startProgressActivity(
+                                mainViewModel.selectionList.toTypedArray(),
+                                AppDataType.CLOUD
+                            )
+                        },
+                        onFailure = {
+                            showToast(R.string.unable_to_sign_in)
+                            Log.e(
+                                "GoogleSignIn",
+                                "${getString(R.string.unable_to_sign_in)} $it"
+                            )
+                        })
+                }
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onDestroy() {

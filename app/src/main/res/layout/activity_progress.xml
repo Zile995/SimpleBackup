@@ -16,14 +16,15 @@
             android:id="@+id/progress_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
             android:text="@string/progress_type"
+            android:maxLines="2"
             android:textAlignment="textStart"
             android:textAppearance="@style/TextAppearance.SimpleBackup.BodyLarge"
             android:textColor="@color/selectedTab"
             android:textSize="20sp"
             android:visibility="visible"
             app:layout_constraintBottom_toTopOf="@+id/work_info_layout"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -75,7 +76,7 @@
                 android:textAlignment="center"
                 android:textAppearance="@style/TextAppearance.SimpleBackup.BodyLarge"
                 android:textColor="@color/selectedTab"
-                android:textSize="19sp"
+                android:textSize="17sp"
                 android:visibility="visible" />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator

@@ -2,6 +2,7 @@ package com.stefan.simplebackup.utils.root
 
 import android.content.Context
 import android.content.pm.PackageManager
+import com.stefan.simplebackup.data.manager.AppInfoManager
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -20,12 +21,13 @@ class RootChecker(private val rootContext: Context) {
 
     private fun hasRootManagerApp(context: Context): Boolean {
         val rootPackageName = "com.topjohnwu.magisk"
-        try {
-            context.packageManager.getApplicationInfo(rootPackageName, 0)
+        return try {
+            val appInfoManager = AppInfoManager(packageManager = context.packageManager, 0L)
+            appInfoManager.getAppInfo(rootPackageName)
+            true
         } catch (e: PackageManager.NameNotFoundException) {
-            return false
+            false
         }
-        return true
     }
 
     private suspend fun hasSuBinary(): Boolean {

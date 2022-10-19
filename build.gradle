@@ -37,7 +37,7 @@ ext {
     androidxJunit = '1.1.3'
     androidxLegacy = '1.0.0'
     googleApiClient = '2.0.0'
-    kotlinSerialization = '1.4.0'
+    kotlinSerialization = '1.4.1'
     googleDriveApi = 'v3-rev20220815-2.0.0'
 }
 

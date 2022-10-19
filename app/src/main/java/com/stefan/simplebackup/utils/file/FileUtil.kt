@@ -8,7 +8,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import net.lingala.zip4j.ZipFile
 import java.io.File
 import java.io.IOException
 import kotlin.io.path.moveTo
@@ -20,7 +19,6 @@ const val TAR_FILE_EXTENSION: String = "tar"
 const val ZIP_FILE_EXTENSION: String = "zip"
 const val JSON_FILE_EXTENSION: String = "json"
 private const val TEMP_DIR_NAME: String = "temp"
-private const val CLOUD_DIR_NAME: String = "cloud"
 private const val LOCAL_DIR_NAME: String = "local"
 const val APK_TMP_INSTALL_DIR_PATH = "/data/local/tmp"
 
@@ -30,7 +28,6 @@ object FileUtil {
     private val ioDispatcher = Dispatchers.IO
     val localDirPath get() = "${mainBackupDirPath}/$LOCAL_DIR_NAME"
     private val tempDirPath get() = "${mainBackupDirPath}/$TEMP_DIR_NAME"
-    private val cloudDirPath get() = "${mainBackupDirPath}/$CLOUD_DIR_NAME"
 
     suspend fun createDirectory(path: String) {
         withContext(ioDispatcher) {
@@ -87,7 +84,8 @@ object FileUtil {
 
     fun getTempDirPath(app: AppData): String = "$tempDirPath/${app.packageName}"
 
-    fun getTempApkInstallDirPath(app: AppData): String = "$APK_TMP_INSTALL_DIR_PATH/${app.packageName}"
+    fun getTempApkInstallDirPath(app: AppData): String =
+        "$APK_TMP_INSTALL_DIR_PATH/${app.packageName}"
 
     fun findTarArchive(dirPath: String, app: AppData): File {
         val tarArchive = File("$dirPath/${app.packageName}.$TAR_FILE_EXTENSION")
@@ -95,17 +93,18 @@ object FileUtil {
         return tarArchive
     }
 
-    suspend fun findFirstJsonInDir(jsonDirPath: String) = withContext(ioDispatcher) {
+    suspend fun getJsonInDir(jsonDirPath: String) = withContext(ioDispatcher) {
         File(jsonDirPath).walkTopDown().firstOrNull { dirFile ->
             dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION
         }
     }
 
-    suspend fun getJsonFiles(jsonDirPath: String, filterDirNames: (String?) -> Boolean = { true }) = coroutineScope {
-        File(jsonDirPath).walkTopDown().filter { dirFile ->
-            dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION && filterDirNames(dirFile.parentFile?.name)
+    suspend fun getJsonFiles(jsonDirPath: String, filterDirNames: (String?) -> Boolean = { true }) =
+        coroutineScope {
+            File(jsonDirPath).walkTopDown().filter { dirFile ->
+                dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION && filterDirNames(dirFile.parentFile?.name)
+            }
         }
-    }
 
     fun emitJsonFiles(jsonDirPath: String) = flow {
         getJsonFiles(jsonDirPath).forEach { jsonFile ->

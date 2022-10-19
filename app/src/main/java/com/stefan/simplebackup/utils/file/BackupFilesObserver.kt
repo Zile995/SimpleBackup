@@ -31,7 +31,7 @@ class BackupFilesObserver(
                             val jsonFile = when {
                                 file.isFile && file.extension == JSON_FILE_EXTENSION -> file
                                 file.isDirectory && file.parentFile?.absolutePath == rootDirPath -> {
-                                    FileUtil.findFirstJsonInDir(file.absolutePath)
+                                    FileUtil.getJsonInDir(file.absolutePath)
                                 }
                                 else -> null
                             }

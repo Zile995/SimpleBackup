@@ -99,10 +99,13 @@ class WorkNotificationBuilder(
         build()
     }
 
-    override suspend fun getUpdatedNotification(notificationData: NotificationData): Notification {
+    override suspend fun getUpdatedNotification(notificationData: NotificationData, isBackupNotification: Boolean): Notification {
         return notificationBuilder.apply {
             notificationData.apply {
-                setContentTitle("${context.getString(R.string.backing_up)} $name")
+                if (isBackupNotification)
+                    setContentTitle("${context.getString(R.string.backing_up)} $name")
+                else
+                    setContentTitle("${context.getString(R.string.restoring)} $name")
                 setLargeIcon(image.toBitmap())
                 setExpendableText(text)
                 setProgress(PROGRESS_MAX, notificationData.progress, false)

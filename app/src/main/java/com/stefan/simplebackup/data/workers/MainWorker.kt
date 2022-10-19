@@ -18,7 +18,6 @@ import com.stefan.simplebackup.utils.work.restore.RestoreUtil
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlin.system.measureTimeMillis
 
 const val PROGRESS_MAX = 10_000
@@ -47,7 +46,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
     private val foregroundCallBack: ForegroundCallback = { notificationData ->
         progressState.value = notificationData
-        updateForegroundInfo(getUpdatedNotification(notificationData))
+        updateForegroundInfo(getUpdatedNotification(notificationData, shouldBackup))
         setProgress(workDataOf(WORK_PROGRESS to notificationData.progress))
     }
 
@@ -116,8 +115,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         private var progressState: MutableStateFlow<NotificationData?> =
             MutableStateFlow(null)
 
-        val notificationObserver
-            get() = progressState.asStateFlow()
+        val notificationObserver get() = progressState.asStateFlow()
     }
 
 }

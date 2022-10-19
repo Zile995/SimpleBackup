@@ -31,6 +31,7 @@ class ProgressActivity : BaseActivity() {
     private val workManager by lazy { WorkManager.getInstance(application) }
 
     private var isInProgress: Boolean = true
+    private var bitmap: ByteArray = byteArrayOf()
 
     private val progressViewModel: ProgressViewModel by viewModels {
         val selectionList = intent?.extras?.getStringArray(SELECTION_EXTRA)
@@ -133,23 +134,26 @@ class ProgressActivity : BaseActivity() {
 
     private fun ActivityProgressBinding.updateViews(notificationData: NotificationData?) {
         notificationData?.apply {
-            applicationImageProgress.loadBitmap(image)
+            if (!bitmap.contentEquals(image)) {
+                applicationImageProgress.loadBitmap(image)
+                bitmap = image
+            }
             applicationNameProgress.text = name
             applicationProgressInfo.text = this.text
             updateProgressTypeTitle(index)
         }
     }
 
-    private fun ActivityProgressBinding.bindProgressIndicator() {
-        progressIndicator.max = PROGRESS_MAX
-    }
+        private fun ActivityProgressBinding.bindProgressIndicator() {
+            progressIndicator.max = PROGRESS_MAX
+        }
 
-    private fun ActivityProgressBinding.bindBackButton() {
-        backButton.isEnabled = !isInProgress
-        backButton.apply {
-            setOnClickListener {
-                onBackPress()
+        private fun ActivityProgressBinding.bindBackButton() {
+            backButton.isEnabled = !isInProgress
+            backButton.apply {
+                setOnClickListener {
+                    onBackPress()
+                }
             }
         }
     }
-}
