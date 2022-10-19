@@ -87,7 +87,6 @@ class RootApkManager(context: Context) {
         Shell.cmd("pm install-write -S $apkSize $sessionId ${apkFile.name} ${apkFile.absolutePath}")
             .exec()
 
-
     private fun installSplitApks(apkSizeMap: HashMap<File, Long>, totalApkSize: Long) {
         val sessionId = createAndGetSessionId(totalApkSize = totalApkSize)
         for ((apkFile, apkSize) in apkSizeMap) {

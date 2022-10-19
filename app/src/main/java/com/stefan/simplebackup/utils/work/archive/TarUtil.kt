@@ -53,7 +53,7 @@ object TarUtil {
     }
 
     @Throws(IOException::class)
-    suspend fun restoreData(app: AppData) {
+    suspend fun restoreData(app: AppData, uid: Int) {
         withContext(ioDispatcher) {
             val tarArchiveName = getArchiveName(app)
             val tarArchivePath = getTempDirPath(app) + "/$tarArchiveName"
@@ -63,7 +63,10 @@ object TarUtil {
                 archivePath = tarArchivePath,
                 dataPath = app.dataDir
             )
-            Shell.cmd("restorecon -R ${app.dataDir}").exec()
+            Log.d("TarUtil", "Restoring the ${app.packageName} uid")
+            restoreAppUid(dataPath = app.dataDir, uid = uid)
+            Log.d("TarUtil", "Restoring the ${app.packageName} SELinux context")
+            restoreSELinuxContext(dataPath = app.dataDir)
             if (result.isSuccess)
                 Log.d("TarUtil", "Successfully restored $tarArchiveName data archive")
             else {
@@ -76,7 +79,6 @@ object TarUtil {
             }
         }
     }
-
 
     private fun getArchiveName(app: AppData) = "${app.packageName}.$TAR_FILE_EXTENSION"
 
@@ -92,6 +94,19 @@ object TarUtil {
             "--exclude={\"$CACHE_PRIVATE_DIR_NAME\",\"$LIB_DIR_NAME\",\"$CODE_CACHE_PRIVATE_DIR_NAME\"}"
         else
             "--exclude={\"$LIB_DIR_NAME\"}"
+    }
+
+    private fun restoreAppUid(dataPath: String, uid: Int) {
+        val stringUid = uid.toString()
+        val formattedUid = stringUid.substring(2).run {
+            trimStart('0')
+        }
+        val ownerUid = "u0_a$formattedUid"
+        Shell.cmd("chown $ownerUid:$ownerUid $dataPath -R").exec()
+    }
+
+    private fun restoreSELinuxContext(dataPath: String) {
+        Shell.cmd("restorecon -R $dataPath").exec()
     }
 
 }

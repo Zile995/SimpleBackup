@@ -116,7 +116,7 @@ object FileUtil {
     fun getApkFilesInsideDir(app: AppData): List<File> {
         val dir = File(app.apkDir)
         return dir.walkTopDown().filter { apkDirFile ->
-            apkDirFile.extension == APK_FILE_EXTENSION
+            apkDirFile.isFile && apkDirFile.extension == APK_FILE_EXTENSION
         }.toList().also { apkFiles ->
             Log.d("FileUtil", "Got the apk list for ${app.name}: ${apkFiles.map { it.name }}")
         }

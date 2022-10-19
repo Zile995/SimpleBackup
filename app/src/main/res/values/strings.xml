@@ -63,6 +63,7 @@
     <string name="restore_apk_install_info">Installing apks</string>
     <string name="backup_progress_data_info">Backing up app data</string>
     <string name="restore_progress_data_info">Restoring app data</string>
+    <string name="restore_progress_uid_info">Unable to restore app data</string>
     <string name="backup_progress_zip_info">Zipping all data</string>
     <string name="restore_progress_zip_info">Unzipping all data</string>
     <string name="backup_progress_saving_application_data">Saving application data</string>

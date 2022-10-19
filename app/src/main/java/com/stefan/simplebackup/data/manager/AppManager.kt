@@ -67,14 +67,19 @@ class AppManager(private val context: Context) {
         }
     }
 
-    fun doesPackageExists(packageName: String): Boolean {
-        try {
-            appInfoManager.getPackageInfo(packageName)
-        } catch (e: PackageManager.NameNotFoundException) {
-            return false
-        }
-        return true
+    fun doesPackageExists(packageName: String) = try {
+        appInfoManager.getPackageInfo(packageName)
+        true
+    } catch (e: PackageManager.NameNotFoundException) {
+        false
     }
+
+    fun getPackageUid(packageName: String) =
+        try {
+            appInfoManager.getAppInfo(packageName).uid
+        } catch (e: PackageManager.NameNotFoundException) {
+            null
+        }
 
     // Simple flow which sends data
     fun dataBuilder(includeSystemApps: Boolean = false) = flow {

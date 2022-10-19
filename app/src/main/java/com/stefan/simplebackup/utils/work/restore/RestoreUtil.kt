@@ -78,7 +78,13 @@ class RestoreUtil(
 
     private suspend fun restoreData(app: AppData) {
         app.updateNotificationData(R.string.restore_progress_data_info)
-        TarUtil.restoreData(app)
+        val appManager = AppManager(appContext)
+        val appUid = appManager.getPackageUid(app.packageName)
+        if (appUid == null) {
+            app.updateNotificationData(R.string.restore_progress_uid_info)
+            throw IOException(appContext.getString(R.string.restore_progress_uid_info))
+        }
+        TarUtil.restoreData(app, appUid)
         deleteFile(getTempDirPath(app))
     }
 
