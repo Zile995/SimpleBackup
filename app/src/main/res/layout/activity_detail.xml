@@ -95,8 +95,7 @@
                         android:textColor="@color/selectedTab"
                         android:textSize="17sp"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/app_type_chip"
-                        tools:ignore="RelativeOverlap" />
+                        app:layout_constraintTop_toBottomOf="@+id/app_type_chip" />
                 </LinearLayout>
 
                 <RelativeLayout
@@ -227,13 +226,41 @@
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/target_api_field"
+                android:id="@+id/data_size_field"
                 android:layout_width="match_parent"
                 android:layout_height="40dp"
                 android:layout_marginTop="4dp"
                 android:orientation="horizontal"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/apk_size_field">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="20dp"
+                    android:src="@drawable/ic_data" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/data_size_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginStart="14dp"
+                    android:text="@string/data_size"
+                    android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
+                    android:textSize="15sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/target_api_field"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/data_size_field">
 
                 <ImageView
                     android:layout_width="wrap_content"
@@ -305,14 +332,29 @@
 
             </LinearLayout>
 
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/native_libs_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginStart="20dp"
+                android:text="@string/native_libs"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.TitleMedium"
+                android:textColor="@color/selectedTab"
+                android:textSize="17sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/installed_on_field"
+                tools:ignore="RelativeOverlap" />
+
             <HorizontalScrollView
                 android:id="@+id/horizontal_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:scrollbars="none"
+                android:layout_marginTop="10dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/installed_on_field">
+                app:layout_constraintTop_toBottomOf="@id/native_libs_label">
 
                 <com.google.android.material.chip.ChipGroup
                     android:id="@+id/architecture_chip_group"

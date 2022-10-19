@@ -44,8 +44,8 @@ class DetailsViewModel(
 
     init {
         Log.d("ViewModel", "DetailsViewModel created")
-        getNativeLibs()
         getApkSizes()
+        getNativeLibs()
     }
 
     private fun getNativeLibs() {
@@ -60,14 +60,12 @@ class DetailsViewModel(
         viewModelScope.launch(defaultDispatcher) {
             app?.run {
                 if (!isLocal) {
-                    if (dataSize != 0L || cacheSize != 0L)
-                        _apkSizeStats.value = ApkSizeStats(dataSize, cacheSize)
-                    else {
-                        val appInfoManager = AppInfoManager(application.packageManager, 0)
-                        val appInfo = appInfoManager.getAppInfo(app.packageName)
-                        val appStorageManager = AppStorageManager(application)
-                        _apkSizeStats.value = appStorageManager.getApkSizeStats(appInfo)
-                    }
+                    val appInfoManager = AppInfoManager(application.packageManager, 0)
+                    val appInfo = appInfoManager.getAppInfo(app.packageName)
+                    val appStorageManager = AppStorageManager(application)
+                    val apkStats = appStorageManager.getApkSizeStats(appInfo)
+                    Log.d("ViewModel", "DetailsViewModel apkSizeStats = $apkStats")
+                    _apkSizeStats.value = appStorageManager.getApkSizeStats(appInfo)
                 } else
                     _apkSizeStats.value = ApkSizeStats(dataSize, cacheSize)
             }

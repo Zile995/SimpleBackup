@@ -33,9 +33,9 @@
     <string name="cancel">Cancel</string>
     <string name="app_list">Getting the app list</string>
     <string name="apk_size">Apk size %1$s</string>
+    <string name="data_size">Total data size %1$s</string>
     <string name="apk_size_tooltip">Apk size</string>
     <string name="data_size_tooltip">Data size</string>
-    <string name="all_arch">All architectures</string>
     <string name="first_installed_on">First installed on %1$s</string>
     <string name="backed_up_on">Backed up on %1$s</string>
     <string name="force_stop">Force Stop</string>
@@ -119,6 +119,8 @@
     <string name="exit_action">Exit action</string>
     <string name="storage">Storage</string>
     <string name="app_details">App details</string>
+    <string name="native_libs">Native libs</string>
+    <string name="no_native_libs">No native libs</string>
     <string name="user_app">User app</string>
     <string name="storage_info">%1$.2f GB of %2$.2f GB used</string>
     <string name="zip_compression_level">Zip compression level</string>

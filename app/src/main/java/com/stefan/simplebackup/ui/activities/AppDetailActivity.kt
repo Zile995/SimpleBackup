@@ -65,7 +65,7 @@ class AppDetailActivity : BaseActivity() {
     private val contactsPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                if(cloudBackupClicked)
+                if (cloudBackupClicked)
                     startWork(shouldBackupToCloud = true)
             } else {
                 showStoragePermissionDialog()
@@ -125,7 +125,7 @@ class AppDetailActivity : BaseActivity() {
                     launch {
                         app?.apply {
                             if (isLocal) {
-                                detailsViewModel.backupFileEvents.collect { fileEvent ->
+                                backupFileEvents.collect { fileEvent ->
                                     Log.d("ViewModel", "DetailsViewModel fileEvent = $fileEvent")
                                     fileEvent.apply {
                                         if (file.extension == JSON_FILE_EXTENSION || file.name == packageName) {
@@ -133,6 +133,15 @@ class AppDetailActivity : BaseActivity() {
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+                    launch {
+                        apkSizeStats.collect { sizeStats ->
+                            sizeStats?.apply {
+                                dataSizeLabel.text = getString(R.string.data_size,
+                                    (sizeStats.dataSize + sizeStats.cacheSize).bytesToMegaBytesString()
+                                )
                             }
                         }
                     }
@@ -366,7 +375,7 @@ class AppDetailActivity : BaseActivity() {
             }
         } else {
             val chip = Chip(context, null, R.style.Widget_SimpleBackup_Chip)
-            chip.text = getString(R.string.all_arch)
+            chip.text = getString(R.string.no_native_libs)
             addView(chip)
         }
         fadeIn(300L)
