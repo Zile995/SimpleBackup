@@ -14,6 +14,7 @@ import com.stefan.simplebackup.ui.viewmodels.FavoritesViewModel
 import com.stefan.simplebackup.ui.viewmodels.FavoritesViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.*
+import kotlinx.coroutines.delay
 
 class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     private val favoritesViewModel: FavoritesViewModel by viewModels {
@@ -42,7 +43,9 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
                     progressBar.isVisible = isSpinning
                     if (!isSpinning)
                         favoritesViewModel.observableList.collect { appList ->
-                            adapter.submitList(appList.filter { it.favorite })
+                            adapter.submitList(appList)
+                            if (appList.isEmpty()) delay(250L)
+                            noFavoritesLabel.isVisible = appList.isEmpty()
                         }
                 }
             }

@@ -31,6 +31,7 @@
     <string name="drive">Drive</string>
     <string name="data_in">Data in %1$s</string>
     <string name="cancel">Cancel</string>
+    <string name="app_list">Getting the app list</string>
     <string name="apk_size">Apk size %1$s</string>
     <string name="apk_size_tooltip">Apk size</string>
     <string name="data_size_tooltip">Data size</string>
@@ -58,9 +59,12 @@
     <string name="work">Work</string>
     <string name="work_in_progress">Work in progress</string>
     <string name="backing_up">Backing up</string>
+    <string name="restoring">Restoring</string>
+    <string name="uploading_to_cloud">Uploading to drive</string>
     <string name="backup_progress_dir_info">Creating backup dirs</string>
     <string name="restore_progress_dir_info">Creating restore dirs</string>
     <string name="restore_apk_install_info">Installing apks</string>
+    <string name="progress_type">%1$s %2$d / %3$d</string>
     <string name="backup_progress_data_info">Backing up app data</string>
     <string name="restore_progress_data_info">Restoring app data</string>
     <string name="restore_progress_uid_info">Unable to restore app data</string>
@@ -123,8 +127,9 @@
     <string name="fastest">Fastest</string>
     <string name="slowest">Slowest</string>
     <string name="welcome_to_simple_backup">Welcome to Simple Backup</string>
-    <string name="permit_usage_access">Permit usage access.\nUsage access is required to determine the size of the app\'s cache and data.</string>
-    <string name="no_backups">No backups found. Please make a backup or refresh the list.</string>
+    <string name="permit_usage_access">Permit usage access.\nUsage access is required to determine the size of the app\'s cache and data</string>
+    <string name="no_backups">No backups found. Please make a backup or refresh the list</string>
+    <string name="no_favorites">No favorites found. Please add your favorites from the application list</string>
     <string name="allow_manage_files">Allow management of all files. This permission is required to successfully manage folders and backup files.</string>
     <string name="manage_all_files">Manage all files</string>
     <string name="usage_access">Usage access</string>

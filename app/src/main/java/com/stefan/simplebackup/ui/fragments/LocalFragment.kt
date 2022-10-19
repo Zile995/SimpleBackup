@@ -93,7 +93,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
                             if (appList.isEmpty()) {
                                 delay(250L)
                                 if (isStoragePermissionGranted == true) {
-                                    noBackupsLabel.fadeIn(animationDuration = 250L)
+                                    noBackupsLabel.isVisible = true
                                 }
                             } else {
                                 noBackupsLabel.isVisible = false

@@ -7,7 +7,8 @@ data class NotificationData(
     val name: String,
     val text: String,
     val image: ByteArray,
-    val progress: Int
+    val progress: Int,
+    val index: Int
 ) : Parcelable {
 
     constructor(parcel: Parcel) : this(
@@ -15,7 +16,8 @@ data class NotificationData(
         text = parcel.readString() ?: "",
         image = ByteArray(parcel.readInt()).also { byteArrayBitmap ->
             parcel.readByteArray(byteArrayBitmap) },
-        progress = parcel.readInt()
+        progress = parcel.readInt(),
+        index = parcel.readInt()
     )
 
     override fun describeContents(): Int = 0
@@ -26,6 +28,7 @@ data class NotificationData(
         dest.writeInt(image.size)
         dest.writeByteArray(image)
         dest.writeInt(progress)
+        dest.writeInt(index)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -38,6 +41,7 @@ data class NotificationData(
         if (text != other.text) return false
         if (!image.contentEquals(other.image)) return false
         if (progress != other.progress) return false
+        if (index != other.index) return false
 
         return true
     }
@@ -47,6 +51,7 @@ data class NotificationData(
         result = 31 * result + text.hashCode()
         result = 31 * result + image.contentHashCode()
         result = 31 * result + progress
+        result = 31 * result + index
         return result
     }
 

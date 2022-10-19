@@ -22,6 +22,8 @@ abstract class WorkUtil(
         currentProgress += perItemInterval / steps
     }
 
+    protected var currentWorkItemIndex = 1
+
     init {
         generateIntervals()
     }
@@ -77,7 +79,8 @@ abstract class WorkUtil(
                 name = name,
                 text = text,
                 image = bitmap,
-                progress = currentProgress
+                progress = currentProgress,
+                index = currentWorkItemIndex
             )
         updateForegroundInfo(notificationData)
     }

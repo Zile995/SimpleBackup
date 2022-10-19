@@ -32,7 +32,8 @@ class RestoreUtil(
     suspend fun restore(): List<WorkResult> = coroutineScope {
         addRestoreApps()
         val results = mutableListOf<WorkResult>()
-        restoreApps.forEach { restoreApp ->
+        restoreApps.forEachIndexed { index, restoreApp ->
+            currentWorkItemIndex = index + 1
             val result = restoreApp.startWork(
                 ::createDirs,
                 ::unzipData,

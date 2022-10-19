@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.ui.activities
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
@@ -105,14 +106,37 @@ class ProgressActivity : BaseActivity() {
     }
 
     private fun ActivityProgressBinding.bindViews() {
-        bindProgressIndicator()
         bindBackButton()
+        bindProgressIndicator()
+        bindProgressTypeTitle()
+    }
+
+    @SuppressLint("SetTextI18n")
+    private fun ActivityProgressBinding.bindProgressTypeTitle() {
+        updateProgressTypeTitle(currentItem = 1)
+    }
+
+    private fun ActivityProgressBinding.updateProgressTypeTitle(currentItem: Int) {
+        val progressTitle = when (progressViewModel.appDataType) {
+            AppDataType.USER -> getString(R.string.backing_up)
+            AppDataType.LOCAL -> getString(R.string.restoring)
+            AppDataType.CLOUD -> getString(R.string.uploading_to_cloud)
+            else -> ""
+        }
+        progressType.text = getString(
+            R.string.progress_type,
+            progressTitle,
+            currentItem,
+            progressViewModel.numberOfItems
+        )
     }
 
     private fun ActivityProgressBinding.updateViews(notificationData: NotificationData?) {
         notificationData?.apply {
             applicationImageProgress.loadBitmap(image)
             applicationNameProgress.text = name
+            applicationProgressInfo.text = this.text
+            updateProgressTypeTitle(index)
         }
     }
 

@@ -117,9 +117,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             MutableStateFlow(null)
 
         val notificationObserver
-            get() = progressState.asStateFlow().distinctUntilChanged { old, new ->
-                old?.image.contentEquals(new?.image)
-            }
+            get() = progressState.asStateFlow()
     }
 
 }

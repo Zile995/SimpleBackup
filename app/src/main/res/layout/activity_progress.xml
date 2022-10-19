@@ -1,59 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     android:background="?attr/colorPrimaryVariant"
     tools:context=".ui.activities.ProgressActivity">
 
-    <ImageView
-        android:id="@+id/application_image_progress"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:contentDescription="TODO"
-        app:layout_constraintBottom_toTopOf="@id/application_name_progress"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/application_name_progress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:fontFamily="@font/inter_family"
-        android:textColor="@color/secondary_text"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toTopOf="@+id/progress_indicator"
-        app:layout_constraintEnd_toEndOf="@id/application_image_progress"
-        app:layout_constraintStart_toStartOf="@id/application_image_progress"
-        app:layout_constraintTop_toBottomOf="@id/application_image_progress" />
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/progress_type"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:text="@string/progress_type"
+            android:textAlignment="textStart"
+            android:textAppearance="@style/TextAppearance.SimpleBackup.BodyLarge"
+            android:textColor="@color/selectedTab"
+            android:textSize="20sp"
+            android:visibility="visible"
+            app:layout_constraintBottom_toTopOf="@+id/work_info_layout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.progressindicator.LinearProgressIndicator
-        android:id="@+id/progress_indicator"
-        android:layout_width="300dp"
-        android:layout_height="40dp"
-        android:backgroundTint="@color/card_view_selected"
-        android:indeterminate="false"
-        android:progressBackgroundTint="?attr/colorSecondaryVariant"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <LinearLayout
+            android:id="@+id/work_info_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="50dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/back_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:enabled="false"
-        android:text="@string/done"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/progress_indicator">
+            <ImageView
+                android:id="@+id/application_image_progress"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:contentDescription="TODO"
+                android:src="@drawable/ic_android"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/progress_type" />
 
-    </com.google.android.material.button.MaterialButton>
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/application_name_progress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="20dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:text="@string/app_list"
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyLarge"
+                android:textColor="@color/selectedTab"
+                android:textSize="19sp"
+                android:visibility="visible" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <com.google.android.material.textview.MaterialTextView
+                android:id="@+id/application_progress_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="10dp"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textAlignment="center"
+                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyLarge"
+                android:textColor="@color/selectedTab"
+                android:textSize="19sp"
+                android:visibility="visible" />
+
+            <com.google.android.material.progressindicator.LinearProgressIndicator
+                android:id="@+id/progress_indicator"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginStart="40dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginEnd="40dp"
+                android:backgroundTint="@color/card_view_selected"
+                android:indeterminate="false"
+                android:progressBackgroundTint="?attr/colorSecondaryVariant"
+                android:visibility="visible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/work_info_layout" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/back_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="50dp"
+                android:enabled="false"
+                android:text="@string/done"
+                android:textSize="16sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/progress_indicator">
+
+            </com.google.android.material.button.MaterialButton>
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>

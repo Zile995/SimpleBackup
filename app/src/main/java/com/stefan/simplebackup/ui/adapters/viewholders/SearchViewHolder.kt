@@ -23,6 +23,7 @@ class SearchViewHolder(
             versionName.text = item.versionName
             packageName.text = item.packageName
             apkSize.text = item.apkSize.bytesToMegaBytesString()
+            installDate.text = item.getDateString()
             splitApk.isVisible = if (item.isSplit) {
                 splitApk.text = root.resources.getString(R.string.split)
                 true

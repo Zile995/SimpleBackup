@@ -14,11 +14,13 @@ import kotlinx.coroutines.launch
 
 class ProgressViewModel(
     private val selectionList: Array<String>?,
-    private val appDataType: AppDataType?,
+    val appDataType: AppDataType?,
     application: MainApplication
 ) : ViewModel() {
 
     private val workManager by lazy { WorkManager.getInstance(application) }
+
+    val numberOfItems get() = selectionList?.size ?: 1
 
     init {
         Log.d("ProgressViewModel", "ProgressViewModel created")

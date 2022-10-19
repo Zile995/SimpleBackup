@@ -35,8 +35,9 @@ class BackupUtil(
         val results = mutableListOf<WorkResult>()
         val database = AppDatabase.getInstance(appContext, this)
         val repository = AppRepository(database.appDao())
-        backupItems.forEach { item ->
-            repository.getAppData(appContext, item).also { app ->
+        backupItems.forEachIndexed { index, backupApp ->
+            currentWorkItemIndex = index + 1
+            repository.getAppData(appContext, backupApp).also { app ->
                 withSuspend(app) {
                     val result = startWork(
                         ::createDirs,

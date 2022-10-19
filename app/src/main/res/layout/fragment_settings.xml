@@ -99,50 +99,6 @@
         </LinearLayout>
 
         <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/theme_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="20dp"
-            android:layout_marginTop="10dp"
-            android:text="@string/theme"
-            android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-            android:textColor="@color/selectedTab"
-            android:textSize="14sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/notification_settings_field" />
-
-        <LinearLayout
-            android:id="@+id/choose_theme_filed"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:layout_marginTop="4dp"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:orientation="horizontal"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/theme_label">
-
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginStart="20dp"
-                android:src="@drawable/ic_theme"
-                tools:ignore="ContentDescription" />
-
-            <com.google.android.material.textview.MaterialTextView
-                android:id="@+id/choose_theme_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginStart="14dp"
-                android:text="@string/choose_theme"
-                android:textAppearance="@style/TextAppearance.SimpleBackup.BodyMedium"
-                android:textSize="15sp" />
-
-        </LinearLayout>
-
-        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/zip_compression_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -153,7 +109,7 @@
             android:textColor="@color/selectedTab"
             android:textSize="14sp"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/choose_theme_filed" />
+            app:layout_constraintTop_toBottomOf="@+id/notification_settings_field" />
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/zip_compression_field"
