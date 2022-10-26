@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentFavoritesBinding
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.FavoritesAdapter
@@ -18,7 +17,7 @@ import kotlinx.coroutines.delay
 
 class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     private val favoritesViewModel: FavoritesViewModel by viewModels {
-        FavoritesViewModelFactory(repository = mainViewModel.repository,)
+        FavoritesViewModelFactory().factory(mainViewModel.repository)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

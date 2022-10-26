@@ -59,7 +59,7 @@ abstract class BaseAdapter(
     }
 
     private fun List<AppData>.getSelectedIndexedValues() =
-        withIndex().filter { indexedValue ->
+        asSequence().withIndex().filter { indexedValue ->
             selectedItems.contains(indexedValue.value.packageName)
         }
 
@@ -69,16 +69,20 @@ abstract class BaseAdapter(
         }
         selectMultipleItems(transformedList)
         currentList.forEachIndexed { index, item ->
-            item.isSelected = true
-            notifyItemChanged(index)
+            if (!item.isSelected) {
+                item.isSelected = true
+                notifyItemChanged(index)
+            }
         }
     }
 
     fun clearSelection() {
         if (!hasSelectedItems()) return
         currentList.getSelectedIndexedValues().forEach { indexedValue ->
-            indexedValue.value.isSelected = false
-            notifyItemChanged(indexedValue.index)
+            if (indexedValue.value.isSelected) {
+                indexedValue.value.isSelected = false
+                notifyItemChanged(indexedValue.index)
+            }
         }
         removeAllSelectedItems()
     }

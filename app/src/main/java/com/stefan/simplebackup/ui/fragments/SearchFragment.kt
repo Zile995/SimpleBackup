@@ -17,7 +17,7 @@ import com.stefan.simplebackup.ui.viewmodels.SearchViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
+import com.stefan.simplebackup.utils.extensions.onMainActivity
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
 import kotlinx.coroutines.delay
 
@@ -40,7 +40,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     }
 
     private fun setOnBackPressedCallback() {
-        onMainActivityCallback {
+        onMainActivity {
             onBackPressedDispatcher.addCallback(viewLifecycleOwner) {
                 onSupportNavigateUp()
             }

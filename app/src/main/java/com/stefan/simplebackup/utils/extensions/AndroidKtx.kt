@@ -88,11 +88,6 @@ fun FragmentManager.getVisibleFragment() =
         childFragmentManager.fragments.firstOrNull { childFragment -> childFragment.isVisible }
     }
 
-fun AppCompatActivity.getVisibleViewPagerFragment(): BaseFragment<*>? {
-    val viewPagerFragment = supportFragmentManager.getVisibleFragment() as? BaseViewPagerFragment<*>
-    return viewPagerFragment?.getCurrentFragment()
-}
-
 inline fun <reified T : Fragment> FragmentManager.findFragmentByClass(): T? =
     fragments.firstOrNull { fragment ->
         fragment is T
@@ -101,7 +96,7 @@ inline fun <reified T : Fragment> FragmentManager.findFragmentByClass(): T? =
 inline fun <reified T : Fragment> FragmentManager.findFragmentsByClass(): List<T> =
     fragments.filterIsInstance<T>()
 
-inline fun <R> Fragment.onMainActivityCallback(crossinline block: MainActivity.() -> R): R? =
+inline fun <R> Fragment.onMainActivity(crossinline block: MainActivity.() -> R): R? =
     onActivityCallback<MainActivity, R> {
         block()
     }
@@ -197,6 +192,7 @@ fun Context.launchPackage(packageName: String) {
 }
 
 // ##
+// Resource and toast extensions
 
 fun Context.showToast(@StringRes resId: Int, longDuration: Boolean = false) =
     showToast(getString(resId), longDuration)
@@ -231,6 +227,7 @@ inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? = when {
 }
 
 // ##
+// ## Dialog extensions
 
 inline fun Context.materialDialog(
     title: String,

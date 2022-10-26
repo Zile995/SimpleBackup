@@ -4,11 +4,9 @@ import android.content.Context
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.DisplayMetrics
-import android.util.Log
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.SimpleItemAnimator
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
 
@@ -20,11 +18,6 @@ class MainRecyclerView(
 
     private var areAllItemsVisible = false
     private val linearLayoutManager get() = layoutManager as LinearLayoutManager
-
-    var itemAnimation: Boolean get() = (itemAnimator as SimpleItemAnimator).supportsChangeAnimations
-        set(value) {
-            (itemAnimator as SimpleItemAnimator).supportsChangeAnimations = value
-        }
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(
@@ -41,7 +34,6 @@ class MainRecyclerView(
     }
 
     fun canScrollUp() = canScrollVertically(-1)
-
     fun canScrollDown() = canScrollVertically(1)
 
     fun shouldMoveAtLastCompletelyVisibleItem(): Boolean {
@@ -49,11 +41,11 @@ class MainRecyclerView(
         return !areAllItemsVisible && isLastItemVisible
     }
 
-    fun hideAttachedButton(floatingButton: MainFloatingButton) {
+    fun controlAttachedButton(floatingButton: MainFloatingButton) {
         var showAction: () -> Unit
         var hideAction: () -> Unit
         var checkOnAttach = true
-        addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        addOnScrollListener(object : OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 

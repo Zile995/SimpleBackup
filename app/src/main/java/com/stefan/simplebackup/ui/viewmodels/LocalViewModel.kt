@@ -4,20 +4,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.work.WorkManager
-import com.stefan.simplebackup.MainApplication
-import com.stefan.simplebackup.data.workers.MainWorker
-import com.stefan.simplebackup.data.workers.WorkerHelper
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.system.measureTimeMillis
 
-class LocalViewModel(
-    application: MainApplication
-) : BaseViewModel() {
-
-    private val workManager by lazy { WorkManager.getInstance(application) }
+class LocalViewModel : BaseViewModel() {
 
     init {
         Log.d("ViewModel", "LocalViewModel created")
@@ -26,20 +17,15 @@ class LocalViewModel(
     }
 
     fun refreshBackupList() {
-        viewModelScope.launch {
-            val time = measureTimeMillis {
-                backupFilesObserver.refreshBackupFileList()
+        val start = System.currentTimeMillis()
+        backupFilesObserver.refreshBackupFileList().invokeOnCompletion {
+            viewModelScope.launch {
+                if (!spinner.value) return@launch
+                val time = System.currentTimeMillis() - start
+                Log.d("ViewModel", "Refreshed after $time")
+                if (time < 400L) delay(400 - time)
+                _spinner.value = false
             }
-            Log.d("ViewModel", "Refreshed after $time")
-            if (time < 400L && spinner.value) delay(400 - time)
-            _spinner.value = false
-        }
-    }
-
-    fun startRestoreWorker(packageName: String) {
-        viewModelScope.launch(Dispatchers.Default) {
-            val workerHelper = WorkerHelper(packageName = packageName, workManager)
-            workerHelper.beginUniqueLocalWork<MainWorker>(shouldBackup = false)
         }
     }
 
@@ -49,13 +35,11 @@ class LocalViewModel(
     }
 }
 
-class LocalViewModelFactory(
-    private val application: MainApplication,
-) : ViewModelProvider.Factory {
+class LocalViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(LocalViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return LocalViewModel(application) as T
+            return LocalViewModel() as T
         }
         throw IllegalArgumentException("Unable to construct LocalViewModel")
     }

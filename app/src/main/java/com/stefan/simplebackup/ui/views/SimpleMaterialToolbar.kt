@@ -40,6 +40,10 @@ class SimpleMaterialToolbar(
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, R.attr.toolbarStyle)
 
+    init {
+        contentInsetStartWithNavigation = 0
+    }
+
     inline fun changeOnSearch(
         isSearching: Boolean,
         crossinline setNavigationOnClickListener: () -> Unit = {}
@@ -174,14 +178,17 @@ class SimpleMaterialToolbar(
         setOnClickListener(null)
         setNavigationOnClickListener(null)
     }
+
     fun resetSearchActionView() {
         searchActionView?.clearFocus()
         searchViewItem?.isVisible = false
     }
+
     fun requestSearchActionViewFocus() = searchActionView?.requestFocus()
 
     private fun getDrawable(@DrawableRes resourceId: Int) =
         ContextCompat.getDrawable(context, resourceId)
+
     private fun findMenuItem(@IdRes resourceId: Int) = menu?.findItem(resourceId)
 
     private fun addRipple() =
@@ -214,11 +221,13 @@ class SimpleMaterialToolbar(
         val parentView by lazy { parent as View }
         setOnClickListener {
             if (animationFinished) {
+                searchActionView?.clearSearchViewText()
                 parentView.callOnClick()
             }
         }
         setNavigationOnClickListener {
             if (animationFinished) {
+                searchActionView?.clearSearchViewText()
                 parentView.callOnClick()
             }
         }

@@ -8,4 +8,5 @@
     <dimen name="card_item_content_margin" tools:override="true">11dp</dimen>
     <dimen name="recyclerview_bottom_padding" tools:override="true">8dp</dimen>
     <dimen name="scrim_visible_height_trigger" tools:override="true">65dp</dimen>
+    <dimen name="search_view_margin" tools:override="true">-8dp</dimen>
 </resources>

@@ -424,7 +424,7 @@ class AppDetailActivity : BaseActivity() {
             REQUEST_CODE_SIGN_IN -> {
                 if (resultCode == RESULT_OK && data != null) {
                     handleSignInIntent(
-                        signInIntentData = data,
+                        signInData = data,
                         onSuccess = {
                             startWork(true)
                         },

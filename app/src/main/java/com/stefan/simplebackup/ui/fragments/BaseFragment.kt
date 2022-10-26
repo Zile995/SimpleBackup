@@ -11,9 +11,9 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.snackbar.Snackbar
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.ui.activities.AppDetailActivity
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
+import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
@@ -22,7 +22,8 @@ import com.stefan.simplebackup.utils.extensions.*
 import java.lang.reflect.ParameterizedType
 
 abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB>,
-    ViewReferenceCleaner {
+    ViewReferenceCleaner, ButtonSelectionAction {
+
     protected val binding by viewBinding()
     protected val mainViewModel: MainViewModel by activityViewModels()
 
@@ -73,10 +74,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
 
     override fun onResume() {
         super.onResume()
-        onMainActivityCallback { _mainRecyclerView?.controlFloatingButton(
-            customSelectionAction = {
-                startProgressActivity(mainViewModel.selectionList.toTypedArray(), AppDataType.LOCAL)
-            }) }
+        setButtonAction()
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -101,20 +99,32 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         launchOnViewLifecycle {
             repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                 mainViewModel.isSelected.collect { isSelected ->
-                    if (!isSelected) clearSelection()
+                    if (!isSelected) adapter.clearSelection()
                     enableRecyclerViewScrolling(!isSelected)
                 }
             }
         }
     }
 
-    fun stopScrolling() {
-        _mainRecyclerView?.suppressLayout(true)
-        _mainRecyclerView?.suppressLayout(false)
+    private fun setButtonAction() {
+        onMainActivity {
+            _mainRecyclerView?.controlFloatingButton(
+                onButtonClick = {
+                    if (selectionFinished)
+                        smoothSnapToPosition(0)
+                    else
+                        onClickSelectionAction()
+                })
+        }
     }
 
     private fun enableRecyclerViewScrolling(shouldEnable: Boolean) {
         _mainRecyclerView?.isNestedScrollingEnabled = shouldEnable
+    }
+
+    fun stopScrolling() = _mainRecyclerView?.run {
+        suppressLayout(true)
+        suppressLayout(false)
     }
 
     fun uninstallSelectedApp() {
@@ -130,8 +140,6 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         })
     }
 
-    private fun clearSelection() = adapter.clearSelection()
-
     fun selectAllItems() {
         adapter.selectAllItems()
         Snackbar.make(
@@ -140,11 +148,14 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
     }
 
     fun getSelectedAppData() = adapter.getCurrentlySelectedItems()
-
     fun shouldMoveFragmentUp() = _mainRecyclerView?.shouldMoveAtLastCompletelyVisibleItem() ?: false
 
     fun fixRecyclerViewScrollPosition() {
         if (shouldMoveFragmentUp()) _mainRecyclerView?.slowlyScrollToLastItem()
+    }
+
+    override fun onClickSelectionAction() {
+        onMainActivity { showConfigureFragment() }
     }
 
     override fun onCleanUp() {
@@ -153,4 +164,8 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         _mainRecyclerView?.adapter = null
         _mainRecyclerView = null
     }
+}
+
+interface ButtonSelectionAction {
+    fun onClickSelectionAction()
 }

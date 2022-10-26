@@ -6,9 +6,9 @@ import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.manager.AppPermissionManager
 import com.stefan.simplebackup.data.manager.MainPermission
+import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentLocalBinding
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.LocalAdapter
@@ -16,13 +16,19 @@ import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModel
 import com.stefan.simplebackup.ui.viewmodels.LocalViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
-import com.stefan.simplebackup.utils.extensions.*
-import kotlinx.coroutines.delay
+import com.stefan.simplebackup.utils.extensions.isVisible
+import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.onMainActivity
+import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
 import kotlin.properties.Delegates
 
 class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     private val localViewModel: LocalViewModel by viewModels {
-        LocalViewModelFactory(requireActivity().application as MainApplication)
+        LocalViewModelFactory()
+    }
+
+    private val appPermissionManager by lazy {
+        AppPermissionManager(requireContext().applicationContext)
     }
 
     private var isStoragePermissionGranted by Delegates.observable<Boolean?>(null) { _, _, isGranted ->
@@ -38,13 +44,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        onMainActivityCallback {
-            requestStoragePermission(
-                permissionLauncher = storagePermissionLauncher,
-                onPermissionAlreadyGranted = {
-                    isStoragePermissionGranted = true
-                })
-        }
+        requestPermissions()
         binding.apply {
             bindViews()
             initObservers()
@@ -54,13 +54,22 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
 
     override fun onStart() {
         super.onStart()
-        val appPermissionManager = AppPermissionManager(requireContext().applicationContext)
         isStoragePermissionGranted =
             appPermissionManager.checkMainPermission(MainPermission.MANAGE_ALL_FILES)
     }
 
     override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =
         LocalAdapter(mainViewModel.selectionList, mainViewModel.setSelectionMode, onClickListener)
+
+    private fun requestPermissions() {
+        onMainActivity {
+            requestStoragePermission(
+                permissionLauncher = storagePermissionLauncher,
+                onPermissionAlreadyGranted = {
+                    isStoragePermissionGranted = true
+                })
+        }
+    }
 
     private fun FragmentLocalBinding.bindViews() {
         bindSwipeContainer()
@@ -90,18 +99,18 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
                     if (!isSpinning) {
                         localViewModel.observableList.collect { appList ->
                             adapter.submitList(appList)
-                            if (appList.isEmpty()) {
-                                delay(250L)
-                                if (isStoragePermissionGranted == true) {
-                                    noBackupsLabel.isVisible = true
-                                }
-                            } else {
-                                noBackupsLabel.isVisible = false
-                            }
+                            if (appList.isEmpty())
+                                noBackupsLabel.isVisible = isStoragePermissionGranted == false
                         }
                     }
                 }
             }
+        }
+    }
+
+    override fun onClickSelectionAction() {
+        onMainActivity {
+            startProgressActivity(mainViewModel.selectionList.toTypedArray(), AppDataType.LOCAL)
         }
     }
 

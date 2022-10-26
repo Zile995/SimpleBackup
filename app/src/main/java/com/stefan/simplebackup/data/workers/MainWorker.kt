@@ -31,6 +31,8 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     params
 ), WorkNotificationHelper by WorkNotificationBuilder(appContext) {
 
+    private lateinit var workResults: List<WorkResult>
+
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     private val items: Array<String>?
@@ -39,8 +41,6 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         get() = inputData.getBoolean(SHOULD_BACKUP, true)
     private val shouldBackupToCloud: Boolean
         get() = inputData.getBoolean(SHOULD_BACKUP_TO_CLOUD, false)
-
-    private lateinit var workResults: List<WorkResult>
 
     private val updateForegroundInfo = createForegroundInfo(notificationId)
 
@@ -75,9 +75,9 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                 }
             }
         } catch (e: Exception) {
-            Log.e("MainWorker", "Work error: $e: ${e.message}")
+            Log.e("MainWorker", "Work error: $e")
             withContext(Dispatchers.Main) {
-                applicationContext.showToast("Error $e: ${e.message}", true)
+                applicationContext.showToast("Error $e", true)
             }
             Result.failure()
         }

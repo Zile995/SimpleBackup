@@ -155,16 +155,16 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
     }
 
     fun handleSignInIntent(
-        signInIntentData: Intent,
+        signInData: Intent,
         onSuccess: () -> Unit,
         onFailure: (String) -> Unit
     ) {
-        GoogleSignIn.getSignedInAccountFromIntent(signInIntentData)
+        GoogleSignIn.getSignedInAccountFromIntent(signInData)
             .addOnSuccessListener { googleAccount ->
                 // Get credential on success
                 Log.d("GoogleServiceHandler", "Signed in as " + googleAccount.email)
                 val credential = GoogleAccountCredential.usingOAuth2(
-                    applicationContext, mutableSetOf(DriveScopes.DRIVE_FILE)
+                    applicationContext, mutableListOf(DriveScopes.DRIVE_FILE)
                 )
                 credential.selectedAccount = googleAccount.account
 

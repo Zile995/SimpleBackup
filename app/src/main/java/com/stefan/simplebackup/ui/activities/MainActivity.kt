@@ -6,7 +6,6 @@ import android.content.Intent.ACTION_PACKAGE_REMOVED
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnLayout
@@ -16,7 +15,6 @@ import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.google.android.material.appbar.AppBarLayout
-import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
@@ -43,7 +41,7 @@ import java.lang.ref.WeakReference
 
 class MainActivity : BaseActivity() {
 
-    // Visible BaseFragment getter
+    // BaseFragment getter
     val getCurrentlyVisibleBaseFragment: BaseFragment<*>?
         get() {
             return when (val visibleFragment = supportFragmentManager.getVisibleFragment()) {
@@ -61,7 +59,7 @@ class MainActivity : BaseActivity() {
 
     // ViewModel
     private val mainViewModel: MainViewModel by viewModels {
-        MainViewModelFactory(application = application as MainApplication)
+        MainViewModelFactory().factory
     }
 
     // Create MainActivityAnimator class instance lazily
@@ -123,9 +121,6 @@ class MainActivity : BaseActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        binding.apply {
-            materialSearchBar.post { materialToolbar.searchActionView?.clearSearchViewText() }
-        }
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
 
@@ -395,22 +390,21 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    fun MainRecyclerView.controlFloatingButton(customSelectionAction: () -> Unit) {
+    fun MainRecyclerView.controlFloatingButton(onButtonClick: MainRecyclerView.() -> Unit) {
         binding.apply {
             if (floatingButton.hidePermanently) return
+            controlAttachedButton(floatingButton)
             floatingButton.setOnClickListener {
-                if (selectionFinished)
-                    smoothSnapToPosition(0)
-                else {
-                    if (supportFragmentManager.getVisibleFragment() is HomeViewPagerFragment &&
-                        mainViewModel.selectionList.isNotEmpty()
-                    )
-                        ConfigureSheetFragment().show(supportFragmentManager, "configureSheetTag")
-                    else
-                        customSelectionAction()
-                }
+                onButtonClick()
             }
-            hideAttachedButton(floatingButton)
+        }
+    }
+
+    fun showConfigureFragment() {
+        supportFragmentManager.apply {
+            if (getVisibleFragment() is HomeViewPagerFragment &&
+                mainViewModel.selectionList.isNotEmpty()
+            ) ConfigureSheetFragment().show(this, "configureSheetTag")
         }
     }
 
@@ -419,9 +413,9 @@ class MainActivity : BaseActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         when (requestCode) {
             REQUEST_CODE_SIGN_IN -> {
-                if (resultCode == AppCompatActivity.RESULT_OK && data != null) {
+                if (resultCode == RESULT_OK && data != null) {
                     handleSignInIntent(
-                        signInIntentData = data,
+                        signInData = data,
                         onSuccess = {
                             startProgressActivity(
                                 mainViewModel.selectionList.toTypedArray(),

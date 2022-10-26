@@ -39,8 +39,11 @@
                     android:id="@+id/material_toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    app:contentInsetStart="0dp"
+                    app:contentInsetStartWithNavigation="0dp"
                     app:navigationIcon="@drawable/ic_search"
                     app:title="@string/search_for_apps"
+                    app:titleMarginStart="0dp"
                     app:titleTextAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
                     app:titleTextColor="?android:textColorHint">
 

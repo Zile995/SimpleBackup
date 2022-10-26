@@ -2,9 +2,11 @@ package com.stefan.simplebackup.ui.viewmodels
 
 import android.database.sqlite.SQLiteException
 import android.util.Log
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.receivers.PackageListener
@@ -19,7 +21,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.IOException
 
-class MainViewModel(application: MainApplication) : ViewModel(),
+class MainViewModel(application: MainApplication) : AndroidViewModel(application),
     PackageListener by PackageListenerImpl(application) {
     // View saved states
     var isAppBarExpanded = true
@@ -42,8 +44,8 @@ class MainViewModel(application: MainApplication) : ViewModel(),
 
     // Selection properties
     private var _isSelected = MutableStateFlow(false)
-    val selectionList = mutableListOf<String>()
     val isSelected = _isSelected.asStateFlow()
+    val selectionList = mutableListOf<String>()
     val setSelectionMode: SelectionModeCallBack = { isSelected: Boolean ->
         _isSelected.value = isSelected
         if (!isSelected) selectionFinished = true
@@ -71,9 +73,7 @@ class MainViewModel(application: MainApplication) : ViewModel(),
         isButtonVisible = isVisible
     }
 
-    suspend fun onRootCheck(
-        onRootNotGranted: () -> Unit, onDeviceNotRooted: () -> Unit
-    ) {
+    suspend fun onRootCheck(onRootNotGranted: () -> Unit, onDeviceNotRooted: () -> Unit) {
         val hasRootAccess = rootChecker.hasRootAccess()
         if (hasRootAccess == true) return
         val isDeviceRooted = rootChecker.isDeviceRooted()
@@ -180,14 +180,11 @@ class MainViewModel(application: MainApplication) : ViewModel(),
     }
 }
 
-class MainViewModelFactory(
-    private val application: MainApplication,
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return MainViewModel(application) as T
+class MainViewModelFactory {
+    val factory = viewModelFactory {
+        initializer {
+            val application = (this[APPLICATION_KEY]) as MainApplication
+            MainViewModel(application)
         }
-        throw IllegalArgumentException("Unable to construct MainViewModel")
     }
 }

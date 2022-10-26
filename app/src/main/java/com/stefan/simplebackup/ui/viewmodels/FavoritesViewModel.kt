@@ -1,11 +1,11 @@
 package com.stefan.simplebackup.ui.viewmodels
 
 import android.util.Log
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.stefan.simplebackup.data.local.repository.AppRepository
-import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.utils.extensions.filterBy
 import kotlinx.coroutines.launch
 
@@ -26,12 +26,12 @@ class FavoritesViewModel(repository: AppRepository) : BaseViewModel() {
     }
 }
 
-class FavoritesViewModelFactory(private val repository: AppRepository) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(FavoritesViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return FavoritesViewModel(repository) as T
+class FavoritesViewModelFactory {
+    val factory: (repository: AppRepository) -> ViewModelProvider.Factory = { repository ->
+        viewModelFactory {
+            initializer {
+                FavoritesViewModel(repository)
+            }
         }
-        throw IllegalArgumentException("Unable to construct FavoritesViewModel")
     }
 }

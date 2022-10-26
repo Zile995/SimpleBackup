@@ -11,7 +11,7 @@ import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentConfigureSheetBinding
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
-import com.stefan.simplebackup.utils.extensions.onMainActivityCallback
+import com.stefan.simplebackup.utils.extensions.onMainActivity
 import com.stefan.simplebackup.utils.extensions.viewBinding
 
 class ConfigureSheetFragment : BottomSheetDialogFragment() {
@@ -24,9 +24,9 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
     private val contactsPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                onMainActivityCallback { requestSignIn() }
+                onMainActivity { requestSignIn() }
             } else {
-                onMainActivityCallback { showContactsPermissionDialog() }
+                onMainActivity { showContactsPermissionDialog() }
             }
         }
 
@@ -36,7 +36,7 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
                 if (!cloudBackupClicked)
                     startProgressActivity(AppDataType.USER)
             } else {
-                onMainActivityCallback { showStoragePermissionDialog() }
+                onMainActivity { showStoragePermissionDialog() }
             }
         }
 
@@ -59,7 +59,7 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
     private fun FragmentConfigureSheetBinding.bindLocalButton() {
         localBackupButton.setOnClickListener {
             cloudBackupClicked = false
-            onMainActivityCallback {
+            onMainActivity {
                 requestStoragePermission(storagePermissionLauncher, onPermissionAlreadyGranted = {
                     startProgressActivity(AppDataType.USER)
                 })
@@ -67,14 +67,14 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
         }
     }
 
-    private fun startProgressActivity(appDataType: AppDataType) = onMainActivityCallback {
+    private fun startProgressActivity(appDataType: AppDataType) = onMainActivity {
         startProgressActivity(mainViewModel.selectionList.toTypedArray(), appDataType)
     }
 
     private fun FragmentConfigureSheetBinding.bindCloudButton() {
         cloudBackupButton.setOnClickListener {
             cloudBackupClicked = true
-            onMainActivityCallback {
+            onMainActivity {
                 proceedWithPermission(MainPermission.MANAGE_ALL_FILES,
                     onPermissionGranted = {
                         requestContactsPermission(contactsPermissionLauncher,
