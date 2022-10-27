@@ -53,13 +53,8 @@ fun NavDestination.doesMatchDestination(@IdRes destId: Int): Boolean =
         navDestination.id == destId
     }
 
-fun View.changeBackgroundColor(context: Context?, @ColorRes color: Int) {
-    context?.let { safeContext ->
-        setBackgroundColor(
-            safeContext.getColorFromResource(color)
-        )
-    }
-}
+fun View.changeBackgroundColor(context: Context, @ColorRes color: Int) =
+    setBackgroundColor(context.getColorFromResource(color))
 
 inline fun View.fadeIn(
     animationDuration: Long = 250L,

@@ -23,14 +23,13 @@ class AppRepository(private val appDao: AppDao) {
 
     suspend fun insertAppData(app: AppData) {
         if (isFavorite(app.packageName) == true) {
-            app.favorite = true
+            app.isFavorite = true
             insert(app)
         } else {
             insert(app)
         }
     }
 
-    @Throws(SQLiteException::class)
     suspend inline fun startRepositoryJob(crossinline repositoryAction: RepositoryAction) =
         coroutineScope {
             launch(ioDispatcher) {
@@ -41,10 +40,8 @@ class AppRepository(private val appDao: AppDao) {
             }
         }
 
-    @Throws(SQLiteException::class)
     suspend fun removeFromFavorites(packageName: String) = appDao.removeFromFavorites(packageName)
 
-    @Throws(SQLiteException::class)
     suspend fun addToFavorites(packageName: String) = appDao.addToFavorites(packageName)
 
     suspend fun insert(app: AppData) = appDao.insert(app)

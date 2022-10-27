@@ -20,7 +20,6 @@ const val ZIP_FILE_EXTENSION: String = "zip"
 const val JSON_FILE_EXTENSION: String = "json"
 private const val TEMP_DIR_NAME: String = "temp"
 private const val LOCAL_DIR_NAME: String = "local"
-const val APK_TMP_INSTALL_DIR_PATH = "/data/local/tmp"
 
 @Suppress("BlockingMethodInNonBlockingContext")
 object FileUtil {
@@ -80,12 +79,9 @@ object FileUtil {
     @Throws(IOException::class)
     suspend fun deleteLocalBackup(packageName: String) = deleteFile("$localDirPath/$packageName")
 
-    fun getBackupDirPath(app: AppData): String = "$localDirPath/${app.packageName}"
-
     fun getTempDirPath(app: AppData): String = "$tempDirPath/${app.packageName}"
 
-    fun getTempApkInstallDirPath(app: AppData): String =
-        "$APK_TMP_INSTALL_DIR_PATH/${app.packageName}"
+    fun getBackupDirPath(app: AppData): String = "$localDirPath/${app.packageName}"
 
     fun findTarArchive(dirPath: String, app: AppData): File {
         val tarArchive = File("$dirPath/${app.packageName}.$TAR_FILE_EXTENSION")

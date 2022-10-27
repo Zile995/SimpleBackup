@@ -29,13 +29,9 @@ class AppManager(private val context: Context) {
         AppInfoManager(packageManager, 0)
     }
 
-    suspend fun build(packageName: String) =
-        withContext(ioDispatcher) {
-            getAppData(appInfo = appInfoManager.getAppInfo(packageName))
-        }
-
-    private fun printSequence() =
-        Log.d("AppManager", "Sequence number: ${PreferenceHelper.savedSequenceNumber}")
+    suspend fun build(packageName: String) = withContext(ioDispatcher) {
+        getAppData(appInfo = appInfoManager.getAppInfo(packageName))
+    }
 
     private fun getChangedPackages() =
         packageManager.getChangedPackages(PreferenceHelper.savedSequenceNumber)
@@ -43,7 +39,7 @@ class AppManager(private val context: Context) {
     private suspend fun saveSequenceNumber(newSequenceNumber: Int) {
         if (newSequenceNumber != PreferenceHelper.savedSequenceNumber)
             PreferenceHelper.updateSequenceNumber(newSequenceNumber)
-        printSequence()
+        Log.d("AppManager", "Sequence number: ${PreferenceHelper.savedSequenceNumber}")
     }
 
     suspend fun updateSequenceNumber() {
@@ -74,17 +70,18 @@ class AppManager(private val context: Context) {
         false
     }
 
-    fun getPackageUid(packageName: String) =
-        try {
-            appInfoManager.getAppInfo(packageName).uid
-        } catch (e: PackageManager.NameNotFoundException) {
-            null
-        }
+    fun getPackageUid(packageName: String) = try {
+        appInfoManager.getAppInfo(packageName).uid
+    } catch (e: PackageManager.NameNotFoundException) {
+        null
+    }
 
     // Simple flow which sends data
-    fun dataBuilder(includeSystemApps: Boolean = false) = flow {
+    fun dataBuilder(
+        includeSystemApps: Boolean = false, filter: (ApplicationInfo) -> Boolean = { true }
+    ) = flow {
         appInfoManager.getFilteredInfo(filterSystemApps = includeSystemApps) { appInfo ->
-            appInfo.packageName != context.packageName
+            appInfo.packageName != context.packageName && filter(appInfo)
         }.forEach { filteredAppsInfo ->
             val app = getAppData(filteredAppsInfo)
             emit(app)
@@ -93,7 +90,6 @@ class AppManager(private val context: Context) {
 
     private suspend fun getAppData(appInfo: ApplicationInfo) = coroutineScope {
         appInfoManager.run {
-            getApkDir(appInfo)
             val apkDir = getApkDir(appInfo)
             val packageName = getPackageName(appInfo)
             val apkInfo = getApkFileSizeSplitInfo(apkDir)

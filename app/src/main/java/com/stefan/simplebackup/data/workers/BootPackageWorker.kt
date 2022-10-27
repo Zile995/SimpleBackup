@@ -8,48 +8,59 @@ import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.utils.PreferenceHelper
-import kotlinx.coroutines.*
+import com.stefan.simplebackup.utils.extensions.filterBy
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.withContext
 
-class BootPackageWorker(private val appContext: Context, params: WorkerParameters) : CoroutineWorker(
-    appContext,
-    params
-) {
+class BootPackageWorker(appContext: Context, params: WorkerParameters) :
+    CoroutineWorker(
+        appContext,
+        params
+    ) {
+
     private val ioDispatcher = Dispatchers.IO
-    private val isDatabaseCreated = PreferenceHelper.isDatabaseCreated
 
     override suspend fun doWork(): Result = coroutineScope {
         try {
-            if (!isDatabaseCreated)
+            if (!PreferenceHelper.isDatabaseCreated)
                 Result.success()
             else {
-                val database = AppDatabase.getInstance(appContext.applicationContext, this)
-                val appManager = AppManager(appContext.applicationContext)
+                val appManager = AppManager(applicationContext)
+                val database = AppDatabase.getInstance(applicationContext, this)
                 val repository = AppRepository(database.appDao())
                 withContext(ioDispatcher) {
-                    launch {
-                        appManager.apply {
-                            dataBuilder().collect { app ->
-                                repository.insertAppData(app)
-                            }
-                        }
-                    }
-                    repository.installedApps.collect { databaseList ->
-                        databaseList.forEach { app ->
-                            if (!appManager.doesPackageExists(app.packageName)) {
-                                repository.delete(app.packageName)
-                            }
-                        }
-                    }
+                    deleteUninstalledPackages(repository, appManager)
+                    updateAllPackages(repository, appManager)
                 }
                 Result.success().also {
                     Log.d("BootPackageWorker", "Updated successfully")
                 }
             }
-        } catch (e: Throwable) {
-            Log.e("BootPackageWorker", "Error updating database: + ${e.message}")
+        } catch (e: Exception) {
+            Log.e("BootPackageWorker", "Error updating database: $e")
             Result.failure()
         } finally {
             PreferenceHelper.resetSequenceNumber()
+        }
+    }
+
+    private suspend fun updateAllPackages(repository: AppRepository, appManager: AppManager) {
+        appManager.apply {
+            dataBuilder().collect { app ->
+                repository.insertAppData(app)
+            }
+        }
+    }
+
+    private suspend fun deleteUninstalledPackages(repository: AppRepository, appManager: AppManager) {
+        repository.installedApps.filterBy { app ->
+            !appManager.doesPackageExists(app.packageName)
+        }.collect { removedApps ->
+            removedApps.forEach { app ->
+                repository.delete(app.packageName)
+            }
         }
     }
 }

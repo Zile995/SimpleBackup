@@ -64,13 +64,12 @@ object ZipUtil {
         coroutineScope {
             val backupDirPath = getBackupDirPath(app)
             Log.d("ZipUtil", "Extracting the ${app.name} tar to temp dir")
-            val zipFile = getTarZipFile(appBackupDirPath = backupDirPath)
-            zipFile?.apply {
+            val tarZipFile = getTarZipFile(appBackupDirPath = backupDirPath)
+            tarZipFile.apply {
+                if (!tarZipFile.isValidZipFile) throw IOException("Tar zip file is not valid")
                 val tempDirPath = getTempDirPath(app)
                 extractAll(tempDirPath)
                 Log.d("ZipUtil", "Successfully extracted ${app.packageName} tar")
-            } ?: {
-                throw IOException("Unable to find zip tar file")
             }
         }
     }
@@ -81,12 +80,11 @@ object ZipUtil {
             val backupDirPath = getBackupDirPath(app)
             Log.d("ZipUtil", "Extracting the ${app.name} apks to temp dir")
             val apkZipFile = getApkZipFile(appBackupDirPath = backupDirPath)
-            apkZipFile?.apply {
+            apkZipFile.apply {
+                if (!apkZipFile.isValidZipFile) throw IOException("Apk zip file is not valid")
                 val tempDirPath = getTempDirPath(app)
                 extractAll(tempDirPath)
                 Log.d("ZipUtil", "Successfully extracted ${app.name} apks")
-            } ?: {
-                throw IOException("Unable to find apk zip file")
             }
         }
     }
@@ -100,7 +98,8 @@ object ZipUtil {
                 // Save dataSize to app
                 app.dataSize += tarArchive.length()
                 val zipFile = ZipFile(
-                    "${getTempDirPath(app)}/${app.packageName}.$ZIP_FILE_EXTENSION")
+                    "${getTempDirPath(app)}/${app.packageName}.$ZIP_FILE_EXTENSION"
+                )
                 if (zipFile.file.exists()) zipFile.file.delete()
                 Log.d("ZipUtil", "Zipping the ${app.packageName} tar archive to $tempDirPath")
                 zipFile.addFile(tarArchive, zipParameters)
@@ -129,7 +128,7 @@ object ZipUtil {
             zipFile.fileHeaders.map { fileHeader ->
                 fileHeader.fileName.endsWith(".$TAR_FILE_EXTENSION")
             }.all { fileNameHasTarExtension -> fileNameHasTarExtension }
-        }
+        } ?: throw IOException("Unable to find tar zip file")
 
     fun getApkZipFile(appBackupDirPath: String) =
         File(appBackupDirPath).walkTopDown().filter { backupFile ->
@@ -140,7 +139,7 @@ object ZipUtil {
             zipFile.fileHeaders.map { fileHeader ->
                 fileHeader.fileName.endsWith(".$APK_FILE_EXTENSION")
             }.all { fileNameHasApkExtension -> fileNameHasApkExtension }
-        }
+        } ?: throw IOException("Unable to find apk zip file")
 
     private fun getApkNativeLibs(apkFile: File) = try {
         val zipFile = ZipFile(apkFile)

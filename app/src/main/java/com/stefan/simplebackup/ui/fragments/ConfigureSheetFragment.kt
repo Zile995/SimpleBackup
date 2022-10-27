@@ -11,8 +11,13 @@ import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentConfigureSheetBinding
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
+import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.onMainActivity
 import com.stefan.simplebackup.utils.extensions.viewBinding
+import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class ConfigureSheetFragment : BottomSheetDialogFragment() {
 
@@ -34,7 +39,7 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
                 if (!cloudBackupClicked)
-                    startProgressActivity(AppDataType.USER)
+                    startProgressActivity()
             } else {
                 onMainActivity { showStoragePermissionDialog() }
             }
@@ -60,15 +65,16 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
         localBackupButton.setOnClickListener {
             cloudBackupClicked = false
             onMainActivity {
-                requestStoragePermission(storagePermissionLauncher, onPermissionAlreadyGranted = {
-                    startProgressActivity(AppDataType.USER)
-                })
+                requestStoragePermission(storagePermissionLauncher,
+                    onPermissionAlreadyGranted = {
+                        startProgressActivity()
+                    })
             }
         }
     }
 
-    private fun startProgressActivity(appDataType: AppDataType) = onMainActivity {
-        startProgressActivity(mainViewModel.selectionList.toTypedArray(), appDataType)
+    private fun startProgressActivity() = onMainActivity {
+        startProgressActivity(mainViewModel.selectionList.toTypedArray(), AppDataType.USER)
     }
 
     private fun FragmentConfigureSheetBinding.bindCloudButton() {

@@ -99,8 +99,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
                     if (!isSpinning) {
                         localViewModel.observableList.collect { appList ->
                             adapter.submitList(appList)
-                            if (appList.isEmpty())
-                                noBackupsLabel.isVisible = isStoragePermissionGranted == false
+                            noBackupsLabel.isVisible = isStoragePermissionGranted == true && appList.isEmpty()
                         }
                     }
                 }

@@ -23,14 +23,19 @@ import com.stefan.simplebackup.data.model.APP_DATA_TYPE_EXTRA
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.utils.extensions.*
+import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.*
 
 abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
 
+    private val ioDispatcher = Dispatchers.IO
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         addOnBackPressedHandler()
-        window.setBackgroundDrawableResource(R.color.main_background)
+        setMainBackgroundColor()
     }
 
     private fun addOnBackPressedHandler() {
@@ -39,16 +44,24 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
         }
     }
 
+    private fun setMainBackgroundColor() =
+        window.setBackgroundDrawableResource(R.color.main_background)
+
     override fun onBackPress() {
         finish()
     }
 
     fun startProgressActivity(selection: Array<String>, appDataType: AppDataType) {
         if (selection.isEmpty()) return
-        passBundleToActivity<ProgressActivity>(
-            SELECTION_EXTRA to selection,
-            APP_DATA_TYPE_EXTRA to appDataType
-        )
+        launchOnViewLifecycle {
+            withContext(ioDispatcher) {
+                Shell.getShell()
+            }
+            passBundleToActivity<ProgressActivity>(
+                SELECTION_EXTRA to selection,
+                APP_DATA_TYPE_EXTRA to appDataType
+            )
+        }
     }
 
     inline fun onMainPermissionRequest(

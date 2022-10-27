@@ -99,16 +99,4 @@ object PreferenceHelper {
     suspend fun setCheckedDeviceRooted(isChecked: Boolean) {
         sharedPreferences.editPreference(CHECKED_DEVICE_ROOTED, isChecked)
     }
-
-    fun registerPreferenceListener(
-        listener: SharedPreferences.OnSharedPreferenceChangeListener
-    ) {
-        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
-    }
-
-    fun unregisterPreferenceListener(
-        listener: SharedPreferences.OnSharedPreferenceChangeListener
-    ) {
-        sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
-    }
 }

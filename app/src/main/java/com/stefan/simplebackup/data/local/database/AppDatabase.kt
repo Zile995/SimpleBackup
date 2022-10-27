@@ -1,7 +1,6 @@
 package com.stefan.simplebackup.data.local.database
 
 import android.content.Context
-import android.database.sqlite.SQLiteException
 import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
@@ -41,23 +40,24 @@ abstract class AppDatabase : RoomDatabase() {
                     appManager.apply {
                         updateSequenceNumber()
                         dataBuilder().collect { app ->
-                            println("Inserting: ${app.name}")
+                            Log.d("AppDatabase", "Inserting: ${app.name}")
                             appDao?.insert(app)
                         }
                     }
                 }
                 PreferenceHelper.setDatabaseCreated(true)
                 Log.d("AppDatabase", "Insert time: $time")
-            } catch (e: SQLiteException) {
-                Log.e("AppDatabase", "Error: $e ${e.message}")
-                context.showToast("Database error, can't insert new items: $e ${e.message}")
+            } catch (e: Exception) {
+                appDao?.clear()
+                Log.e("AppDatabase", "Database error, can't insert new items: $e")
+                context.showToast("Database error, can't insert new items: $e")
             }
         }
 
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
             mainJob = scope.launch(ioDispatcher) {
-                Log.d("AppDatabase", "Creating database")
+                Log.d("AppDatabase", "Creating the AppDatabase")
                 insertAll()
             }
         }

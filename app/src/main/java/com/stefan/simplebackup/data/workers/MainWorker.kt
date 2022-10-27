@@ -80,6 +80,8 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                 applicationContext.showToast("Error $e", true)
             }
             Result.failure()
+        } finally {
+            progressState.value = null
         }
     }
 

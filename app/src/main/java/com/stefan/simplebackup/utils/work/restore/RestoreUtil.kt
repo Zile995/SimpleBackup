@@ -8,7 +8,6 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.ForegroundCallback
 import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
-import com.stefan.simplebackup.utils.file.FileUtil.getTempApkInstallDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.localDirPath
 import com.stefan.simplebackup.utils.file.JsonUtil
@@ -26,6 +25,7 @@ class RestoreUtil(
     updateForegroundInfo: ForegroundCallback
 ) : WorkUtil(appContext, restoreItems, updateForegroundInfo) {
 
+    private val appManager = AppManager(appContext)
     private val rootApkManager = RootApkManager(appContext)
     private val restoreApps = mutableListOf<AppData?>()
 
@@ -69,17 +69,17 @@ class RestoreUtil(
 
     private suspend fun installApk(app: AppData) {
         app.updateNotificationData(R.string.restore_apk_install_info)
-        val appManager = AppManager(appContext)
+        val appManager = AppManager(context = appContext)
         val doesExists = appManager.doesPackageExists(packageName = app.packageName)
-        if (doesExists)
-            rootApkManager.uninstallApk(app.packageName)
-        rootApkManager.installApk(getTempApkInstallDirPath(app = app))
-        rootApkManager.deleteTempInstallDir(app = app)
+        rootApkManager.apply {
+            if (doesExists) uninstallApk(packageName = app.packageName)
+            installApk(getTempApkInstallDirPath(app = app))
+            deleteTempInstallDir(app = app)
+        }
     }
 
     private suspend fun restoreData(app: AppData) {
         app.updateNotificationData(R.string.restore_progress_data_info)
-        val appManager = AppManager(appContext)
         val appUid = appManager.getPackageUid(app.packageName)
         if (appUid == null) {
             app.updateNotificationData(R.string.restore_progress_uid_info)

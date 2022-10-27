@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.ui.activities
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
@@ -45,12 +44,10 @@ class ProgressActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        window.statusBarColor = getColorFromResource(R.color.main_background)
         setContentView(binding.root)
-
+        setStatusBarColor(R.color.main_background)
+        savedInstanceState.restoreSavedData()
         binding.apply {
-            savedInstanceState.restoreSavedData()
             bindViews()
             initObservers()
         }
@@ -112,7 +109,6 @@ class ProgressActivity : BaseActivity() {
         bindProgressTypeTitle()
     }
 
-    @SuppressLint("SetTextI18n")
     private fun ActivityProgressBinding.bindProgressTypeTitle() {
         updateProgressTypeTitle(currentItem = 1)
     }
@@ -144,16 +140,14 @@ class ProgressActivity : BaseActivity() {
         }
     }
 
-        private fun ActivityProgressBinding.bindProgressIndicator() {
-            progressIndicator.max = PROGRESS_MAX
-        }
+    private fun ActivityProgressBinding.bindProgressIndicator() {
+        progressIndicator.max = PROGRESS_MAX
+    }
 
-        private fun ActivityProgressBinding.bindBackButton() {
-            backButton.isEnabled = !isInProgress
-            backButton.apply {
-                setOnClickListener {
-                    onBackPress()
-                }
-            }
+    private fun ActivityProgressBinding.bindBackButton() {
+        backButton.isEnabled = !isInProgress
+        backButton.setOnClickListener {
+            onBackPress()
         }
     }
+}

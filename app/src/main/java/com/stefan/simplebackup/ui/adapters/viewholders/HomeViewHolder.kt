@@ -28,7 +28,7 @@ class HomeViewHolder(
                 true
             } else
                 false
-            favoritesBadge.isVisible = item.favorite
+            favoritesBadge.isVisible = item.isFavorite
         }
     }
 }

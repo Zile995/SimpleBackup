@@ -11,6 +11,8 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 
+const val APK_TMP_INSTALL_DIR_PATH = "/data/local/tmp"
+
 class RootApkManager(context: Context) {
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
@@ -33,7 +35,7 @@ class RootApkManager(context: Context) {
     @Throws(IOException::class)
     suspend fun createTempInstallDir(app: AppData) {
         withContext(ioDispatcher) {
-            val tempApkInstallDirPath = FileUtil.getTempApkInstallDirPath(app)
+            val tempApkInstallDirPath = getTempApkInstallDirPath(app)
             val result = Shell.cmd("mkdir -p $tempApkInstallDirPath").exec()
             if (!result.isSuccess) {
                 throw IOException("Unable to create temp install dirs")
@@ -44,7 +46,7 @@ class RootApkManager(context: Context) {
     @Throws(IOException::class)
     suspend fun deleteTempInstallDir(app: AppData) {
         withContext(ioDispatcher) {
-            val tempApkInstallDirPath = FileUtil.getTempApkInstallDirPath(app)
+            val tempApkInstallDirPath = getTempApkInstallDirPath(app)
             val result = Shell.cmd("rm -rf $tempApkInstallDirPath").exec()
             if (!result.isSuccess) {
                 throw IOException("Unable to delete temp install dirs")
@@ -56,7 +58,7 @@ class RootApkManager(context: Context) {
     suspend fun moveApkFilesToTempDir(app: AppData) {
         withContext(ioDispatcher) {
             val tempApkDir = FileUtil.getTempDirPath(app)
-            val tempApkInstallDirPath = FileUtil.getTempApkInstallDirPath(app)
+            val tempApkInstallDirPath = getTempApkInstallDirPath(app)
             val result = Shell.cmd("mv $tempApkDir/*.$APK_FILE_EXTENSION $tempApkInstallDirPath/").exec()
             if (!result.isSuccess) {
                 deleteTempInstallDir(app)
@@ -64,6 +66,9 @@ class RootApkManager(context: Context) {
             }
         }
     }
+
+    fun getTempApkInstallDirPath(app: AppData): String =
+        "$APK_TMP_INSTALL_DIR_PATH/${app.packageName}"
 
     @Throws(IOException::class)
     suspend fun uninstallApk(packageName: String) {

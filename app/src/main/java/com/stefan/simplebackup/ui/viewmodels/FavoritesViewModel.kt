@@ -14,7 +14,7 @@ class FavoritesViewModel(repository: AppRepository) : BaseViewModel() {
     init {
         viewModelScope.launch {
             loadList(false) {
-                repository.installedApps.filterBy { it.favorite }
+                repository.installedApps.filterBy { it.isFavorite }
             }
         }
         Log.d("ViewModel", "FavoritesViewModel created")

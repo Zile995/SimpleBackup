@@ -12,7 +12,6 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.stefan.simplebackup.utils.extensions.passBundleToActivity
 import com.stefan.simplebackup.utils.file.BitmapUtil.saveByteArray
-import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.stefan.simplebackup.utils.file.JsonUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -23,6 +22,7 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
 
+const val APP_TABLE_NAME = "app_table"
 const val PARCELABLE_EXTRA = "APPLICATION_DATA"
 const val APP_DATA_TYPE_EXTRA = "APP_DATA_TYPE"
 
@@ -31,8 +31,8 @@ const val APP_DATA_TYPE_EXTRA = "APP_DATA_TYPE"
  */
 @Keep
 @Entity(
-    tableName = "app_table",
-    indices = [Index(value = ["package_name", "is_local", "is_cloud"], unique = true)]
+    tableName = APP_TABLE_NAME,
+    indices = [Index(value = ["package_name"], unique = true)]
 )
 @Serializable
 data class AppData(
@@ -80,8 +80,8 @@ data class AppData(
     @ColumnInfo(name = "cache_size")
     var cacheSize: Long = 0L,
 
-    @ColumnInfo(name = "favorite")
-    var favorite: Boolean = false,
+    @ColumnInfo(name = "is_favorite")
+    var isFavorite: Boolean = false,
 
     @ColumnInfo(name = "is_user_app")
     var isUserApp: Boolean = true,
@@ -112,7 +112,7 @@ data class AppData(
         isSplit = parcel.readBooleanValue() ?: false,
         dataSize = parcel.readLong(),
         cacheSize = parcel.readLong(),
-        favorite = parcel.readBooleanValue() ?: false,
+        isFavorite = parcel.readBooleanValue() ?: false,
         isUserApp = parcel.readBooleanValue() ?: false,
         isLocal = parcel.readBooleanValue() ?: false,
         isCloud = parcel.readBooleanValue() ?: false
@@ -193,7 +193,7 @@ data class AppData(
         dest.writeBooleanValue(isSplit)
         dest.writeLong(dataSize)
         dest.writeLong(cacheSize)
-        dest.writeBooleanValue(favorite)
+        dest.writeBooleanValue(isFavorite)
         dest.writeBooleanValue(isUserApp)
         dest.writeBooleanValue(isLocal)
         dest.writeBooleanValue(isCloud)
@@ -223,7 +223,7 @@ data class AppData(
         if (dataSize != other.dataSize) return false
         if (cacheSize != other.cacheSize) return false
         if (isUserApp != other.isUserApp) return false
-        if (favorite != other.favorite) return false
+        if (isFavorite != other.isFavorite) return false
         if (isLocal != other.isLocal) return false
         if (isCloud != other.isCloud) return false
 
@@ -247,7 +247,7 @@ data class AppData(
         result = 31 * result + dataSize.hashCode()
         result = 31 * result + cacheSize.hashCode()
         result = 31 * result + isUserApp.hashCode()
-        result = 31 * result + favorite.hashCode()
+        result = 31 * result + isFavorite.hashCode()
         result = 31 * result + isLocal.hashCode()
         result = 31 * result + isCloud.hashCode()
         return result

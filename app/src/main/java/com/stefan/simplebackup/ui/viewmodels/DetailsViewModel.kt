@@ -1,10 +1,11 @@
 package com.stefan.simplebackup.ui.viewmodels
 
-import android.database.sqlite.SQLiteException
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.CreationExtras
 import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.AppRepository
@@ -25,8 +26,8 @@ import java.io.IOException
 
 class DetailsViewModel(
     val app: AppData?,
-    val application: MainApplication,
-) : ViewModel() {
+    application: MainApplication,
+) : AndroidViewModel(application) {
 
     val backupFileEvents by lazy {
         val backupDir = File(FileUtil.localDirPath)
@@ -60,6 +61,7 @@ class DetailsViewModel(
         viewModelScope.launch(defaultDispatcher) {
             app?.run {
                 if (!isLocal) {
+                    val application = getApplication<MainApplication>()
                     val appInfoManager = AppInfoManager(application.packageManager, 0)
                     val appInfo = appInfoManager.getAppInfo(app.packageName)
                     val appStorageManager = AppStorageManager(application)
@@ -92,20 +94,21 @@ class DetailsViewModel(
     ) = viewModelScope.launch {
         app?.apply {
             try {
+                val application = getApplication<MainApplication>()
                 val appDatabase = AppDatabase.getInstance(
                     application, application.applicationScope
                 )
                 val appRepository = AppRepository(appDatabase.appDao())
                 appRepository.startRepositoryJob {
-                    if (favorite)
+                    if (isFavorite)
                         removeFromFavorites(packageName)
                     else
                         addToFavorites(packageName)
                 }.invokeOnCompletion {
-                    favorite = !favorite
-                    onSuccess(favorite)
+                    isFavorite = !isFavorite
+                    onSuccess(isFavorite)
                 }
-            } catch (e: SQLiteException) {
+            } catch (e: Exception) {
                 onFailure(e.toString())
                 Log.e("ViewModel", "Database exception: $e")
             }
@@ -118,14 +121,12 @@ class DetailsViewModel(
     }
 }
 
-class DetailsViewModelFactory(
-    private val app: AppData?,
-    private val application: MainApplication,
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+class DetailsViewModelFactory(private val app: AppData?) :
+    ViewModelProvider.AndroidViewModelFactory() {
+    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         if (modelClass.isAssignableFrom(DetailsViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return DetailsViewModel(app, application) as T
+            return DetailsViewModel(app, extras[APPLICATION_KEY] as MainApplication) as T
         }
         throw IllegalArgumentException("Unable to construct DetailsViewModel")
     }

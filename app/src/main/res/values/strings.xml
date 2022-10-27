@@ -2,6 +2,7 @@
     <string name="app_name">Simple Backup</string>
     <string name="application_image">Application image</string>
     <string name="app_version">Version</string>
+    <string name="version">v%1$s</string>
     <string name="package_version">Package</string>
     <string name="search_button">Search button</string>
     <string name="search_for_apps">Search for apps</string>

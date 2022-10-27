@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.utils.extensions
 
+import android.app.Activity
 import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -114,6 +115,10 @@ inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.
         }
         block()
     }
+
+fun AppCompatActivity.setStatusBarColor(@ColorRes color: Int) {
+    window.statusBarColor = getColorFromResource(color)
+}
 
 fun Context.unregisterReceivers(vararg receivers: BroadcastReceiver) =
     receivers.forEach { receiver ->

@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.ui.viewmodels
 
-import android.database.sqlite.SQLiteException
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -125,7 +124,7 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
             }.invokeOnCompletion {
                 onSuccess(selectionList.size)
             }
-        } catch (e: SQLiteException) {
+        } catch (e: Exception) {
             onFailure(e.toString())
             Log.w("ViewModel", "Error occurred while removing favorites $e")
         }
@@ -145,7 +144,7 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
             }.invokeOnCompletion {
                 onSuccess(selectionList.size)
             }
-        } catch (e: SQLiteException) {
+        } catch (e: Exception) {
             onFailure(e.toString())
             Log.w("ViewModel", "Error occurred while removing favorites $e")
         } finally {
