@@ -104,9 +104,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         }
     }
 
-    private fun getOutputData() = workDataOf(
-        WORK_ITEMS to (items?.size ?: 0)
-    )
+    private fun getOutputData() = workDataOf(WORK_ITEMS to (items?.size ?: 0))
 
     private fun createForegroundInfo(notificationId: Int): suspend (Notification) -> Unit =
         { notification ->

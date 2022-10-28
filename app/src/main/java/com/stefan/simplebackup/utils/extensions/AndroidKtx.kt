@@ -1,6 +1,5 @@
 package com.stefan.simplebackup.utils.extensions
 
-import android.app.Activity
 import android.app.ActivityManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -32,6 +31,8 @@ import com.stefan.simplebackup.ui.fragments.FragmentViewBindingDelegate
 import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
 import java.lang.reflect.ParameterizedType
 
+// ##
+// ## ViewBinding extensions
 inline fun <T : ViewBinding> AppCompatActivity.viewBinding(
     crossinline bindingInflater: (LayoutInflater) -> T
 ) = lazy(LazyThreadSafetyMode.NONE) {
@@ -73,17 +74,8 @@ inline fun <T : ViewBinding> ViewGroup.viewBinding(
     factory: (LayoutInflater, ViewGroup, Boolean) -> T
 ) = factory(LayoutInflater.from(context), this, false)
 
-inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
-    vararg values: Pair<String, Any?>
-) {
-    Intent(applicationContext, T::class.java).apply {
-        values.forEach { value ->
-            putExtras(bundleOf(value))
-        }
-        startActivity(this)
-    }
-}
-
+// ##
+// ## Fragment extensions
 fun FragmentManager.getVisibleFragment() =
     findFragmentById(R.id.nav_host_container)?.run {
         childFragmentManager.fragments.firstOrNull { childFragment -> childFragment.isVisible }
@@ -102,62 +94,22 @@ inline fun <R> Fragment.onMainActivity(crossinline block: MainActivity.() -> R):
         block()
     }
 
+@Suppress("UNCHECKED_CAST")
 inline fun <T : AppCompatActivity, R> Fragment.onActivityCallback(
     crossinline block: T.() -> R
-): R? = @Suppress("UNCHECKED_CAST") (activity as? T)?.run {
+): R? = (activity as? T)?.run {
     block()
 }
 
-inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.() -> Unit = {}) =
-    IntentFilter().apply {
-        actions.forEach { action ->
-            addAction(action)
-        }
-        block()
-    }
-
-fun AppCompatActivity.setStatusBarColor(@ColorRes color: Int) {
-    window.statusBarColor = getColorFromResource(color)
-}
-
+//##
+//## BroadcastReceiver extensions
 fun Context.unregisterReceivers(vararg receivers: BroadcastReceiver) =
     receivers.forEach { receiver ->
         unregisterReceiver(receiver)
     }
 
-fun Context.getColorFromResource(@ColorRes color: Int) =
-    ContextCompat.getColor(applicationContext, color)
-
-fun Context.getInterFontTypeFace() =
-    ResourcesCompat.getFont(applicationContext, R.font.inter_family)
-
-fun Context.uninstallPackage(packageName: String) =
-    startActivity(Intent(Intent.ACTION_DELETE).apply {
-        data = Uri.parse("package:${packageName}")
-    })
-
-fun Context.openFilePath(path: String) {
-    val myDir: Uri = Uri.parse(path)
-    val intent = Intent(Intent.ACTION_VIEW)
-    intent.apply {
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        setDataAndType(myDir, "resource/folder")
-        if (resolveActivity(packageManager) != null) {
-            startActivity(intent)
-        } else showToast("You don't have installed file managers")
-    }
-}
-
-fun Context.forceStopPackage(packageName: String) {
-    val activityManager =
-        applicationContext.getSystemService(AppCompatActivity.ACTIVITY_SERVICE) as ActivityManager
-    activityManager.killBackgroundProcesses(packageName)
-    showToast(R.string.application_stopped)
-}
-
-// #
-// ## Settings intents
-
+// ##
+// ## Settings / Common Android Intents
 @RequiresApi(Build.VERSION_CODES.R)
 fun Context.openManageFilesPermissionSettings() =
     startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
@@ -188,17 +140,41 @@ fun Context.openPackageSettingsInfo(packageName: String) =
         data = Uri.parse("package:$packageName")
     })
 
-fun Context.launchPackage(packageName: String) {
+fun Context.forceStopPackage(packageName: String) {
+    val activityManager =
+        applicationContext.getSystemService(AppCompatActivity.ACTIVITY_SERVICE) as ActivityManager
+    activityManager.killBackgroundProcesses(packageName)
+    showToast(R.string.application_stopped)
+}
+
+fun Context.launchPackage(packageName: String): Intent? {
     val intent = applicationContext.packageManager.getLaunchIntentForPackage(packageName)
-    intent?.apply {
+    return intent?.apply {
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(this)
     }
 }
 
-// ##
-// Resource and toast extensions
+fun Context.uninstallPackage(packageName: String) =
+    startActivity(Intent(Intent.ACTION_DELETE).apply {
+        data = Uri.parse("package:${packageName}")
+    })
 
+fun Context.openFilePath(path: String) {
+    val myDir: Uri = Uri.parse(path)
+    val intent = Intent(Intent.ACTION_VIEW)
+    intent.apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        setDataAndType(myDir, "resource/folder")
+        if (resolveActivity(packageManager) != null)
+            startActivity(intent)
+        else
+            showToast(R.string.no_file_managers)
+    }
+}
+
+// ##
+// ## Resource and toast extensions
 fun Context.showToast(@StringRes resId: Int, longDuration: Boolean = false) =
     showToast(getString(resId), longDuration)
 
@@ -210,8 +186,36 @@ fun Context.showToast(message: String, longDuration: Boolean = false) {
 fun Context.getResourceDrawable(@DrawableRes drawable: Int) =
     ContextCompat.getDrawable(this, drawable)
 
-// #
-// ## Parcelable / Bundle extensions
+fun AppCompatActivity.setStatusBarColor(@ColorRes color: Int) {
+    window.statusBarColor = getColorFromResource(color)
+}
+
+fun Context.getColorFromResource(@ColorRes color: Int) =
+    ContextCompat.getColor(applicationContext, color)
+
+fun Context.getInterFontTypeFace() =
+    ResourcesCompat.getFont(applicationContext, R.font.inter_family)
+
+// ##
+// ## Intent / Bundle extensions
+inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
+    vararg values: Pair<String, Any?>
+) {
+    Intent(applicationContext, T::class.java).apply {
+        values.forEach { value ->
+            putExtras(bundleOf(value))
+        }
+        startActivity(this)
+    }
+}
+
+inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.() -> Unit = {}) =
+    IntentFilter().apply {
+        actions.forEach { action ->
+            addAction(action)
+        }
+        block()
+    }
 
 inline fun <reified T : Enum<T>> Bundle.putEnumInt(victim: T) =
     apply { putInt(T::class.java.name, victim.ordinal) }
@@ -231,9 +235,12 @@ inline fun <reified T : Parcelable> Bundle.parcelable(key: String): T? = when {
     else -> @Suppress("DEPRECATION") getParcelable(key) as? T
 }
 
+inline fun <T> AppCompatActivity.fromIntentExtras(block: Bundle.() -> T) = intent.extras?.run {
+    block()
+}
+
 // ##
 // ## Dialog extensions
-
 inline fun Context.materialDialog(
     title: String,
     message: String,
@@ -245,28 +252,25 @@ inline fun Context.materialDialog(
     crossinline onNegativeButtonPress: () -> Unit = {},
     @ColorInt positiveColor: Int = getColor(R.color.positive_dialog_text),
     @ColorInt negativeColor: Int = getColor(R.color.negative_dialog_text)
-) {
-    val context = this
-    MaterialAlertDialogBuilder(context, R.style.Widget_SimpleBackup_MaterialAlertDialog).apply {
-        setTitle(title)
-        setMessage(message)
-        if (enablePositiveButton) {
-            setPositiveButton(positiveButtonText) { _, _ ->
-                onPositiveButtonPress()
-            }
+) = MaterialAlertDialogBuilder(this, R.style.Widget_SimpleBackup_MaterialAlertDialog).run {
+    setTitle(title)
+    setMessage(message)
+    if (enablePositiveButton) {
+        setPositiveButton(positiveButtonText) { _, _ ->
+            onPositiveButtonPress()
         }
-        if (enableNegativeButton) {
-            setNegativeButton(negativeButtonText) { _, _ ->
-                onNegativeButtonPress()
-            }
-        }
-        val alert = create()
-        alert.setOnShowListener {
-            alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(positiveColor)
-            alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(negativeColor)
-        }
-        alert.show()
     }
+    if (enableNegativeButton) {
+        setNegativeButton(negativeButtonText) { _, _ ->
+            onNegativeButtonPress()
+        }
+    }
+    val alert = create()
+    alert.setOnShowListener {
+        alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(positiveColor)
+        alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(negativeColor)
+    }
+    alert
 }
 
 inline fun Context.permissionDialog(

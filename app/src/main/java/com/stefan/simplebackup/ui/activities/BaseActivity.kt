@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.addCallback
 import androidx.activity.result.ActivityResultLauncher
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -31,6 +32,8 @@ import java.util.*
 abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
 
     private val ioDispatcher = Dispatchers.IO
+
+    private var _permissionDialog: AlertDialog? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -132,8 +135,8 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
             onPermissionDenied()
     }
 
-    fun showStoragePermissionDialog() =
-        permissionDialog(
+    fun showStoragePermissionDialog() {
+        _permissionDialog = permissionDialog(
             title = getString(R.string.storage_permission),
             message = getString(R.string.storage_perm_info),
             onNegativeButtonPress = {
@@ -141,16 +144,18 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
                     openPackageSettingsInfo(packageName)
                 else
                     openManageFilesPermissionSettings()
-            })
+            }).apply { show() }
+    }
 
 
-    fun showContactsPermissionDialog() =
-        permissionDialog(
+    fun showContactsPermissionDialog() {
+        _permissionDialog = permissionDialog(
             title = getString(R.string.contacts_permission),
             message = getString(R.string.contacts_perm_info),
             onNegativeButtonPress = {
                 openPackageSettingsInfo(packageName)
-            })
+            }).apply { show() }
+    }
 
     private fun buildGoogleSignInClient(): GoogleSignInClient {
         val signInOptions = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).run {
@@ -196,6 +201,12 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
             }.addOnFailureListener { exception ->
                 onFailure(exception.toString())
             }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _permissionDialog?.dismiss()
+        _permissionDialog = null
     }
 
     companion object {

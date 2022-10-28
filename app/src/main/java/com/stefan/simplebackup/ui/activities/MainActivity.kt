@@ -6,6 +6,7 @@ import android.content.Intent.ACTION_PACKAGE_REMOVED
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnLayout
@@ -40,18 +41,7 @@ import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
 class MainActivity : BaseActivity() {
-
-    // BaseFragment getter
-    val getCurrentlyVisibleBaseFragment: BaseFragment<*>?
-        get() {
-            return when (val visibleFragment = supportFragmentManager.getVisibleFragment()) {
-                is BaseFragment<*> -> visibleFragment
-                is BaseViewPagerFragment<*> -> visibleFragment.getCurrentFragment()
-                else -> null
-            }
-        }
-
-    // Binding properties
+    // Binding property
     private val binding by viewBinding(ActivityMainBinding::inflate)
 
     // NavController, used for navigation
@@ -84,6 +74,18 @@ class MainActivity : BaseActivity() {
 
     // Jobs
     private var delayedExitJob: Job? = null
+
+    private var _rootAlertDialog: AlertDialog? = null
+
+    // BaseFragment getter
+    val getCurrentlyVisibleBaseFragment: BaseFragment<*>?
+        get() {
+            return when (val visibleFragment = supportFragmentManager.getVisibleFragment()) {
+                is BaseFragment<*> -> visibleFragment
+                is BaseViewPagerFragment<*> -> visibleFragment.getCurrentFragment()
+                else -> null
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -376,16 +378,16 @@ class MainActivity : BaseActivity() {
         launchOnViewLifecycle {
             mainViewModel.onRootCheck(
                 onRootNotGranted = {
-                    rootDialog(
+                    _rootAlertDialog = rootDialog(
                         title = getString(R.string.root_detected_title),
                         message = getString(R.string.not_granted_info)
-                    )
+                    ).apply { show() }
                 },
                 onDeviceNotRooted = {
-                    rootDialog(
+                    _rootAlertDialog = rootDialog(
                         title = getString(R.string.not_rooted_title),
                         message = getString(R.string.not_rooted_info)
-                    )
+                    ).apply { show() }
                 })
         }
     }
@@ -437,6 +439,8 @@ class MainActivity : BaseActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        _rootAlertDialog?.dismiss()
+        _rootAlertDialog = null
         unregisterReceivers(packageReceiver, notificationReceiver)
         mainViewModel.changeButtonVisibility(binding.floatingButton.isVisible)
     }

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.stefan.simplebackup.BuildConfig
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
 import com.stefan.simplebackup.databinding.ActivitySplashBinding
@@ -13,7 +12,6 @@ import com.stefan.simplebackup.utils.extensions.*
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.properties.Delegates
 

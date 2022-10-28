@@ -12,6 +12,7 @@ import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.ColorRes
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
@@ -19,7 +20,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
-import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppData
@@ -41,6 +41,8 @@ class AppDetailActivity : BaseActivity() {
 
     private var isToolbarAnimating = false
     private var cloudBackupClicked = false
+
+    private var _deleteAlertDialog: AlertDialog? = null
 
     private val detailsViewModel: DetailsViewModel by viewModels {
         val selectedApp = intent.extras?.parcelable<AppData>(PARCELABLE_EXTRA)
@@ -293,7 +295,7 @@ class AppDetailActivity : BaseActivity() {
             if (isLocal) deleteButton.tooltipText = getString(R.string.delete_backup)
             deleteButton.setOnClickListener {
                 if (isLocal)
-                    materialDialog(
+                    _deleteAlertDialog = materialDialog(
                         title = name,
                         message = getString(R.string.delete_backup_question),
                         positiveButtonText = getString(R.string.ok),
@@ -309,7 +311,7 @@ class AppDetailActivity : BaseActivity() {
                                 onBackPress()
                             }
                         }
-                    )
+                    ).apply { show() }
                 else
                     uninstallPackage(packageName)
             }
@@ -323,8 +325,11 @@ class AppDetailActivity : BaseActivity() {
             appImage.setOnClickListener {
                 if (isLocal)
                     openFilePath("${FileUtil.localDirPath}/$packageName")
-                else
-                    launchPackage(packageName)
+                else {
+                    launchPackage(packageName) ?: run {
+                        showToast(R.string.unable_to_launch_app)
+                    }
+                }
             }
             setBitmapFromPrivateFolder(context = this@AppDetailActivity, onFailure = {
                 getResourceDrawable(R.drawable.ic_error)?.toByteArray() ?: byteArrayOf()
@@ -433,6 +438,8 @@ class AppDetailActivity : BaseActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        _deleteAlertDialog?.dismiss()
+        _deleteAlertDialog = null
         if (detailsViewModel.app?.isLocal == false) {
             unregisterReceivers(packageReceiver)
         }

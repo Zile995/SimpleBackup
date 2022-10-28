@@ -33,8 +33,8 @@ class ProgressActivity : BaseActivity() {
     private var bitmap: ByteArray = byteArrayOf()
 
     private val progressViewModel: ProgressViewModel by viewModels {
-        val selectionList = intent?.extras?.getStringArray(SELECTION_EXTRA)
-        val appDataType = intent?.extras?.parcelable<AppDataType>(APP_DATA_TYPE_EXTRA)
+        val selectionList = fromIntentExtras { getStringArray(SELECTION_EXTRA) }
+        val appDataType = fromIntentExtras { parcelable<AppDataType>(APP_DATA_TYPE_EXTRA) }
         ProgressViewModelFactory(
             selectionList = selectionList,
             appDataType = appDataType,
@@ -91,13 +91,14 @@ class ProgressActivity : BaseActivity() {
                 return@Observer
             workInfoList[0]
                 .progress
-                .getInt(WORK_PROGRESS, 0).apply {
-                    progressIndicator.setProgress(this, true)
+                .getInt(WORK_PROGRESS, 0).let { currentProgress ->
+                    progressIndicator.setProgress(currentProgress, true)
                 }
             if (workInfoList[0].state.isFinished) {
-                backButton.isEnabled = true
                 isInProgress = false
+                backButton.isEnabled = true
                 progressIndicator.setProgress(PROGRESS_MAX, true)
+                progressType.text = getString(R.string.work_finished)
                 workManager.pruneWork()
             }
         }
