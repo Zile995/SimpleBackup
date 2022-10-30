@@ -7,6 +7,14 @@ plugins {
     id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlinVersion"
 }
 
+def keystoreProperties = new Properties()
+try {
+    def keystorePropertiesFile = rootProject.file("keystore.properties")
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+} catch(IOException ignored) {
+    // We don't have release keys, ignoring
+}
+
 android {
     signingConfigs {
         debug {
@@ -14,6 +22,14 @@ android {
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'
+        }
+        release {
+            if (keystoreProperties['storeFile']) {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storePassword keystoreProperties['storePassword']
+                storeFile rootProject.file(keystoreProperties['storeFile'])
+            }
         }
     }
     compileSdk 33
@@ -146,5 +162,5 @@ dependencies {
     implementation "io.coil-kt:coil:$coil"
 
     // Leak Canary
-//    debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"
+    // debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"
 }
