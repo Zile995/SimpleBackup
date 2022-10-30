@@ -33,11 +33,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginBottom="50dp"
+            android:layout_marginTop="24dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/progress_type">
 
             <ImageView
                 android:id="@+id/application_image_progress"
@@ -45,10 +45,7 @@
                 android:layout_height="100dp"
                 android:layout_gravity="center"
                 android:contentDescription="TODO"
-                android:src="@drawable/ic_android"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/progress_type" />
+                android:src="@drawable/ic_android" />
 
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/application_name_progress"
@@ -85,7 +82,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginStart="40dp"
-                android:layout_marginTop="30dp"
+                android:layout_marginTop="24dp"
                 android:layout_marginEnd="40dp"
                 android:backgroundTint="@color/card_view_selected"
                 android:indeterminate="false"
@@ -95,19 +92,28 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/work_info_layout" />
 
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/progress_recyclerview"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginStart="60dp"
+                android:layout_marginEnd="60dp"
+                android:layout_gravity="center"
+                android:scrollbarThumbVertical="@drawable/scrollbar_style"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager">
+
+            </androidx.recyclerview.widget.RecyclerView>
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/back_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:layout_marginTop="50dp"
+                android:layout_marginTop="24dp"
                 android:enabled="false"
                 android:text="@string/done"
-                android:textSize="16sp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/progress_indicator">
+                android:textSize="16sp" >
 
             </com.google.android.material.button.MaterialButton>
 

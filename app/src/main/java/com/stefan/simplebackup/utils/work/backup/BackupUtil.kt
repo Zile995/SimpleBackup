@@ -22,15 +22,14 @@ import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
 import com.stefan.simplebackup.utils.file.FileUtil.getBackupDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.moveFiles
-import com.stefan.simplebackup.utils.work.WorkResult
 import com.stefan.simplebackup.utils.work.WorkUtil
+import com.stefan.simplebackup.utils.work.WorkResult
 import com.stefan.simplebackup.utils.work.archive.TarUtil
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.coroutineScope
 import java.io.File
 import java.io.IOException
-
 
 class BackupUtil(
     private val appContext: Context,
@@ -39,15 +38,13 @@ class BackupUtil(
     private val shouldBackupToCloud: Boolean = false
 ) : WorkUtil(appContext, backupItems, updateForegroundInfo) {
 
-    suspend fun backup(): List<WorkResult> = coroutineScope {
-        val results = mutableListOf<WorkResult>()
+    suspend fun backup() = coroutineScope {
         val database = AppDatabase.getInstance(appContext, this)
         val repository = AppRepository(database.appDao())
-        backupItems.forEachIndexed { index, backupApp ->
-            currentWorkItemIndex = index + 1
+        backupItems.forEach { backupApp ->
             repository.getAppData(appContext, backupApp).also { app ->
                 withSuspend(app) {
-                    val result = startWork(
+                    startWork(
                         ::createDirs,
                         ::backupData,
                         ::zipData,
@@ -55,11 +52,9 @@ class BackupUtil(
                         ::moveBackup,
                         ::uploadToCloud
                     )
-                    results.add(result)
                 }
             }
         }
-        results.toList()
     }
 
     private suspend fun createDirs(app: AppData) {
@@ -118,11 +113,10 @@ class BackupUtil(
                     val jsonFile = FileUtil.getJsonInDir(appBackupDirPath)
                         ?: throw IOException("Upload failed, unable to find json data")
                     val apkZipFile =
-                        ZipUtil.getApkZipFile(appBackupDirPath = appBackupDirPath)?.file
+                        ZipUtil.getApkZipFile(appBackupDirPath = appBackupDirPath).file
                             ?: throw IOException("Upload failed, unable to find apk zip")
-                    val tarZipFile = ZipUtil.getTarZipFile(appBackupDirPath)?.file
+                    val tarZipFile = ZipUtil.getTarZipFile(appBackupDirPath).file
                         ?: throw IOException("Upload failed, unable to find tar zip")
-
 
                     val jsonFileMetaData = File().apply { name = jsonFile.name }
                     val apkZipFileMetaData = File().apply { name = apkZipFile.name }
@@ -133,7 +127,7 @@ class BackupUtil(
                     val tarZipMediaContent = FileContent("application/zip", tarZipFile)
                     try {
                         val parentFolderId = createAppDirOnDrive(service, app)
-                        
+
                         uploadFileToDriveFolder(
                             service,
                             jsonFileMetaData,
@@ -201,20 +195,17 @@ class BackupUtil(
         moveFiles(sourceDir = tempDirFile, targetFile = localDirFile)
     }
 
-    override suspend fun AppData.updateOnSuccess(): WorkResult {
-        updateNotificationData(R.string.backup_progress_successful)
-        return WorkResult.SUCCESS
+    override suspend fun AppData.onSuccess() {
+        updateNotificationData(R.string.backup_progress_successful, WorkResult.SUCCESS)
     }
 
-    override suspend fun AppData.updateOnFailure(): WorkResult {
+    override suspend fun AppData.onFailure() {
         try {
             deleteFile(getTempDirPath(this))
         } catch (e: IOException) {
             Log.w("BackupUtil", "Failed to delete broken backup $e")
         } finally {
-            setNearestItemInterval()
-            updateNotificationData(R.string.backup_progress_failed)
+            updateNotificationData(R.string.backup_progress_failed, WorkResult.ERROR)
         }
-        return WorkResult.ERROR
     }
 }

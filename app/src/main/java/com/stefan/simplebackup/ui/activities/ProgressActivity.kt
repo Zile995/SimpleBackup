@@ -6,16 +6,16 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.APP_DATA_TYPE_EXTRA
 import com.stefan.simplebackup.data.model.AppDataType
-import com.stefan.simplebackup.data.model.NotificationData
+import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.data.workers.WORK_PROGRESS
 import com.stefan.simplebackup.data.workers.WORK_REQUEST_TAG
 import com.stefan.simplebackup.databinding.ActivityProgressBinding
+import com.stefan.simplebackup.ui.adapters.ProgressAdapter
 import com.stefan.simplebackup.ui.viewmodels.ProgressViewModel
 import com.stefan.simplebackup.ui.viewmodels.ProgressViewModelFactory
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
@@ -29,6 +29,9 @@ class ProgressActivity : BaseActivity() {
 
     private val workManager by lazy { WorkManager.getInstance(application) }
 
+    private var _progressAdapter: ProgressAdapter? = null
+    private val progressAdapter get() = _progressAdapter!!
+
     private var isInProgress: Boolean = true
     private var bitmap: ByteArray = byteArrayOf()
 
@@ -36,9 +39,9 @@ class ProgressActivity : BaseActivity() {
         val selectionList = fromIntentExtras { getStringArray(SELECTION_EXTRA) }
         val appDataType = fromIntentExtras { parcelable<AppDataType>(APP_DATA_TYPE_EXTRA) }
         ProgressViewModelFactory(
-            selectionList = selectionList,
             appDataType = appDataType,
-            application = application as MainApplication
+            selectionList = selectionList,
+            workManager = workManager
         )
     }
 
@@ -55,15 +58,16 @@ class ProgressActivity : BaseActivity() {
 
     override fun onBackPress() {
         println("OnBackPressed check: Is work in progress?: $isInProgress")
-        if (!isInProgress)
+        if (!isInProgress) {
+            MainWorker.clearProgressData()
             super.onBackPress()
-    }
-
-    private fun Bundle?.restoreSavedData() {
-        this?.apply {
-            isInProgress = getBoolean("isInProgress")
         }
     }
+
+    private fun Bundle?.restoreSavedData() =
+        this?.let {
+            isInProgress = getBoolean("isInProgress")
+        }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("isInProgress", isInProgress)
@@ -71,14 +75,13 @@ class ProgressActivity : BaseActivity() {
     }
 
     private fun ActivityProgressBinding.initObservers() {
-        progressViewModel
         launchOnViewLifecycle {
             launch {
                 workManager.getWorkInfosByTagLiveData(WORK_REQUEST_TAG)
                     .observe(this@ProgressActivity, workInfoObserver())
             }
             repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
-                MainWorker.notificationObserver.collect { notificationData ->
+                progressViewModel.progressDataObserver.collect { notificationData ->
                     updateViews(notificationData)
                 }
             }
@@ -108,6 +111,15 @@ class ProgressActivity : BaseActivity() {
         bindBackButton()
         bindProgressIndicator()
         bindProgressTypeTitle()
+        bindProgressRecyclerView()
+    }
+
+    private fun ActivityProgressBinding.bindProgressRecyclerView() {
+        progressRecyclerview.apply {
+            _progressAdapter = ProgressAdapter()
+            adapter = progressAdapter
+            setHasFixedSize(true)
+        }
     }
 
     private fun ActivityProgressBinding.bindProgressTypeTitle() {
@@ -129,15 +141,19 @@ class ProgressActivity : BaseActivity() {
         )
     }
 
-    private fun ActivityProgressBinding.updateViews(notificationData: NotificationData?) {
-        notificationData?.apply {
+    private fun ActivityProgressBinding.updateViews(progressData: ProgressData?) {
+        progressData?.apply {
             if (!bitmap.contentEquals(image)) {
                 applicationImageProgress.loadBitmap(image)
                 bitmap = image
             }
             applicationNameProgress.text = name
-            applicationProgressInfo.text = this.text
+            applicationProgressInfo.text = this.message
             updateProgressTypeTitle(index)
+            workResult?.let {
+                progressViewModel.updateProgressDataList(progressData)
+                progressAdapter.submitList(progressViewModel.progressDataList)
+            }
         }
     }
 
@@ -150,5 +166,10 @@ class ProgressActivity : BaseActivity() {
         backButton.setOnClickListener {
             onBackPress()
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _progressAdapter = null
     }
 }

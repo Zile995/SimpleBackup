@@ -20,7 +20,6 @@ import net.lingala.zip4j.model.enums.CompressionMethod
 import java.io.File
 import java.io.IOException
 
-@Suppress("BlockingMethodInNonBlockingContext")
 object ZipUtil {
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
@@ -60,21 +59,6 @@ object ZipUtil {
     }
 
     @Throws(ZipException::class, IOException::class)
-    private suspend fun unzipTarArchive(app: AppData) {
-        coroutineScope {
-            val backupDirPath = getBackupDirPath(app)
-            Log.d("ZipUtil", "Extracting the ${app.name} tar to temp dir")
-            val tarZipFile = getTarZipFile(appBackupDirPath = backupDirPath)
-            tarZipFile.apply {
-                if (!tarZipFile.isValidZipFile) throw IOException("Tar zip file is not valid")
-                val tempDirPath = getTempDirPath(app)
-                extractAll(tempDirPath)
-                Log.d("ZipUtil", "Successfully extracted ${app.packageName} tar")
-            }
-        }
-    }
-
-    @Throws(ZipException::class, IOException::class)
     private suspend fun unzipApks(app: AppData) {
         coroutineScope {
             val backupDirPath = getBackupDirPath(app)
@@ -109,13 +93,18 @@ object ZipUtil {
         }
     }
 
-    suspend fun getAppNativeLibs(app: AppData) = withContext(ioDispatcher) {
-        File(app.apkDir).run {
-            walkTopDown().filter { file ->
-                file.extension == APK_FILE_EXTENSION
-            }.flatMap { apkFile ->
-                getApkNativeLibs(apkFile)
-            }.toList()
+    @Throws(ZipException::class, IOException::class)
+    private suspend fun unzipTarArchive(app: AppData) {
+        coroutineScope {
+            val backupDirPath = getBackupDirPath(app)
+            Log.d("ZipUtil", "Extracting the ${app.name} tar to temp dir")
+            val tarZipFile = getTarZipFile(appBackupDirPath = backupDirPath)
+            tarZipFile.apply {
+                if (!tarZipFile.isValidZipFile) throw IOException("Tar zip file is not valid")
+                val tempDirPath = getTempDirPath(app)
+                extractAll(tempDirPath)
+                Log.d("ZipUtil", "Successfully extracted ${app.packageName} tar")
+            }
         }
     }
 
@@ -127,7 +116,7 @@ object ZipUtil {
         }.firstOrNull { zipFile ->
             zipFile.fileHeaders.map { fileHeader ->
                 fileHeader.fileName.endsWith(".$TAR_FILE_EXTENSION")
-            }.all { fileNameHasTarExtension -> fileNameHasTarExtension }
+            }.all { it }
         } ?: throw IOException("Unable to find tar zip file")
 
     fun getApkZipFile(appBackupDirPath: String) =
@@ -140,6 +129,16 @@ object ZipUtil {
                 fileHeader.fileName.endsWith(".$APK_FILE_EXTENSION")
             }.all { fileNameHasApkExtension -> fileNameHasApkExtension }
         } ?: throw IOException("Unable to find apk zip file")
+
+    suspend fun getAppNativeLibs(app: AppData) = withContext(ioDispatcher) {
+        File(app.apkDir).run {
+            walkTopDown().filter { file ->
+                file.extension == APK_FILE_EXTENSION
+            }.flatMap { apkFile ->
+                getApkNativeLibs(apkFile)
+            }.toList()
+        }
+    }
 
     private fun getApkNativeLibs(apkFile: File) = try {
         val zipFile = ZipFile(apkFile)

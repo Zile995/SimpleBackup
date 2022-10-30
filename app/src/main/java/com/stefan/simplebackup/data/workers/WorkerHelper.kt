@@ -13,11 +13,6 @@ class WorkerHelper(
     val workManager: WorkManager
 ) {
 
-    constructor(packageName: String, workManager: WorkManager) : this(
-        arrayOf(packageName),
-        workManager
-    )
-
     val constraints = Constraints.Builder()
         .setRequiresStorageNotLow(true)
         .build()

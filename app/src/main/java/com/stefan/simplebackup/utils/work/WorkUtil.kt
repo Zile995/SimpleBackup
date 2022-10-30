@@ -4,7 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.annotation.StringRes
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.data.model.NotificationData
+import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.workers.ForegroundCallback
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import java.io.IOException
@@ -18,18 +18,18 @@ abstract class WorkUtil(
     private var currentProgress = 0
     private val generatedIntervals = mutableListOf<Int>()
     private val perItemInterval = PROGRESS_MAX / workItems.size
+
+    private var currentWorkItemIndex = 0
     protected val updateProgress = { steps: Int ->
         currentProgress += perItemInterval / steps
     }
-
-    protected var currentWorkItemIndex = 1
 
     init {
         generateIntervals()
     }
 
-    abstract suspend fun AppData.updateOnSuccess(): WorkResult
-    abstract suspend fun AppData.updateOnFailure(): WorkResult
+    abstract suspend fun AppData.onSuccess()
+    abstract suspend fun AppData.onFailure()
 
     private fun generateIntervals() {
         var intervalSum = 0
@@ -47,10 +47,11 @@ abstract class WorkUtil(
 
     protected suspend fun AppData?.startWork(
         vararg actions: suspend (AppData) -> Unit
-    ): WorkResult {
-        return when {
+    ) {
+        currentWorkItemIndex++
+        when {
             this == null -> {
-                updateWhenAppDoesNotExists()
+                setNearestItemInterval()
             }
             else -> {
                 try {
@@ -58,31 +59,30 @@ abstract class WorkUtil(
                         action(this)
                         updateProgress(actions.size)
                     }
-                    updateOnSuccess()
+                    onSuccess()
                 } catch (e: IOException) {
                     Log.w("WorkUtil", "Oh, an error occurred: $e")
-                    updateOnFailure()
+                    setNearestItemInterval()
+                    onFailure()
                 }
             }
         }
     }
 
-    private fun updateWhenAppDoesNotExists(): WorkResult {
-        setNearestItemInterval()
-        return WorkResult.ERROR
-    }
-
-    protected suspend fun AppData.updateNotificationData(@StringRes info: Int) {
-        val text = appContext.getString(info)
-        val notificationData =
-            NotificationData(
-                name = name,
-                text = text,
-                image = bitmap,
-                progress = currentProgress,
-                index = currentWorkItemIndex
-            )
-        updateForegroundInfo(notificationData)
+    protected suspend fun AppData.updateNotificationData(
+        @StringRes progressText: Int,
+        workResult: WorkResult? = null
+    ) {
+        val progressMessage = appContext.getString(progressText)
+        val progressData = ProgressData(
+            index = currentWorkItemIndex,
+            name = name,
+            image = bitmap,
+            message = progressMessage,
+            progress = currentProgress,
+            workResult = workResult
+        )
+        updateForegroundInfo(progressData)
     }
 }
 

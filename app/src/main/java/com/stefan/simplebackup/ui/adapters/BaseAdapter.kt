@@ -20,11 +20,11 @@ abstract class BaseAdapter(
         onSelectionModeCallback
     ) {
 
-    @Synchronized
     override fun submitList(list: List<AppData>?) {
         list?.let { newList ->
             if (newList.size < currentList.size && !BaseSelectionListenerImpl.selectionFinished) {
-                val deletedPackageNames = currentList.asSequence().minus(newList.toSet()).map { it.packageName }
+                val deletedPackageNames =
+                    currentList.asSequence().minus(newList.toSet()).map { it.packageName }
                 deletedPackageNames.forEach { packageName ->
                     if (selectedItems.contains(packageName)) {
                         removeSelected(packageName)
@@ -46,7 +46,8 @@ abstract class BaseAdapter(
         holder.setSelectedItem(item)
     }
 
-    fun getCurrentlySelectedItems() = currentList.filter { app -> selectedItems.contains(app.packageName) }
+    fun getCurrentlySelectedItems() =
+        currentList.filter { app -> selectedItems.contains(app.packageName) }
 
     private fun BaseViewHolder.setSelectedItem(item: AppData) {
         if (selectedItems.contains(item.packageName)) {

@@ -29,20 +29,16 @@ class RestoreUtil(
     private val rootApkManager = RootApkManager(appContext)
     private val restoreApps = mutableListOf<AppData?>()
 
-    suspend fun restore(): List<WorkResult> = coroutineScope {
+    suspend fun restore() = coroutineScope {
         addRestoreApps()
-        val results = mutableListOf<WorkResult>()
-        restoreApps.forEachIndexed { index, restoreApp ->
-            currentWorkItemIndex = index + 1
-            val result = restoreApp.startWork(
+        restoreApps.forEach { restoreApp ->
+            restoreApp.startWork(
                 ::createDirs,
                 ::unzipData,
                 ::installApk,
                 ::restoreData
             )
-            results.add(result)
         }
-        results.toList()
     }
 
     private suspend fun addRestoreApps() {
@@ -89,20 +85,18 @@ class RestoreUtil(
         deleteFile(getTempDirPath(app))
     }
 
-    override suspend fun AppData.updateOnSuccess(): WorkResult {
-        updateNotificationData(R.string.restore_progress_successful)
-        return WorkResult.SUCCESS
+    override suspend fun AppData.onSuccess() {
+        updateNotificationData(R.string.restore_progress_successful, WorkResult.SUCCESS)
     }
 
-    override suspend fun AppData.updateOnFailure(): WorkResult {
+    override suspend fun AppData.onFailure() {
         try {
             deleteFile(getTempDirPath(this))
         } catch (e: IOException) {
             Log.w("RestoreUtil", "Failed to delete broken restore files $e")
         } finally {
             setNearestItemInterval()
-            updateNotificationData(R.string.restore_progress_failed)
+            updateNotificationData(R.string.restore_progress_failed, WorkResult.ERROR)
         }
-        return WorkResult.ERROR
     }
 }

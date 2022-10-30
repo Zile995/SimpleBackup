@@ -6,7 +6,7 @@ import android.app.NotificationManager
 import android.content.Context
 import androidx.core.app.NotificationCompat
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.model.NotificationData
+import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.utils.file.BitmapUtil.toBitmap
 import com.stefan.simplebackup.utils.work.WorkResult
@@ -17,6 +17,14 @@ class WorkNotificationBuilder(
     private val context: Context,
     private val ongoing: Boolean = true
 ) : WorkNotificationHelper {
+
+    private val workResultsCounter = WorkResultsCounter()
+
+    private val appsText: (Int) -> String = { numberOfApps ->
+        workResultsCounter.run {
+            if (numberOfApps > 1) context.getString(R.string.apps) else context.getString(R.string.app)
+        }
+    }
 
     init {
         createNotificationChannel()
@@ -43,73 +51,75 @@ class WorkNotificationBuilder(
         val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
             description = descriptionText
         }
-
         val notificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
     }
 
     override fun getFinishedNotification(
-        results: List<WorkResult>,
         isBackupNotification: Boolean
     ): Notification = notificationBuilder.run {
 
-        val successful = results.count { workResult ->
-            workResult == WorkResult.SUCCESS
-        }
+        val notificationText =
+            workResultsCounter.run {
+                val failedText = getFailedText()
 
-        val failed = results.count { workResult ->
-            workResult == WorkResult.ERROR
-        }
+                val workTypeText = if (isBackupNotification)
+                    context.getString(R.string.backed_up)
+                else
+                    context.getString(R.string.restored)
 
-        val appText =
-            if (successful > 1) context.getString(R.string.apps) else context.getString(R.string.app)
+                context.getString(
+                    R.string.finished_work_notification,
+                    numOfSuccessful,
+                    appsText(numOfSuccessful),
+                    context.getString(R.string.successfully),
+                    failedText,
+                    workTypeText
+                )
+            }
 
-        val withFailed: () -> String = {
-            if (failed > 0)
-                ", $failed $appText ${context.getString(R.string.unsuccessfully)}"
-            else
-                ""
-        }
-
-        if (isBackupNotification) {
+        if (isBackupNotification)
             setContentTitle(context.getString(R.string.backup_completed))
-            setExpendableText(
-                "$successful" +
-                        " $appText" +
-                        " ${context.getString(R.string.successfully)}" +
-                        withFailed() +
-                        " ${context.getString(R.string.backed_up)}"
-            )
-        } else {
+        else
             setContentTitle(context.getString(R.string.restore_completed))
-            setExpendableText(
-                "$successful $appText ${context.getString(R.string.successfully)} " +
-                        context.getString(R.string.restored)
-            )
-        }
 
         setOngoing(false)
         setLargeIcon(null)
         setContentText(null)
-        setAutoCancel(false)
-        setOnlyAlertOnce(true)
-        setProgress(0, 0, false)
+        setExpendableText(notificationText)
         priority = NotificationCompat.PRIORITY_MAX
+        setProgress(0, 0, false)
         build()
     }
 
-    override suspend fun getUpdatedNotification(notificationData: NotificationData, isBackupNotification: Boolean): Notification {
-        return notificationBuilder.apply {
-            notificationData.apply {
-                if (isBackupNotification)
-                    setContentTitle("${context.getString(R.string.backing_up)} $name")
+    private fun getFailedText() =
+        workResultsCounter.run {
+            if (numOfUnsuccessful > 0) ", $numOfUnsuccessful ${appsText(numOfUnsuccessful)} " +
+                    context.getString(R.string.unsuccessfully)
+            else ""
+        }
+
+    override suspend fun getUpdatedNotification(
+        progressData: ProgressData, isBackupNotification: Boolean
+    ): Notification = notificationBuilder.apply {
+        progressData.apply {
+            if (isBackupNotification) setContentTitle("${context.getString(R.string.backing_up)} $name")
+            else setContentTitle("${context.getString(R.string.restoring)} $name")
+            setLargeIcon(image.toBitmap())
+            setExpendableText(message)
+            setProgress(PROGRESS_MAX, progressData.progress, false)
+            workResult?.let {
+                if (workResult == WorkResult.SUCCESS)
+                    workResultsCounter.numOfSuccessful++
                 else
-                    setContentTitle("${context.getString(R.string.restoring)} $name")
-                setLargeIcon(image.toBitmap())
-                setExpendableText(text)
-                setProgress(PROGRESS_MAX, notificationData.progress, false)
+                    workResultsCounter.numOfUnsuccessful++
             }
-        }.build()
-    }
+        }
+    }.build()
+
+    private data class WorkResultsCounter(
+        var numOfSuccessful: Int = 0,
+        var numOfUnsuccessful: Int = 0
+    )
 }

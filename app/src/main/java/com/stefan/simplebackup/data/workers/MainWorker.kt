@@ -7,12 +7,11 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import com.stefan.simplebackup.data.model.NotificationData
+import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.ui.notifications.WorkNotificationBuilder
 import com.stefan.simplebackup.ui.notifications.WorkNotificationHelper
 import com.stefan.simplebackup.utils.extensions.showToast
-import com.stefan.simplebackup.utils.work.WorkResult
 import com.stefan.simplebackup.utils.work.backup.BackupUtil
 import com.stefan.simplebackup.utils.work.restore.RestoreUtil
 import kotlinx.coroutines.*
@@ -24,16 +23,15 @@ const val PROGRESS_MAX = 10_000
 const val WORK_PROGRESS = "PROGRESS"
 const val WORK_ITEMS = "NUMBER_OF_PACKAGES"
 
-typealias ForegroundCallback = suspend (NotificationData) -> Unit
+typealias ForegroundCallback = suspend (ProgressData) -> Unit
 
 class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext,
     params
 ), WorkNotificationHelper by WorkNotificationBuilder(appContext) {
 
-    private lateinit var workResults: List<WorkResult>
-
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
 
     private val items: Array<String>?
         get() = inputData.getStringArray(INPUT_LIST)
@@ -42,12 +40,12 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     private val shouldBackupToCloud: Boolean
         get() = inputData.getBoolean(SHOULD_BACKUP_TO_CLOUD, false)
 
-    private val updateForegroundInfo = createForegroundInfo(notificationId)
+    private val updateForegroundInfo = setForegroundInfo(notificationId)
 
-    private val foregroundCallBack: ForegroundCallback = { notificationData ->
-        progressState.value = notificationData
-        updateForegroundInfo(getUpdatedNotification(notificationData, shouldBackup))
-        setProgress(workDataOf(WORK_PROGRESS to notificationData.progress))
+    private val foregroundCallBack: ForegroundCallback = { progressData ->
+        _progressData.value = progressData
+        updateForegroundInfo(getUpdatedNotification(progressData, shouldBackup))
+        setProgress(workDataOf(WORK_PROGRESS to progressData.progress))
     }
 
     override suspend fun doWork(): Result = coroutineScope {
@@ -66,7 +64,6 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                     items?.apply {
                         applicationContext.sendNotificationBroadcast(
                             notification = getFinishedNotification(
-                                results = workResults,
                                 isBackupNotification = shouldBackup
                             ),
                             actionName = ACTION_WORK_FINISHED
@@ -76,16 +73,14 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             }
         } catch (e: Exception) {
             Log.e("MainWorker", "Work error: $e")
-            withContext(Dispatchers.Main) {
+            withContext(mainDispatcher) {
                 applicationContext.showToast("Error $e", true)
             }
             Result.failure()
-        } finally {
-            progressState.value = null
         }
     }
 
-    private suspend fun backup() {
+    private suspend fun backup() =
         items?.let { backupItems ->
             val backupUtil = BackupUtil(
                 appContext = applicationContext,
@@ -93,29 +88,34 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                 updateForegroundInfo = foregroundCallBack,
                 shouldBackupToCloud = shouldBackupToCloud
             )
-            workResults = backupUtil.backup()
+            backupUtil.backup()
         }
-    }
 
-    private suspend fun restore() {
+    private suspend fun restore() =
         items?.let { restoreItems ->
-            val restoreUtil = RestoreUtil(applicationContext, restoreItems, foregroundCallBack)
-            workResults = restoreUtil.restore()
+            val restoreUtil = RestoreUtil(
+                appContext = applicationContext,
+                restoreItems = restoreItems,
+                updateForegroundInfo = foregroundCallBack
+            )
+            restoreUtil.restore()
         }
-    }
 
     private fun getOutputData() = workDataOf(WORK_ITEMS to (items?.size ?: 0))
 
-    private fun createForegroundInfo(notificationId: Int): suspend (Notification) -> Unit =
+    private fun setForegroundInfo(notificationId: Int): suspend (Notification) -> Unit =
         { notification ->
             setForeground(ForegroundInfo(notificationId, notification))
         }
 
     companion object ProgressObserver {
-        private var progressState: MutableStateFlow<NotificationData?> =
+        private var _progressData: MutableStateFlow<ProgressData?> =
             MutableStateFlow(null)
 
-        val notificationObserver get() = progressState.asStateFlow()
-    }
+        val progressData get() = _progressData.asStateFlow()
 
+        fun clearProgressData() {
+            _progressData.value = null
+        }
+    }
 }
