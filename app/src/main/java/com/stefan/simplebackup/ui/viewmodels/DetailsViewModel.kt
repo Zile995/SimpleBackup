@@ -67,7 +67,7 @@ class DetailsViewModel(
                     val appStorageManager = AppStorageManager(application)
                     val apkStats = appStorageManager.getApkSizeStats(appInfo)
                     Log.d("ViewModel", "DetailsViewModel apkSizeStats = $apkStats")
-                    _apkSizeStats.value = appStorageManager.getApkSizeStats(appInfo)
+                    _apkSizeStats.value = apkStats
                 } else
                     _apkSizeStats.value = ApkSizeStats(dataSize, cacheSize)
             }

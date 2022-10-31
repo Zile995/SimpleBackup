@@ -3,6 +3,7 @@ package com.stefan.simplebackup.data.manager
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.content.pm.PackageManager.NameNotFoundException
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
@@ -66,13 +67,13 @@ class AppManager(private val context: Context) {
     fun doesPackageExists(packageName: String) = try {
         appInfoManager.getPackageInfo(packageName)
         true
-    } catch (e: PackageManager.NameNotFoundException) {
+    } catch (e: NameNotFoundException) {
         false
     }
 
     fun getPackageUid(packageName: String) = try {
         appInfoManager.getAppInfo(packageName).uid
-    } catch (e: PackageManager.NameNotFoundException) {
+    } catch (e: NameNotFoundException) {
         null
     }
 
