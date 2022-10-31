@@ -57,9 +57,9 @@ class ProgressActivity : BaseActivity() {
     }
 
     override fun onBackPress() {
-        println("OnBackPressed check: Is work in progress?: $isInProgress")
         if (!isInProgress) {
             MainWorker.clearProgressData()
+            workManager.pruneWork()
             super.onBackPress()
         }
     }
@@ -102,7 +102,6 @@ class ProgressActivity : BaseActivity() {
                 backButton.isEnabled = true
                 progressIndicator.setProgress(PROGRESS_MAX, true)
                 progressType.text = getString(R.string.work_finished)
-                workManager.pruneWork()
             }
         }
     }
@@ -127,6 +126,8 @@ class ProgressActivity : BaseActivity() {
     }
 
     private fun ActivityProgressBinding.updateProgressTypeTitle(currentItem: Int) {
+        val workInfo = workManager.getWorkInfosByTagLiveData(WORK_REQUEST_TAG).value?.get(0)
+        if (workInfo?.state?.isFinished == true) return
         val progressTitle = when (progressViewModel.appDataType) {
             AppDataType.USER -> getString(R.string.backing_up)
             AppDataType.LOCAL -> getString(R.string.restoring)
@@ -152,7 +153,7 @@ class ProgressActivity : BaseActivity() {
             updateProgressTypeTitle(index)
             workResult?.let {
                 progressViewModel.updateProgressDataList(progressData)
-                progressAdapter.submitList(progressViewModel.progressDataList)
+                progressAdapter.submitList(progressViewModel.progressDataList.toMutableList())
             }
         }
     }
