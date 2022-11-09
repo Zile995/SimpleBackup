@@ -6,9 +6,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.stefan.simplebackup.data.local.dao.AppDao
+import com.stefan.simplebackup.data.local.dao.ProgressDao
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.showToast
 import kotlinx.coroutines.*
@@ -19,10 +22,11 @@ private const val DATABASE_NAME = "app_database"
 /**
  * Singleton AppData Database class
  */
-@Database(entities = [AppData::class], version = 1, exportSchema = false)
+@Database(entities = [AppData::class, ProgressData::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun appDao(): AppDao
+    abstract fun progressDao(): ProgressDao
 
     private class AppDatabaseCallback(
         private val context: Context,
@@ -31,6 +35,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         private var mainJob: Job? = null
         private val ioDispatcher = Dispatchers.IO
+
         private val appDao by lazy { INSTANCE?.appDao() }
 
         private suspend fun insertAll() {

@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.data.local.database
+package com.stefan.simplebackup.data.local.dao
 
 import androidx.room.*
 import com.stefan.simplebackup.data.model.APP_TABLE_NAME

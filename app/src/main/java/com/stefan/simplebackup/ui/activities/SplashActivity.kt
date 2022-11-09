@@ -4,10 +4,18 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
+import com.stefan.simplebackup.data.model.APP_DATA_TYPE_EXTRA
+import com.stefan.simplebackup.data.model.AppDataType
+import com.stefan.simplebackup.data.workers.WORK_REQUEST_TAG
 import com.stefan.simplebackup.databinding.ActivitySplashBinding
+import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
+import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineDispatcher
@@ -21,6 +29,12 @@ class SplashActivity : AppCompatActivity() {
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val binding by viewBinding(ActivitySplashBinding::inflate)
 
+    private val shouldResumeProgressActivity by lazy {
+        val workManager = WorkManager.getInstance(application)
+        val workInfo = workManager.getWorkInfosByTagLiveData(WORK_REQUEST_TAG).value?.first()
+        workInfo?.state == WorkInfo.State.RUNNING
+    }
+
     private var permissionHolder: PermissionHolder by Delegates.observable(PermissionHolder()) { _, _, newGrantedStatus ->
         if (newGrantedStatus.isUsageStatsGranted && newGrantedStatus.isManageAllFilesGranted) {
             // Preheat the main root shell in the splash screen
@@ -32,9 +46,18 @@ class SplashActivity : AppCompatActivity() {
                 }
                 // The main shell is now constructed and cached
                 // Exit splash screen and enter main activity
-                val intent = Intent(this@SplashActivity, MainActivity::class.java)
-                startActivity(intent)
-                finish()
+                Log.d("SplashActivity", "Should resume $shouldResumeProgressActivity")
+                if (shouldResumeProgressActivity) {
+                    passBundleToActivity<ProgressActivity>(
+                        SELECTION_EXTRA to arrayOf<String>(),
+                        APP_DATA_TYPE_EXTRA to enumValues<AppDataType>()[PreferenceHelper.progressType]
+                    )
+                    finish()
+                } else {
+                    val intent = Intent(this@SplashActivity, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                }
             }
         }
         binding.updateViews(newGrantedStatus)

@@ -31,7 +31,6 @@
     <string name="batch_restore">Batch Restore</string>
     <string name="drive">Drive</string>
     <string name="data_in">Data in %1$s</string>
-    <string name="cancel">Cancel</string>
     <string name="app_list">Getting the app list</string>
     <string name="apk_size">Apk size %1$s</string>
     <string name="data_size">Total data size %1$s</string>
@@ -91,8 +90,8 @@
     <string name="upload_to_cloud">Uploading backup to cloud</string>
     <string name="uploading_apk_cloud">Uploading apk backup to cloud</string>
     <string name="uploading_data_cloud">Uploading data backup to cloud</string>
-    <string name="restored">restored</string>
-    <string name="backed_up">backed up</string>
+    <string name="restored">Restored</string>
+    <string name="backed_up">Backed up</string>
     <string name="finished_work_notification">%1$d %2$s %3$s %4$s %5$s</string>
     <string name="storage_perm_success">Storage permission granted successfully</string>
     <string name="set_manually">Set Manually</string>
@@ -103,10 +102,12 @@
     <string name="applications">Applications</string>
     <string name="installed_apps">Installed apps</string>
     <string name="backups">Backups</string>
-    <string name="app">app</string>
-    <string name="apps">apps</string>
+    <string name="app">App</string>
+    <string name="apps">Apps</string>
     <string name="item">item</string>
     <string name="items">items</string>
+    <string name="skip">Skip</string>
+    <string name="cancel">Cancel</string>
     <string name="favorites">Favorites</string>
     <string name="favorite_backup">Favorite backup</string>
     <string name="add_to_favorites">Add to favorites</string>

@@ -16,11 +16,12 @@ import com.stefan.simplebackup.utils.work.WorkResult
 import com.stefan.simplebackup.utils.work.WorkUtil
 import com.stefan.simplebackup.utils.work.archive.TarUtil
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import java.io.IOException
 
 class RestoreUtil(
     private val appContext: Context,
+    private var perItemJob: Job?,
     private val restoreItems: Array<String>,
     updateForegroundInfo: ForegroundCallback
 ) : WorkUtil(appContext, restoreItems, updateForegroundInfo) {
@@ -32,12 +33,15 @@ class RestoreUtil(
     suspend fun restore() = coroutineScope {
         addRestoreApps()
         restoreApps.forEach { restoreApp ->
-            restoreApp.startWork(
-                ::createDirs,
-                ::unzipData,
-                ::installApk,
-                ::restoreData
-            )
+            perItemJob = launch(context = getCancellationHandler()) {
+                restoreApp.startWork(
+                    ::createDirs,
+                    ::unzipData,
+                    ::installApk,
+                    ::restoreData
+                )
+            }
+            perItemJob?.join()
         }
     }
 
@@ -85,18 +89,18 @@ class RestoreUtil(
         deleteFile(getTempDirPath(app))
     }
 
-    override suspend fun AppData.onSuccess() {
-        updateNotificationData(R.string.restore_progress_successful, WorkResult.SUCCESS)
+    override suspend fun onSuccess(app: AppData) {
+        app.updateNotificationData(R.string.restore_progress_successful, WorkResult.SUCCESS)
     }
 
-    override suspend fun AppData.onFailure() {
+    override suspend fun onFailure(app: AppData) {
+        super.onFailure(app)
         try {
-            deleteFile(getTempDirPath(this))
+            deleteFile(getTempDirPath(app))
         } catch (e: IOException) {
             Log.w("RestoreUtil", "Failed to delete broken restore files $e")
         } finally {
-            setNearestItemInterval()
-            updateNotificationData(R.string.restore_progress_failed, WorkResult.ERROR)
+            app.updateNotificationData(R.string.restore_progress_failed, WorkResult.ERROR)
         }
     }
 }

@@ -1,16 +1,38 @@
 package com.stefan.simplebackup.data.model
 
 import android.os.Parcelable
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
 import com.stefan.simplebackup.utils.work.WorkResult
 import kotlinx.parcelize.Parcelize
 
+const val PROGRESS_TABLE_NAME = "progress_table"
+
 @Parcelize
+@Entity(tableName = PROGRESS_TABLE_NAME, indices = [Index(value = ["package_name"], unique = true)])
 data class ProgressData(
+    @ColumnInfo(name = "index")
+    @PrimaryKey(autoGenerate = false)
     val index: Int,
+
+    @ColumnInfo(name = "name")
     val name: String,
+
+    @ColumnInfo(name = "package_name")
+    val packageName: String,
+
+    @ColumnInfo(name = "image")
     val image: ByteArray,
+
+    @ColumnInfo(name = "message")
     val message: String,
+
+    @ColumnInfo(name = "progress")
     val progress: Int,
+
+    @ColumnInfo(name = "work_result")
     val workResult: WorkResult? = null
 ) : Parcelable {
 

@@ -26,7 +26,7 @@ object FileUtil {
 
     private val ioDispatcher = Dispatchers.IO
     val localDirPath get() = "${mainBackupDirPath}/$LOCAL_DIR_NAME"
-    private val tempDirPath get() = "${mainBackupDirPath}/$TEMP_DIR_NAME"
+    val tempDirPath get() = "${mainBackupDirPath}/$TEMP_DIR_NAME"
 
     suspend fun createDirectory(path: String) {
         withContext(ioDispatcher) {

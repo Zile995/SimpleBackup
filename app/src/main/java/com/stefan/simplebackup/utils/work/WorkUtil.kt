@@ -7,13 +7,14 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.workers.ForegroundCallback
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
+import kotlinx.coroutines.CoroutineExceptionHandler
 import java.io.IOException
 
 abstract class WorkUtil(
     private val appContext: Context,
     private val workItems: Array<String>,
     private val updateForegroundInfo: ForegroundCallback
-) {
+) : WorkResultAction {
     // Progress variables
     private var currentProgress = 0
     private val generatedIntervals = mutableListOf<Int>()
@@ -28,8 +29,9 @@ abstract class WorkUtil(
         generateIntervals()
     }
 
-    abstract suspend fun AppData.onSuccess()
-    abstract suspend fun AppData.onFailure()
+    override suspend fun onFailure(app: AppData) {
+        setNearestItemInterval()
+    }
 
     private fun generateIntervals() {
         var intervalSum = 0
@@ -39,11 +41,17 @@ abstract class WorkUtil(
         }
     }
 
-    protected fun setNearestItemInterval() {
+    private fun setNearestItemInterval() {
         currentProgress = generatedIntervals.first { interval ->
             interval > currentProgress
         }
     }
+
+    protected fun getCancellationHandler() =
+        CoroutineExceptionHandler { _, throwable ->
+            Log.w("MainWorker", "Got exception $throwable")
+        }
+
 
     protected suspend fun AppData?.startWork(
         vararg actions: suspend (AppData) -> Unit
@@ -59,11 +67,10 @@ abstract class WorkUtil(
                         action(this)
                         updateProgress(actions.size)
                     }
-                    onSuccess()
+                    onSuccess(app = this)
                 } catch (e: IOException) {
                     Log.w("WorkUtil", "Oh, an error occurred: $e")
-                    setNearestItemInterval()
-                    onFailure()
+                    onFailure(app = this)
                 }
             }
         }
@@ -75,15 +82,21 @@ abstract class WorkUtil(
     ) {
         val progressMessage = appContext.getString(progressText)
         val progressData = ProgressData(
-            index = currentWorkItemIndex,
             name = name,
             image = bitmap,
+            workResult = workResult,
             message = progressMessage,
-            progress = currentProgress,
-            workResult = workResult
+            packageName = packageName,
+            index = currentWorkItemIndex,
+            progress = currentProgress
         )
         updateForegroundInfo(progressData)
     }
+}
+
+interface WorkResultAction {
+    suspend fun onSuccess(app: AppData)
+    suspend fun onFailure(app: AppData)
 }
 
 enum class WorkResult {

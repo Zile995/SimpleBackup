@@ -1,12 +1,15 @@
 package com.stefan.simplebackup.utils
 
+import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.annotation.FloatRange
+import com.stefan.simplebackup.data.model.AppDataType
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+private const val APP_DATA_TYPE = "app_data_type"
 private const val MAIN_PREFERENCE = "main_preference"
 private const val SEQUENCE_NUMBER = "sequence_number"
 private const val DATABASE_CREATED = "database_created"
@@ -16,28 +19,38 @@ private const val CHECKED_ROOT_GRANTED = "checked_root_granted"
 private const val CHECKED_DEVICE_ROOTED = "checked_device_rooted"
 private const val ZIP_COMPRESSION_LEVEL = "zip_compression_level"
 
+
 object PreferenceHelper {
 
     private lateinit var sharedPreferences: SharedPreferences
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
+    // PackageListener preferences
     val savedSequenceNumber: Int
         get() = sharedPreferences.getPreference(SEQUENCE_NUMBER, 0)
     val isDatabaseCreated: Boolean
         get() = sharedPreferences.getPreference(DATABASE_CREATED, false)
+
+    // Settings preferences
     val shouldExcludeAppsCache: Boolean
         get() = sharedPreferences.getPreference(EXCLUDE_APPS_CACHE, true)
     val savedZipCompressionLevel: Float
         get() = sharedPreferences.getPreference(ZIP_COMPRESSION_LEVEL, 1f)
-
     val shouldDoublePressToExit
         get() = sharedPreferences.getPreference(DOUBLE_PRESS_TO_EXIT, true)
+
+    // RootChecker preferences
     val hasCheckedRootGranted: Boolean
         get() = sharedPreferences.getPreference(CHECKED_ROOT_GRANTED, false)
     val hasCheckedDeviceRooted: Boolean
         get() = sharedPreferences.getPreference(CHECKED_DEVICE_ROOTED, false)
 
-    fun Context.initPreferences() {
+    // Progress AppDataType
+    val progressType: Int
+        get() = sharedPreferences.getPreference(APP_DATA_TYPE, 0)
+
+    // Init main preference
+    fun Application.initPreferences() {
         sharedPreferences =
             applicationContext.getSharedPreferences(MAIN_PREFERENCE, Context.MODE_PRIVATE)
     }
@@ -98,5 +111,9 @@ object PreferenceHelper {
 
     suspend fun setCheckedDeviceRooted(isChecked: Boolean) {
         sharedPreferences.editPreference(CHECKED_DEVICE_ROOTED, isChecked)
+    }
+
+    suspend fun saveProgressType(progressType: AppDataType) {
+        sharedPreferences.editPreference(APP_DATA_TYPE, progressType.ordinal)
     }
 }

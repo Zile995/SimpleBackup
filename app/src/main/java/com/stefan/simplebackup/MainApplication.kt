@@ -20,9 +20,10 @@ class MainApplication : Application() {
         val builder = Shell.Builder.create()
         Shell.enableVerboseLogging = BuildConfig.DEBUG
         Shell.setDefaultBuilder(
-            builder
-                .setFlags(Shell.FLAG_MOUNT_MASTER)
-                .setTimeout(10)
+            builder.apply {
+                setFlags(Shell.FLAG_MOUNT_MASTER)
+                setTimeout(10)
+            }
         )
     }
 

@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.utils.extensions
 
 import android.app.ActivityManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -202,11 +203,22 @@ inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     vararg values: Pair<String, Any?>
 ) {
     Intent(applicationContext, T::class.java).apply {
-        values.forEach { value ->
-            putExtras(bundleOf(value))
-        }
+        putExtras(bundleOf(*values))
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK
         startActivity(this)
     }
+}
+
+fun Context.getLaunchIntent() = packageManager.getLaunchIntentForPackage(packageName)
+
+fun Context.getLastActivityIntent(): PendingIntent {
+    val intent = getLaunchIntent()
+    return PendingIntent.getActivity(
+        this,
+        0,
+        intent,
+        PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+    )
 }
 
 inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.() -> Unit = {}) =

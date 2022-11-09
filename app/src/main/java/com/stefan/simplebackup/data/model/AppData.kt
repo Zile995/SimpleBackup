@@ -30,11 +30,8 @@ const val APP_DATA_TYPE_EXTRA = "APP_DATA_TYPE"
  * - Main model data class
  */
 @Keep
-@Entity(
-    tableName = APP_TABLE_NAME,
-    indices = [Index(value = ["package_name"], unique = true)]
-)
 @Serializable
+@Entity(tableName = APP_TABLE_NAME, indices = [Index(value = ["package_name"], unique = true)])
 data class AppData(
     @Transient
     @ColumnInfo(name = "uid")

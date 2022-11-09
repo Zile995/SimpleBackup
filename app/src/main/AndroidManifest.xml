@@ -56,11 +56,15 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths"/>
+                android:resource="@xml/provider_paths" />
         </provider>
 
         <receiver
             android:name=".data.receivers.NotificationReceiver"
+            android:enabled="true"
+            android:exported="false" />
+        <receiver
+            android:name=".data.workers.WorkActionBroadcastReceiver"
             android:enabled="true"
             android:exported="false" />
         <receiver
@@ -93,7 +97,9 @@
         <activity
             android:name=".ui.activities.ProgressActivity"
             android:exported="false"
-            android:parentActivityName=".ui.activities.MainActivity" />
+            android:alwaysRetainTaskState="true"
+            android:parentActivityName=".ui.activities.MainActivity"
+            android:windowSoftInputMode="stateAlwaysHidden" />
     </application>
 
 </manifest>

@@ -1,9 +1,8 @@
 package com.stefan.simplebackup.data.local.repository
 
 import android.content.Context
-import android.database.sqlite.SQLiteException
 import android.util.Log
-import com.stefan.simplebackup.data.local.database.AppDao
+import com.stefan.simplebackup.data.local.dao.AppDao
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.extensions.filterBy

@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.data.workers
 
 import androidx.work.*
+import java.util.concurrent.TimeUnit
 
 const val WORK_NAME = "SIMPLE_WORK"
 const val INPUT_LIST = "PACKAGE_LIST"
@@ -22,6 +23,7 @@ class WorkerHelper(
         OneTimeWorkRequestBuilder<W>()
             .addTag(WORK_REQUEST_TAG)
             .setConstraints(constraints)
+            .keepResultsForAtLeast(30, TimeUnit.MINUTES)
             .setInputData(inputData)
             .build().also { buildRequest ->
                 workManager

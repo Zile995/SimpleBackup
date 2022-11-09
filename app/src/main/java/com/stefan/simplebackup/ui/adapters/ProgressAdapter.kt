@@ -22,7 +22,9 @@ class ProgressAdapter : ListAdapter<ProgressData, ProgressViewHolder>(DiffCallba
         override fun areItemsTheSame(
             oldItem: ProgressData,
             newItem: ProgressData
-        ): Boolean = oldItem.name == newItem.name && oldItem.message == newItem.message
+        ): Boolean = oldItem.name == newItem.name
+                && oldItem.packageName == newItem.packageName
+                && oldItem.message == newItem.message
                 && oldItem.image.contentEquals(newItem.image)
 
         override fun areContentsTheSame(

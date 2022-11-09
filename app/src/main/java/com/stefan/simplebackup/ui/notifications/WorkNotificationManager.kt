@@ -3,43 +3,54 @@ package com.stefan.simplebackup.ui.notifications
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
 import androidx.core.app.NotificationCompat
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
+import com.stefan.simplebackup.data.workers.WORK_REQUEST_TAG
 import com.stefan.simplebackup.utils.file.BitmapUtil.toBitmap
 import com.stefan.simplebackup.utils.work.WorkResult
 
+
 private const val CHANNEL_ID = "WORK_NOTIFICATION"
 
-class WorkNotificationBuilder(
+class WorkNotificationManager(
     private val context: Context,
-    private val ongoing: Boolean = true
+    override val notificationId: Int,
+    private val ongoing: Boolean = true,
+    private val onClickAction: () -> PendingIntent,
+    private val onSkipAction: () -> PendingIntent,
+    private val onCancelAction: () -> PendingIntent
 ) : WorkNotificationHelper {
 
     private val workResultsCounter = WorkResultsCounter()
+    private val workManager = WorkManager.getInstance(context.applicationContext)
 
     private val appsText: (Int) -> String = { numberOfApps ->
         workResultsCounter.run {
             if (numberOfApps > 1) context.getString(R.string.apps) else context.getString(R.string.app)
-        }
+        }.lowercase()
     }
 
     init {
         createNotificationChannel()
     }
 
-    override val notificationId: Int = 42
-
-    override val notificationBuilder: NotificationCompat.Builder by lazy {
+    override val notificationBuilder by lazy {
         NotificationCompat.Builder(context, CHANNEL_ID).apply {
+            setOngoing(ongoing)
+            setAutoCancel(false)
+            setOnlyAlertOnce(true)
             setContentTitle(context.getString(R.string.work))
             setContentText(context.getString(R.string.work_in_progress))
             setSmallIcon(R.drawable.ic_launcher_foreground)
-            setOnlyAlertOnce(true)
-            setAutoCancel(false)
-            setOngoing(ongoing)
+            setContentIntent(onClickAction())
+            addAction(R.drawable.ic_arrow_back, context.getString(R.string.skip), onSkipAction())
+            addAction(R.drawable.ic_arrow_back, context.getString(R.string.cancel), onCancelAction())
             priority = NotificationCompat.PRIORITY_DEFAULT
         }
     }
@@ -65,9 +76,9 @@ class WorkNotificationBuilder(
                 val failedText = getFailedText()
 
                 val workTypeText = if (isBackupNotification)
-                    context.getString(R.string.backed_up)
+                    context.getString(R.string.backed_up).lowercase()
                 else
-                    context.getString(R.string.restored)
+                    context.getString(R.string.restored).lowercase()
 
                 context.getString(
                     R.string.finished_work_notification,
@@ -86,6 +97,15 @@ class WorkNotificationBuilder(
 
         setOngoing(false)
         setLargeIcon(null)
+
+
+        val workInfo = workManager.getWorkInfosByTagLiveData(WORK_REQUEST_TAG).value?.first()
+        val pendingIntent =
+            if (workInfo?.state != WorkInfo.State.RUNNING || workInfo.state != WorkInfo.State.ENQUEUED) {
+                onClickAction()
+            } else null
+        setContentIntent(pendingIntent)
+        setAutoCancel(true)
         setContentText(null)
         setExpendableText(notificationText)
         priority = NotificationCompat.PRIORITY_MAX
