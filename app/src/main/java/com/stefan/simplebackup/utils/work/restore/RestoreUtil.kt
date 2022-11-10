@@ -33,13 +33,20 @@ class RestoreUtil(
     suspend fun restore() = channelFlow {
         addRestoreApps()
         restoreApps.forEach { restoreApp ->
-            launch(context = getCancellationHandler()) {
-                restoreApp.startWork(
-                    ::createDirs,
-                    ::unzipData,
-                    ::installApk,
-                    ::restoreData
-                )
+            launch {
+                try {
+                    restoreApp.startWork(
+                        ::createDirs,
+                        ::unzipData,
+                        ::installApk,
+                        ::restoreData
+                    )
+                } catch (e: Exception) {
+                    Log.w("RestoreUtil", "Got exception $e")
+                    if (restoreApp != null) {
+                        onFailure(restoreApp)
+                    }
+                }
             }.also { perItemJob ->
                 send(perItemJob)
             }.join()

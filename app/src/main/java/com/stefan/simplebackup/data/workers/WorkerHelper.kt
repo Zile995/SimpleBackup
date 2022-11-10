@@ -11,45 +11,58 @@ const val SHOULD_BACKUP_TO_CLOUD = "IS_CLOUD_BACKUP"
 
 class WorkerHelper(
     private val workItems: Array<String>,
-    val workManager: WorkManager
+    private val workManager: WorkManager
 ) {
 
-    val constraints = Constraints.Builder()
-        .setRequiresStorageNotLow(true)
-        .build()
-
-    inline fun <reified W : ListenableWorker> beginUniqueWork(shouldBackup: Boolean = true, dataBuilder: (Boolean) -> Data.Builder) {
-        val inputData = dataBuilder(shouldBackup).build()
-        OneTimeWorkRequestBuilder<W>()
-            .addTag(WORK_REQUEST_TAG)
+    inline fun <reified W : ListenableWorker> createOneTimeWorkRequest(
+        workTag: String,
+        inputData: Data,
+        constraints: Constraints,
+        resultsDurationInMinutes: Long,
+    ) = OneTimeWorkRequestBuilder<W>()
+            .addTag(workTag)
             .setConstraints(constraints)
-            .keepResultsForAtLeast(30, TimeUnit.MINUTES)
+            .keepResultsForAtLeast(resultsDurationInMinutes, TimeUnit.MINUTES)
             .setInputData(inputData)
-            .build().also { buildRequest ->
-                workManager
-                    .beginUniqueWork(WORK_NAME, ExistingWorkPolicy.KEEP, buildRequest)
-                    .enqueue()
-            }
+            .build()
+
+    private inline fun beginUniqueMainWork(
+        shouldBackup: Boolean = true,
+        existingWorkPolicy: ExistingWorkPolicy = ExistingWorkPolicy.KEEP,
+        dataBuilder: (Boolean) -> Data.Builder
+    ) {
+        val inputData = dataBuilder(shouldBackup).build()
+        createOneTimeWorkRequest<MainWorker>(
+            workTag = WORK_REQUEST_TAG,
+            inputData = inputData,
+            constraints = Constraints.Builder()
+                .setRequiresStorageNotLow(true)
+                .build(),
+            resultsDurationInMinutes = 30).also { workRequest ->
+            workManager
+                .beginUniqueWork(WORK_NAME, existingWorkPolicy, workRequest)
+                .enqueue()
+        }
     }
 
-    inline fun <reified W : ListenableWorker> beginUniqueLocalWork(shouldBackup: Boolean = true) =
-        beginUniqueWork<W>(shouldBackup, dataBuilder = {
+    fun beginUniqueLocalWork(shouldBackup: Boolean = true) =
+        beginUniqueMainWork(shouldBackup, dataBuilder = {
             createLocalWorkDataBuilder(it)
         })
 
-    inline fun <reified W : ListenableWorker> beginUniqueCloudWork() =
-        beginUniqueWork<W>(true, dataBuilder = {
+    fun beginUniqueCloudWork() =
+        beginUniqueMainWork(true, dataBuilder = {
             createCloudWorkDataBuilder()
         })
 
 
-    fun createLocalWorkDataBuilder(shouldBackup: Boolean = true): Data.Builder {
+    private fun createLocalWorkDataBuilder(shouldBackup: Boolean = true): Data.Builder {
         val builder = Data.Builder()
         return builder.putStringArray(INPUT_LIST, workItems)
             .putBoolean(SHOULD_BACKUP, shouldBackup)
     }
 
-    fun createCloudWorkDataBuilder(): Data.Builder =
+    private fun createCloudWorkDataBuilder(): Data.Builder =
         createLocalWorkDataBuilder(true)
             .putBoolean(SHOULD_BACKUP_TO_CLOUD, true)
 

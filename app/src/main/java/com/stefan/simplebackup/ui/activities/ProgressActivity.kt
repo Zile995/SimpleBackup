@@ -1,7 +1,6 @@
 package com.stefan.simplebackup.ui.activities
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
@@ -11,7 +10,6 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.APP_DATA_TYPE_EXTRA
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.data.model.ProgressData
-import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.data.workers.WORK_PROGRESS
 import com.stefan.simplebackup.data.workers.WORK_REQUEST_TAG
@@ -33,18 +31,27 @@ class ProgressActivity : BaseActivity() {
     private val progressAdapter get() = _progressAdapter!!
 
     private var isInProgress: Boolean = true
-    private var shouldUpdateTitle: Boolean = false
+    private var shouldUpdateTitle: Boolean = true
     private var bitmap: ByteArray = byteArrayOf()
 
     private val workManager by lazy { WorkManager.getInstance(application) }
+
+    private val progressTitle by lazy {
+        progressViewModel.appDataType?.run {
+            when (this) {
+                AppDataType.USER -> getString(R.string.backing_up)
+                AppDataType.LOCAL -> getString(R.string.restoring)
+                AppDataType.CLOUD -> getString(R.string.uploading_to_cloud)
+            }
+        } ?: getString(R.string.backing_up)
+    }
 
     private val progressViewModel: ProgressViewModel by viewModels {
         val selectionList = fromIntentExtras { getStringArray(SELECTION_EXTRA) }
         val appDataType = fromIntentExtras { parcelable<AppDataType>(APP_DATA_TYPE_EXTRA) }
         ProgressViewModelFactory(
             appDataType = appDataType,
-            selectionList = selectionList,
-            workManager = workManager
+            selectionList = selectionList
         )
     }
 
@@ -61,8 +68,7 @@ class ProgressActivity : BaseActivity() {
 
     override fun onBackPress() {
         if (!isInProgress) {
-            MainWorker.clearProgressData()
-            workManager.pruneWork()
+            progressViewModel.clearProgressData()
             super.onBackPress()
         }
     }
@@ -105,7 +111,7 @@ class ProgressActivity : BaseActivity() {
                 progressIndicator.setProgress(PROGRESS_MAX, true)
                 progressType.text = getString(R.string.work_finished)
             } else {
-                shouldUpdateTitle = true
+                shouldUpdateTitle = false
             }
             if (workInfoList[0].state == WorkInfo.State.FAILED)
                 onBackPress()
@@ -139,21 +145,15 @@ class ProgressActivity : BaseActivity() {
         }
     }
 
-    private fun ActivityProgressBinding.updateProgressTypeTitle(currentItem: Int) {
-        if (!shouldUpdateTitle) return
-        progressViewModel.appDataType?.let {
-            val progressTitle = when (it) {
-                AppDataType.USER -> getString(R.string.backing_up)
-                AppDataType.LOCAL -> getString(R.string.restoring)
-                AppDataType.CLOUD -> getString(R.string.uploading_to_cloud)
-            }
-            progressType.text = getString(
-                R.string.progress_type,
-                progressTitle,
-                currentItem,
-                progressViewModel.numberOfItems
-            )
-        }
+    private fun ActivityProgressBinding.updateProgressTypeTitle(
+        currentItem: Int
+    ) {
+        progressType.text = getString(
+            R.string.progress_type,
+            progressTitle,
+            currentItem,
+            progressViewModel.numberOfItems
+        )
     }
 
     private fun ActivityProgressBinding.updateViews(progressData: ProgressData?) {

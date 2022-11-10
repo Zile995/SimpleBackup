@@ -41,9 +41,9 @@ class BackupUtil(
 
     suspend fun backup() = channelFlow {
         val database = AppDatabase.getInstance(appContext, this)
-        val repository = AppRepository(database.appDao())
+        val appDataRepository = AppRepository(database.appDao())
         backupItems.forEach { backupPackageName ->
-            val app = repository.getAppData(appContext, backupPackageName)
+            val app = appDataRepository.getAppData(appContext, backupPackageName)
             launch {
                 try {
                     withSuspend(app) {
@@ -57,7 +57,7 @@ class BackupUtil(
                         )
                     }
                 } catch (e: Exception) {
-                    Log.w("MainWorker", "Got exception $e")
+                    Log.w("BackupUtil", "Got exception $e")
                     if (app != null) {
                         onFailure(app)
                     }
@@ -219,6 +219,7 @@ class BackupUtil(
     override suspend fun onFailure(app: AppData) {
         super.onFailure(app)
         try {
+            Log.w("BackupUtil", "Deleting failed backup.")
             deleteFile(getTempDirPath(app))
         } catch (e: IOException) {
             Log.w("BackupUtil", "Failed to delete broken backup $e")

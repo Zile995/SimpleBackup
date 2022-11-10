@@ -47,12 +47,6 @@ abstract class WorkUtil(
         }
     }
 
-    protected fun getCancellationHandler() =
-        CoroutineExceptionHandler { _, throwable ->
-            Log.w("MainWorker", "Got exception $throwable")
-        }
-
-
     protected suspend fun AppData?.startWork(
         vararg actions: suspend (AppData) -> Unit
     ) {

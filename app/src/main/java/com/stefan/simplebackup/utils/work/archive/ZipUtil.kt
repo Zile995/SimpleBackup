@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.utils.work.archive
 
 import android.util.Log
+import androidx.annotation.WorkerThread
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.file.APK_FILE_EXTENSION
@@ -22,26 +23,22 @@ import java.io.IOException
 
 object ZipUtil {
 
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
-
+    @WorkerThread
     @Throws(ZipException::class, IOException::class)
-    suspend fun zipAllData(app: AppData) {
-        withContext(ioDispatcher) {
-            launch {
-                zipApks(app)
-            }
-            zipTarArchive(app)
+    suspend fun zipAllData(app: AppData) = coroutineScope {
+        launch {
+            zipApks(app)
         }
+        zipTarArchive(app)
     }
 
+    @WorkerThread
     @Throws(ZipException::class, IOException::class)
-    suspend fun unzipAllData(app: AppData) {
-        withContext(ioDispatcher) {
-            launch {
-                unzipApks(app)
-            }
-            unzipTarArchive(app)
+    suspend fun unzipAllData(app: AppData) = coroutineScope {
+        launch {
+            unzipApks(app)
         }
+        unzipTarArchive(app)
     }
 
     @Throws(ZipException::class, IOException::class)
@@ -108,6 +105,7 @@ object ZipUtil {
         }
     }
 
+    @WorkerThread
     fun getTarZipFile(appBackupDirPath: String) =
         File(appBackupDirPath).walkTopDown().filter { backupFile ->
             backupFile.isFile && backupFile.extension == ZIP_FILE_EXTENSION
@@ -119,6 +117,7 @@ object ZipUtil {
             }.all { it }
         } ?: throw IOException("Unable to find tar zip file")
 
+    @WorkerThread
     fun getApkZipFile(appBackupDirPath: String) =
         File(appBackupDirPath).walkTopDown().filter { backupFile ->
             backupFile.isFile && backupFile.extension == ZIP_FILE_EXTENSION
@@ -130,7 +129,8 @@ object ZipUtil {
             }.all { fileNameHasApkExtension -> fileNameHasApkExtension }
         } ?: throw IOException("Unable to find apk zip file")
 
-    suspend fun getAppNativeLibs(app: AppData) = withContext(ioDispatcher) {
+    @WorkerThread
+    fun getAppNativeLibs(app: AppData) =
         File(app.apkDir).run {
             walkTopDown().filter { file ->
                 file.extension == APK_FILE_EXTENSION
@@ -138,7 +138,6 @@ object ZipUtil {
                 getApkNativeLibs(apkFile)
             }.toList()
         }
-    }
 
     private fun getApkNativeLibs(apkFile: File) = try {
         val zipFile = ZipFile(apkFile)

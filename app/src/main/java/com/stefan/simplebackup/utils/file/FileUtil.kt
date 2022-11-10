@@ -21,9 +21,7 @@ const val JSON_FILE_EXTENSION: String = "json"
 private const val TEMP_DIR_NAME: String = "temp"
 private const val LOCAL_DIR_NAME: String = "local"
 
-@Suppress("BlockingMethodInNonBlockingContext")
 object FileUtil {
-
     private val ioDispatcher = Dispatchers.IO
     val localDirPath get() = "${mainBackupDirPath}/$LOCAL_DIR_NAME"
     val tempDirPath get() = "${mainBackupDirPath}/$TEMP_DIR_NAME"

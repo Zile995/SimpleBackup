@@ -64,7 +64,7 @@
             android:enabled="true"
             android:exported="false" />
         <receiver
-            android:name=".data.workers.WorkActionBroadcastReceiver"
+            android:name=".data.receivers.WorkActionBroadcastReceiver"
             android:enabled="true"
             android:exported="false" />
         <receiver

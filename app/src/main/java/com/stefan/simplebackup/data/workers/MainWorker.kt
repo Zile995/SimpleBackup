@@ -1,9 +1,7 @@
 package com.stefan.simplebackup.data.workers
 
 import android.app.Notification
-import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
@@ -13,6 +11,7 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
+import com.stefan.simplebackup.data.receivers.WorkActionBroadcastReceiver
 import com.stefan.simplebackup.ui.notifications.WorkNotificationManager
 import com.stefan.simplebackup.utils.extensions.getLastActivityIntent
 import com.stefan.simplebackup.utils.extensions.showToast
@@ -26,9 +25,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 import kotlin.system.measureTimeMillis
 
-private const val WORK_NOTIFICATION_ID = 42
-
 const val PROGRESS_MAX = 10_000
+const val WORK_NOTIFICATION_ID = 42
 const val WORK_PROGRESS = "PROGRESS"
 const val WORK_ITEMS = "NUMBER_OF_PACKAGES"
 const val NOTIFICATION_SKIP_ACTION = "NOTIFICATION_SKIP_EXTRA"
@@ -49,9 +47,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             context = appContext,
             notificationId = WORK_NOTIFICATION_ID,
             onClickAction = { appContext.getLastActivityIntent() },
-            onSkipAction = {
-                getPendingIntent(NOTIFICATION_SKIP_ACTION)
-            },
+            onSkipAction = { getPendingIntent(NOTIFICATION_SKIP_ACTION) },
             onCancelAction = { getPendingIntent(NOTIFICATION_CANCEL_ACTION) })
     }
 
@@ -195,24 +191,6 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
         fun clearProgressData() {
             mutableProgressData.value = null
-        }
-    }
-}
-
-class WorkActionBroadcastReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent?) {
-        intent?.apply {
-            Log.w("MainWorker", "Got action $action")
-            if (action == NOTIFICATION_SKIP_ACTION) MainWorker.skipAction?.invoke()
-            if (action == NOTIFICATION_CANCEL_ACTION) {
-                // Cancel the notification
-                val notificationManager = context
-                    .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                notificationManager.cancel(WORK_NOTIFICATION_ID)
-
-                // Stop main work and cancel workers
-                MainWorker.cancelAction?.invoke()
-            }
         }
     }
 }
