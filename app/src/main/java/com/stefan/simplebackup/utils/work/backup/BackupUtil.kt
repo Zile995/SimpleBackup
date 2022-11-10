@@ -14,7 +14,6 @@ import com.stefan.simplebackup.data.manager.AppInfoManager
 import com.stefan.simplebackup.data.manager.AppStorageManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.ForegroundCallback
-import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.ui.activities.BaseActivity.Companion.googleDriveService
 import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.file.FileUtil.createDirectory
@@ -28,7 +27,7 @@ import com.stefan.simplebackup.utils.work.WorkUtil
 import com.stefan.simplebackup.utils.work.archive.TarUtil
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import com.topjohnwu.superuser.Shell
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.IOException
@@ -40,13 +39,12 @@ class BackupUtil(
     private val shouldBackupToCloud: Boolean = false
 ) : WorkUtil(appContext, backupItems, updateForegroundInfo) {
 
-
-    suspend fun backup() = coroutineScope {
+    suspend fun backup() = channelFlow {
         val database = AppDatabase.getInstance(appContext, this)
         val repository = AppRepository(database.appDao())
         backupItems.forEach { backupPackageName ->
             val app = repository.getAppData(appContext, backupPackageName)
-            MainWorker.perItemJob = launch {
+            launch {
                 try {
                     withSuspend(app) {
                         startWork(
@@ -64,8 +62,9 @@ class BackupUtil(
                         onFailure(app)
                     }
                 }
-            }
-            MainWorker.perItemJob!!.join()
+            }.also { perItemJob ->
+                send(perItemJob)
+            }.join()
         }
     }
 

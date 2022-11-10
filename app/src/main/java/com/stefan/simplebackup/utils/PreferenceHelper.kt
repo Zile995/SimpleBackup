@@ -19,7 +19,6 @@ private const val CHECKED_ROOT_GRANTED = "checked_root_granted"
 private const val CHECKED_DEVICE_ROOTED = "checked_device_rooted"
 private const val ZIP_COMPRESSION_LEVEL = "zip_compression_level"
 
-
 object PreferenceHelper {
 
     private lateinit var sharedPreferences: SharedPreferences

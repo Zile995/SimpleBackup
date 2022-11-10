@@ -105,6 +105,7 @@ class WorkNotificationManager(
                 onClickAction()
             } else null
         setContentIntent(pendingIntent)
+        clearActions()
         setAutoCancel(true)
         setContentText(null)
         setExpendableText(notificationText)
@@ -124,11 +125,15 @@ class WorkNotificationManager(
         progressData: ProgressData, isBackupNotification: Boolean
     ): Notification = notificationBuilder.apply {
         progressData.apply {
-            if (isBackupNotification) setContentTitle("${context.getString(R.string.backing_up)} $name")
-            else setContentTitle("${context.getString(R.string.restoring)} $name")
-            setLargeIcon(image.toBitmap())
+            if (isBackupNotification)
+                setContentTitle("${context.getString(R.string.backing_up)} $name")
+            else
+                setContentTitle("${context.getString(R.string.restoring)} $name")
+
             setExpendableText(message)
+            setLargeIcon(image.toBitmap())
             setProgress(PROGRESS_MAX, progressData.progress, false)
+
             workResult?.let {
                 if (workResult == WorkResult.SUCCESS)
                     workResultsCounter.numOfSuccessful++

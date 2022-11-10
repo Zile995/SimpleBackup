@@ -17,11 +17,11 @@ import com.stefan.simplebackup.utils.work.WorkUtil
 import com.stefan.simplebackup.utils.work.archive.TarUtil
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.channelFlow
 import java.io.IOException
 
 class RestoreUtil(
     private val appContext: Context,
-    private var perItemJob: Job?,
     private val restoreItems: Array<String>,
     updateForegroundInfo: ForegroundCallback
 ) : WorkUtil(appContext, restoreItems, updateForegroundInfo) {
@@ -30,18 +30,19 @@ class RestoreUtil(
     private val rootApkManager = RootApkManager(appContext)
     private val restoreApps = mutableListOf<AppData?>()
 
-    suspend fun restore() = coroutineScope {
+    suspend fun restore() = channelFlow {
         addRestoreApps()
         restoreApps.forEach { restoreApp ->
-            perItemJob = launch(context = getCancellationHandler()) {
+            launch(context = getCancellationHandler()) {
                 restoreApp.startWork(
                     ::createDirs,
                     ::unzipData,
                     ::installApk,
                     ::restoreData
                 )
-            }
-            perItemJob?.join()
+            }.also { perItemJob ->
+                send(perItemJob)
+            }.join()
         }
     }
 

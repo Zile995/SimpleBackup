@@ -7,7 +7,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.work.*
+import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
+import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.ui.notifications.WorkNotificationManager
@@ -23,8 +26,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 import kotlin.system.measureTimeMillis
 
+private const val WORK_NOTIFICATION_ID = 42
+
 const val PROGRESS_MAX = 10_000
-const val WORK_NOTIFICATION_ID = 42
 const val WORK_PROGRESS = "PROGRESS"
 const val WORK_ITEMS = "NUMBER_OF_PACKAGES"
 const val NOTIFICATION_SKIP_ACTION = "NOTIFICATION_SKIP_EXTRA"
@@ -35,18 +39,23 @@ typealias ForegroundCallback = suspend (ProgressData) -> Unit
 class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext, params
 ) {
+    // Coroutine dispatchers
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
 
+    // WorkNotificationManager
     private val workNotificationManager by lazy {
         WorkNotificationManager(
             context = appContext,
             notificationId = WORK_NOTIFICATION_ID,
             onClickAction = { appContext.getLastActivityIntent() },
-            onSkipAction = { getPendingIntent(NOTIFICATION_SKIP_ACTION) },
+            onSkipAction = {
+                getPendingIntent(NOTIFICATION_SKIP_ACTION)
+            },
             onCancelAction = { getPendingIntent(NOTIFICATION_CANCEL_ACTION) })
     }
 
+    // Input Data
     private val items: Array<String>?
         get() = inputData.getStringArray(INPUT_LIST)
     private val shouldBackup: Boolean
@@ -54,14 +63,18 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     private val shouldBackupToCloud: Boolean
         get() = inputData.getBoolean(SHOULD_BACKUP_TO_CLOUD, false)
 
+    // Foreground info lambdas
     private val updateForegroundInfo = setForegroundInfo(workNotificationManager.notificationId)
-
     private val foregroundCallBack: ForegroundCallback = { progressData ->
-        _progressData.value = progressData
+        mutableProgressData.value = progressData
         val updatedNotification =
             workNotificationManager.getUpdatedNotification(progressData, shouldBackup)
         updateForegroundInfo(updatedNotification)
         setProgress(workDataOf(WORK_PROGRESS to progressData.progress))
+    }
+
+    init {
+        initNotificationActions()
     }
 
     override suspend fun doWork(): Result = coroutineScope {
@@ -70,12 +83,9 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                 var time = 0L
                 mainJob = launch {
                     time = measureTimeMillis {
-                        if (shouldBackup) backup(this) else restore()
-                    }
-                }
-                mainJob?.invokeOnCompletion {
-                    launch {
-                        deleteDirectoryFiles(File(tempDirPath))
+                        (if (shouldBackup) backup() else restore())?.collect { currentItemJob ->
+                            perItemJob = currentItemJob
+                        }
                     }
                 }
                 mainJob?.join()
@@ -105,6 +115,23 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                 applicationContext.showToast("Error $e", true)
             }
             Result.failure()
+        } finally {
+            launch {
+                clearWorkerActions()
+                deleteDirectoryFiles(File(tempDirPath))
+            }
+        }
+    }
+
+    private fun initNotificationActions() {
+        skipAction = {
+            Log.w("MainWorker", "Clicked skip button: $perItemJob")
+            perItemJob?.cancel()
+        }
+
+        cancelAction = {
+            Log.w("MainWorker", "Clicked cancel button: $mainJob")
+            mainJob?.cancel()
         }
     }
 
@@ -121,7 +148,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             )
     }
 
-    private suspend fun backup(scope: CoroutineScope) = items?.let { backupItems ->
+    private suspend fun backup() = items?.let { backupItems ->
         val backupUtil = BackupUtil(
             appContext = applicationContext,
             backupItems = backupItems,
@@ -134,7 +161,6 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     private suspend fun restore() = items?.let { restoreItems ->
         val restoreUtil = RestoreUtil(
             appContext = applicationContext,
-            perItemJob = perItemJob,
             restoreItems = restoreItems,
             updateForegroundInfo = foregroundCallBack
         )
@@ -150,23 +176,25 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
     companion object {
         private var mainJob: Job? = null
-        var perItemJob: Job? = null
+        private var perItemJob: Job? = null
 
-        private var _progressData: MutableStateFlow<ProgressData?> = MutableStateFlow(null)
-        val progressData get() = _progressData.asStateFlow()
+        var skipAction: (() -> Unit)? = null
+            private set
+        var cancelAction: (() -> Unit)? = null
+            private set
+
+        private val mutableProgressData: MutableStateFlow<ProgressData?> = MutableStateFlow(null)
+        val progressData get() = mutableProgressData.asStateFlow()
+
+        private fun clearWorkerActions() {
+            skipAction = null
+            cancelAction = null
+            mainJob = null
+            perItemJob = null
+        }
 
         fun clearProgressData() {
-            _progressData.value = null
-        }
-
-        val skipAction: () -> Unit = {
-            Log.w("MainWorker", "Clicked skip button: $perItemJob")
-            perItemJob?.cancel()
-        }
-
-        val cancelAction: () -> Unit = {
-            Log.w("MainWorker", "Clicked cancel button: $mainJob")
-            mainJob?.cancel()
+            mutableProgressData.value = null
         }
     }
 }
@@ -175,14 +203,15 @@ class WorkActionBroadcastReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         intent?.apply {
             Log.w("MainWorker", "Got action $action")
-            if (action == NOTIFICATION_SKIP_ACTION) MainWorker.skipAction()
+            if (action == NOTIFICATION_SKIP_ACTION) MainWorker.skipAction?.invoke()
             if (action == NOTIFICATION_CANCEL_ACTION) {
+                // Cancel the notification
                 val notificationManager = context
                     .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.cancel(WORK_NOTIFICATION_ID)
-                val workManager = WorkManager.getInstance(context)
-                workManager.cancelAllWork()
-                MainWorker.cancelAction()
+
+                // Stop main work and cancel workers
+                MainWorker.cancelAction?.invoke()
             }
         }
     }
