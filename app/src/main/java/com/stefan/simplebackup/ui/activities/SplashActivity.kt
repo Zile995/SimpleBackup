@@ -26,13 +26,18 @@ import kotlin.properties.Delegates
 @SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
 
+    // Dispatchers
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
+    // ViewBinding
     private val binding by viewBinding(ActivitySplashBinding::inflate)
 
+    // WorkManager
+    private val workManager = WorkManager.getInstance(application)
+
     private val shouldResumeProgressActivity by lazy {
-        val workManager = WorkManager.getInstance(application)
         val workInfo = workManager.getWorkInfosByTagLiveData(WORK_REQUEST_TAG).value?.first()
-        workInfo?.state == WorkInfo.State.RUNNING
+        workInfo?.state == WorkInfo.State.RUNNING || workInfo?.state == WorkInfo.State.ENQUEUED
     }
 
     private var permissionHolder: PermissionHolder by Delegates.observable(PermissionHolder()) { _, _, newGrantedStatus ->

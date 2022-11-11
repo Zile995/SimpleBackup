@@ -9,6 +9,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.WorkActionBroadcastReceiver
@@ -28,7 +29,6 @@ import kotlin.system.measureTimeMillis
 const val PROGRESS_MAX = 10_000
 const val WORK_NOTIFICATION_ID = 42
 const val WORK_PROGRESS = "PROGRESS"
-const val WORK_ITEMS = "NUMBER_OF_PACKAGES"
 const val NOTIFICATION_SKIP_ACTION = "NOTIFICATION_SKIP_EXTRA"
 const val NOTIFICATION_CANCEL_ACTION = "NOTIFICATION_CANCEL_EXTRA"
 
@@ -70,10 +70,10 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     }
 
     init {
-        initNotificationActions()
+        initWorkActions()
     }
 
-    override suspend fun doWork(): Result = coroutineScope {
+    override suspend fun doWork(): Result = supervisorScope {
         try {
             withContext(ioDispatcher) {
                 var time = 0L
@@ -85,14 +85,11 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                     }
                 }
                 mainJob?.join()
-                val outputData = getOutputData()
-                Result.success(outputData).also {
+                Result.success().also {
                     Log.d(
                         "MainWorker", "Work successful, completed in: ${time / 1_000.0} seconds"
                     )
-                    /**
-                     *  Delay and send new notification sound only for fast works
-                     */
+                    // Delay and send new notification sound only for fast works
                     if (time <= 1_000L) delay(1_100L)
                     items?.apply {
                         workNotificationManager.sendNotificationBroadcast(
@@ -119,14 +116,19 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         }
     }
 
-    private fun initNotificationActions() {
+    private fun initWorkActions() {
         skipAction = {
             Log.w("MainWorker", "Clicked skip button: $perItemJob")
+            val toastMessage =
+                applicationContext.getString(R.string.skipping, mutableProgressData.value?.name)
+            applicationContext.showToast(toastMessage)
             perItemJob?.cancel()
         }
 
         cancelAction = {
             Log.w("MainWorker", "Clicked cancel button: $mainJob")
+            val toastMessage = applicationContext.getString(R.string.canceling_work)
+            applicationContext.showToast(toastMessage, true)
             mainJob?.cancel()
         }
     }
@@ -163,8 +165,6 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         restoreUtil.restore()
     }
 
-    private fun getOutputData() = workDataOf(WORK_ITEMS to (items?.size ?: 0))
-
     private fun setForegroundInfo(notificationId: Int): suspend (Notification) -> Unit =
         { notification ->
             setForeground(ForegroundInfo(notificationId, notification))
@@ -183,10 +183,10 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         val progressData get() = mutableProgressData.asStateFlow()
 
         private fun clearWorkerActions() {
-            skipAction = null
-            cancelAction = null
             mainJob = null
             perItemJob = null
+            skipAction = null
+            cancelAction = null
         }
 
         fun clearProgressData() {

@@ -22,7 +22,10 @@ private const val TEMP_DIR_NAME: String = "temp"
 private const val LOCAL_DIR_NAME: String = "local"
 
 object FileUtil {
+    // IO Dispatcher
     private val ioDispatcher = Dispatchers.IO
+
+    // Dir paths
     val localDirPath get() = "${mainBackupDirPath}/$LOCAL_DIR_NAME"
     val tempDirPath get() = "${mainBackupDirPath}/$TEMP_DIR_NAME"
 

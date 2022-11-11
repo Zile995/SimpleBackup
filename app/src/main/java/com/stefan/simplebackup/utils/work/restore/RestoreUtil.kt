@@ -2,6 +2,7 @@ package com.stefan.simplebackup.utils.work.restore
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.WorkerThread
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
@@ -26,30 +27,39 @@ class RestoreUtil(
     updateForegroundInfo: ForegroundCallback
 ) : WorkUtil(appContext, restoreItems, updateForegroundInfo) {
 
+    // Manager classes
     private val appManager = AppManager(appContext)
     private val rootApkManager = RootApkManager(appContext)
+
+    // List of apps that has to be restored
     private val restoreApps = mutableListOf<AppData?>()
 
+    @WorkerThread
     suspend fun restore() = channelFlow {
+        var isSkipped: Boolean
         addRestoreApps()
         restoreApps.forEach { restoreApp ->
-            launch {
-                try {
-                    restoreApp.startWork(
-                        ::createDirs,
-                        ::unzipData,
-                        ::installApk,
-                        ::restoreData
-                    )
-                } catch (e: Exception) {
-                    Log.w("RestoreUtil", "Got exception $e")
-                    if (restoreApp != null) {
-                        onFailure(restoreApp)
+            isSkipped = false
+            supervisorScope {
+                launch {
+                    try {
+                        restoreApp.startWork(
+                            ::createDirs,
+                            ::unzipData,
+                            ::installApk,
+                            ::restoreData
+                        )
+                    } catch (e: CancellationException) {
+                        Log.w("RestoreUtil", "Got exception $e")
+                        isSkipped = true
                     }
+                }.also { perItemJob ->
+                    send(perItemJob)
+                }.join()
+                launch {
+                    if (isSkipped && restoreApp != null) onFailure(restoreApp)
                 }
-            }.also { perItemJob ->
-                send(perItemJob)
-            }.join()
+            }
         }
     }
 

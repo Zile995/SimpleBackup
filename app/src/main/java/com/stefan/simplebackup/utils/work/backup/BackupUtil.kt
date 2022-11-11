@@ -2,6 +2,7 @@ package com.stefan.simplebackup.utils.work.backup
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.WorkerThread
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
 import com.google.api.client.http.AbstractInputStreamContent
 import com.google.api.client.http.FileContent
@@ -27,8 +28,10 @@ import com.stefan.simplebackup.utils.work.WorkUtil
 import com.stefan.simplebackup.utils.work.archive.TarUtil
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import com.topjohnwu.superuser.Shell
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.supervisorScope
 import java.io.File
 import java.io.IOException
 
@@ -39,32 +42,38 @@ class BackupUtil(
     private val shouldBackupToCloud: Boolean = false
 ) : WorkUtil(appContext, backupItems, updateForegroundInfo) {
 
+    @WorkerThread
     suspend fun backup() = channelFlow {
+        var isSkipped: Boolean
         val database = AppDatabase.getInstance(appContext, this)
-        val appDataRepository = AppRepository(database.appDao())
+        val appRepository = AppRepository(database.appDao())
         backupItems.forEach { backupPackageName ->
-            val app = appDataRepository.getAppData(appContext, backupPackageName)
-            launch {
-                try {
-                    withSuspend(app) {
-                        startWork(
-                            ::createDirs,
-                            ::backupData,
-                            ::zipData,
-                            ::serializeAppData,
-                            ::moveBackup,
-                            ::uploadToCloud
-                        )
+            isSkipped = false
+            val app = appRepository.getAppData(appContext, backupPackageName)
+            supervisorScope {
+                launch {
+                    try {
+                        withSuspend(app) {
+                            startWork(
+                                ::createDirs,
+                                ::backupData,
+                                ::zipData,
+                                ::serializeAppData,
+                                ::moveBackup,
+                                ::uploadToCloud
+                            )
+                        }
+                    } catch (e: CancellationException) {
+                        Log.w("BackupUtil", "Got exception $e")
+                        isSkipped = true
                     }
-                } catch (e: Exception) {
-                    Log.w("BackupUtil", "Got exception $e")
-                    if (app != null) {
-                        onFailure(app)
-                    }
+                }.also { perItemJob ->
+                    send(perItemJob)
+                }.join()
+                launch {
+                    if (isSkipped && app != null) onFailure(app)
                 }
-            }.also { perItemJob ->
-                send(perItemJob)
-            }.join()
+            }
         }
     }
 
