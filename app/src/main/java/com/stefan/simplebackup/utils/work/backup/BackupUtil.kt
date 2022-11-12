@@ -47,10 +47,10 @@ class BackupUtil(
         var isSkipped: Boolean
         val database = AppDatabase.getInstance(appContext, this)
         val appRepository = AppRepository(database.appDao())
-        backupItems.forEach { backupPackageName ->
-            isSkipped = false
-            val app = appRepository.getAppData(appContext, backupPackageName)
-            supervisorScope {
+        supervisorScope {
+            backupItems.forEach { backupPackageName ->
+                isSkipped = false
+                val app = appRepository.getAppData(appContext, backupPackageName)
                 launch {
                     try {
                         withSuspend(app) {
@@ -70,32 +70,30 @@ class BackupUtil(
                 }.also { perItemJob ->
                     send(perItemJob)
                 }.join()
-                launch {
-                    if (isSkipped && app != null) onFailure(app)
-                }
+                if (isSkipped && app != null) onFailure(app)
             }
         }
     }
 
     private suspend fun createDirs(app: AppData) {
-        app.updateNotificationData(R.string.backup_progress_dir_info)
+        app.updateProgressData(R.string.backup_progress_dir_info)
         createDirectory(getTempDirPath(app))
         createDirectory(getBackupDirPath(app))
     }
 
     private suspend fun backupData(app: AppData) {
-        app.updateNotificationData(R.string.backup_progress_data_info)
+        app.updateProgressData(R.string.backup_progress_data_info)
         TarUtil.backupData(app)
     }
 
     private suspend fun zipData(app: AppData) {
-        app.updateNotificationData(R.string.backup_progress_zip_info)
+        app.updateProgressData(R.string.backup_progress_zip_info)
         ZipUtil.zipAllData(app)
     }
 
     private suspend fun serializeAppData(app: AppData) {
         app.apply {
-            updateNotificationData(R.string.backup_progress_saving_application_data)
+            updateProgressData(R.string.backup_progress_saving_application_data)
             setCurrentDate()
             setDataSize(app)
             serializeApp(getTempDirPath(app = this))
@@ -133,7 +131,7 @@ class BackupUtil(
     private suspend fun uploadToCloud(app: AppData) {
         if (shouldBackupToCloud) {
             app.apply {
-                updateNotificationData(R.string.upload_to_cloud)
+                updateProgressData(R.string.uploading_to_cloud)
                 val appBackupDirPath = getBackupDirPath(app)
                 googleDriveService?.let { service ->
                     val jsonFile = FileUtil.getJsonInDir(appBackupDirPath)
@@ -160,14 +158,14 @@ class BackupUtil(
                             jsonMediaContent,
                             parentFolderId
                         )
-                        updateNotificationData(R.string.uploading_apk_cloud)
+                        updateProgressData(R.string.uploading_apk_cloud)
                         uploadFileToDriveFolder(
                             service,
                             apkZipFileMetaData,
                             apkZipMediaContent,
                             parentFolderId
                         )
-                        updateNotificationData(R.string.uploading_data_cloud)
+                        updateProgressData(R.string.uploading_data_cloud)
                         uploadFileToDriveFolder(
                             service,
                             tarZipFileMetaData,
@@ -222,7 +220,7 @@ class BackupUtil(
     }
 
     override suspend fun onSuccess(app: AppData) {
-        app.updateNotificationData(R.string.backup_progress_successful, WorkResult.SUCCESS)
+        app.updateProgressData(R.string.backup_progress_successful, WorkResult.SUCCESS)
     }
 
     override suspend fun onFailure(app: AppData) {
@@ -234,7 +232,7 @@ class BackupUtil(
             Log.w("BackupUtil", "Failed to delete broken backup $e")
         } finally {
             unsuspendApp(app)
-            app.updateNotificationData(R.string.backup_progress_failed, WorkResult.ERROR)
+            app.updateProgressData(R.string.backup_progress_failed, WorkResult.ERROR)
         }
     }
 }

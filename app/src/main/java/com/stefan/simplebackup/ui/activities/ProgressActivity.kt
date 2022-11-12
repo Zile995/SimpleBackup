@@ -41,7 +41,7 @@ class ProgressActivity : BaseActivity() {
             when (this) {
                 AppDataType.USER -> getString(R.string.backing_up)
                 AppDataType.LOCAL -> getString(R.string.restoring)
-                AppDataType.CLOUD -> getString(R.string.uploading_to_cloud)
+                AppDataType.CLOUD -> getString(R.string.uploading_to_drive)
             }
         } ?: getString(R.string.backing_up)
     }

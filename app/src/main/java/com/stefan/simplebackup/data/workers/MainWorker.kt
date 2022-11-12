@@ -16,14 +16,14 @@ import com.stefan.simplebackup.data.receivers.WorkActionBroadcastReceiver
 import com.stefan.simplebackup.ui.notifications.WorkNotificationManager
 import com.stefan.simplebackup.utils.extensions.getLastActivityIntent
 import com.stefan.simplebackup.utils.extensions.showToast
-import com.stefan.simplebackup.utils.file.FileUtil.deleteDirectoryFiles
+import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
 import com.stefan.simplebackup.utils.file.FileUtil.tempDirPath
 import com.stefan.simplebackup.utils.work.backup.BackupUtil
 import com.stefan.simplebackup.utils.work.restore.RestoreUtil
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.io.File
+import java.io.IOException
 import kotlin.system.measureTimeMillis
 
 const val PROGRESS_MAX = 10_000
@@ -43,8 +43,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
     // WorkNotificationManager
     private val workNotificationManager by lazy {
-        WorkNotificationManager(
-            context = appContext,
+        WorkNotificationManager(context = appContext,
             notificationId = WORK_NOTIFICATION_ID,
             onClickAction = { appContext.getLastActivityIntent() },
             onSkipAction = { getPendingIntent(NOTIFICATION_SKIP_ACTION) },
@@ -79,8 +78,8 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                 var time = 0L
                 mainJob = launch {
                     time = measureTimeMillis {
-                        (if (shouldBackup) backup() else restore())?.collect { currentItemJob ->
-                            perItemJob = currentItemJob
+                        (if (shouldBackup) backup() else restore())?.collect { currentJob ->
+                            perItemJob = currentJob
                         }
                     }
                 }
@@ -110,8 +109,16 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             Result.failure()
         } finally {
             launch {
-                clearWorkerActions()
-                deleteDirectoryFiles(File(tempDirPath))
+                clearWorkActions()
+                try {
+                    deleteFile(tempDirPath)
+                } catch (e: IOException) {
+                    Log.e(
+                        "MainWorker",
+                        "${applicationContext.getString(R.string.unable_to_delete_temp_dir)} $e"
+                    )
+                    applicationContext.showToast(R.string.unable_to_delete_temp_dir)
+                }
             }
         }
     }
@@ -137,13 +144,9 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         val intent = Intent(applicationContext, WorkActionBroadcastReceiver::class.java).apply {
             action = actionValue
         }
-        return PendingIntent
-            .getBroadcast(
-                applicationContext,
-                1,
-                intent,
-                PendingIntent.FLAG_IMMUTABLE
-            )
+        return PendingIntent.getBroadcast(
+            applicationContext, 1, intent, PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     private suspend fun backup() = items?.let { backupItems ->
@@ -182,7 +185,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         private val mutableProgressData: MutableStateFlow<ProgressData?> = MutableStateFlow(null)
         val progressData get() = mutableProgressData.asStateFlow()
 
-        private fun clearWorkerActions() {
+        private fun clearWorkActions() {
             mainJob = null
             perItemJob = null
             skipAction = null

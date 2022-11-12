@@ -38,7 +38,7 @@ android {
         applicationId "com.stefan.simplebackup"
         minSdk 26
         targetSdk 33
-        versionCode 20
+        versionCode 21
         versionName "0.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -160,6 +160,9 @@ dependencies {
 
     // Coil
     implementation "io.coil-kt:coil:$coil"
+
+    // Shimmer
+    //implementation 'com.facebook.shimmer:shimmer:0.5.0'
 
     // Leak Canary
     // debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"

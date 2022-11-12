@@ -22,7 +22,7 @@ ext {
     libsu = '5.0.3'
     zip4j = '2.11.2'
     junit = '4.13.2'
-    espresso = '3.4.0'
+    espresso = '3.5.0'
     fragment = '1.5.4'
     material = '1.8.0-alpha01'
     appCompat = '1.5.1'
@@ -34,11 +34,11 @@ ext {
     googleAuth = '20.3.0'
     googleGson = '1.42.3'
     swipeRefresh = '1.1.0'
-    androidxJunit = '1.1.3'
+    androidxJunit = '1.1.4'
     androidxLegacy = '1.0.0'
-    googleApiClient = '2.0.0'
+    googleApiClient = '2.0.1'
     kotlinSerialization = '1.4.1'
-    googleDriveApi = 'v3-rev20220815-2.0.0'
+    googleDriveApi = 'v3-rev20221023-2.0.0'
 }
 
 task clean(type: Delete) {

@@ -72,6 +72,7 @@ object FileUtil {
         if (!dir.isDirectory) throw IOException("File must be verified to be directory beforehand")
         withContext(ioDispatcher) {
             dir.walkTopDown().forEach { dirFile ->
+                if (dirFile == dir) return@forEach
                 deleteFile(dirFile.absolutePath)
             }
         }

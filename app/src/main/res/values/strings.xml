@@ -47,6 +47,7 @@
     <string name="unable_to_launch_app">Unable to launch this app</string>
     <string name="unable_to_create_temp_apk_install_dir">Unable to create temp apk install dir</string>
     <string name="unable_to_delete_temp_apk_install_dir">Unable to delete temp apk install dir</string>
+    <string name="unable_to_delete_temp_dir">Unable to delete temp dir</string>
     <string name="unable_to_move_apks_to_temp_install_dir">Unable to move apk\'s to temp install dir</string>
     <string name="unable_to_uninstall_app">Unable to uninstall app</string>
     <string name="unable_to_install_app">Unable to install app</string>
@@ -68,7 +69,7 @@
     <string name="backing_up">Backing up</string>
     <string name="restoring">Restoring</string>
     <string name="unable_to_sign_in">Unable to sign in</string>
-    <string name="uploading_to_cloud">Uploading to drive</string>
+    <string name="uploading_to_drive">Uploading to drive</string>
     <string name="backup_progress_dir_info">Creating backup dirs</string>
     <string name="restore_progress_dir_info">Creating restore dirs</string>
     <string name="restore_apk_install_info">Installing apks</string>
@@ -87,7 +88,7 @@
     <string name="unsuccessfully">unsuccessfully</string>
     <string name="restore_progress_successful">Restore successful</string>
     <string name="restore_progress_failed">Restore failed</string>
-    <string name="upload_to_cloud">Uploading backup to cloud</string>
+    <string name="uploading_to_cloud">Uploading backup to cloud</string>
     <string name="uploading_apk_cloud">Uploading apk backup to cloud</string>
     <string name="uploading_data_cloud">Uploading data backup to cloud</string>
     <string name="restored">Restored</string>

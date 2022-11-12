@@ -1,16 +1,13 @@
 package com.stefan.simplebackup.data.model
 
-import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.stefan.simplebackup.utils.work.WorkResult
-import kotlinx.parcelize.Parcelize
 
 const val PROGRESS_TABLE_NAME = "progress_table"
 
-@Parcelize
 @Entity(tableName = PROGRESS_TABLE_NAME, indices = [Index(value = ["package_name"], unique = true)])
 data class ProgressData(
     @ColumnInfo(name = "index")
@@ -34,7 +31,7 @@ data class ProgressData(
 
     @ColumnInfo(name = "work_result")
     val workResult: WorkResult? = null
-) : Parcelable {
+) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
