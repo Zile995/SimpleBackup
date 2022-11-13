@@ -9,10 +9,11 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-private const val APP_DATA_TYPE = "app_data_type"
+private const val PROGRESS_TYPE = "app_data_type"
 private const val MAIN_PREFERENCE = "main_preference"
 private const val SEQUENCE_NUMBER = "sequence_number"
 private const val DATABASE_CREATED = "database_created"
+private const val NUM_OF_WORK_ITEMS = "num_of_work_items"
 private const val EXCLUDE_APPS_CACHE = "exclude_apps_cache"
 private const val DOUBLE_PRESS_TO_EXIT = "double_press_to_exit"
 private const val CHECKED_ROOT_GRANTED = "checked_root_granted"
@@ -44,9 +45,11 @@ object PreferenceHelper {
     val hasCheckedDeviceRooted: Boolean
         get() = sharedPreferences.getPreference(CHECKED_DEVICE_ROOTED, false)
 
-    // Progress AppDataType
+    // Progress preferences
     val progressType: Int
-        get() = sharedPreferences.getPreference(APP_DATA_TYPE, 0)
+        get() = sharedPreferences.getPreference(PROGRESS_TYPE, 0)
+    val numOfWorkItems: Int
+        get() = sharedPreferences.getPreference(NUM_OF_WORK_ITEMS, 1)
 
     // Init main preference
     fun Application.initPreferences() {
@@ -78,6 +81,27 @@ object PreferenceHelper {
                 apply()
             }
         }
+    }
+
+    private suspend fun SharedPreferences.removePreference(preferenceName: String) {
+        withContext(ioDispatcher) {
+            edit().apply {
+                remove(preferenceName)
+                apply()
+            }
+        }
+    }
+
+    fun hasSavedProgressData() =
+        sharedPreferences.run { contains(PROGRESS_TYPE) || contains(NUM_OF_WORK_ITEMS) }
+
+    suspend fun removeProgressData() {
+        sharedPreferences.removePreference(PROGRESS_TYPE)
+        sharedPreferences.removePreference(NUM_OF_WORK_ITEMS)
+    }
+
+    suspend fun saveNumOfWorkItems(numOfWorkItems: Int) {
+        sharedPreferences.editPreference(NUM_OF_WORK_ITEMS, numOfWorkItems)
     }
 
     suspend fun setDoublePressToExit(shouldDoublePress: Boolean) {
@@ -113,6 +137,6 @@ object PreferenceHelper {
     }
 
     suspend fun saveProgressType(progressType: AppDataType) {
-        sharedPreferences.editPreference(APP_DATA_TYPE, progressType.ordinal)
+        sharedPreferences.editPreference(PROGRESS_TYPE, progressType.ordinal)
     }
 }

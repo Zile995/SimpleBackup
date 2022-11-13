@@ -23,6 +23,7 @@ import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
 import com.stefan.simplebackup.utils.file.FileUtil.getBackupDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import com.stefan.simplebackup.utils.file.FileUtil.moveFiles
+import com.stefan.simplebackup.utils.root.RootApkManager
 import com.stefan.simplebackup.utils.work.WorkResult
 import com.stefan.simplebackup.utils.work.WorkUtil
 import com.stefan.simplebackup.utils.work.archive.TarUtil
@@ -67,8 +68,8 @@ class BackupUtil(
                         Log.w("BackupUtil", "Got exception $e")
                         isSkipped = true
                     }
-                }.also { perItemJob ->
-                    send(perItemJob)
+                }.also { itemJob ->
+                    send(itemJob)
                 }.join()
                 if (isSkipped && app != null) onFailure(app)
             }
@@ -104,19 +105,11 @@ class BackupUtil(
         app: AppData?,
         crossinline doWhileSuspended: suspend AppData?.() -> Unit
     ) {
-        app?.let { suspendApp(it) }
+        app?.let { RootApkManager.suspendPackage(it.packageName) }
         app.doWhileSuspended()
-        app?.let { unsuspendApp(it) }
+        app?.let { RootApkManager.unsuspendPackage(it.packageName) }
     }
-
-    private fun suspendApp(app: AppData) {
-        Shell.cmd("cmd package suspend ${app.packageName}").exec()
-    }
-
-    private fun unsuspendApp(app: AppData) {
-        Shell.cmd("cmd package unsuspend ${app.packageName}").exec()
-    }
-
+    
     private fun setDataSize(app: AppData) {
         if (Shell.isAppGrantedRoot() == false) {
             val appInfoManager = AppInfoManager(appContext.packageManager, 0)
@@ -229,9 +222,9 @@ class BackupUtil(
             Log.w("BackupUtil", "Deleting failed backup.")
             deleteFile(getTempDirPath(app))
         } catch (e: IOException) {
-            Log.w("BackupUtil", "Failed to delete broken backup $e")
+            Log.w("BackupUtil", "Failed to delete backup $e")
         } finally {
-            unsuspendApp(app)
+            RootApkManager.unsuspendPackage(app.packageName)
             app.updateProgressData(R.string.backup_progress_failed, WorkResult.ERROR)
         }
     }

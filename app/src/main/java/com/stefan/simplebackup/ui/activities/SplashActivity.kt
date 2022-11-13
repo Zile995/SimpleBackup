@@ -6,13 +6,11 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
 import com.stefan.simplebackup.data.model.APP_DATA_TYPE_EXTRA
 import com.stefan.simplebackup.data.model.AppDataType
-import com.stefan.simplebackup.data.workers.WORK_REQUEST_TAG
 import com.stefan.simplebackup.databinding.ActivitySplashBinding
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.utils.PreferenceHelper
@@ -35,11 +33,6 @@ class SplashActivity : AppCompatActivity() {
     // WorkManager
     private val workManager = WorkManager.getInstance(application)
 
-    private val shouldResumeProgressActivity by lazy {
-        val workInfo = workManager.getWorkInfosByTagLiveData(WORK_REQUEST_TAG).value?.first()
-        workInfo?.state == WorkInfo.State.RUNNING || workInfo?.state == WorkInfo.State.ENQUEUED
-    }
-
     private var permissionHolder: PermissionHolder by Delegates.observable(PermissionHolder()) { _, _, newGrantedStatus ->
         if (newGrantedStatus.isUsageStatsGranted && newGrantedStatus.isManageAllFilesGranted) {
             // Preheat the main root shell in the splash screen
@@ -51,18 +44,21 @@ class SplashActivity : AppCompatActivity() {
                 }
                 // The main shell is now constructed and cached
                 // Exit splash screen and enter main activity
-                Log.d("SplashActivity", "Should resume $shouldResumeProgressActivity")
-                if (shouldResumeProgressActivity) {
+                Log.d(
+                    "SplashActivity",
+                    "Should resume progress activity: ${PreferenceHelper.hasSavedProgressData()}"
+                )
+                if (PreferenceHelper.hasSavedProgressData()) {
                     passBundleToActivity<ProgressActivity>(
                         SELECTION_EXTRA to arrayOf<String>(),
                         APP_DATA_TYPE_EXTRA to enumValues<AppDataType>()[PreferenceHelper.progressType]
                     )
-                    finish()
                 } else {
+                    workManager.pruneWork()
                     val intent = Intent(this@SplashActivity, MainActivity::class.java)
                     startActivity(intent)
-                    finish()
                 }
+                finish()
             }
         }
         binding.updateViews(newGrantedStatus)

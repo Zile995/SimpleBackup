@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.viewModels
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentHomeViewPagerBinding
 import com.stefan.simplebackup.ui.fragments.BaseFragment
 import com.stefan.simplebackup.ui.fragments.FavoritesFragment
@@ -28,7 +27,6 @@ class HomeViewPagerFragment : BaseViewPagerFragment<FragmentHomeViewPagerBinding
     override fun onConfigureTabText(): ArrayList<String> =
         arrayListOf(
             requireContext().applicationContext.getString(R.string.applications),
-            requireContext().applicationContext.getString(R.string.favorites),
-            "New Favorites"
+            requireContext().applicationContext.getString(R.string.favorites)
         )
 }

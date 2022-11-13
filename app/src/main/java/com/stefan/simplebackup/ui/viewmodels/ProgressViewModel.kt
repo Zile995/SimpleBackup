@@ -14,6 +14,7 @@ import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
+import com.stefan.simplebackup.utils.PreferenceHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -24,7 +25,10 @@ class ProgressViewModel(
 ) : AndroidViewModel(application) {
 
     // Progress values
-    val numberOfItems get() = selectionList?.size ?: 1
+    val numberOfItems by lazy {
+        if (selectionList.isNullOrEmpty()) PreferenceHelper.numOfWorkItems else
+            selectionList.size
+    }
     val progressDataObserver = MainWorker.progressData
     val progressDataList = mutableListOf<ProgressData>()
 
@@ -33,6 +37,7 @@ class ProgressViewModel(
         val database = AppDatabase.getInstance(application, application.applicationScope)
         ProgressRepository(database.progressDao())
     }
+
     private val workManager = WorkManager.getInstance(application)
 
     private val ioDispatcher = Dispatchers.IO
@@ -42,6 +47,14 @@ class ProgressViewModel(
         Log.d("ProgressViewModel", "ProgressViewModel created")
         viewModelScope.launch(defaultDispatcher) {
             startWorker()
+            saveProgressPreferences()
+        }
+    }
+
+    private suspend fun saveProgressPreferences() {
+        if (!PreferenceHelper.hasSavedProgressData()) {
+            PreferenceHelper.saveProgressType(appDataType ?: AppDataType.USER)
+            PreferenceHelper.saveNumOfWorkItems(selectionList?.size ?: 1)
         }
     }
 
@@ -53,8 +66,8 @@ class ProgressViewModel(
     fun clearProgressData() {
         val mainApplication = getApplication<MainApplication>()
         mainApplication
-            .applicationScope.launch(ioDispatcher) {
-                MainWorker.clearProgressData()
+            .applicationScope
+            .launch(ioDispatcher) {
                 workManager.pruneWork()
                 progressRepository.clear()
             }

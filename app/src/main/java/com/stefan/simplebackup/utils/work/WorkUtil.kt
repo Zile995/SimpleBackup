@@ -70,7 +70,7 @@ abstract class WorkUtil(
      */
     private fun setNearestItemInterval() {
         currentProgress = progressIntervals.first { interval ->
-            interval > currentProgress
+            interval >= currentProgress
         }
     }
 

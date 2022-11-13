@@ -20,22 +20,39 @@ import java.io.IOException
 
 object ZipUtil {
 
+    private var isWorkingWithApk = false
+    private var isWorkingWithData = false
+
     @WorkerThread
     @Throws(ZipException::class, IOException::class)
     suspend fun zipAllData(app: AppData) = coroutineScope {
         launch {
+            isWorkingWithApk = true
             zipApks(app)
         }
-        zipTarArchive(app)
+        launch {
+            isWorkingWithData = true
+            zipTarArchive(app)
+        }
+        joinAll()
+        isWorkingWithApk = false
+        isWorkingWithData = false
     }
 
     @WorkerThread
     @Throws(ZipException::class, IOException::class)
     suspend fun unzipAllData(app: AppData) = coroutineScope {
         launch {
+            isWorkingWithApk = true
             unzipApks(app)
         }
-        unzipTarArchive(app)
+        launch {
+            isWorkingWithData = true
+            unzipTarArchive(app)
+        }
+        joinAll()
+        isWorkingWithApk = false
+        isWorkingWithData = false
     }
 
     @Throws(ZipException::class, IOException::class)
@@ -83,6 +100,26 @@ object ZipUtil {
         Log.d("ZipUtil", "Successfully zipped ${app.name} data")
     }
 
+    @WorkerThread
+    suspend fun forcefullyDeleteZipBackups() = coroutineScope {
+        runBlocking(coroutineContext) {
+            if (isWorkingWithData || isWorkingWithApk) {
+                try {
+                    val tempDirFile = File(FileUtil.tempDirPath)
+                    FileUtil.deleteDirectoryFiles(tempDirFile) {
+                        it.extension == ZIP_FILE_EXTENSION
+                    }
+                } catch (e: IOException) {
+                    // Just log and continue executing
+                    Log.w("ZipUtil", "Exception while deleting files in dir $e")
+                } finally {
+                    isWorkingWithApk = false
+                    isWorkingWithData = false
+                }
+            }
+        }
+    }
+
     @Throws(ZipException::class, IOException::class)
     private suspend fun unzipTarArchive(app: AppData) {
         coroutineScope {
@@ -92,15 +129,14 @@ object ZipUtil {
             tarZipFile.apply {
                 if (!tarZipFile.isValidZipFile) throw IOException("Tar zip file is not valid")
                 val tempDirPath = getTempDirPath(app)
-                runInterruptible(coroutineContext) {
-                    extractAll(tempDirPath)
-                }
+                extractAll(tempDirPath)
                 Log.d("ZipUtil", "Successfully extracted ${app.packageName} tar")
             }
         }
     }
 
     @WorkerThread
+    @Throws(IOException::class)
     suspend fun getTarZipFile(appBackupDirPath: String) = coroutineScope {
         File(appBackupDirPath).walkTopDown().filter { backupFile ->
             backupFile.isFile && backupFile.extension == ZIP_FILE_EXTENSION
@@ -114,6 +150,7 @@ object ZipUtil {
     }
 
     @WorkerThread
+    @Throws(IOException::class)
     suspend fun getApkZipFile(appBackupDirPath: String) = coroutineScope {
         File(appBackupDirPath).walkTopDown().filter { backupFile ->
             backupFile.isFile && backupFile.extension == ZIP_FILE_EXTENSION

@@ -333,7 +333,7 @@ class MainActivity : BaseActivity() {
     private fun ActivityMainBinding.initObservers() {
         launchOnViewLifecycle {
             launch {
-                repeatOnViewLifecycle(Lifecycle.State.STARTED) {
+                repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                     observeNumberOfSelected()
                 }
             }
@@ -404,9 +404,8 @@ class MainActivity : BaseActivity() {
 
     fun showConfigureFragment() {
         supportFragmentManager.apply {
-            if (getVisibleFragment() is HomeViewPagerFragment &&
-                mainViewModel.selectionList.isNotEmpty()
-            ) ConfigureSheetFragment().show(this, "configureSheetTag")
+            if (getVisibleFragment() is HomeViewPagerFragment && mainViewModel.selectionList.isNotEmpty())
+                ConfigureSheetFragment().show(this, "configureSheetTag")
         }
     }
 

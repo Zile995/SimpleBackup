@@ -110,6 +110,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     override fun onClickSelectionAction() {
         onMainActivity {
             startProgressActivity(mainViewModel.selectionList.toTypedArray(), AppDataType.LOCAL)
+            mainViewModel.setSelectionMode(false)
         }
     }
 

@@ -5,6 +5,8 @@ import android.util.Log
 import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import androidx.annotation.ColorRes
+import androidx.annotation.MainThread
+import androidx.annotation.UiThread
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
@@ -32,6 +34,7 @@ class MainActivityAnimator(
         interpolator = DecelerateInterpolator()
     }
 
+    @MainThread
     fun animateOnSettings(isInSettings: Boolean) {
         binding?.apply {
             root.doOnPreDraw {
@@ -67,6 +70,7 @@ class MainActivityAnimator(
         }
     }
 
+    @MainThread
     fun animateOnSelection(
         isSelected: Boolean,
         selectionModeCallBack: SelectionModeCallBack
@@ -95,6 +99,7 @@ class MainActivityAnimator(
         }
     }
 
+    @MainThread
     fun animateOnSearch(isSearching: Boolean) {
         binding?.apply {
             root.doOnPreDraw {

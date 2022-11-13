@@ -23,7 +23,7 @@ private const val LOCAL_DIR_NAME: String = "local"
 
 object FileUtil {
     // IO Dispatcher
-    private val ioDispatcher = Dispatchers.IO
+    val ioDispatcher = Dispatchers.IO
 
     // Dir paths
     val localDirPath get() = "${mainBackupDirPath}/$LOCAL_DIR_NAME"
@@ -68,12 +68,12 @@ object FileUtil {
     }
 
     @Throws(IOException::class)
-    suspend fun deleteDirectoryFiles(dir: File) {
+    suspend inline fun deleteDirectoryFiles(dir: File, crossinline filter: (File) -> Boolean = { true }) {
         if (!dir.isDirectory) throw IOException("File must be verified to be directory beforehand")
         withContext(ioDispatcher) {
             dir.walkTopDown().forEach { dirFile ->
-                if (dirFile == dir) return@forEach
-                deleteFile(dirFile.absolutePath)
+                if (dirFile != dir && filter(dirFile))
+                    deleteFile(dirFile.absolutePath)
             }
         }
     }

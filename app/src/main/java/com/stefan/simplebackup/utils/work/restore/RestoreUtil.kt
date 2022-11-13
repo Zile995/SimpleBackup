@@ -55,8 +55,8 @@ class RestoreUtil(
                         Log.w("RestoreUtil", "Got exception $e")
                         isSkipped = true
                     }
-                }.also { perItemJob ->
-                    send(perItemJob)
+                }.also { itemJob ->
+                    send(itemJob)
                 }.join()
                 if (isSkipped && restoreApp != null) onFailure(restoreApp)
             }
@@ -115,6 +115,7 @@ class RestoreUtil(
         super.onFailure(app)
         try {
             deleteFile(getTempDirPath(app))
+            rootApkManager.deleteTempInstallDir(app)
         } catch (e: IOException) {
             Log.w("RestoreUtil", "Failed to delete broken restore files $e")
         } finally {

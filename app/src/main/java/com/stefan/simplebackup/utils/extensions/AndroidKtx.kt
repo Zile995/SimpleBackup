@@ -278,11 +278,12 @@ inline fun Context.materialDialog(
         }
     }
     val alert = create()
-    alert.setOnShowListener {
-        alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(positiveColor)
-        alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(negativeColor)
+    alert.apply {
+        setOnShowListener {
+            alert.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(positiveColor)
+            alert.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(negativeColor)
+        }
     }
-    alert
 }
 
 inline fun Context.permissionDialog(

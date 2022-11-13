@@ -18,7 +18,6 @@ import com.stefan.simplebackup.ui.adapters.ProgressAdapter
 import com.stefan.simplebackup.ui.viewmodels.ProgressViewModel
 import com.stefan.simplebackup.ui.viewmodels.ProgressViewModelFactory
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
-import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.launch
 
@@ -113,8 +112,6 @@ class ProgressActivity : BaseActivity() {
             } else {
                 shouldUpdateTitle = false
             }
-            if (workInfoList[0].state == WorkInfo.State.FAILED)
-                onBackPress()
         }
     }
 
@@ -134,15 +131,7 @@ class ProgressActivity : BaseActivity() {
     }
 
     private fun ActivityProgressBinding.bindProgressTypeTitle() {
-        saveProgressType()
         updateProgressTypeTitle(currentItem = 1)
-    }
-
-    private fun saveProgressType() {
-        if (PreferenceHelper.progressType == progressViewModel.appDataType?.ordinal) return
-        launchOnViewLifecycle {
-            PreferenceHelper.saveProgressType(progressViewModel.appDataType ?: AppDataType.USER)
-        }
     }
 
     private fun ActivityProgressBinding.updateProgressTypeTitle(

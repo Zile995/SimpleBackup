@@ -129,7 +129,7 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
         }
     }
 
-    protected fun removeAllFragments() {
+    private fun removeAllFragments() {
         (viewPager.adapter as ViewPagerAdapter).removeFragments()
     }
 

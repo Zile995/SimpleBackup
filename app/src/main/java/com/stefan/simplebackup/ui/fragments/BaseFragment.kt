@@ -100,7 +100,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
             repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
                 mainViewModel.isSelected.collect { isSelected ->
                     if (!isSelected) adapter.clearSelection()
-                    enableRecyclerViewScrolling(!isSelected)
+                    enableRecyclerViewNestedScrolling(!isSelected)
                 }
             }
         }
@@ -118,7 +118,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         }
     }
 
-    private fun enableRecyclerViewScrolling(shouldEnable: Boolean) {
+    private fun enableRecyclerViewNestedScrolling(shouldEnable: Boolean) {
         _mainRecyclerView?.isNestedScrollingEnabled = shouldEnable
     }
 

@@ -26,6 +26,7 @@ import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.utils.extensions.*
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.util.*
 
@@ -60,6 +61,7 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
             withContext(ioDispatcher) {
                 Shell.getShell()
             }
+            delay(250L)
             passBundleToActivity<ProgressActivity>(
                 SELECTION_EXTRA to selection,
                 APP_DATA_TYPE_EXTRA to appDataType
@@ -180,7 +182,7 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
         GoogleSignIn.getSignedInAccountFromIntent(signInData)
             .addOnSuccessListener { googleAccount ->
                 // Get credential on success
-                Log.d("GoogleServiceHandler", "Signed in as " + googleAccount.email)
+                Log.d("BaseActivity", "Signed in as " + googleAccount.email)
                 val credential = GoogleAccountCredential.usingOAuth2(
                     applicationContext, mutableListOf(DriveScopes.DRIVE_FILE)
                 )
@@ -215,7 +217,6 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
 
         const val REQUEST_CODE_SIGN_IN: Int = 400
     }
-
 }
 
 interface BackPressHandler {

@@ -14,10 +14,7 @@ import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.onMainActivity
 import com.stefan.simplebackup.utils.extensions.viewBinding
-import com.topjohnwu.superuser.Shell
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
 
 class ConfigureSheetFragment : BottomSheetDialogFragment() {
 
@@ -74,7 +71,11 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
     }
 
     private fun startProgressActivity() = onMainActivity {
-        startProgressActivity(mainViewModel.selectionList.toTypedArray(), AppDataType.USER)
+        launchOnViewLifecycle {
+            startProgressActivity(mainViewModel.selectionList.toTypedArray(), AppDataType.USER)
+            mainViewModel.setSelectionMode(false)
+            dismiss()
+        }
     }
 
     private fun FragmentConfigureSheetBinding.bindCloudButton() {
