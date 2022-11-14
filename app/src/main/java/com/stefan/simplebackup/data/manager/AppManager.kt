@@ -7,7 +7,7 @@ import android.content.pm.PackageManager.NameNotFoundException
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
-import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
+import com.stefan.simplebackup.utils.extensions.toByteArray
 import com.stefan.simplebackup.utils.file.FileUtil.getApkFileSizeSplitInfo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

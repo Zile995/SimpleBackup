@@ -4,21 +4,21 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.work.WorkManager
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
 import com.stefan.simplebackup.data.model.APP_DATA_TYPE_EXTRA
 import com.stefan.simplebackup.data.model.AppDataType
+import com.stefan.simplebackup.data.workers.WORK_REQUEST_TAG
 import com.stefan.simplebackup.databinding.ActivitySplashBinding
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import com.topjohnwu.superuser.Shell
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlin.properties.Delegates
 
 @SuppressLint("CustomSplashScreen")
@@ -44,17 +44,13 @@ class SplashActivity : AppCompatActivity() {
                 }
                 // The main shell is now constructed and cached
                 // Exit splash screen and enter main activity
-                Log.d(
-                    "SplashActivity",
-                    "Should resume progress activity: ${PreferenceHelper.hasSavedProgressData()}"
-                )
-                if (PreferenceHelper.hasSavedProgressData()) {
+                if (hasWorkInfo()) {
                     passBundleToActivity<ProgressActivity>(
-                        SELECTION_EXTRA to arrayOf<String>(),
-                        APP_DATA_TYPE_EXTRA to enumValues<AppDataType>()[PreferenceHelper.progressType]
+                        SELECTION_EXTRA to null,
+                        APP_DATA_TYPE_EXTRA to enumValues<AppDataType>()[PreferenceHelper.progressType],
+                        customFlags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                     )
                 } else {
-                    workManager.pruneWork()
                     val intent = Intent(this@SplashActivity, MainActivity::class.java)
                     startActivity(intent)
                 }
@@ -73,6 +69,13 @@ class SplashActivity : AppCompatActivity() {
             bindUsageStatsPermissionView()
         }
     }
+
+    private suspend fun hasWorkInfo() =
+        workManager
+            .getWorkInfosByTagLiveData(WORK_REQUEST_TAG)
+            .value
+            ?.asFlow()
+            ?.firstOrNull() != null
 
     private fun ActivitySplashBinding.bindUsageStatsPermissionView() {
         usageStatsCard.setOnClickListener {

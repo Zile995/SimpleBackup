@@ -21,6 +21,7 @@ import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.launch
 
+
 class ProgressActivity : BaseActivity() {
 
     // Binding properties
@@ -31,7 +32,6 @@ class ProgressActivity : BaseActivity() {
 
     private var isInProgress: Boolean = true
     private var shouldUpdateTitle: Boolean = true
-    private var bitmap: ByteArray = byteArrayOf()
 
     private val workManager by lazy { WorkManager.getInstance(application) }
 
@@ -89,8 +89,9 @@ class ProgressActivity : BaseActivity() {
                     .observe(this@ProgressActivity, workInfoObserver())
             }
             repeatOnViewLifecycle(Lifecycle.State.CREATED) {
-                progressViewModel.progressDataObserver.collect { notificationData ->
-                    updateViews(notificationData)
+                progressViewModel.observableProgressList.collect { progressDataList ->
+                    updateViews(progressDataList.lastOrNull())
+                    progressAdapter.submitList(progressDataList)
                 }
             }
         }
@@ -147,17 +148,12 @@ class ProgressActivity : BaseActivity() {
 
     private fun ActivityProgressBinding.updateViews(progressData: ProgressData?) {
         progressData?.apply {
-            if (!bitmap.contentEquals(image)) {
+            if (applicationNameProgress.text != name) {
                 applicationImageProgress.loadBitmap(image)
-                bitmap = image
             }
             applicationNameProgress.text = name
             applicationProgressInfo.text = this.message
             updateProgressTypeTitle(index)
-            workResult?.let {
-                progressViewModel.updateProgressDataList(progressData)
-                progressAdapter.submitList(progressViewModel.progressDataList.toMutableList())
-            }
         }
     }
 

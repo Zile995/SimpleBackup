@@ -11,7 +11,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.stefan.simplebackup.utils.extensions.passBundleToActivity
-import com.stefan.simplebackup.utils.file.BitmapUtil.saveByteArray
+import com.stefan.simplebackup.utils.extensions.saveByteArray
 import com.stefan.simplebackup.utils.file.JsonUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

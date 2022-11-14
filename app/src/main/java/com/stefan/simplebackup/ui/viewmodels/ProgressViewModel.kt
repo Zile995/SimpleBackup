@@ -12,10 +12,11 @@ import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.ProgressRepository
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.data.model.ProgressData
-import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.WorkerHelper
 import com.stefan.simplebackup.utils.PreferenceHelper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ProgressViewModel(
@@ -24,13 +25,19 @@ class ProgressViewModel(
     application: MainApplication,
 ) : AndroidViewModel(application) {
 
+    // WorkManager
+    private val workManager = WorkManager.getInstance(application)
+
+    // Dispatchers
+    private val ioDispatcher = Dispatchers.IO
+
     // Progress values
     val numberOfItems by lazy {
-        if (selectionList.isNullOrEmpty()) PreferenceHelper.numOfWorkItems else
+        if (selectionList.isNullOrEmpty())
+            PreferenceHelper.numOfWorkItems
+        else
             selectionList.size
     }
-    val progressDataObserver = MainWorker.progressData
-    val progressDataList = mutableListOf<ProgressData>()
 
     // Progress repository
     private val progressRepository by lazy {
@@ -38,29 +45,23 @@ class ProgressViewModel(
         ProgressRepository(database.progressDao())
     }
 
-    private val workManager = WorkManager.getInstance(application)
-
-    private val ioDispatcher = Dispatchers.IO
-    private val defaultDispatcher = Dispatchers.Default
+    // Observable list
+    private val _observableProgressList = MutableStateFlow(mutableListOf<ProgressData>())
+    val observableProgressList get() = _observableProgressList.asStateFlow()
 
     init {
         Log.d("ProgressViewModel", "ProgressViewModel created")
-        viewModelScope.launch(defaultDispatcher) {
-            startWorker()
-            saveProgressPreferences()
+        viewModelScope.launch(ioDispatcher) {
+            launch {
+                startWorker()
+                saveProgressPreferences()
+            }
+            launch {
+                progressRepository.progressData.collect {
+                    _observableProgressList.value = it
+                }
+            }
         }
-    }
-
-    private suspend fun saveProgressPreferences() {
-        if (!PreferenceHelper.hasSavedProgressData()) {
-            PreferenceHelper.saveProgressType(appDataType ?: AppDataType.USER)
-            PreferenceHelper.saveNumOfWorkItems(selectionList?.size ?: 1)
-        }
-    }
-
-    fun updateProgressDataList(progressData: ProgressData) {
-        if (progressDataList.contains(progressData)) return
-        progressDataList.add(progressData)
     }
 
     fun clearProgressData() {
@@ -70,7 +71,15 @@ class ProgressViewModel(
             .launch(ioDispatcher) {
                 workManager.pruneWork()
                 progressRepository.clear()
+                PreferenceHelper.removeProgressData()
             }
+    }
+
+    private suspend fun saveProgressPreferences() {
+        if (!PreferenceHelper.hasSavedProgressData()) {
+            PreferenceHelper.saveProgressType(appDataType ?: AppDataType.USER)
+            PreferenceHelper.saveNumOfWorkItems(selectionList?.size ?: 1)
+        }
     }
 
     private fun startWorker() {

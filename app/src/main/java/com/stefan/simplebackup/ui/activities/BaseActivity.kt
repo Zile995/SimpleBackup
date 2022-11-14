@@ -8,6 +8,8 @@ import androidx.activity.addCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NavUtils
+import androidx.core.app.TaskStackBuilder
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -26,7 +28,6 @@ import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.utils.extensions.*
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.util.*
 
@@ -52,16 +53,26 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
         window.setBackgroundDrawableResource(R.color.main_background)
 
     override fun onBackPress() {
-        finish()
+        val parentActivityIntent = NavUtils.getParentActivityIntent(this)
+        parentActivityIntent?.let { upIntent ->
+            if (NavUtils.shouldUpRecreateTask(this, upIntent) || isTaskRoot) {
+                TaskStackBuilder.create(this)
+                    .addNextIntentWithParentStack(upIntent)
+                    .startActivities()
+            } else {
+                // This activity is part of this app's task, so simply
+                // navigate up to the logical parent activity.
+                upIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                NavUtils.navigateUpTo(this, upIntent)
+            }
+        } ?: finish()
     }
 
-    fun startProgressActivity(selection: Array<String>, appDataType: AppDataType) {
-        if (selection.isEmpty()) return
+    fun startProgressActivity(selection: Array<String>?, appDataType: AppDataType?) {
         launchOnViewLifecycle {
             withContext(ioDispatcher) {
                 Shell.getShell()
             }
-            delay(250L)
             passBundleToActivity<ProgressActivity>(
                 SELECTION_EXTRA to selection,
                 APP_DATA_TYPE_EXTRA to appDataType

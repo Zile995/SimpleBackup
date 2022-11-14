@@ -109,7 +109,7 @@ class BackupUtil(
         app.doWhileSuspended()
         app?.let { RootApkManager.unsuspendPackage(it.packageName) }
     }
-    
+
     private fun setDataSize(app: AppData) {
         if (Shell.isAppGrantedRoot() == false) {
             val appInfoManager = AppInfoManager(appContext.packageManager, 0)

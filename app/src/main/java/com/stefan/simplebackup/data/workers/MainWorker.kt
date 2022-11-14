@@ -10,16 +10,18 @@ import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.local.database.AppDatabase
+import com.stefan.simplebackup.data.local.repository.ProgressRepository
 import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.WorkActionBroadcastReceiver
 import com.stefan.simplebackup.ui.notifications.WorkNotificationManager
-import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.getLastActivityIntent
 import com.stefan.simplebackup.utils.extensions.showToast
 import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
 import com.stefan.simplebackup.utils.file.FileUtil.tempDirPath
 import com.stefan.simplebackup.utils.root.RootApkManager
+import com.stefan.simplebackup.utils.work.WorkResult
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import com.stefan.simplebackup.utils.work.backup.BackupUtil
 import com.stefan.simplebackup.utils.work.restore.RestoreUtil
@@ -40,12 +42,20 @@ typealias ForegroundCallback = suspend (ProgressData) -> Unit
 class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(
     appContext, params
 ) {
+    // Main coroutine scope of worker
+    private var mainScope: CoroutineScope? = null
+
     // Coroutine dispatchers
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val mainDispatcher: CoroutineDispatcher = Dispatchers.Main
 
-    // Main coroutine scope of worker
-    private var mainScope: CoroutineScope? = null
+    // Input Data
+    private val workItems: Array<String>?
+        get() = inputData.getStringArray(INPUT_LIST)
+    private val shouldBackup: Boolean
+        get() = inputData.getBoolean(SHOULD_BACKUP, true)
+    private val shouldBackupToCloud: Boolean
+        get() = inputData.getBoolean(SHOULD_BACKUP_TO_CLOUD, false)
 
     // WorkNotificationManager
     private val workNotificationManager by lazy {
@@ -56,13 +66,9 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             onCancelAction = { getPendingIntent(NOTIFICATION_CANCEL_ACTION) })
     }
 
-    // Input Data
-    private val workItems: Array<String>?
-        get() = inputData.getStringArray(INPUT_LIST)
-    private val shouldBackup: Boolean
-        get() = inputData.getBoolean(SHOULD_BACKUP, true)
-    private val shouldBackupToCloud: Boolean
-        get() = inputData.getBoolean(SHOULD_BACKUP_TO_CLOUD, false)
+    // Progress data
+    private val mutableProgressData: MutableStateFlow<ProgressData?> = MutableStateFlow(null)
+    private val progressData get() = mutableProgressData.asStateFlow()
 
     // Foreground info lambdas
     private val updateForegroundInfo = setForegroundInfo(workNotificationManager.notificationId)
@@ -83,14 +89,25 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             withContext(ioDispatcher) {
                 var time = 0L
                 mainScope = this
+                val database = AppDatabase.getInstance(applicationContext, this)
+                val progressRepository = ProgressRepository(database.progressDao())
                 mainJob = launch {
+                    val progressJob = launch {
+                        progressData.collect { progressData ->
+                            if (progressData != null) {
+                                progressRepository.insert(progressData)
+                            }
+                        }
+                    }
                     time = measureTimeMillis {
-                        (if (shouldBackup) backup() else restore())?.collect { itemJob ->
+                        startMainWork()?.collect { itemJob ->
                             workItemJob = itemJob
                         }
+                        progressJob.cancelAndJoin()
                     }
                 }
                 mainJob?.join()
+                updateIfCancelled(progressRepository)
                 Result.success().also {
                     Log.d(
                         "MainWorker", "Work successful, completed in: ${time / 1_000.0} seconds"
@@ -121,34 +138,6 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         }
     }
 
-    private suspend fun cleanUp() {
-        // Clear companion object values
-        clearWorkActions()
-
-        // Remove preference progress data
-        // TODO: WIP, remove this once the progress data is saved in the repo.
-        PreferenceHelper.removeProgressData()
-
-        // Unsuspend failed apps
-        workItems?.let { RootApkManager.unsuspendPackages(it) }
-
-        // Clear progress value
-        clearProgressData()
-        try {
-            // Delete temp dir file
-            deleteFile(tempDirPath)
-        } catch (e: IOException) {
-            // Just log error
-            Log.e("MainWorker", "Unable to delete temp dir: $e")
-        }
-    }
-
-    private fun forcefullyDeleteBackup() {
-        mainScope?.launch {
-            ZipUtil.forcefullyDeleteZipBackups()
-        }
-    }
-
     private fun initWorkActions() {
         skipAction = {
             Log.w("MainWorker", "Clicked skip button: $workItemJob")
@@ -168,6 +157,46 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         }
     }
 
+    private suspend fun startMainWork() = if (shouldBackup) backup() else restore()
+
+    private suspend fun backup() =
+        workItems?.let { backupItems ->
+            val backupUtil = BackupUtil(
+                appContext = applicationContext,
+                backupItems = backupItems,
+                updateForegroundInfo = foregroundCallBack,
+                shouldBackupToCloud = shouldBackupToCloud
+            )
+            backupUtil.backup()
+        }
+
+    private suspend fun restore() =
+        workItems?.let { restoreItems ->
+            val restoreUtil = RestoreUtil(
+                appContext = applicationContext,
+                restoreItems = restoreItems,
+                updateForegroundInfo = foregroundCallBack
+            )
+            restoreUtil.restore()
+        }
+
+    private suspend fun updateIfCancelled(progressRepository: ProgressRepository) {
+        if (mainJob?.isCancelled == true) {
+            Log.w("MainWorker", "Adding new result on cancel")
+            val latestProgressData = progressData.value
+            if (latestProgressData?.workResult == null) {
+                val latestFailedData = progressData.value!!.copy(workResult = WorkResult.ERROR)
+                progressRepository.insert(latestFailedData)
+            }
+        }
+    }
+
+    private fun forcefullyDeleteBackup() {
+        mainScope?.launch {
+            ZipUtil.forcefullyDeleteZipBackups()
+        }
+    }
+
     private fun getPendingIntent(actionValue: String): PendingIntent {
         val intent = Intent(applicationContext, WorkActionBroadcastReceiver::class.java).apply {
             action = actionValue
@@ -177,29 +206,25 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         )
     }
 
-    private suspend fun backup() = workItems?.let { backupItems ->
-        val backupUtil = BackupUtil(
-            appContext = applicationContext,
-            backupItems = backupItems,
-            updateForegroundInfo = foregroundCallBack,
-            shouldBackupToCloud = shouldBackupToCloud
-        )
-        backupUtil.backup()
-    }
-
-    private suspend fun restore() = workItems?.let { restoreItems ->
-        val restoreUtil = RestoreUtil(
-            appContext = applicationContext,
-            restoreItems = restoreItems,
-            updateForegroundInfo = foregroundCallBack
-        )
-        restoreUtil.restore()
-    }
-
     private fun setForegroundInfo(notificationId: Int): suspend (Notification) -> Unit =
         { notification ->
             setForeground(ForegroundInfo(notificationId, notification))
         }
+
+    private suspend fun cleanUp() {
+        // Clear companion object values
+        clearWorkActions()
+
+        // Unsuspend failed apps
+        workItems?.let { RootApkManager.unsuspendPackages(it) }
+        try {
+            // Delete temp dir file
+            deleteFile(tempDirPath)
+        } catch (e: IOException) {
+            // Just log error
+            Log.e("MainWorker", "Unable to delete temp dir: $e")
+        }
+    }
 
     companion object {
         private var mainJob: Job? = null
@@ -210,18 +235,11 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         var cancelAction: (() -> Unit)? = null
             private set
 
-        private val mutableProgressData: MutableStateFlow<ProgressData?> = MutableStateFlow(null)
-        val progressData get() = mutableProgressData.asStateFlow()
-
         private fun clearWorkActions() {
             mainJob = null
             workItemJob = null
             skipAction = null
             cancelAction = null
-        }
-
-        private fun clearProgressData() {
-            mutableProgressData.value = null
         }
     }
 }

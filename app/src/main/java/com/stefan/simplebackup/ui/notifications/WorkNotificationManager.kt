@@ -12,7 +12,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.data.workers.WORK_REQUEST_TAG
-import com.stefan.simplebackup.utils.file.BitmapUtil.toBitmap
+import com.stefan.simplebackup.utils.extensions.toBitmap
 import com.stefan.simplebackup.utils.work.WorkResult
 
 
@@ -50,7 +50,11 @@ class WorkNotificationManager(
             setSmallIcon(R.drawable.ic_launcher_foreground)
             setContentIntent(onClickAction())
             addAction(R.drawable.ic_arrow_back, context.getString(R.string.skip), onSkipAction())
-            addAction(R.drawable.ic_arrow_back, context.getString(R.string.cancel), onCancelAction())
+            addAction(
+                R.drawable.ic_arrow_back,
+                context.getString(R.string.cancel),
+                onCancelAction()
+            )
             priority = NotificationCompat.PRIORITY_DEFAULT
         }
     }

@@ -29,13 +29,10 @@ object ZipUtil {
         launch {
             isWorkingWithApk = true
             zipApks(app)
+            isWorkingWithApk = false
         }
-        launch {
-            isWorkingWithData = true
-            zipTarArchive(app)
-        }
-        joinAll()
-        isWorkingWithApk = false
+        isWorkingWithData = true
+        zipTarArchive(app)
         isWorkingWithData = false
     }
 
@@ -45,13 +42,10 @@ object ZipUtil {
         launch {
             isWorkingWithApk = true
             unzipApks(app)
+            isWorkingWithApk = false
         }
-        launch {
-            isWorkingWithData = true
-            unzipTarArchive(app)
-        }
-        joinAll()
-        isWorkingWithApk = false
+        isWorkingWithData = true
+        unzipTarArchive(app)
         isWorkingWithData = false
     }
 
@@ -181,11 +175,12 @@ object ZipUtil {
             fileHeader.fileName
         }.filter { fileName ->
             fileName.contains(LIB_DIR_NAME) && fileName.endsWith(".$LIB_FILE_EXTENSION")
-        }.onEach { filteredName ->
-            Log.d("ZipUtil", "Filtered native lib path: $filteredName")
         }.map {
             it.substringAfter(File.separator).substringBeforeLast(File.separator)
         }.distinct()
+        //.onEach { filteredName ->
+        //  Log.d("ZipUtil", "Filtered native lib path: $filteredName")
+        //}
     } catch (e: IOException) {
         Log.e("ZipUtil", "${apkFile.name}: $e")
         sequenceOf()

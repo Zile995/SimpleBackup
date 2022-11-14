@@ -13,6 +13,12 @@ class ProgressAdapter : ListAdapter<ProgressData, ProgressViewHolder>(DiffCallba
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProgressViewHolder =
         ProgressViewHolder(parent.viewBinding(ProgressItemBinding::inflate))
 
+    override fun submitList(list: MutableList<ProgressData>?) {
+        val containsNonNullWorkResults = list?.all { it.workResult != null }
+        if (containsNonNullWorkResults == true)
+            super.submitList(list)
+    }
+
     override fun onBindViewHolder(holder: ProgressViewHolder, position: Int) {
         val progressItem = getItem(position)
         holder.bind(progressItem)
@@ -22,14 +28,12 @@ class ProgressAdapter : ListAdapter<ProgressData, ProgressViewHolder>(DiffCallba
         override fun areItemsTheSame(
             oldItem: ProgressData,
             newItem: ProgressData
-        ): Boolean = oldItem.name == newItem.name
-                && oldItem.packageName == newItem.packageName
-                && oldItem.message == newItem.message
-                && oldItem.image.contentEquals(newItem.image)
+        ): Boolean = oldItem.image.contentEquals(newItem.image) && oldItem.name == newItem.name
 
         override fun areContentsTheSame(
             oldItem: ProgressData,
             newItem: ProgressData
         ): Boolean = oldItem == newItem
+
     }
 }

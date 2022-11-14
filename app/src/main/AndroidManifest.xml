@@ -87,6 +87,7 @@
         <activity
             android:name=".ui.activities.MainActivity"
             android:exported="false"
+            android:launchMode="singleTop"
             android:imeOptions="flagNoFullscreen"
             android:windowSoftInputMode="stateAlwaysHidden|adjustPan" />
         <activity
@@ -97,7 +98,6 @@
         <activity
             android:name=".ui.activities.ProgressActivity"
             android:exported="false"
-            android:alwaysRetainTaskState="true"
             android:parentActivityName=".ui.activities.MainActivity"
             android:windowSoftInputMode="stateAlwaysHidden" />
     </application>

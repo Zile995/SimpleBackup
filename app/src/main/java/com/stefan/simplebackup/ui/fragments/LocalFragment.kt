@@ -20,6 +20,7 @@ import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.onMainActivity
 import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
+import kotlinx.coroutines.delay
 import kotlin.properties.Delegates
 
 class LocalFragment : BaseFragment<FragmentLocalBinding>() {
@@ -109,8 +110,12 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
 
     override fun onClickSelectionAction() {
         onMainActivity {
-            startProgressActivity(mainViewModel.selectionList.toTypedArray(), AppDataType.LOCAL)
-            mainViewModel.setSelectionMode(false)
+            launchOnViewLifecycle {
+                val selectionList = mainViewModel.selectionList.toTypedArray()
+                mainViewModel.setSelectionMode(false)
+                delay(250L)
+                startProgressActivity(selectionList, AppDataType.LOCAL)
+            }
         }
     }
 

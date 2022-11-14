@@ -29,7 +29,6 @@ import com.stefan.simplebackup.databinding.ActivityDetailBinding
 import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
 import com.stefan.simplebackup.ui.viewmodels.DetailsViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
-import com.stefan.simplebackup.utils.file.BitmapUtil.toByteArray
 import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.file.JSON_FILE_EXTENSION
 import kotlinx.coroutines.launch
@@ -305,7 +304,10 @@ class AppDetailActivity : BaseActivity() {
                                 showToast(getString(R.string.backup_deleted_successfully, name))
                             }, onFailure = { message ->
                                 showToast(
-                                    getString(R.string.backup_deleted_successfully, "$name $message")
+                                    getString(
+                                        R.string.backup_deleted_successfully,
+                                        "$name $message"
+                                    )
                                 )
                             }).invokeOnCompletion {
                                 onBackPress()
