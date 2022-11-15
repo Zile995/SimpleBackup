@@ -47,11 +47,11 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
             selectionFinished = false
             if (item.isSelected && selectedItems.size == 1 && !MainActivityAnimator.animationFinished) return
             if (selectedItems.contains(item.packageName)) {
-                holder.unsetSelected()
+                holder.clearSelectionColor()
                 item.isSelected = false
                 removeSelected(item.packageName)
             } else {
-                holder.setSelected()
+                holder.setSelectionColor()
                 item.isSelected = true
                 addSelected(item.packageName)
             }

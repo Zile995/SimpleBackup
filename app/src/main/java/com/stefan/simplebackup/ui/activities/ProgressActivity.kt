@@ -1,6 +1,7 @@
 package com.stefan.simplebackup.ui.activities
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
@@ -10,6 +11,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.APP_DATA_TYPE_EXTRA
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.data.model.ProgressData
+import com.stefan.simplebackup.data.workers.MainWorker
 import com.stefan.simplebackup.data.workers.PROGRESS_MAX
 import com.stefan.simplebackup.data.workers.WORK_PROGRESS
 import com.stefan.simplebackup.data.workers.WORK_REQUEST_TAG
@@ -19,6 +21,7 @@ import com.stefan.simplebackup.ui.viewmodels.ProgressViewModel
 import com.stefan.simplebackup.ui.viewmodels.ProgressViewModelFactory
 import com.stefan.simplebackup.ui.viewmodels.SELECTION_EXTRA
 import com.stefan.simplebackup.utils.extensions.*
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 
@@ -69,6 +72,8 @@ class ProgressActivity : BaseActivity() {
         if (!isInProgress) {
             progressViewModel.clearProgressData()
             super.onBackPress()
+        } else {
+            showToast(getString(R.string.progress_on_back_press, progressTitle))
         }
     }
 
@@ -89,7 +94,8 @@ class ProgressActivity : BaseActivity() {
                     .observe(this@ProgressActivity, workInfoObserver())
             }
             repeatOnViewLifecycle(Lifecycle.State.CREATED) {
-                progressViewModel.observableProgressList.collect { progressDataList ->
+                progressViewModel.observableProgressList.collectLatest { progressDataList ->
+                    Log.d("ProgressActivity", "Progress list $progressDataList")
                     updateViews(progressDataList.lastOrNull())
                     progressAdapter.submitList(progressDataList)
                 }
@@ -105,19 +111,12 @@ class ProgressActivity : BaseActivity() {
                 progressIndicator.setProgress(currentProgress, true)
             }
             // Update views when state is considered finished
-            if (workInfoList[0].state.isFinished) {
-                isInProgress = false
-                backButton.isEnabled = true
-                progressIndicator.setProgress(PROGRESS_MAX, true)
-                progressType.text = getString(R.string.work_finished)
-            } else {
-                shouldUpdateTitle = false
-            }
+            if (workInfoList[0].state.isFinished) updateOnFinish() else shouldUpdateTitle = false
         }
     }
 
     private fun ActivityProgressBinding.bindViews() {
-        bindBackButton()
+        bindButtons()
         bindProgressIndicator()
         bindProgressTypeTitle()
         bindProgressRecyclerView()
@@ -161,10 +160,40 @@ class ProgressActivity : BaseActivity() {
         progressIndicator.max = PROGRESS_MAX
     }
 
-    private fun ActivityProgressBinding.bindBackButton() {
-        backButton.isEnabled = !isInProgress
-        backButton.setOnClickListener {
-            onBackPress()
+    private fun ActivityProgressBinding.bindButtons() {
+        doneButton.isEnabled = !isInProgress
+        doneButton.setOnClickListener {
+            launchPostDelayed(250L) {
+                onBackPress()
+            }
+        }
+
+        skipButton.setOnClickListener {
+            MainWorker.skipAction?.invoke()
+        }
+
+        cancelButton.setOnClickListener {
+            MainWorker.cancelAction?.invoke()
+        }
+    }
+
+    private fun ActivityProgressBinding.updateOnFinish() {
+        // We are not in progress, allow back button
+        isInProgress = false
+
+        // Update progress
+        progressIndicator.setProgress(PROGRESS_MAX, true)
+        progressType.text = getString(R.string.work_finished)
+
+        // Update buttons
+        doneButton.isEnabled = true
+        skipButton.isEnabled = false
+        cancelButton.isEnabled = false
+        skipButton.fadeOut(300L)
+        cancelButton.fadeOut(300L) {
+            launchPostDelayed(100L) {
+                doneButton.fadeIn(300L)
+            }
         }
     }
 

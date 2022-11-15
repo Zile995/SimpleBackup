@@ -58,7 +58,7 @@ class SplashActivity : AppCompatActivity() {
                             passBundleToActivity<ProgressActivity>(
                                 SELECTION_EXTRA to null,
                                 APP_DATA_TYPE_EXTRA to enumValues<AppDataType>()[PreferenceHelper.progressType],
-                                customFlags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                                customFlags = Intent.FLAG_ACTIVITY_SINGLE_TOP
                             )
                         } else {
                             launchMainActivity()

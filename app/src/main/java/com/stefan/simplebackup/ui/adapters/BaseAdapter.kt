@@ -51,23 +51,16 @@ abstract class BaseAdapter(
 
     private fun BaseViewHolder.setSelectedItem(item: AppData) {
         if (selectedItems.contains(item.packageName)) {
+            setSelectionColor()
             item.isSelected = true
-            setSelected()
         } else {
+            clearSelectionColor()
             item.isSelected = false
-            unsetSelected()
         }
     }
 
-    private fun List<AppData>.getSelectedIndexedValues() =
-        asSequence().withIndex().filter { indexedValue ->
-            selectedItems.contains(indexedValue.value.packageName)
-        }
-
     fun selectAllItems() {
-        val transformedList = currentList.map {
-            it.packageName
-        }
+        val transformedList = currentList.map { it.packageName }
         selectMultipleItems(transformedList)
         currentList.forEachIndexed { index, item ->
             if (!item.isSelected) {
@@ -79,18 +72,16 @@ abstract class BaseAdapter(
 
     fun clearSelection() {
         if (!hasSelectedItems()) return
-        currentList.getSelectedIndexedValues().forEach { indexedValue ->
-            if (indexedValue.value.isSelected) {
+        currentList
+            .asSequence()
+            .withIndex()
+            .filter { indexedValue ->
+                selectedItems.contains(indexedValue.value.packageName)
+            }.forEach { indexedValue ->
                 indexedValue.value.isSelected = false
                 notifyItemChanged(indexedValue.index)
             }
-        }
         removeAllSelectedItems()
-    }
-
-    override fun onViewRecycled(holder: BaseViewHolder) {
-        super.onViewRecycled(holder)
-        holder.unsetSelected()
     }
 
     private class DiffCallback : DiffUtil.ItemCallback<AppData>() {

@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
     android:background="?attr/colorPrimaryVariant"
+    android:fillViewport="true"
     tools:context=".ui.activities.ProgressActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -16,8 +16,8 @@
             android:id="@+id/progress_type"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/progress_type"
             android:maxLines="2"
+            android:text="@string/progress_type"
             android:textAlignment="textStart"
             android:textAppearance="@style/TextAppearance.SimpleBackup.BodyLarge"
             android:textColor="@color/selectedTab"
@@ -32,10 +32,10 @@
             android:id="@+id/work_info_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:layout_marginTop="24dp"
+            android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/button_layout"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/progress_type">
 
@@ -97,13 +97,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:layout_gravity="center"
+                android:layout_marginStart="40dp"
                 android:layout_marginTop="24dp"
+                android:layout_marginEnd="40dp"
                 app:cardBackgroundColor="@color/main_background"
                 app:strokeColor="@color/bottom_view"
-                android:layout_marginStart="40dp"
-                android:layout_marginEnd="40dp"
-                app:strokeWidth="1dp"
-                >
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -115,29 +114,68 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_gravity="center"
-                        android:scrollbarThumbVertical="@drawable/scrollbar_style"
-                        android:paddingBottom="@dimen/recyclerview_bottom_padding"
                         android:clipToPadding="false"
-                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"/>
+                        android:paddingBottom="@dimen/recyclerview_bottom_padding"
+                        android:scrollbarThumbVertical="@drawable/scrollbar_style"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
                 </LinearLayout>
 
             </com.google.android.material.card.MaterialCardView>
 
+        </LinearLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/button_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+            android:layout_marginBottom="20dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" >
+
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/back_button"
+                android:id="@+id/skip_button"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="10dp"
+                android:layout_height="match_parent"
+                android:layout_toStartOf="@+id/done_button"
+                android:enabled="true"
+                android:text="@string/skip"
+                android:textSize="16sp"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/cancel_button"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/done_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
                 android:enabled="false"
                 android:text="@string/done"
-                android:textSize="16sp" >
+                android:textSize="16sp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-            </com.google.android.material.button.MaterialButton>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/cancel_button"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="30dp"
+                android:enabled="true"
+                android:text="@string/cancel"
+                android:textSize="16sp"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/skip_button"
+                app:layout_constraintTop_toTopOf="parent" />
 
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

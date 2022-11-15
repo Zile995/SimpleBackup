@@ -21,7 +21,6 @@ import com.stefan.simplebackup.utils.extensions.showToast
 import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
 import com.stefan.simplebackup.utils.file.FileUtil.tempDirPath
 import com.stefan.simplebackup.utils.root.RootApkManager
-import com.stefan.simplebackup.utils.work.WorkResult
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import com.stefan.simplebackup.utils.work.backup.BackupUtil
 import com.stefan.simplebackup.utils.work.restore.RestoreUtil
@@ -107,7 +106,6 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                     }
                 }
                 mainJob?.join()
-                updateIfCancelled(progressRepository)
                 Result.success().also {
                     Log.d(
                         "MainWorker", "Work successful, completed in: ${time / 1_000.0} seconds"
@@ -179,17 +177,6 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             )
             restoreUtil.restore()
         }
-
-    private suspend fun updateIfCancelled(progressRepository: ProgressRepository) {
-        if (mainJob?.isCancelled == true) {
-            Log.w("MainWorker", "Adding new result on cancel")
-            val latestProgressData = progressData.value
-            if (latestProgressData?.workResult == null) {
-                val latestFailedData = progressData.value!!.copy(workResult = WorkResult.ERROR)
-                progressRepository.insert(latestFailedData)
-            }
-        }
-    }
 
     private fun forcefullyDeleteBackup() {
         mainScope?.launch {

@@ -1,12 +1,12 @@
 package com.stefan.simplebackup.ui.adapters.viewholders
 
-import android.view.View
 import com.google.android.material.card.MaterialCardView
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.databinding.FavoritesItemBinding
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.utils.extensions.bytesToMegaBytesString
+import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.loadBitmap
 
 class FavoritesViewHolder(
@@ -24,11 +24,11 @@ class FavoritesViewHolder(
             favoritesPackageName.text = item.packageName
             favoritesApkSize.text = item.apkSize.bytesToMegaBytesString()
             favoritesInstallDate.text = item.getDateString()
-            if (item.isSplit) {
-                favoritesSplitApk.text = binding.root.resources.getString(R.string.split)
-                favoritesSplitApk.visibility = View.VISIBLE
+            favoritesSplitApk.isVisible = if (item.isSplit) {
+                favoritesSplitApk.text = root.resources.getString(R.string.split)
+                true
             } else
-                favoritesSplitApk.visibility = View.GONE
+                false
         }
     }
 }

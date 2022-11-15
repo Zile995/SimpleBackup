@@ -11,12 +11,11 @@ import com.stefan.simplebackup.MainApplication
 import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.ProgressRepository
 import com.stefan.simplebackup.data.model.AppDataType
-import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.workers.WorkerHelper
 import com.stefan.simplebackup.utils.PreferenceHelper
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class ProgressViewModel(
@@ -46,8 +45,11 @@ class ProgressViewModel(
     }
 
     // Observable list
-    private val _observableProgressList = MutableStateFlow(mutableListOf<ProgressData>())
-    val observableProgressList get() = _observableProgressList.asStateFlow()
+    val observableProgressList = progressRepository.progressData.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(1000L),
+        initialValue = mutableListOf()
+    )
 
     init {
         Log.d("ProgressViewModel", "ProgressViewModel created")
@@ -55,11 +57,6 @@ class ProgressViewModel(
             launch {
                 startWorker()
                 saveProgressPreferences()
-            }
-            launch {
-                progressRepository.progressData.collect {
-                    _observableProgressList.value = it
-                }
             }
         }
     }

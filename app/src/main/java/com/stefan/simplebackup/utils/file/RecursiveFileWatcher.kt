@@ -15,8 +15,6 @@ import java.nio.file.WatchKey
 fun File.asRecursiveFileWatcher(scope: CoroutineScope) =
     RecursiveFileWatcher(scope = scope, rootDir = this)
 
-@Suppress("BlockingMethodInNonBlockingContext")
-// Suppress the warning, we are running this code on IO Dispatcher
 class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDir: File) {
 
     private var currentFileSize = 0L

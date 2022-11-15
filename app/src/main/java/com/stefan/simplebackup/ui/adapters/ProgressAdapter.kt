@@ -14,6 +14,7 @@ class ProgressAdapter : ListAdapter<ProgressData, ProgressViewHolder>(DiffCallba
         ProgressViewHolder(parent.viewBinding(ProgressItemBinding::inflate))
 
     override fun submitList(list: MutableList<ProgressData>?) {
+        if (list?.isNotEmpty() == true && list.last().workResult == null) list.removeLast()
         val containsNonNullWorkResults = list?.all { it.workResult != null }
         if (containsNonNullWorkResults == true)
             super.submitList(list)

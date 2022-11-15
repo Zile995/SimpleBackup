@@ -30,19 +30,15 @@ private val coroutineExceptionHandler =
 /**
  * - Filter the given flow list
  */
-inline fun <T> Flow<MutableList<T>>.filterBy(crossinline predicate: (T) -> Boolean) = run {
-    map { list ->
-        list.filter(predicate).toMutableList()
-    }
+inline fun <T> Flow<MutableList<T>>.filterBy(crossinline predicate: (T) -> Boolean) = map { list ->
+    list.filter(predicate).toMutableList()
 }
 
 fun CoroutineScope.launchWithLogging(
     context: CoroutineContext = EmptyCoroutineContext,
     block: suspend CoroutineScope.() -> Unit
-): Job {
-    return launch(context + coroutineExceptionHandler) {
-        block()
-    }
+) = launch(context + coroutineExceptionHandler) {
+    block()
 }
 
 inline fun LifecycleOwner.launchPostDelayed(
@@ -56,7 +52,7 @@ inline fun LifecycleOwner.launchPostDelayed(
 inline fun LifecycleOwner.launchOnViewLifecycle(
     context: CoroutineContext = EmptyCoroutineContext,
     crossinline block: suspend CoroutineScope.() -> Unit
-): Job = when (this) {
+) = when (this) {
     is ComponentActivity -> lifecycleScope.launch(context) { block() }
     is Fragment -> viewLifecycleOwner.lifecycleScope.launch(context) { block() }
     else -> throw IllegalArgumentException("Unsupported LifecycleOwner")
@@ -65,10 +61,8 @@ inline fun LifecycleOwner.launchOnViewLifecycle(
 suspend fun LifecycleOwner.repeatOnViewLifecycle(
     state: Lifecycle.State,
     block: suspend CoroutineScope.() -> Unit
-) {
-    when (this) {
-        is ComponentActivity -> repeatOnLifecycle(state, block)
-        is Fragment -> viewLifecycleOwner.repeatOnLifecycle(state, block)
-        else -> throw IllegalArgumentException("Unsupported LifecycleOwner")
-    }
+) = when (this) {
+    is ComponentActivity -> repeatOnLifecycle(state, block)
+    is Fragment -> viewLifecycleOwner.repeatOnLifecycle(state, block)
+    else -> throw IllegalArgumentException("Unsupported LifecycleOwner")
 }

@@ -97,10 +97,12 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
 
     private fun initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
+            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
                 mainViewModel.isSelected.collect { isSelected ->
-                    if (!isSelected) adapter.clearSelection()
-                    enableRecyclerViewNestedScrolling(!isSelected)
+                    if (isVisible) {
+                        if (!isSelected) adapter.clearSelection()
+                        enableRecyclerViewNestedScrolling(!isSelected)
+                    }
                 }
             }
         }

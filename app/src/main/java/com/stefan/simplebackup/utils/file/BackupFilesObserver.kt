@@ -44,15 +44,9 @@ class BackupFilesObserver(
                 Log.d("BackupFilesObserver", "$kind: ${file.absolutePath}")
                 observableList.updateCurrentList { currentList ->
                     when (kind) {
-                        EventKind.CREATED -> {
-                            onCreatedEvent(currentList, file)
-                        }
-                        EventKind.DELETED -> {
-                            onDeletedEvent(currentList, file)
-                        }
-                        EventKind.MODIFIED -> {
-                            onModifiedEvent(currentList, file)
-                        }
+                        EventKind.CREATED -> { onCreatedEvent(currentList, file) }
+                        EventKind.DELETED -> { onDeletedEvent(currentList, file) }
+                        EventKind.MODIFIED -> { onModifiedEvent(currentList, file) }
                     }
                 }
             }
@@ -95,8 +89,8 @@ class BackupFilesObserver(
                     && file.extension == JSON_FILE_EXTENSION)
                     || (app.packageName == file.name && file.parentFile?.name != file.name)
         }
-        currentList.remove(deletedApp)
         Log.d("BackupFilesObserver", "Removing deleted ${deletedApp?.name}")
+        currentList.remove(deletedApp)
     }
 
     private suspend fun onModifiedEvent(currentList: MutableList<AppData>, file: File) {

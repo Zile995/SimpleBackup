@@ -28,7 +28,9 @@ sealed class BaseViewHolder(
         }
     }
 
-    fun unsetSelected() = cardView.setCardBackgroundColor(context.getColor(R.color.card_view))
+    fun clearSelectionColor() =
+        cardView.setCardBackgroundColor(context.getColor(R.color.card_view))
 
-    fun setSelected() = cardView.setCardBackgroundColor(context.getColor(R.color.card_view_selected))
+    fun setSelectionColor() =
+        cardView.setCardBackgroundColor(context.getColor(R.color.card_view_selected))
 }
