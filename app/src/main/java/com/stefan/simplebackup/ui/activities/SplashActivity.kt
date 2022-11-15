@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.asFlow
+import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
@@ -17,8 +19,6 @@ import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlin.properties.Delegates
 
 @SuppressLint("CustomSplashScreen")
@@ -30,8 +30,13 @@ class SplashActivity : AppCompatActivity() {
     // ViewBinding
     private val binding by viewBinding(ActivitySplashBinding::inflate)
 
-    // WorkManager
-    private val workManager = WorkManager.getInstance(application)
+    // WorkInfo
+    private val workInfoFlow by lazy {
+        WorkManager
+            .getInstance(application)
+            .getWorkInfosByTagLiveData(WORK_REQUEST_TAG)
+            .asFlow()
+    }
 
     private var permissionHolder: PermissionHolder by Delegates.observable(PermissionHolder()) { _, _, newGrantedStatus ->
         if (newGrantedStatus.isUsageStatsGranted && newGrantedStatus.isManageAllFilesGranted) {
@@ -44,17 +49,23 @@ class SplashActivity : AppCompatActivity() {
                 }
                 // The main shell is now constructed and cached
                 // Exit splash screen and enter main activity
-                if (hasWorkInfo()) {
-                    passBundleToActivity<ProgressActivity>(
-                        SELECTION_EXTRA to null,
-                        APP_DATA_TYPE_EXTRA to enumValues<AppDataType>()[PreferenceHelper.progressType],
-                        customFlags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
-                    )
-                } else {
-                    val intent = Intent(this@SplashActivity, MainActivity::class.java)
-                    startActivity(intent)
+                workInfoFlow.collect { workInfo ->
+                    workInfo.firstOrNull()?.apply {
+                        if (state == WorkInfo.State.RUNNING
+                            || state == WorkInfo.State.ENQUEUED
+                            || state == WorkInfo.State.SUCCEEDED
+                        ) {
+                            passBundleToActivity<ProgressActivity>(
+                                SELECTION_EXTRA to null,
+                                APP_DATA_TYPE_EXTRA to enumValues<AppDataType>()[PreferenceHelper.progressType],
+                                customFlags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                            )
+                        } else {
+                            launchMainActivity()
+                        }
+                        finish()
+                    } ?: launchMainActivity()
                 }
-                finish()
             }
         }
         binding.updateViews(newGrantedStatus)
@@ -70,17 +81,15 @@ class SplashActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun hasWorkInfo() =
-        workManager
-            .getWorkInfosByTagLiveData(WORK_REQUEST_TAG)
-            .value
-            ?.asFlow()
-            ?.firstOrNull() != null
-
     private fun ActivitySplashBinding.bindUsageStatsPermissionView() {
         usageStatsCard.setOnClickListener {
             openUsageAccessSettings()
         }
+    }
+
+    private fun launchMainActivity() {
+        val intent = Intent(this@SplashActivity, MainActivity::class.java)
+        startActivity(intent)
     }
 
     private fun ActivitySplashBinding.bindStoragePermissionView() {

@@ -9,7 +9,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -58,15 +57,9 @@ inline fun LifecycleOwner.launchOnViewLifecycle(
     context: CoroutineContext = EmptyCoroutineContext,
     crossinline block: suspend CoroutineScope.() -> Unit
 ): Job = when (this) {
-    is ComponentActivity -> {
-        lifecycleScope.launch(context) { block() }
-    }
-    is Fragment -> {
-        viewLifecycleOwner.lifecycleScope.launch(context) { block() }
-    }
-    else -> {
-        throw IllegalArgumentException("Unsupported LifecycleOwner")
-    }
+    is ComponentActivity -> lifecycleScope.launch(context) { block() }
+    is Fragment -> viewLifecycleOwner.lifecycleScope.launch(context) { block() }
+    else -> throw IllegalArgumentException("Unsupported LifecycleOwner")
 }
 
 suspend fun LifecycleOwner.repeatOnViewLifecycle(
@@ -74,12 +67,8 @@ suspend fun LifecycleOwner.repeatOnViewLifecycle(
     block: suspend CoroutineScope.() -> Unit
 ) {
     when (this) {
-        is ComponentActivity -> {
-            repeatOnLifecycle(state, block)
-        }
-        is Fragment -> {
-            viewLifecycleOwner.repeatOnLifecycle(state, block)
-        }
+        is ComponentActivity -> repeatOnLifecycle(state, block)
+        is Fragment -> viewLifecycleOwner.repeatOnLifecycle(state, block)
         else -> throw IllegalArgumentException("Unsupported LifecycleOwner")
     }
 }

@@ -75,8 +75,8 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
             val selectionList = mainViewModel.selectionList.toTypedArray()
             mainViewModel.setSelectionMode(false)
             delay(250L)
-            startProgressActivity(selectionList, AppDataType.USER)
             dismiss()
+            startProgressActivity(selectionList, AppDataType.USER)
         }
     }
 
