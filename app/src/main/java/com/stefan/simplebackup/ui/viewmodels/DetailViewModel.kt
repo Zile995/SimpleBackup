@@ -29,10 +29,12 @@ class DetailsViewModel(
     application: MainApplication,
 ) : AndroidViewModel(application) {
 
-    val backupFileEvents by lazy {
+    private val backupFileEvents by lazy {
         val backupDir = File(FileUtil.localDirPath)
         backupDir.asRecursiveFileWatcher(viewModelScope).fileEvent
     }
+
+    val localBackupFileEvents get() = run { if (app?.isLocal == true) { backupFileEvents } else null }
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default

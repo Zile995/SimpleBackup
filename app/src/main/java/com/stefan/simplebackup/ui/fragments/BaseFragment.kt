@@ -6,12 +6,11 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.snackbar.Snackbar
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.ui.activities.AppDetailActivity
+import com.stefan.simplebackup.ui.activities.DetailActivity
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
@@ -19,6 +18,7 @@ import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.*
+import kotlinx.coroutines.launch
 import java.lang.reflect.ParameterizedType
 
 abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB>,
@@ -41,7 +41,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
                     adapter.doSelection(holder as BaseViewHolder, item)
                 } else {
                     launchOnViewLifecycle {
-                        item.passToActivity<AppDetailActivity>(activity)
+                        item.passToActivity<DetailActivity>(activity)
                     }
                 }
             }
@@ -97,11 +97,17 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
 
     private fun initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+            launch {
+                repeatOnStarted {
+                    mainViewModel.isSelected.collect { isSelected ->
+                        enableRecyclerViewNestedScrolling(!isSelected)
+                    }
+                }
+            }
+            repeatOnCreated {
                 mainViewModel.isSelected.collect { isSelected ->
                     if (isVisible) {
                         if (!isSelected) adapter.clearSelection()
-                        enableRecyclerViewNestedScrolling(!isSelected)
                     }
                 }
             }

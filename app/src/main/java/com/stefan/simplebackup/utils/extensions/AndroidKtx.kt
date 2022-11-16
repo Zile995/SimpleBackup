@@ -252,7 +252,7 @@ inline fun <T> AppCompatActivity.fromIntentExtras(block: Bundle.() -> T) = inten
 }
 
 // ##
-// ## Dialog extensions
+// ## Dialog builder
 inline fun Context.materialDialog(
     title: String,
     message: String,
@@ -285,26 +285,3 @@ inline fun Context.materialDialog(
         }
     }
 }
-
-inline fun Context.permissionDialog(
-    title: String,
-    message: String,
-    crossinline onPositiveButtonPress: () -> Unit = {},
-    crossinline onNegativeButtonPress: () -> Unit = {}
-) = materialDialog(
-    title = title,
-    message = message,
-    positiveButtonText = getString(R.string.ok),
-    negativeButtonText = getString(R.string.set_manually),
-    onPositiveButtonPress = onPositiveButtonPress,
-    onNegativeButtonPress = onNegativeButtonPress,
-    positiveColor = getColor(R.color.negative_dialog_text),
-    negativeColor = getColor(R.color.positive_dialog_text)
-)
-
-fun Context.rootDialog(title: String, message: String) = materialDialog(
-    title = title,
-    message = message,
-    positiveButtonText = getString(R.string.ok),
-    enableNegativeButton = false
-)

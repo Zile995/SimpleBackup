@@ -23,13 +23,10 @@ class AnimatedChipGroup(
     )
 
     init {
-        doOnPreDraw {
-            animateOnStart()
-        }
+        animateOnStart()
     }
 
     private fun animateOnStart() {
-        if (!isLaidOut) return
         val horizontalAnimator = ObjectAnimator.ofFloat(
             this,
             "translationY",
@@ -44,5 +41,4 @@ class AnimatedChipGroup(
         }
         animatorSet.start()
     }
-
 }

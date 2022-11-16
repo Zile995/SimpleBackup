@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import com.stefan.simplebackup.databinding.FragmentHomeBinding
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.HomeAdapter
@@ -13,7 +12,7 @@ import com.stefan.simplebackup.ui.viewmodels.HomeViewModel
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.repeatOnStarted
 import kotlinx.coroutines.delay
 
 class HomeFragment : BaseFragment<FragmentHomeBinding>() {
@@ -49,7 +48,7 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
 
     private fun FragmentHomeBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
+            repeatOnStarted {
                 homeViewModel.spinner.collect { isSpinning ->
                     progressBar.isVisible = isSpinning
                     if (!isSpinning)

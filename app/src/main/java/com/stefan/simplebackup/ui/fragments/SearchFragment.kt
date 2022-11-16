@@ -6,7 +6,6 @@ import android.view.View
 import androidx.activity.addCallback
 import androidx.core.view.children
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import com.google.android.material.chip.Chip
 import com.stefan.simplebackup.databinding.FragmentSearchBinding
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
@@ -18,7 +17,7 @@ import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.onMainActivity
-import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.repeatOnStarted
 import kotlinx.coroutines.delay
 
 class SearchFragment : BaseFragment<FragmentSearchBinding>() {
@@ -60,7 +59,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
 
     private fun FragmentSearchBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
+            repeatOnStarted {
                 mainViewModel.searchResult.collect { searchResults ->
                     Log.d("Search", "Search result = ${searchResults.map { it.name }}")
                     adapter.submitList(searchResults)

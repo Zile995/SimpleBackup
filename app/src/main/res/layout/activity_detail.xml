@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorPrimaryVariant"
-    tools:context=".ui.activities.AppDetailActivity">
+    tools:context=".ui.activities.DetailActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar_details_layout"
@@ -25,7 +25,6 @@
             app:expandedTitleGravity="center|bottom"
             app:expandedTitleTextAppearance="@style/TextAppearance.SimpleBackup.TitleMedium"
             app:layout_scrollFlags="scroll|enterAlwaysCollapsed|exitUntilCollapsed|snap"
-            app:scrimAnimationDuration="100"
             app:scrimVisibleHeightTrigger="@dimen/scrim_visible_height_trigger"
             app:statusBarScrim="@null"
             app:titleCollapseMode="scale"
@@ -115,7 +114,7 @@
                         android:textColor="@color/button_text"
                         android:textSize="11sp"
                         android:textStyle="bold"
-                        android:visibility="visible"
+                        android:visibility="gone"
                         app:chipBackgroundColor="@color/primary_button_color"
                         app:chipEndPadding="2dp"
                         app:chipStartPadding="2dp" />

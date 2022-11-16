@@ -154,7 +154,7 @@ data class AppData(
         }
     }
 
-    suspend inline fun setBitmapFromPrivateFolder(
+    suspend inline fun setBitmapFromContextDir(
         context: Context,
         crossinline onFailure: suspend (Context) -> ByteArray
     ) {

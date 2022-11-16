@@ -216,6 +216,29 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
             }
     }
 
+    private inline fun permissionDialog(
+        title: String,
+        message: String,
+        crossinline onPositiveButtonPress: () -> Unit = {},
+        crossinline onNegativeButtonPress: () -> Unit = {}
+    ) = materialDialog(
+        title = title,
+        message = message,
+        positiveButtonText = getString(R.string.ok),
+        negativeButtonText = getString(R.string.set_manually),
+        onPositiveButtonPress = onPositiveButtonPress,
+        onNegativeButtonPress = onNegativeButtonPress,
+        positiveColor = getColor(R.color.negative_dialog_text),
+        negativeColor = getColor(R.color.positive_dialog_text)
+    )
+
+    protected fun rootDialog(title: String, message: String) = materialDialog(
+        title = title,
+        message = message,
+        positiveButtonText = getString(R.string.ok),
+        enableNegativeButton = false
+    )
+
     override fun onDestroy() {
         super.onDestroy()
         _permissionDialog?.dismiss()

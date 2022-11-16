@@ -49,14 +49,15 @@ class MainRecyclerView(
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                if (!selectionFinished) {
-                    showAction = { floatingButton.extend() }
-                    hideAction = { floatingButton.shrink() }
-                } else {
+                if (selectionFinished) {
                     showAction = { floatingButton.show() }
                     hideAction = { floatingButton.hide() }
+                } else {
+                    showAction = { floatingButton.extend() }
+                    hideAction = { floatingButton.shrink() }
                 }
 
+                // Hide on attach only if first or last position is completely visible
                 if (checkOnAttach) {
                     val firstItemPosition =
                         linearLayoutManager.findFirstCompletelyVisibleItemPosition()
@@ -92,7 +93,7 @@ class MainRecyclerView(
             override fun getVerticalSnapPreference(): Int = SNAP_TO_START
             override fun getHorizontalSnapPreference(): Int = SNAP_TO_START
             override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics?): Float {
-                return 1.5f
+                return 1.75f
             }
         }
         smoothScroller.targetPosition = linearLayoutManager.itemCount - 1

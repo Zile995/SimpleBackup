@@ -5,6 +5,7 @@ import android.animation.ObjectAnimator
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -14,9 +15,9 @@ import androidx.activity.viewModels
 import androidx.annotation.ColorRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.appcompat.widget.Toolbar
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -35,19 +36,23 @@ import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.math.abs
 
-class AppDetailActivity : BaseActivity() {
+class DetailActivity : BaseActivity() {
     private val binding by viewBinding(ActivityDetailBinding::inflate)
 
-    private var isToolbarAnimating = false
-    private var cloudBackupClicked = false
-
+    // AlertDialog
     private var _deleteAlertDialog: AlertDialog? = null
 
+    // Boolean flags
+    private var isToolbarAnimating = false
+    private var isCloudButtonClicked = false
+
+    // DetailActivity ViewModel
     private val detailsViewModel: DetailsViewModel by viewModels {
         val selectedApp = intent.extras?.parcelable<AppData>(PARCELABLE_EXTRA)
         DetailsViewModelFactory(app = selectedApp)
     }
 
+    // Permission launchers
     private val contactsPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
@@ -60,13 +65,14 @@ class AppDetailActivity : BaseActivity() {
     private val storagePermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                if (!cloudBackupClicked)
+                if (!isCloudButtonClicked)
                     startWork(shouldBackupToCloud = false)
             } else {
                 showStoragePermissionDialog()
             }
         }
 
+    // Receivers
     private val packageReceiver by lazy {
         object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
@@ -93,63 +99,14 @@ class AppDetailActivity : BaseActivity() {
         registerPackageReceiver()
     }
 
-    private fun registerPackageReceiver() {
-        if (detailsViewModel.app?.isLocal == false) {
-            registerReceiver(packageReceiver, intentFilter(
-                Intent.ACTION_PACKAGE_ADDED, Intent.ACTION_PACKAGE_REMOVED
-            ) {
-                addDataScheme("package")
-            })
-        }
-    }
-
-    private fun ActivityDetailBinding.initObservers() {
-        launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
-                detailsViewModel.apply {
-                    launch {
-                        app?.apply {
-                            if (isLocal) {
-                                backupFileEvents.collect { fileEvent ->
-                                    Log.d("ViewModel", "DetailsViewModel fileEvent = $fileEvent")
-                                    fileEvent.apply {
-                                        if (file.extension == JSON_FILE_EXTENSION || file.name == packageName) {
-                                            finish()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    launch {
-                        apkSizeStats.collect { sizeStats ->
-                            sizeStats?.apply {
-                                dataSizeLabel.text = getString(
-                                    R.string.data_size,
-                                    (sizeStats.dataSize + sizeStats.cacheSize).bytesToMegaBytesString()
-                                )
-                            }
-                        }
-                    }
-                    nativeLibs.collect { nativeLibs ->
-                        Log.d("ChipGroup", "Arch names = $nativeLibs")
-                        nativeLibs?.let {
-                            architectureChipGroup.addArchChipsToChipGroup(nativeLibs)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     private fun ActivityDetailBinding.bindViews() {
         launchOnViewLifecycle {
-            bindToolBar()
+            bindToolbar()
             bindAppBarLayout()
             bindDeleteButton()
             bindCloudBackupButton()
             bindLocalBackupButton()
-            setData(detailsViewModel.app)
+            setViewsData()
         }
     }
 
@@ -173,24 +130,25 @@ class AppDetailActivity : BaseActivity() {
                     applicationImage.scaleX = 1f
                     applicationImage.scaleY = 1f
                     mainActions.translationY = 0f
-                    animateStatusBarColor(android.R.color.transparent)
+                    changeStatusAndToolbarColor(android.R.color.transparent)
                 }
                 totalScrollRange -> {
-                    animateStatusBarColor(R.color.bottom_view)
+                    changeStatusAndToolbarColor(R.color.bottom_view)
                     mainActions.translationY = totalScrollRange.toFloat()
                 }
             }
-            if (absoluteOffsetValue < (totalScrollRange - (collapsingToolbar.scrimVisibleHeightTrigger - detailsToolbar.height)) && absoluteOffsetValue < previousOffset) {
-                animateStatusBarColor(android.R.color.transparent)
+            if (absoluteOffsetValue < totalScrollRange && absoluteOffsetValue < previousOffset) {
+                changeStatusAndToolbarColor(android.R.color.transparent)
             }
             previousOffset = absoluteOffsetValue
         }
     }
 
-    private fun animateStatusBarColor(
+    private fun ActivityDetailBinding.changeStatusAndToolbarColor(
         @ColorRes color: Int
     ) {
-        if (window.statusBarColor == getColorFromResource(color) || isToolbarAnimating) return
+        val toolbarColor = (detailsToolbar.background as ColorDrawable).color
+        if (toolbarColor == getColorFromResource(color) || isToolbarAnimating) return
         ObjectAnimator.ofObject(
             window,
             "statusBarColor",
@@ -198,9 +156,9 @@ class AppDetailActivity : BaseActivity() {
             window.statusBarColor,
             getColorFromResource(color)
         ).apply {
-            duration = binding.collapsingToolbar.scrimAnimationDuration
+            duration = 100L
             addUpdateListener {
-                binding.detailsToolbar.setBackgroundColor(it.animatedValue as Int)
+                detailsToolbar.setBackgroundColor(it.animatedValue as Int)
             }
             doOnStart {
                 isToolbarAnimating = true
@@ -212,43 +170,77 @@ class AppDetailActivity : BaseActivity() {
         }
     }
 
-    private fun ActivityDetailBinding.bindToolBar() {
+    private fun ActivityDetailBinding.bindToolbar() {
         detailsToolbar.apply {
             inflateMenu(R.menu.details_tool_bar)
+            setupNavAndMenu()
             menu.setMoreOptions()
             menu.setFavoriteIcon()
-            setNavigationIcon(R.drawable.ic_arrow_back)
-            setNavigationContentDescription(R.string.back)
-            setNavigationOnClickListener { onBackPress() }
-            setOnMenuItemClickListener { menuItem ->
-                detailsViewModel.app?.run {
-                    when (menuItem.itemId) {
-                        R.id.force_stop -> {
-                            forceStopPackage(packageName)
-                        }
-                        R.id.settings_info -> {
-                            openPackageSettingsInfo(packageName)
-                        }
-                        R.id.add_to_favorites -> {
-                            if (isLocal) return@run false
-                            detailsViewModel.changeFavoritesForInstalledApp(
-                                onSuccess = { isFavorite ->
-                                    menu?.setFavoriteIcon()
-                                    if (isFavorite)
-                                        showToast(R.string.added_to_favorites)
-                                    else
-                                        showToast(R.string.removed_from_favorites)
-                                }, onFailure = { message ->
-                                    showToast(
-                                        getString(
-                                            R.string.unable_to_add_to_favorites, message
-                                        )
+        }
+    }
+
+    private fun Toolbar.setupNavAndMenu() {
+        setNavigationIcon(R.drawable.ic_arrow_back)
+        setNavigationContentDescription(R.string.back)
+        setNavigationOnClickListener { onBackPress() }
+        setOnMenuItemClickListener { menuItem ->
+            detailsViewModel.app?.run {
+                when (menuItem.itemId) {
+                    R.id.force_stop -> {
+                        forceStopPackage(packageName)
+                    }
+                    R.id.settings_info -> {
+                        openPackageSettingsInfo(packageName)
+                    }
+                    R.id.add_to_favorites -> {
+                        if (isLocal) return@run false
+                        detailsViewModel.changeFavoritesForInstalledApp(
+                            onSuccess = { isFavorite ->
+                                menu?.setFavoriteIcon()
+                                if (isFavorite)
+                                    showToast(R.string.added_to_favorites)
+                                else
+                                    showToast(R.string.removed_from_favorites)
+                            }, onFailure = { message ->
+                                showToast(
+                                    getString(
+                                        R.string.unable_to_add_to_favorites, message
                                     )
-                                })
+                                )
+                            })
+                    }
+                }
+                true
+            } ?: false
+        }
+    }
+
+    private fun Menu.setMoreOptions() {
+        detailsViewModel.app?.apply {
+            findItem(R.id.force_stop).isVisible = !isLocal
+            findItem(R.id.settings_info).isVisible = !isLocal
+        }
+    }
+
+    private fun Menu.setFavoriteIcon() {
+        findItem(R.id.add_to_favorites).apply {
+            detailsViewModel.app?.apply {
+                icon = if (isFavorite)
+                    AppCompatResources.getDrawable(applicationContext, R.drawable.ic_favorite)
+                else
+                    AppCompatResources.getDrawable(applicationContext, R.drawable.ic_unstarred)
+                tooltipText = when {
+                    isLocal -> {
+                        if (isFavorite)
+                            getString(R.string.favorite_backup)
+                        else {
+                            isVisible = false
+                            null
                         }
                     }
-                    true
-                } ?: false
+                    isFavorite -> getString(R.string.remove_from_favorites)
+                    else -> getString(R.string.add_to_favorites)
+                }
             }
         }
     }
@@ -260,7 +252,7 @@ class AppDetailActivity : BaseActivity() {
                 localWorkButton.tooltipText = getString(R.string.restore)
             }
             localWorkButton.setOnClickListener {
-                cloudBackupClicked = false
+                isCloudButtonClicked = false
                 requestStoragePermission(storagePermissionLauncher,
                     onPermissionAlreadyGranted = {
                         startWork(shouldBackupToCloud = false)
@@ -273,7 +265,7 @@ class AppDetailActivity : BaseActivity() {
         detailsViewModel.app?.apply {
             cloudBackupButton.isVisible = !isLocal
             cloudBackupButton.setOnClickListener {
-                cloudBackupClicked = true
+                isCloudButtonClicked = true
                 proceedWithPermission(MainPermission.MANAGE_ALL_FILES,
                     onPermissionGranted = {
                         requestContactsPermission(
@@ -320,38 +312,49 @@ class AppDetailActivity : BaseActivity() {
         }
     }
 
-    private suspend fun ActivityDetailBinding.setCollapsingToolbarData(app: AppData) {
-        app.apply {
+    private suspend fun ActivityDetailBinding.setCollapsingToolbarData() {
+        detailsViewModel.app?.apply {
+            // Set Toolbar title
             collapsingToolbar.title = name
+
+            // Set image onClick listener
             val appImage = collapsingToolbar.findViewById<ImageView>(R.id.application_image)
             appImage.setOnClickListener {
                 if (isLocal)
                     openFilePath("${FileUtil.localDirPath}/$packageName")
-                else {
+                else
                     launchPackage(packageName) ?: run {
                         showToast(R.string.unable_to_launch_app)
                     }
-                }
             }
-            setBitmapFromPrivateFolder(context = this@AppDetailActivity, onFailure = {
+
+            // Set bitmap image
+            setBitmapFromContextDir(context = applicationContext, onFailure = {
                 getResourceDrawable(R.drawable.ic_error)?.toByteArray() ?: byteArrayOf()
             })
             appImage.loadBitmap(bitmap)
         }
     }
 
-    private suspend fun ActivityDetailBinding.setData(app: AppData?) {
-        app?.apply {
-            setCollapsingToolbarData(this)
+    private suspend fun ActivityDetailBinding.setViewsData() {
+        detailsViewModel.app?.apply {
+            // Set collapsing toolbar data (title, image, and image listener)
+            setCollapsingToolbarData()
+
+            // Set type chip data
             appTypeChip.text = when {
                 isCloud && isLocal -> resources.getString(R.string.cloud_backup)
                 isLocal -> resources.getString(R.string.local_backup)
                 else -> resources.getString(R.string.user_app)
             }
+
+            // Set installed date
             installedDateLabel.text = when {
-                isCloud || isLocal -> getString(R.string.backed_up_on, app.getDateString())
-                else -> getString(R.string.first_installed_on, app.getDateString())
+                isCloud || isLocal -> getString(R.string.backed_up_on, getDateString())
+                else -> getString(R.string.first_installed_on, getDateString())
             }
+
+            // Set text for specific text views.
             isSplitChip.isVisible = isSplit
             packageNameLabel.text = packageName
             versionNameLabel.text = getString(R.string.version, versionName)
@@ -361,7 +364,7 @@ class AppDetailActivity : BaseActivity() {
         }
     }
 
-    private fun ChipGroup.addArchChipsToChipGroup(nativeLibs: List<String>) {
+    private fun ChipGroup.addChipsToGroup(nativeLibs: List<String>) {
         if (nativeLibs.isNotEmpty()) {
             nativeLibs.forEach { archName ->
                 val chip = Chip(context, null, R.style.Widget_SimpleBackup_Chip)
@@ -376,36 +379,6 @@ class AppDetailActivity : BaseActivity() {
         fadeIn()
     }
 
-    private fun Menu.setMoreOptions() {
-        detailsViewModel.app?.apply {
-            findItem(R.id.force_stop).isVisible = !isLocal
-            findItem(R.id.settings_info).isVisible = !isLocal
-        }
-    }
-
-    private fun Menu.setFavoriteIcon() {
-        findItem(R.id.add_to_favorites).apply {
-            detailsViewModel.app?.apply {
-                icon = if (isFavorite)
-                    AppCompatResources.getDrawable(applicationContext, R.drawable.ic_favorite)
-                else
-                    AppCompatResources.getDrawable(applicationContext, R.drawable.ic_unstarred)
-                tooltipText = when {
-                    isLocal -> {
-                        if (isFavorite)
-                            getString(R.string.favorite_backup)
-                        else {
-                            isVisible = false
-                            null
-                        }
-                    }
-                    isFavorite -> getString(R.string.remove_from_favorites)
-                    else -> getString(R.string.add_to_favorites)
-                }
-            }
-        }
-    }
-
     private fun startWork(shouldBackupToCloud: Boolean = false) {
         detailsViewModel.app?.run {
             val packageNames = arrayOf(packageName)
@@ -414,6 +387,51 @@ class AppDetailActivity : BaseActivity() {
                 shouldBackupToCloud -> startProgressActivity(packageNames, AppDataType.CLOUD)
                 else -> startProgressActivity(packageNames, AppDataType.USER)
             }
+        }
+    }
+
+    private fun ActivityDetailBinding.initObservers() {
+        launchOnViewLifecycle {
+            repeatOnCreated {
+                detailsViewModel.apply {
+                    launch {
+                        localBackupFileEvents?.collect { fileEvent ->
+                            Log.d("ViewModel", "DetailsViewModel fileEvent = $fileEvent")
+                            fileEvent.apply {
+                                if (file.extension == JSON_FILE_EXTENSION || file.name == packageName) {
+                                    finish()
+                                }
+                            }
+                        }
+                    }
+                    launch {
+                        apkSizeStats.collect { sizeStats ->
+                            sizeStats?.apply {
+                                dataSizeLabel.text = getString(
+                                    R.string.data_size,
+                                    (sizeStats.dataSize + sizeStats.cacheSize).bytesToMegaBytesString()
+                                )
+                            }
+                        }
+                    }
+                    nativeLibs.collect { nativeLibs ->
+                        nativeLibs?.let {
+                            architectureChipGroup.addChipsToGroup(nativeLibs)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    private fun registerPackageReceiver() {
+        if (detailsViewModel.app?.isLocal == false) {
+            registerReceiver(packageReceiver, intentFilter(
+                Intent.ACTION_PACKAGE_ADDED, Intent.ACTION_PACKAGE_REMOVED
+            ) {
+                addDataScheme("package")
+            })
         }
     }
 

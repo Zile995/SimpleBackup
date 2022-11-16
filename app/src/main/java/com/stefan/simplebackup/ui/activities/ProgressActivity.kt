@@ -3,7 +3,6 @@ package com.stefan.simplebackup.ui.activities
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.viewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.Observer
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -93,7 +92,7 @@ class ProgressActivity : BaseActivity() {
                 workManager.getWorkInfosByTagLiveData(WORK_REQUEST_TAG)
                     .observe(this@ProgressActivity, workInfoObserver())
             }
-            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+            repeatOnCreated {
                 progressViewModel.observableProgressList.collectLatest { progressDataList ->
                     Log.d("ProgressActivity", "Progress list $progressDataList")
                     updateViews(progressDataList.lastOrNull())

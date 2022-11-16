@@ -10,7 +10,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnLayout
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
@@ -47,6 +46,9 @@ class MainActivity : BaseActivity() {
     // NavController, used for navigation
     private lateinit var navController: NavController
 
+    // Root alert dialog reference
+    private var _rootAlertDialog: AlertDialog? = null
+
     // ViewModel
     private val mainViewModel: MainViewModel by viewModels {
         MainViewModelFactory().factory
@@ -69,13 +71,11 @@ class MainActivity : BaseActivity() {
         NotificationReceiver()
     }
 
-    // Flags
+    // Exit flag
     private var shouldExit = false
 
     // Jobs
     private var delayedExitJob: Job? = null
-
-    private var _rootAlertDialog: AlertDialog? = null
 
     // BaseFragment getter
     val getCurrentlyVisibleBaseFragment: BaseFragment<*>?
@@ -215,14 +215,11 @@ class MainActivity : BaseActivity() {
         root.doOnLayout {
             val layoutParams = appBarLayout.layoutParams as CoordinatorLayout.LayoutParams
             val layoutBehavior = layoutParams.behavior as AppBarLayout.Behavior
-            layoutParams.behavior = layoutBehavior
             layoutBehavior.setDragCallback(object : AppBarLayout.Behavior.DragCallback() {
-                override fun canDrag(appBarLayout: AppBarLayout): Boolean {
-                    return !(mainViewModel.isSelected.value
+                override fun canDrag(appBarLayout: AppBarLayout): Boolean =
+                    !(mainViewModel.isSelected.value
                             || mainViewModel.isSearching.value
-                            || navController.currentDestination?.doesMatchDestination(R.id.settings) == true
-                            || navController.currentDestination?.doesMatchDestination(R.id.search_action) == true)
-                }
+                            || navController.currentDestination?.doesMatchDestination(R.id.settings) == true)
             })
         }
     }
@@ -235,67 +232,7 @@ class MainActivity : BaseActivity() {
         materialToolbar.apply {
             inflateMenu(R.menu.main_tool_bar)
             setOnSearchAction()
-            setOnMenuItemClickListener { menuItem ->
-                when (menuItem.itemId) {
-                    R.id.add_to_favorites -> {
-                        if (getCurrentlyVisibleBaseFragment !is FavoritesFragment)
-                            mainViewModel.addToFavorites(
-                                onSuccess = { numberOfItems ->
-                                    showToast(
-                                        getString(
-                                            R.string.successfully_added_items_to_favorites,
-                                            numberOfItems
-                                        )
-                                    )
-                                },
-                                onFailure = { message ->
-                                    showToast(
-                                        getString(
-                                            R.string.unable_to_add_items_to_favorites,
-                                            message
-                                        )
-                                    )
-                                }
-                            )
-                        else
-                            mainViewModel.removeFromFavorites(
-                                onSuccess = { numberOfItems ->
-                                    showToast(
-                                        getString(
-                                            R.string.successfully_removed_items_from_favorites,
-                                            numberOfItems
-                                        )
-                                    )
-                                },
-                                onFailure = { message ->
-                                    showToast(
-                                        getString(
-                                            R.string.unable_to_remove_items_from_favorites,
-                                            message
-                                        )
-                                    )
-                                }
-                            )
-                    }
-                    R.id.delete -> {
-                        when (val visibleFragment = getCurrentlyVisibleBaseFragment) {
-                            is HomeFragment -> {
-                                visibleFragment.uninstallSelectedApp()
-                            }
-                            is LocalFragment -> {
-                                visibleFragment.deleteSelectedBackups()
-                            }
-                        }
-                    }
-                    R.id.select_all -> {
-                        getCurrentlyVisibleBaseFragment?.selectAllItems()
-                    }
-                    else -> {
-                        return@setOnMenuItemClickListener false
-                    }
-                }
-                true
-            }
+            setupNavAndMenu()
         }
     }
 
@@ -311,6 +248,70 @@ class MainActivity : BaseActivity() {
                     true
                 }
         })
+    }
+
+    private fun SimpleMaterialToolbar.setupNavAndMenu() {
+        setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.add_to_favorites -> {
+                    if (getCurrentlyVisibleBaseFragment !is FavoritesFragment)
+                        mainViewModel.addToFavorites(
+                            onSuccess = { numberOfItems ->
+                                showToast(
+                                    getString(
+                                        R.string.successfully_added_items_to_favorites,
+                                        numberOfItems
+                                    )
+                                )
+                            },
+                            onFailure = { message ->
+                                showToast(
+                                    getString(
+                                        R.string.unable_to_add_items_to_favorites,
+                                        message
+                                    )
+                                )
+                            }
+                        )
+                    else
+                        mainViewModel.removeFromFavorites(
+                            onSuccess = { numberOfItems ->
+                                showToast(
+                                    getString(
+                                        R.string.successfully_removed_items_from_favorites,
+                                        numberOfItems
+                                    )
+                                )
+                            },
+                            onFailure = { message ->
+                                showToast(
+                                    getString(
+                                        R.string.unable_to_remove_items_from_favorites,
+                                        message
+                                    )
+                                )
+                            }
+                        )
+                }
+                R.id.delete -> {
+                    when (val visibleFragment = getCurrentlyVisibleBaseFragment) {
+                        is HomeFragment -> {
+                            visibleFragment.uninstallSelectedApp()
+                        }
+                        is LocalFragment -> {
+                            visibleFragment.deleteSelectedBackups()
+                        }
+                    }
+                }
+                R.id.select_all -> {
+                    getCurrentlyVisibleBaseFragment?.selectAllItems()
+                }
+                else -> {
+                    return@setOnMenuItemClickListener false
+                }
+            }
+            true
+        }
     }
 
     private fun ActivityMainBinding.bindBottomNavigationView() =
@@ -333,11 +334,11 @@ class MainActivity : BaseActivity() {
     private fun ActivityMainBinding.initObservers() {
         launchOnViewLifecycle {
             launch {
-                repeatOnViewLifecycle(Lifecycle.State.RESUMED) {
+                repeatOnResumed {
                     observeNumberOfSelected()
                 }
             }
-            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+            repeatOnCreated {
                 mainViewModel.apply {
                     launch {
                         isSelected.collect { isSelected ->

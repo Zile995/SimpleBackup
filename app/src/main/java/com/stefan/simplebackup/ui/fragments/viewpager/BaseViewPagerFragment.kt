@@ -1,14 +1,12 @@
 package com.stefan.simplebackup.ui.fragments.viewpager
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.viewbinding.ViewBinding
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayout
@@ -53,11 +51,9 @@ abstract class BaseViewPagerFragment<VB : ViewBinding> : Fragment(),
 
     private fun initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.CREATED) {
+            repeatOnCreated {
                 mainViewModel.isSelected.collect { isInSelectionMode ->
-                    if (isVisible) {
-                        controlTabs(shouldEnableTabs = !isInSelectionMode)
-                    }
+                    controlTabs(shouldEnableTabs = !isInSelectionMode)
                 }
             }
         }

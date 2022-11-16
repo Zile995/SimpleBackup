@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import com.stefan.simplebackup.databinding.FragmentFavoritesBinding
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
 import com.stefan.simplebackup.ui.adapters.FavoritesAdapter
@@ -12,7 +11,9 @@ import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.viewmodels.FavoritesViewModel
 import com.stefan.simplebackup.ui.viewmodels.FavoritesViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
-import com.stefan.simplebackup.utils.extensions.*
+import com.stefan.simplebackup.utils.extensions.isVisible
+import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.repeatOnStarted
 import kotlinx.coroutines.delay
 
 class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
@@ -37,7 +38,7 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
 
     private fun FragmentFavoritesBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
+            repeatOnStarted {
                 favoritesViewModel.spinner.collect { isSpinning ->
                     progressBar.isVisible = isSpinning
                     if (!isSpinning)

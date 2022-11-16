@@ -91,7 +91,7 @@
             android:imeOptions="flagNoFullscreen"
             android:windowSoftInputMode="stateAlwaysHidden|adjustPan" />
         <activity
-            android:name=".ui.activities.AppDetailActivity"
+            android:name=".ui.activities.DetailActivity"
             android:exported="false"
             android:parentActivityName=".ui.activities.MainActivity"
             android:windowSoftInputMode="stateAlwaysHidden" />

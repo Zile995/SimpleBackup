@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
 import com.stefan.simplebackup.data.manager.AppPermissionManager
 import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppDataType
@@ -19,7 +18,7 @@ import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.onMainActivity
-import com.stefan.simplebackup.utils.extensions.repeatOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.repeatOnStarted
 import kotlinx.coroutines.delay
 import kotlin.properties.Delegates
 
@@ -94,13 +93,14 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
 
     private fun FragmentLocalBinding.initObservers() {
         launchOnViewLifecycle {
-            repeatOnViewLifecycle(Lifecycle.State.STARTED) {
+            repeatOnStarted {
                 localViewModel.spinner.collect { isSpinning ->
                     progressBar.isVisible = isSpinning
                     if (!isSpinning) {
                         localViewModel.observableList.collect { appList ->
                             adapter.submitList(appList)
-                            noBackupsLabel.isVisible = isStoragePermissionGranted == true && appList.isEmpty()
+                            noBackupsLabel.isVisible =
+                                isStoragePermissionGranted == true && appList.isEmpty()
                         }
                     }
                 }
