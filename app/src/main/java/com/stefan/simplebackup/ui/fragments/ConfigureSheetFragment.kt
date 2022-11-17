@@ -16,6 +16,8 @@ import com.stefan.simplebackup.utils.extensions.onMainActivity
 import com.stefan.simplebackup.utils.extensions.viewBinding
 import kotlinx.coroutines.delay
 
+const val CONFIGURE_SHEET_TAG = "CONFIGURE_SHEET_TAG"
+
 class ConfigureSheetFragment : BottomSheetDialogFragment() {
 
     private val binding by viewBinding(FragmentConfigureSheetBinding::inflate)

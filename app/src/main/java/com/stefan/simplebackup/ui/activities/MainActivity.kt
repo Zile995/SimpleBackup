@@ -36,6 +36,7 @@ import com.stefan.simplebackup.ui.views.SimpleMaterialToolbar
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
@@ -405,8 +406,9 @@ class MainActivity : BaseActivity() {
 
     fun showConfigureFragment() {
         supportFragmentManager.apply {
-            if (getVisibleFragment() is HomeViewPagerFragment && mainViewModel.selectionList.isNotEmpty())
-                ConfigureSheetFragment().show(this, "configureSheetTag")
+            if (getVisibleFragment() is HomeViewPagerFragment && mainViewModel.selectionList.isNotEmpty()) {
+                ConfigureSheetFragment().show(this, CONFIGURE_SHEET_TAG)
+            }
         }
     }
 
@@ -419,10 +421,17 @@ class MainActivity : BaseActivity() {
                     handleSignInIntent(
                         signInData = data,
                         onSuccess = {
-                            startProgressActivity(
-                                mainViewModel.selectionList.toTypedArray(),
-                                AppDataType.CLOUD
-                            )
+                            launchOnViewLifecycle {
+                                startProgressActivity(
+                                    mainViewModel.selectionList.toTypedArray(),
+                                    AppDataType.CLOUD
+                                )
+                                delay(250L)
+                                mainViewModel.setSelectionMode(false)
+                                val configureSheetFragment =
+                                    (supportFragmentManager.findFragmentByTag(CONFIGURE_SHEET_TAG) as? ConfigureSheetFragment)
+                                configureSheetFragment?.dismiss()
+                            }
                         },
                         onFailure = {
                             showToast(R.string.unable_to_sign_in)

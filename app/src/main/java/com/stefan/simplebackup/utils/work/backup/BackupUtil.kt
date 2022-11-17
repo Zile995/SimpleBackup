@@ -4,10 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.annotation.WorkerThread
 import com.google.api.client.googleapis.json.GoogleJsonResponseException
-import com.google.api.client.http.AbstractInputStreamContent
-import com.google.api.client.http.FileContent
-import com.google.api.services.drive.Drive
-import com.google.api.services.drive.model.*
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.AppRepository
@@ -16,6 +12,10 @@ import com.stefan.simplebackup.data.manager.AppStorageManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.ForegroundCallback
 import com.stefan.simplebackup.ui.activities.BaseActivity.Companion.googleDriveService
+import com.stefan.simplebackup.utils.extensions.deleteFile
+import com.stefan.simplebackup.utils.extensions.createSubFolder
+import com.stefan.simplebackup.utils.extensions.fetchOrCreateMainFolder
+import com.stefan.simplebackup.utils.extensions.uploadFileToFolder
 import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.file.FileUtil.createDirectory
 import com.stefan.simplebackup.utils.file.FileUtil.deleteDirectoryFiles
@@ -43,6 +43,8 @@ class BackupUtil(
     private val shouldBackupToCloud: Boolean = false
 ) : WorkUtil(appContext, backupItems, updateForegroundInfo) {
 
+    private var appFolderId: String? = null
+
     @WorkerThread
     suspend fun backup() = channelFlow {
         var isSkipped: Boolean
@@ -61,7 +63,7 @@ class BackupUtil(
                                 ::zipData,
                                 ::serializeAppData,
                                 ::moveBackup,
-                                ::uploadToCloud
+                                ::uploadToDrive
                             )
                         }
                     } catch (e: CancellationException) {
@@ -103,10 +105,10 @@ class BackupUtil(
 
     private suspend inline fun withSuspend(
         app: AppData?,
-        crossinline doWhileSuspended: suspend AppData?.() -> Unit
+        crossinline onSuspend: suspend AppData?.() -> Unit
     ) {
         app?.let { RootApkManager.suspendPackage(it.packageName) }
-        app.doWhileSuspended()
+        app.onSuspend()
         app?.let { RootApkManager.unsuspendPackage(it.packageName) }
     }
 
@@ -121,7 +123,7 @@ class BackupUtil(
         }
     }
 
-    private suspend fun uploadToCloud(app: AppData) {
+    private suspend fun uploadToDrive(app: AppData) {
         if (shouldBackupToCloud) {
             app.apply {
                 updateProgressData(R.string.uploading_to_cloud)
@@ -129,43 +131,37 @@ class BackupUtil(
                 googleDriveService?.let { service ->
                     val jsonFile = FileUtil.getJsonInDir(appBackupDirPath)
                         ?: throw IOException("Upload failed, unable to find json data")
-                    val apkZipFile =
-                        ZipUtil.getApkZipFile(appBackupDirPath = appBackupDirPath).file
-                            ?: throw IOException("Upload failed, unable to find apk zip")
+                    val apkZipFile = ZipUtil.getApkZipFile(appBackupDirPath = appBackupDirPath).file
                     val tarZipFile = ZipUtil.getTarZipFile(appBackupDirPath).file
-                        ?: throw IOException("Upload failed, unable to find tar zip")
 
-                    val jsonFileMetaData = File().apply { name = jsonFile.name }
-                    val apkZipFileMetaData = File().apply { name = apkZipFile.name }
-                    val tarZipFileMetaData = File().apply { name = tarZipFile.name }
-
-                    val jsonMediaContent = FileContent("application/json", jsonFile)
-                    val apkZipMediaContent = FileContent("application/zip", apkZipFile)
-                    val tarZipMediaContent = FileContent("application/zip", tarZipFile)
                     try {
-                        val parentFolderId = createAppDirOnDrive(service, app)
+                        val parentFolderId =
+                            service.fetchOrCreateMainFolder(folderName = appContext.getString(R.string.app_name))
 
-                        uploadFileToDriveFolder(
-                            service,
-                            jsonFileMetaData,
-                            jsonMediaContent,
-                            parentFolderId
+                        appFolderId = service.createSubFolder(
+                            parentFolderId = parentFolderId,
+                            subFolderName = app.packageName
                         )
+
+                        service.uploadFileToFolder(
+                            inputFile = jsonFile,
+                            mimeType = "application/json",
+                            parentFolderId = appFolderId!!
+                        )
+
                         updateProgressData(R.string.uploading_apk_cloud)
-                        uploadFileToDriveFolder(
-                            service,
-                            apkZipFileMetaData,
-                            apkZipMediaContent,
-                            parentFolderId
-                        )
-                        updateProgressData(R.string.uploading_data_cloud)
-                        uploadFileToDriveFolder(
-                            service,
-                            tarZipFileMetaData,
-                            tarZipMediaContent,
-                            parentFolderId
+                        service.uploadFileToFolder(
+                            inputFile = apkZipFile,
+                            mimeType = "application/zip",
+                            parentFolderId = appFolderId!!
                         )
 
+                        updateProgressData(R.string.uploading_data_cloud)
+                        service.uploadFileToFolder(
+                            inputFile = tarZipFile,
+                            mimeType = "application/zip",
+                            parentFolderId = appFolderId!!
+                        )
                     } catch (e: GoogleJsonResponseException) {
                         Log.w("BackupUtil", "Unable to upload file: ${e.details}")
                         throw IOException(e.details.toString())
@@ -175,34 +171,10 @@ class BackupUtil(
         }
     }
 
-    private fun createAppDirOnDrive(service: Drive, app: AppData): String {
-        val fileMetadata: com.google.api.services.drive.model.File = File()
-        fileMetadata.name = app.packageName
-        fileMetadata.mimeType = "application/vnd.google-apps.folder"
-        return createFileOnDrive(service, fileMetadata)
-    }
-
-    private fun uploadFileToDriveFolder(
-        service: Drive,
-        content: com.google.api.services.drive.model.File,
-        mediaContent: AbstractInputStreamContent,
-        parentFolderId: String
-    ): String {
-        content.parents = mutableListOf(parentFolderId)
-        val file = service.files().create(content, mediaContent)
-            .setFields("id, parents")
-            .execute()
-        return file.id
-    }
-
-    private fun createFileOnDrive(
-        service: Drive,
-        content: com.google.api.services.drive.model.File
-    ): String {
-        val file = service.files().create(content)
-            .setFields("id")
-            .execute()
-        return file.id
+    private suspend fun deleteBackupOnDrive() {
+        appFolderId?.let {
+            googleDriveService?.deleteFile(it)
+        }
     }
 
     private suspend fun moveBackup(app: AppData) {
@@ -220,6 +192,9 @@ class BackupUtil(
         super.onFailure(app)
         try {
             Log.w("BackupUtil", "Deleting failed backup.")
+            if (shouldBackupToCloud) {
+                deleteBackupOnDrive()
+            }
             deleteFile(getTempDirPath(app))
         } catch (e: IOException) {
             Log.w("BackupUtil", "Failed to delete backup $e")
