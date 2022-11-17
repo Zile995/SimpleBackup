@@ -5,19 +5,17 @@ import android.animation.ObjectAnimator
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.ColorRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
+import androidx.core.animation.doOnCancel
 import androidx.core.animation.doOnEnd
-import androidx.core.animation.doOnStart
 import androidx.lifecycle.viewModelScope
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
@@ -43,7 +41,7 @@ class DetailActivity : BaseActivity() {
     private var _deleteAlertDialog: AlertDialog? = null
 
     // Boolean flags
-    private var isToolbarAnimating = false
+    private var isReversing = false
     private var isCloudButtonClicked = false
 
     // DetailActivity ViewModel
@@ -88,10 +86,26 @@ class DetailActivity : BaseActivity() {
         }
     }
 
+    private val barAnimator by lazy {
+        ObjectAnimator.ofObject(
+            window,
+            "statusBarColor",
+            ArgbEvaluator(),
+            window.statusBarColor,
+            getColorFromResource(R.color.bottom_view)
+        ).apply {
+            addUpdateListener {
+                binding.detailsToolbar.setBackgroundColor(it.animatedValue as Int)
+            }
+            doOnCancel { isReversing = false }
+            doOnEnd { isReversing = false }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
-        setStatusBarColor(R.color.main_background)
+        setStatusBarColor(android.R.color.transparent)
         binding.apply {
             bindViews()
             initObservers()
@@ -118,7 +132,7 @@ class DetailActivity : BaseActivity() {
             when (absoluteOffsetValue) {
                 in 1 until totalScrollRange -> {
                     val offsetFactor = abs(verticalOffset) / totalScrollRange.toFloat()
-                    val scaleFactor = 1f - offsetFactor * 0.7f
+                    val scaleFactor = 1f - offsetFactor * 0.75f
                     val alphaScaleFactor = 1f - offsetFactor
                     applicationImage.scaleX = scaleFactor
                     applicationImage.scaleY = scaleFactor
@@ -130,43 +144,39 @@ class DetailActivity : BaseActivity() {
                     applicationImage.scaleX = 1f
                     applicationImage.scaleY = 1f
                     mainActions.translationY = 0f
-                    changeStatusAndToolbarColor(android.R.color.transparent)
                 }
                 totalScrollRange -> {
-                    changeStatusAndToolbarColor(R.color.bottom_view)
+                    startAnimation()
+                    applicationImage.alpha = 0f
+                    applicationImage.scaleX = 0f
+                    applicationImage.scaleY = 0f
                     mainActions.translationY = totalScrollRange.toFloat()
                 }
             }
             if (absoluteOffsetValue < totalScrollRange && absoluteOffsetValue < previousOffset) {
-                changeStatusAndToolbarColor(android.R.color.transparent)
+                reverseAnimation()
             }
             previousOffset = absoluteOffsetValue
         }
     }
 
-    private fun ActivityDetailBinding.changeStatusAndToolbarColor(
-        @ColorRes color: Int
-    ) {
-        val toolbarColor = (detailsToolbar.background as ColorDrawable).color
-        if (toolbarColor == getColorFromResource(color) || isToolbarAnimating) return
-        ObjectAnimator.ofObject(
-            window,
-            "statusBarColor",
-            ArgbEvaluator(),
-            window.statusBarColor,
-            getColorFromResource(color)
-        ).apply {
-            duration = 100L
-            addUpdateListener {
-                detailsToolbar.setBackgroundColor(it.animatedValue as Int)
+    private fun startAnimation() {
+        if (window.statusBarColor != getColorFromResource(R.color.bottom_view)) {
+            barAnimator.apply {
+                duration = 300L
+                cancel()
+                start()
             }
-            doOnStart {
-                isToolbarAnimating = true
+        }
+    }
+
+    private fun reverseAnimation() {
+        if (!isReversing && window.statusBarColor != getColorFromResource(android.R.color.transparent)) {
+            barAnimator.apply {
+                isReversing = true
+                duration = 150L
+                reverse()
             }
-            doOnEnd {
-                isToolbarAnimating = false
-            }
-            start()
         }
     }
 
@@ -194,7 +204,7 @@ class DetailActivity : BaseActivity() {
                     }
                     R.id.add_to_favorites -> {
                         if (isLocal) return@run false
-                        detailsViewModel.changeFavoritesForInstalledApp(
+                        detailsViewModel.changeFavorites(
                             onSuccess = { isFavorite ->
                                 menu?.setFavoriteIcon()
                                 if (isFavorite)

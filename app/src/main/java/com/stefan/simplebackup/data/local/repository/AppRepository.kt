@@ -29,6 +29,8 @@ class AppRepository(private val appDao: AppDao) {
         }
     }
 
+    fun findAppsByName(name: String) = appDao.findAppsByName(name)
+
     suspend inline fun startRepositoryJob(crossinline repositoryAction: RepositoryAction) =
         coroutineScope {
             launch(ioDispatcher) {
@@ -42,9 +44,7 @@ class AppRepository(private val appDao: AppDao) {
     suspend fun removeFromFavorites(packageName: String) = appDao.removeFromFavorites(packageName)
 
     suspend fun addToFavorites(packageName: String) = appDao.addToFavorites(packageName)
-
     suspend fun insert(app: AppData) = appDao.insert(app)
-    fun findAppsByName(name: String) = appDao.findAppsByName(name)
     suspend fun delete(packageName: String) = appDao.delete(packageName)
 
     suspend fun getAppData(context: Context, packageName: String): AppData? {

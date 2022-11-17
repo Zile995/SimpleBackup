@@ -25,6 +25,7 @@
             app:expandedTitleGravity="center|bottom"
             app:expandedTitleTextAppearance="@style/TextAppearance.SimpleBackup.TitleMedium"
             app:layout_scrollFlags="scroll|enterAlwaysCollapsed|exitUntilCollapsed|snap"
+            app:scrimAnimationDuration="100"
             app:scrimVisibleHeightTrigger="@dimen/scrim_visible_height_trigger"
             app:statusBarScrim="@null"
             app:titleCollapseMode="scale"

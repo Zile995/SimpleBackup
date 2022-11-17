@@ -90,7 +90,7 @@ class DetailsViewModel(
         }
     }
 
-    inline fun changeFavoritesForInstalledApp(
+    inline fun changeFavorites(
         crossinline onSuccess: (Boolean) -> Unit,
         crossinline onFailure: (message: String) -> Unit
     ) = viewModelScope.launch {
