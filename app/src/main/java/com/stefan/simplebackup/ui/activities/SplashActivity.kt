@@ -64,7 +64,7 @@ class SplashActivity : AppCompatActivity() {
                             launchMainActivity()
                         }
                         finish()
-                    } ?: launchMainActivity()
+                    } ?: run { launchMainActivity(); finish() }
                 }
             }
         }
@@ -88,8 +88,10 @@ class SplashActivity : AppCompatActivity() {
     }
 
     private fun launchMainActivity() {
-        val intent = Intent(this@SplashActivity, MainActivity::class.java)
-        startActivity(intent)
+        Intent(applicationContext, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+            startActivity(this)
+        }
     }
 
     private fun ActivitySplashBinding.bindStoragePermissionView() {
