@@ -50,18 +50,35 @@ class NavigationBar(
             Log.d("NavigationBar", "Moving down")
         }
 
-    inline fun navigateWithAnimation(
+
+    /**
+     * Setup [NavigationBar] navigation with [NavController].
+     *
+     * @param onNavigate Indicates if [MenuItem] is reselected.
+     * Returns true when it can be navigated.
+     *
+     * @param customNavigationOptions Provides custom options for the current [NavOptions] builder.
+     * Contains the current [MenuItem] ID.
+     */
+    inline fun setupNavigation(
         navController: NavController,
         args: Bundle? = null,
-        crossinline doBeforeNavigating: () -> Boolean = { true },
-        noinline setCustomNavigationOptions: (NavOptions.Builder.(MenuItem) -> Unit)? = null
+        crossinline onNavigate: (Boolean) -> Boolean = { true },
+        noinline customNavigationOptions: (NavOptions.Builder.(MenuItem) -> Unit)? = null
     ) {
+        var reselectedItemId = selectedItemId
+        val weakNavBarReference = WeakReference(this)
+
+        // On reselected item listener
+        setOnItemReselectedListener { reselectedItem -> reselectedItemId = reselectedItem.itemId }
+
+        // On selected item listener
         setOnItemSelectedListener { item ->
-            val shouldNavigate = doBeforeNavigating()
-            if (!shouldNavigate) return@setOnItemSelectedListener false
+            val isReselected = item.itemId == reselectedItemId
+            if (!onNavigate(isReselected)) return@setOnItemSelectedListener false
             val navOptions = NavOptions.Builder().apply {
-                setLaunchSingleTop(true)
                 setRestoreState(true)
+                setLaunchSingleTop(false)
                 setPopUpTo(
                     navController.graph.startDestinationId,
                     inclusive = false,
@@ -71,14 +88,13 @@ class NavigationBar(
                 setExitAnim(R.animator.fragment_nav_exit)
                 setPopEnterAnim(R.animator.fragment_nav_enter_pop)
                 setPopExitAnim(R.animator.fragment_nav_exit_pop)
-                if (setCustomNavigationOptions != null) {
-                    setCustomNavigationOptions(item)
-                }
+                customNavigationOptions?.invoke(this, item)
             }
             navController.navigate(item.itemId, args, navOptions.build())
             true
         }
-        val weakReference = WeakReference(this)
+
+        // Check the item with id of destination
         navController.addOnDestinationChangedListener(
             object : NavController.OnDestinationChangedListener {
                 override fun onDestinationChanged(
@@ -86,12 +102,12 @@ class NavigationBar(
                     destination: NavDestination,
                     arguments: Bundle?
                 ) {
-                    val view = weakReference.get()
-                    if (view == null) {
+                    val navBar = weakNavBarReference.get()
+                    if (navBar == null) {
                         navController.removeOnDestinationChangedListener(this)
                         return
                     }
-                    view.menu.forEach { item ->
+                    navBar.menu.forEach { item ->
                         if (destination.doesMatchDestination(item.itemId)) {
                             item.isChecked = true
                         }

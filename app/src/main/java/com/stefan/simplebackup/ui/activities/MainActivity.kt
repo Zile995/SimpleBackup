@@ -143,8 +143,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    private fun navigateToSearchFragment() {
-        val currentDestination = navController.currentDestination
+    private fun navigateToSearchFragment() =
         navController.navigate(R.id.search_action, null, navOptions {
             launchSingleTop = true
             anim {
@@ -153,12 +152,7 @@ class MainActivity : BaseActivity() {
                 popEnter = R.animator.fragment_fade_enter
                 popExit = R.animator.fragment_fade_exit
             }
-            popUpTo(currentDestination?.id ?: navController.graph.startDestinationId) {
-                inclusive = false
-                saveState = false
-            }
         })
-    }
 
     private fun ActivityMainBinding.bindViews() {
         bindToolBar()
@@ -316,14 +310,16 @@ class MainActivity : BaseActivity() {
     }
 
     private fun ActivityMainBinding.bindBottomNavigationView() =
-        navigationBar.navigateWithAnimation(navController,
-            doBeforeNavigating = {
-                floatingButton.setOnClickListener(null)
-                getCurrentlyVisibleBaseFragment?.stopScrolling()
+        navigationBar.setupNavigation(navController,
+            onNavigate = { isReselected ->
+                if (!isReselected) {
+                    floatingButton.setOnClickListener(null)
+                    getCurrentlyVisibleBaseFragment?.stopScrolling()
+                }
                 !(mainViewModel.isSearching.value
                         || mainViewModel.isSelected.value) && animationFinished
             },
-            setCustomNavigationOptions = { menuItem ->
+            customNavigationOptions = { menuItem ->
                 if (menuItem.itemId == R.id.settings) {
                     setEnterAnim(R.anim.nav_default_enter_anim)
                     setExitAnim(R.anim.nav_default_exit_anim)
