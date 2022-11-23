@@ -87,9 +87,6 @@ inline fun <reified T : Fragment> FragmentManager.findFragmentByClass(): T? =
         fragment is T
     } as T?
 
-inline fun <reified T : Fragment> FragmentManager.findFragmentsByClass(): List<T> =
-    fragments.filterIsInstance<T>()
-
 inline fun <R> Fragment.onMainActivity(crossinline block: MainActivity.() -> R): R? =
     onActivityCallback<MainActivity, R> {
         block()
@@ -113,33 +110,38 @@ fun Context.unregisterReceivers(vararg receivers: BroadcastReceiver) =
 // ## Settings / Common Android Intents
 @RequiresApi(Build.VERSION_CODES.R)
 fun Context.openManageFilesPermissionSettings() =
-    startActivity(Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+    Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).run {
         addCategory(Intent.CATEGORY_DEFAULT)
         data = Uri.parse("package:$packageName")
-    })
+        startActivity(this)
+    }
 
 fun Context.openAppNotificationSettings() =
-    startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).run {
         putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
         addCategory(Intent.CATEGORY_DEFAULT)
-    })
+        startActivity(this)
+    }
 
 fun Context.openStorageSettings() =
-    startActivity(Intent(Settings.ACTION_INTERNAL_STORAGE_SETTINGS).apply {
+    Intent(Settings.ACTION_INTERNAL_STORAGE_SETTINGS).run {
         addCategory(Intent.CATEGORY_DEFAULT)
-    })
+        startActivity(this)
+    }
 
 fun Context.openUsageAccessSettings() =
-    startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+    Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).run {
         addCategory(Intent.CATEGORY_DEFAULT)
         data = Uri.fromParts("package", packageName, null)
-    })
+        startActivity(this)
+    }
 
 fun Context.openPackageSettingsInfo(packageName: String) =
-    startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).run {
         addCategory(Intent.CATEGORY_DEFAULT)
         data = Uri.parse("package:$packageName")
-    })
+        startActivity(this)
+    }
 
 fun Context.forceStopPackage(packageName: String) {
     val activityManager =
@@ -148,31 +150,34 @@ fun Context.forceStopPackage(packageName: String) {
     showToast(R.string.application_stopped)
 }
 
-fun Context.launchPackage(packageName: String): Intent? {
-    val intent = applicationContext.packageManager.getLaunchIntentForPackage(packageName)
-    return intent?.apply {
+fun Context.launchPackage(packageName: String) =
+    getLaunchIntent(packageName)?.run {
         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(this)
     }
-}
 
 fun Context.uninstallPackage(packageName: String) =
-    startActivity(Intent(Intent.ACTION_DELETE).apply {
+    Intent(Intent.ACTION_DELETE).run {
         data = Uri.parse("package:${packageName}")
-    })
+        startActivity(this)
+    }
 
-fun Context.openFilePath(path: String) {
-    val myDir: Uri = Uri.parse(path)
-    val intent = Intent(Intent.ACTION_VIEW)
-    intent.apply {
+fun Context.openFilePath(path: String) =
+    Intent(Intent.ACTION_VIEW).run {
+        val myDir: Uri = Uri.parse(path)
         flags = Intent.FLAG_ACTIVITY_NEW_TASK
         setDataAndType(myDir, "resource/folder")
         if (resolveActivity(packageManager) != null)
-            startActivity(intent)
+            startActivity(this)
         else
             showToast(R.string.no_file_managers)
     }
-}
+
+// Package Intents extensions
+fun Intent.isPackageAdded() = action == Intent.ACTION_PACKAGE_ADDED
+
+fun Intent.isPackageRemoved() =
+    action == Intent.ACTION_PACKAGE_REMOVED && extras?.getBoolean(Intent.EXTRA_REPLACING) == false
 
 // ##
 // ## Resource and toast extensions
@@ -209,7 +214,8 @@ inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
     }
 }
 
-fun Context.getLaunchIntent() = packageManager.getLaunchIntentForPackage(packageName)
+fun Context.getLaunchIntent(packageName: String = getPackageName()) =
+    packageManager.getLaunchIntentForPackage(packageName)
 
 fun Context.getLastActivityIntent(): PendingIntent {
     val intent = getLaunchIntent()

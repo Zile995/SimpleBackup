@@ -16,7 +16,6 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
 import androidx.core.animation.doOnCancel
 import androidx.core.animation.doOnEnd
-import androidx.lifecycle.viewModelScope
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
 import com.stefan.simplebackup.R
@@ -74,11 +73,8 @@ class DetailActivity : BaseActivity() {
     private val packageReceiver by lazy {
         object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                detailsViewModel.viewModelScope.launch {
-                    if ((intent.action == Intent.ACTION_PACKAGE_ADDED || (intent.action == Intent.ACTION_PACKAGE_REMOVED && intent.extras?.getBoolean(
-                            Intent.EXTRA_REPLACING
-                        ) == false)) && intent.data?.encodedSchemeSpecificPart == detailsViewModel.app?.packageName
-                    ) {
+                launchOnViewLifecycle {
+                    if (isPackageChanged(intent)) {
                         onBackPress()
                     }
                 }
@@ -444,6 +440,15 @@ class DetailActivity : BaseActivity() {
             })
         }
     }
+
+    private fun isPackageChanged(intent: Intent): Boolean {
+        val isCorrectPackage =
+            intent.data?.encodedSchemeSpecificPart == detailsViewModel.app?.packageName
+        val isPackageChanged =
+        intent.isPackageAdded() || intent.isPackageRemoved()
+        return isCorrectPackage && isPackageChanged
+    }
+
 
     @Suppress("DEPRECATION")
     @Deprecated("Deprecated in Java")
