@@ -38,7 +38,7 @@ deploymentTargetDropDown.xml
 *.jks
 *.keystore
 
-Android Studio generated files and folders
+# Android Studio generated files and folders
 output.json
 lint-baseline.xml
 .externalNativeBuild/
