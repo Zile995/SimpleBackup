@@ -40,6 +40,7 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     override fun removeAllSelectedItems() {
         selectedItems.clear()
         mNumberOfSelected.value = 0
+        selectionFinished = true
     }
 
     override fun doSelection(holder: VH, item: AppData) {
@@ -47,12 +48,12 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
             selectionFinished = false
             if (item.isSelected && selectedItems.size == 1 && !MainActivityAnimator.animationFinished) return
             if (selectedItems.contains(item.packageName)) {
-                holder.clearSelectionColor()
                 item.isSelected = false
+                holder.clearSelectionColor()
                 removeSelected(item.packageName)
             } else {
-                holder.setSelectionColor()
                 item.isSelected = true
+                holder.setSelectionColor()
                 addSelected(item.packageName)
             }
         }
@@ -61,8 +62,9 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
 
     companion object {
         var selectionFinished: Boolean = true
+            private set
 
-        private var mNumberOfSelected = MutableStateFlow(0)
+        private val mNumberOfSelected = MutableStateFlow(0)
         val numberOfSelected = mNumberOfSelected.asStateFlow()
     }
 }

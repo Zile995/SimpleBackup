@@ -23,7 +23,7 @@ class FavoritesViewHolder(
             favoritesVersionName.text = item.versionName
             favoritesPackageName.text = item.packageName
             favoritesApkSize.text = item.apkSize.bytesToMegaBytesString()
-            favoritesInstallDate.text = item.getDateString()
+            favoritesInstallDate.text = item.getDateText()
             favoritesSplitApk.isVisible = if (item.isSplit) {
                 favoritesSplitApk.text = root.resources.getString(R.string.split)
                 true

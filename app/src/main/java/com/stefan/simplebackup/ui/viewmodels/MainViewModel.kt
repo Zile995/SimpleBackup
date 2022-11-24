@@ -38,7 +38,7 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     // Search
-    private var _isSearching = MutableStateFlow(false)
+    private val _isSearching = MutableStateFlow(false)
     val isSearching get() = _isSearching.asStateFlow()
 
     // Selection properties
@@ -47,11 +47,10 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
     val selectionList = mutableListOf<String>()
     val setSelectionMode: SelectionModeCallBack = { isSelected: Boolean ->
         _isSelected.value = isSelected
-        if (!isSelected) selectionFinished = true
     }
 
     // Settings destination
-    private var _isSettingsDestination = MutableStateFlow(false)
+    private val _isSettingsDestination = MutableStateFlow(false)
     val isSettingsDestination = _isSettingsDestination.asStateFlow()
 
     private var _searchResult = MutableStateFlow(listOf<AppData>())
@@ -106,9 +105,7 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
         }
     }
 
-    fun resetSearchResult() {
-        _searchResult.value = listOf()
-    }
+    fun resetSearchResult() { _searchResult.value = emptyList() }
 
     inline fun addToFavorites(
         crossinline onSuccess: (number: Int) -> Unit,

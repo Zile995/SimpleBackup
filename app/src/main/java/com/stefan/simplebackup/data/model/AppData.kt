@@ -10,7 +10,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import com.stefan.simplebackup.utils.extensions.passBundleToActivity
+import com.stefan.simplebackup.utils.extensions.launchActivity
 import com.stefan.simplebackup.utils.extensions.saveByteArray
 import com.stefan.simplebackup.utils.file.JsonUtil
 import kotlinx.coroutines.Dispatchers
@@ -115,14 +115,14 @@ data class AppData(
         isCloud = parcel.readBooleanValue() ?: false
     )
 
-    fun getDateString() = convertDateToString()
+    fun getDateText() = convertDateToString()
 
     fun setCurrentDate() {
         date = System.currentTimeMillis()
     }
 
     @Throws(IOException::class)
-    suspend fun serializeApp(destinationPath: String) {
+    suspend fun serialize(destinationPath: String) {
         isLocal = true
         JsonUtil.serializeApp(app = this, destinationPath = destinationPath)
     }
@@ -137,13 +137,7 @@ data class AppData(
 
     suspend inline fun <reified T : AppCompatActivity> passToActivity(
         context: Context?
-    ) {
-        context?.apply {
-            passBundleToActivity<T>(
-                PARCELABLE_EXTRA to withCheckedBitmap(context)
-            )
-        }
-    }
+    ) = context?.run { launchActivity<T>(PARCELABLE_EXTRA to withCheckedBitmap(context)) }
 
     suspend fun withCheckedBitmap(context: Context): AppData = run {
         if (bitmap.size > 200_000) {
@@ -166,8 +160,7 @@ data class AppData(
                     bitmap = stream.readBytes()
                 }
                 context.deleteFile(name)
-                if (bitmap.isEmpty())
-                    onFailure(context)
+                if (bitmap.isEmpty()) onFailure(context)
             } catch (e: IOException) {
                 bitmap = onFailure(context)
             }

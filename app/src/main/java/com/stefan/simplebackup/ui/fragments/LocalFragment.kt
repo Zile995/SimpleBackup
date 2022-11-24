@@ -112,7 +112,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
         onMainActivity {
             launchOnViewLifecycle {
                 val selectionList = mainViewModel.selectionList.toTypedArray()
-                startProgressActivity(selectionList, AppDataType.LOCAL)
+                launchProgressActivity(selectionList, AppDataType.LOCAL)
                 delay(250L)
                 mainViewModel.setSelectionMode(false)
             }

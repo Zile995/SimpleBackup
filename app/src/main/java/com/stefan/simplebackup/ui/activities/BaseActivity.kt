@@ -60,20 +60,17 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
                     .addNextIntentWithParentStack(upIntent)
                     .startActivities()
             } else {
-                // This activity is part of this app's task, so simply
-                // navigate up to the logical parent activity.
-                upIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                NavUtils.navigateUpTo(this, upIntent)
+                finish()
             }
         } ?: finish()
     }
 
-    fun startProgressActivity(selection: Array<String>?, appDataType: AppDataType?) {
+    fun launchProgressActivity(selection: Array<String>?, appDataType: AppDataType?) {
         launchOnViewLifecycle {
             withContext(ioDispatcher) {
                 Shell.getShell()
             }
-            passBundleToActivity<ProgressActivity>(
+            launchActivity<ProgressActivity>(
                 SELECTION_EXTRA to selection,
                 APP_DATA_TYPE_EXTRA to appDataType
             )

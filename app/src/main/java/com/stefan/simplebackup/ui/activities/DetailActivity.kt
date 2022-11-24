@@ -356,8 +356,8 @@ class DetailActivity : BaseActivity() {
 
             // Set installed date
             installedDateLabel.text = when {
-                isCloud || isLocal -> getString(R.string.backed_up_on, getDateString())
-                else -> getString(R.string.first_installed_on, getDateString())
+                isCloud || isLocal -> getString(R.string.backed_up_on, getDateText())
+                else -> getString(R.string.first_installed_on, getDateText())
             }
 
             // Set text for specific text views.
@@ -388,11 +388,12 @@ class DetailActivity : BaseActivity() {
     private fun startWork(shouldBackupToCloud: Boolean = false) {
         detailsViewModel.app?.run {
             val packageNames = arrayOf(packageName)
-            when {
-                isLocal -> startProgressActivity(packageNames, AppDataType.LOCAL)
-                shouldBackupToCloud -> startProgressActivity(packageNames, AppDataType.CLOUD)
-                else -> startProgressActivity(packageNames, AppDataType.USER)
+            val appDataType = when {
+                isLocal -> AppDataType.LOCAL
+                shouldBackupToCloud -> AppDataType.CLOUD
+                else -> AppDataType.USER
             }
+            launchProgressActivity(packageNames, appDataType)
         }
     }
 
@@ -430,7 +431,6 @@ class DetailActivity : BaseActivity() {
         }
     }
 
-
     private fun registerPackageReceiver() {
         if (detailsViewModel.app?.isLocal == false) {
             registerReceiver(packageReceiver, intentFilter(
@@ -449,7 +449,6 @@ class DetailActivity : BaseActivity() {
         return isCorrectPackage && isPackageChanged
     }
 
-
     @Suppress("DEPRECATION")
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -463,7 +462,7 @@ class DetailActivity : BaseActivity() {
                         },
                         onFailure = {
                             showToast(R.string.unable_to_sign_in)
-                            Log.e("GoogleSignIn", "${getString(R.string.unable_to_sign_in)} $it")
+                            Log.e("GoogleSignIn", "Sing in error: $it")
                         })
                 }
             }

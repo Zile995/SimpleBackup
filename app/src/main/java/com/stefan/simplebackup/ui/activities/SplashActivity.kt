@@ -55,7 +55,7 @@ class SplashActivity : AppCompatActivity() {
                             || state == WorkInfo.State.ENQUEUED
                             || state == WorkInfo.State.SUCCEEDED
                         ) {
-                            passBundleToActivity<ProgressActivity>(
+                            launchActivity<ProgressActivity>(
                                 SELECTION_EXTRA to null,
                                 APP_DATA_TYPE_EXTRA to enumValues<AppDataType>()[PreferenceHelper.progressType],
                                 customFlags = Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -87,12 +87,8 @@ class SplashActivity : AppCompatActivity() {
         }
     }
 
-    private fun launchMainActivity() {
-        Intent(applicationContext, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
-            startActivity(this)
-        }
-    }
+    private fun launchMainActivity() =
+        launchActivity<MainActivity>(customFlags = Intent.FLAG_ACTIVITY_SINGLE_TOP)
 
     private fun ActivitySplashBinding.bindStoragePermissionView() {
         storagePermissionCard.setOnClickListener {

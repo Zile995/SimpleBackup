@@ -34,7 +34,8 @@ class DetailsViewModel(
         backupDir.asRecursiveFileWatcher(viewModelScope).fileEvent
     }
 
-    val localBackupFileEvents get() = run { if (app?.isLocal == true) { backupFileEvents } else null }
+    val localBackupFileEvents
+        get() = run { if (app?.isLocal == true) backupFileEvents else null }
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default

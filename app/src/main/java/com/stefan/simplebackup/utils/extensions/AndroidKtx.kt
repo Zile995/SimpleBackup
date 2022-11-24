@@ -204,8 +204,9 @@ fun Context.getInterFontTypeFace() =
 
 // ##
 // ## Intent / Bundle extensions
-inline fun <reified T : AppCompatActivity> Context.passBundleToActivity(
-    vararg values: Pair<String, Any?>, customFlags: Int = Intent.FLAG_ACTIVITY_NEW_TASK
+inline fun <reified T : AppCompatActivity> Context.launchActivity(
+    vararg values: Pair<String, Any?> = emptyArray(),
+    customFlags: Int = Intent.FLAG_ACTIVITY_SINGLE_TOP
 ) {
     Intent(applicationContext, T::class.java).apply {
         putExtras(bundleOf(*values))

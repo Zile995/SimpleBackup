@@ -418,7 +418,7 @@ class MainActivity : BaseActivity() {
                         signInData = data,
                         onSuccess = {
                             launchOnViewLifecycle {
-                                startProgressActivity(
+                                launchProgressActivity(
                                     mainViewModel.selectionList.toTypedArray(),
                                     AppDataType.CLOUD
                                 )

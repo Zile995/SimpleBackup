@@ -22,7 +22,7 @@ class LocalViewHolder(
             backupVersionName.text = item.versionName
             backupPackageName.text = item.packageName
             backupDataSize.text = item.dataSize.bytesToMegaBytesString()
-            backupDate.text = item.getDateString()
+            backupDate.text = item.getDateText()
             splitApk.isVisible = if (item.isSplit) {
                 splitApk.text = root.resources.getString(R.string.split)
                 true

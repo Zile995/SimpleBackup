@@ -13,23 +13,22 @@ import java.io.IOException
 
 private val ioDispatcher = Dispatchers.IO
 
-suspend fun Drawable.toBitmap(): Bitmap =
-    withContext(ioDispatcher) {
-        val bitmap: Bitmap =
-            if (intrinsicWidth <= 0 || intrinsicHeight <= 0) {
-                Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
-            } else {
-                Bitmap.createBitmap(
-                    intrinsicWidth,
-                    intrinsicHeight,
-                    Bitmap.Config.ARGB_8888
-                )
-            }
-        val canvas = Canvas(bitmap)
-        setBounds(0, 0, canvas.width, canvas.height)
-        draw(canvas)
-        bitmap
-    }
+suspend fun Drawable.toBitmap(): Bitmap = withContext(ioDispatcher) {
+    val bitmap: Bitmap =
+        if (intrinsicWidth <= 0 || intrinsicHeight <= 0) {
+            Bitmap.createBitmap(1, 1, Bitmap.Config.RGB_565)
+        } else {
+            Bitmap.createBitmap(
+                intrinsicWidth,
+                intrinsicHeight,
+                Bitmap.Config.ARGB_8888
+            )
+        }
+    val canvas = Canvas(bitmap)
+    setBounds(0, 0, canvas.width, canvas.height)
+    draw(canvas)
+    bitmap
+}
 
 suspend fun Drawable.toByteArray(): ByteArray = toBitmap().toByteArray()
 
@@ -60,9 +59,8 @@ suspend fun ByteArray.toBitmap(): Bitmap {
     }
 }
 
-suspend fun Bitmap.toByteArray(): ByteArray =
-    withContext(ioDispatcher) {
-        val bytes = ByteArrayOutputStream()
-        compress(Bitmap.CompressFormat.PNG, 100, bytes)
-        bytes.toByteArray()
-    }
+suspend fun Bitmap.toByteArray(): ByteArray = withContext(ioDispatcher) {
+    val bytes = ByteArrayOutputStream()
+    compress(Bitmap.CompressFormat.PNG, 100, bytes)
+    bytes.toByteArray()
+}

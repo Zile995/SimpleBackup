@@ -40,9 +40,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
                 if (adapter.hasSelectedItems()) {
                     adapter.doSelection(holder as BaseViewHolder, item)
                 } else {
-                    launchOnViewLifecycle {
-                        item.passToActivity<DetailActivity>(activity)
-                    }
+                    launchOnViewLifecycle { item.passToActivity<DetailActivity>(requireContext()) }
                 }
             }
 
@@ -74,7 +72,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
 
     override fun onResume() {
         super.onResume()
-        setButtonAction()
+        controlButton()
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -114,7 +112,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         }
     }
 
-    private fun setButtonAction() {
+    private fun controlButton() {
         onMainActivity {
             _mainRecyclerView?.controlFloatingButton(
                 onButtonClick = {
@@ -140,13 +138,12 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         mainViewModel.setSelectionMode(false)
     }
 
-    fun deleteSelectedBackups() {
+    fun deleteSelectedBackups() =
         mainViewModel.deleteSelectedBackups(onSuccess = {
             context?.showToast(R.string.successfully_deleted_backups)
         }, onFailure = { message ->
             context?.showToast("${getString(R.string.unsuccessfully_deleted_files)} $message", true)
         })
-    }
 
     fun selectAllItems() {
         adapter.selectAllItems()

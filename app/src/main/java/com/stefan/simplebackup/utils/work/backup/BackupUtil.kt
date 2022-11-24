@@ -99,7 +99,7 @@ class BackupUtil(
             updateProgressData(R.string.backup_progress_saving_application_data)
             setCurrentDate()
             setDataSize(app)
-            serializeApp(getTempDirPath(app = this))
+            serialize(getTempDirPath(app = this))
         }
     }
 
