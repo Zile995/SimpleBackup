@@ -23,51 +23,75 @@ suspend fun <T> DriveRequest<T>.executeOnBackground(): T =
         execute()
     }
 
-suspend fun Drive.createFile(fileMetadata: File): String {
+suspend fun Drive.getFileWithParentIds(fileId: String): File =
+    files()
+        .get(fileId)
+        .setFields("parents")
+        .executeOnBackground()
+
+suspend fun Drive.createFile(fileMetadata: File, fileContent: FileContent? = null): String {
     val file = files()
-        .create(fileMetadata)
-        .setFields("id")
+        .run {
+            if (fileContent == null)
+                create(fileMetadata)
+            else
+                create(fileMetadata, fileContent)
+        }
+        .setFields("id, parents")
         .executeOnBackground()
     return file.id
 }
 
 suspend fun Drive.fetchOrCreateMainFolder(folderName: String): String {
     val folderList = getFileList(mimeType = DRIVE_FOLDER.mimeType)
-
-    Log.d("DriveService", "Folder list = $folderList")
+    Log.d("DriveService", "Folder list = ${folderList.files.map { it.name }}")
     return if (folderList.files.isEmpty()) {
-        val fileMetadata = File().apply {
-            name = folderName
-            mimeType = DRIVE_FOLDER.mimeType
-        }
-        createFile(fileMetadata = fileMetadata)
+        createFolder(folderName)
     } else {
         // Main folder is always latest in folder hierarchy
         folderList.getRootFolder().id
     }
 }
 
-suspend fun Drive.createSubFolder(parentFolderId: String, subFolderName: String): String {
+suspend fun Drive.createFolder(folderName: String, parentId: String? = null): String {
+    val folderList = getFileList()
+    val folder = folderList.findFirstFileByName(folderName)
+
+    if (folder != null)
+        return folder.id
+
     val fileMetadata = File().apply {
-        name = subFolderName
+        name = folderName
         mimeType = DRIVE_FOLDER.mimeType
-        parents = listOf(parentFolderId)
+        parents = parentId?.let { listOf(it) }
     }
-
-    Log.d("DriveService", "Name = ${fileMetadata.name}")
-    Log.d("DriveService", "MimeType =  ${fileMetadata.mimeType}")
-
-    return files()
-        .create(fileMetadata)
-        .setFields("id, parents")
-        .executeOnBackground()
-        .id
+    return createFile(fileMetadata)
 }
 
-suspend fun Drive.deleteFile(fileId: String) {
-    files()
-        .delete(fileId)
+suspend fun Drive.deleteFile(fileName: String) {
+    val folderList = getFileList()
+    val file = folderList.findFirstFileByName(fileName)
+    file?.let {
+        files()
+            .delete(it.id)
+            .executeOnBackground()
+    }
+}
+
+suspend fun Drive.moveFile(fileId: String, folderId: String): String {
+    val previousParentIds = buildString {
+        getFileWithParentIds(fileId).parents.forEach { parentId ->
+            append(parentId)
+            append(',')
+        }
+    }
+    Log.d("DriveService", "Previous parent list $previousParentIds")
+    val file = files().update(fileId, null)
+        .setAddParents(folderId)
+        .setRemoveParents(previousParentIds)
+        .setFields("id, parents")
         .executeOnBackground()
+    return file.id
 }
 
 suspend fun Drive.uploadFileToFolder(
@@ -80,19 +104,16 @@ suspend fun Drive.uploadFileToFolder(
         parents = listOf(parentFolderId)
     }
     val fileContent = FileContent(mimeType, inputFile)
-
-    return files()
-        .create(fileMetadata, fileContent)
-        .setFields("id, parents")
-        .executeOnBackground()
-        .id
+    return createFile(fileMetadata, fileContent)
 }
 
-suspend fun Drive.getFileList(mimeType: String): FileList =
-    files()
-        .list()
+suspend fun Drive.getFileList(mimeType: String = DRIVE_FOLDER.mimeType): FileList =
+    files().list()
         .setSpaces("drive")
         .setQ("mimeType = '${mimeType}'")
         .executeOnBackground()
 
+// FileList extensions
 fun FileList.getRootFolder(): File = files.last()
+
+fun FileList.findFirstFileByName(fileName: String): File? = files.find { it.name == fileName }

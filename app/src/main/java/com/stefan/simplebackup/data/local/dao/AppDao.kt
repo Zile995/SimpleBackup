@@ -15,7 +15,7 @@ interface AppDao {
     @Query("SELECT * FROM $APP_TABLE_NAME WHERE name LIKE :name || '%' ORDER BY name ASC")
     fun findAppsByName(name: String): Flow<MutableList<AppData>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(app: AppData)
 
     @Query("DELETE FROM $APP_TABLE_NAME WHERE package_name = :packageName")

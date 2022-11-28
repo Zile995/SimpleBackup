@@ -1,10 +1,10 @@
 package com.stefan.simplebackup.ui.activities
 
-import android.content.Intent
 import android.content.Intent.ACTION_PACKAGE_ADDED
 import android.content.Intent.ACTION_PACKAGE_REMOVED
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
@@ -85,6 +85,21 @@ class MainActivity : BaseActivity() {
                 is BaseFragment<*> -> visibleFragment
                 is BaseViewPagerFragment<*> -> visibleFragment.getCurrentFragment()
                 else -> null
+            }
+        }
+
+    val signInIntentLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK && result.data != null) {
+                handleSignInIntent(
+                    signInData = result.data!!,
+                    onSuccess = {
+                        onSuccessfullySignedIn()
+                    },
+                    onFailure = {
+                        showToast(R.string.unable_to_sign_in)
+                        Log.e("GoogleSignIn", "${getString(R.string.unable_to_sign_in)} $it")
+                    })
             }
         }
 
@@ -408,38 +423,18 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    @Suppress("DEPRECATION")
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        when (requestCode) {
-            REQUEST_CODE_SIGN_IN -> {
-                if (resultCode == RESULT_OK && data != null) {
-                    handleSignInIntent(
-                        signInData = data,
-                        onSuccess = {
-                            launchOnViewLifecycle {
-                                launchProgressActivity(
-                                    mainViewModel.selectionList.toTypedArray(),
-                                    AppDataType.CLOUD
-                                )
-                                delay(250L)
-                                mainViewModel.setSelectionMode(false)
-                                val configureSheetFragment =
-                                    (supportFragmentManager.findFragmentByTag(CONFIGURE_SHEET_TAG) as? ConfigureSheetFragment)
-                                configureSheetFragment?.dismiss()
-                            }
-                        },
-                        onFailure = {
-                            showToast(R.string.unable_to_sign_in)
-                            Log.e(
-                                "GoogleSignIn",
-                                "${getString(R.string.unable_to_sign_in)} $it"
-                            )
-                        })
-                }
-            }
+    fun onSuccessfullySignedIn() {
+        launchOnViewLifecycle {
+            launchProgressActivity(
+                mainViewModel.selectionList.toTypedArray(),
+                AppDataType.CLOUD
+            )
+            delay(250L)
+            mainViewModel.setSelectionMode(false)
+            val configureSheetFragment =
+                (supportFragmentManager.findFragmentByTag(CONFIGURE_SHEET_TAG) as? ConfigureSheetFragment)
+            configureSheetFragment?.dismiss()
         }
-        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onDestroy() {

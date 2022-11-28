@@ -12,6 +12,7 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.os.Parcelable
 import android.provider.Settings
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
@@ -24,7 +25,14 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.viewbinding.ViewBinding
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
+import com.google.api.client.http.javanet.NetHttpTransport
+import com.google.api.client.json.gson.GsonFactory
+import com.google.api.services.drive.Drive
+import com.google.api.services.drive.DriveScopes
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.fragments.BaseFragment
@@ -226,6 +234,29 @@ fun Context.getLastActivityIntent(): PendingIntent {
         intent,
         PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
     )
+}
+
+fun Context.getLastSignedInAccount() = GoogleSignIn.getLastSignedInAccount(this)
+
+fun Context.getDriveService(googleAccount: GoogleSignInAccount?) = googleAccount?.let {
+    // Get credential
+    val credential =
+        GoogleAccountCredential.usingOAuth2(this, mutableListOf(DriveScopes.DRIVE_FILE))
+    credential.selectedAccount = googleAccount.account
+    Log.d("Drive", "Signed in as " + googleAccount.email)
+
+    // Get Drive service builder
+    val driveServiceBuilder = Drive.Builder(
+        NetHttpTransport(),
+        GsonFactory.getDefaultInstance(),
+        credential
+    )
+
+    // Build and return drive service
+    driveServiceBuilder.run {
+        applicationName = getString(R.string.app_name)
+        build()
+    }
 }
 
 inline fun intentFilter(vararg actions: String, crossinline block: IntentFilter.() -> Unit = {}) =

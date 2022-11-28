@@ -30,7 +30,6 @@ import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.file.JSON_FILE_EXTENSION
 import kotlinx.coroutines.launch
-import java.util.*
 import kotlin.math.abs
 
 class DetailActivity : BaseActivity() {
@@ -49,11 +48,30 @@ class DetailActivity : BaseActivity() {
         DetailsViewModelFactory(app = selectedApp)
     }
 
+    private val signInIntentLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK && result.data != null) {
+                handleSignInIntent(
+                    signInData = result.data!!,
+                    onSuccess = {
+                        startWork(shouldBackupToCloud = true)
+                    },
+                    onFailure = {
+                        showToast(R.string.unable_to_sign_in)
+                        Log.e("GoogleSignIn", "Sing in error: $it")
+                    })
+            }
+        }
+
     // Permission launchers
     private val contactsPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                requestSignIn()
+                requestSignIn(
+                    resultLauncher = signInIntentLauncher,
+                    onAlreadySignedIn = {
+                        startWork(shouldBackupToCloud = true)
+                    })
             } else {
                 showStoragePermissionDialog()
             }
@@ -277,7 +295,7 @@ class DetailActivity : BaseActivity() {
                         requestContactsPermission(
                             contactsPermissionLauncher,
                             onPermissionAlreadyGranted = {
-                                requestSignIn()
+                                launchSignInIntent(signInIntentLauncher)
                             })
                     },
                     onPermissionDenied = {
@@ -445,29 +463,8 @@ class DetailActivity : BaseActivity() {
         val isCorrectPackage =
             intent.data?.encodedSchemeSpecificPart == detailsViewModel.app?.packageName
         val isPackageChanged =
-        intent.isPackageAdded() || intent.isPackageRemoved()
+            intent.isPackageAdded() || intent.isPackageRemoved()
         return isCorrectPackage && isPackageChanged
-    }
-
-    @Suppress("DEPRECATION")
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        when (requestCode) {
-            REQUEST_CODE_SIGN_IN -> {
-                if (resultCode == RESULT_OK && data != null) {
-                    handleSignInIntent(
-                        signInData = data,
-                        onSuccess = {
-                            startWork(shouldBackupToCloud = true)
-                        },
-                        onFailure = {
-                            showToast(R.string.unable_to_sign_in)
-                            Log.e("GoogleSignIn", "Sing in error: $it")
-                        })
-                }
-            }
-        }
-        super.onActivityResult(requestCode, resultCode, data)
     }
 
     override fun onDestroy() {

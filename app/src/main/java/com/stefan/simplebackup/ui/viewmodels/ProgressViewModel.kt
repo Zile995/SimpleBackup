@@ -25,7 +25,7 @@ class ProgressViewModel(
 ) : AndroidViewModel(application) {
 
     // WorkManager
-    private val workManager = WorkManager.getInstance(application)
+    private val workManager by lazy { WorkManager.getInstance(application) }
 
     // Dispatchers
     private val ioDispatcher = Dispatchers.IO
@@ -47,7 +47,7 @@ class ProgressViewModel(
     // Observable list
     val observableProgressList = progressRepository.progressData.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(1000L),
+        started = SharingStarted.WhileSubscribed(2000L),
         initialValue = mutableListOf()
     )
 
@@ -81,14 +81,12 @@ class ProgressViewModel(
 
     private fun startWorker() {
         selectionList?.let { appList ->
-            appDataType?.run {
-                val workManager =
-                    WorkManager.getInstance(getApplication<MainApplication>().applicationContext)
+            appDataType?.let { dataType ->
                 val workerHelper = WorkerHelper(appList, workManager)
-                when (this) {
-                    AppDataType.USER -> workerHelper.beginUniqueLocalWork(shouldBackup = true)
+                when (dataType) {
+                    AppDataType.USER -> workerHelper.beginUniqueLocalWork()
+                    AppDataType.CLOUD -> workerHelper.beginUniqueCloudBackupWork()
                     AppDataType.LOCAL -> workerHelper.beginUniqueLocalWork(shouldBackup = false)
-                    AppDataType.CLOUD -> workerHelper.beginUniqueCloudWork()
                 }
             }
         }
@@ -102,7 +100,7 @@ class ProgressViewModel(
 
 class ProgressViewModelFactory(
     private val appDataType: AppDataType?,
-    private val selectionList: Array<String>?
+    private val selectionList: Array<String>?,
 ) : ViewModelProvider.AndroidViewModelFactory() {
     override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
         if (modelClass.isAssignableFrom(ProgressViewModel::class.java)) {

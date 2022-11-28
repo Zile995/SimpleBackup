@@ -28,7 +28,13 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
     private val contactsPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                onMainActivity { requestSignIn() }
+                onMainActivity {
+                    requestSignIn(
+                        resultLauncher = signInIntentLauncher,
+                        onAlreadySignedIn = {
+                            onSuccessfullySignedIn()
+                        })
+                }
             } else {
                 onMainActivity { showContactsPermissionDialog() }
             }
@@ -90,7 +96,7 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
                     onPermissionGranted = {
                         requestContactsPermission(contactsPermissionLauncher,
                             onPermissionAlreadyGranted = {
-                                requestSignIn()
+                                launchSignInIntent(signInIntentLauncher)
                             })
                     }, onPermissionDenied = {
                         requestStoragePermission(storagePermissionLauncher)

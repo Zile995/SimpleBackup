@@ -3,7 +3,6 @@ package com.stefan.simplebackup.ui.activities
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.addCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AlertDialog
@@ -14,10 +13,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.Scope
-import com.google.api.client.googleapis.extensions.android.gms.auth.GoogleAccountCredential
-import com.google.api.client.http.javanet.NetHttpTransport
-import com.google.api.client.json.gson.GsonFactory
-import com.google.api.services.drive.Drive
 import com.google.api.services.drive.DriveScopes
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
@@ -29,7 +24,7 @@ import com.stefan.simplebackup.utils.extensions.*
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.*
+
 
 abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
 
@@ -176,10 +171,19 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
         return GoogleSignIn.getClient(this, signInOptions)
     }
 
-    @Suppress("DEPRECATION")
-    fun requestSignIn() {
-        val client = buildGoogleSignInClient()
-        startActivityForResult(client.signInIntent, REQUEST_CODE_SIGN_IN)
+    inline fun requestSignIn(
+        resultLauncher: ActivityResultLauncher<Intent>,
+        onAlreadySignedIn: () -> Unit
+    ) {
+        when {
+            getLastSignedInAccount() == null -> launchSignInIntent(resultLauncher)
+            else -> onAlreadySignedIn()
+        }
+    }
+
+    fun launchSignInIntent(resultLauncher: ActivityResultLauncher<Intent>) {
+        val signInClient = buildGoogleSignInClient()
+        resultLauncher.launch(signInClient.signInIntent)
     }
 
     fun handleSignInIntent(
@@ -189,24 +193,7 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
     ) {
         GoogleSignIn.getSignedInAccountFromIntent(signInData)
             .addOnSuccessListener { googleAccount ->
-                // Get credential on success
-                Log.d("BaseActivity", "Signed in as " + googleAccount.email)
-                val credential = GoogleAccountCredential.usingOAuth2(
-                    applicationContext, mutableListOf(DriveScopes.DRIVE_FILE)
-                )
-                credential.selectedAccount = googleAccount.account
-
-                // Get Google Drive Builder
-                val googleDriveBuilder = Drive.Builder(
-                    NetHttpTransport(),
-                    GsonFactory.getDefaultInstance(),
-                    credential
-                )
-                // Google drive service
-                googleDriveService = googleDriveBuilder.run {
-                    applicationName = applicationContext.getString(R.string.app_name)
-                    build()
-                }
+                getDriveService(googleAccount)
                 onSuccess()
             }.addOnFailureListener { exception ->
                 onFailure(exception.toString())
@@ -240,13 +227,6 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
         super.onDestroy()
         _permissionDialog?.dismiss()
         _permissionDialog = null
-    }
-
-    companion object {
-        var googleDriveService: Drive? = null
-            private set
-
-        const val REQUEST_CODE_SIGN_IN: Int = 400
     }
 }
 

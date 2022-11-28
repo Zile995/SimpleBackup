@@ -13,13 +13,13 @@ import java.io.IOException
 import kotlin.io.path.moveTo
 
 const val LIB_DIR_NAME: String = "lib"
+const val TEMP_DIR_NAME: String = "temp"
+const val LOCAL_DIR_NAME: String = "local"
 const val LIB_FILE_EXTENSION: String = "so"
 const val APK_FILE_EXTENSION: String = "apk"
 const val TAR_FILE_EXTENSION: String = "tar"
 const val ZIP_FILE_EXTENSION: String = "zip"
 const val JSON_FILE_EXTENSION: String = "json"
-private const val TEMP_DIR_NAME: String = "temp"
-private const val LOCAL_DIR_NAME: String = "local"
 
 object FileUtil {
     // IO Dispatcher
@@ -129,5 +129,4 @@ object FileUtil {
             apkFile.length()
         }.toFloat() to isSplit
     }
-
 }

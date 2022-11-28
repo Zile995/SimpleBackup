@@ -87,8 +87,8 @@
         <activity
             android:name=".ui.activities.MainActivity"
             android:exported="false"
-            android:launchMode="singleTop"
             android:imeOptions="flagNoFullscreen"
+            android:launchMode="singleTop"
             android:windowSoftInputMode="stateAlwaysHidden|adjustPan" />
         <activity
             android:name=".ui.activities.DetailActivity"

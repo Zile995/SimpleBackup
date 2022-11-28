@@ -9,6 +9,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.google.api.services.drive.Drive
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.ProgressRepository
@@ -16,10 +17,10 @@ import com.stefan.simplebackup.data.model.ProgressData
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.WorkActionBroadcastReceiver
 import com.stefan.simplebackup.ui.notifications.WorkNotificationManager
-import com.stefan.simplebackup.utils.extensions.getLastActivityIntent
-import com.stefan.simplebackup.utils.extensions.showToast
+import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
 import com.stefan.simplebackup.utils.file.FileUtil.tempDirPath
+import com.stefan.simplebackup.utils.file.TEMP_DIR_NAME
 import com.stefan.simplebackup.utils.root.RootApkManager
 import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import com.stefan.simplebackup.utils.work.backup.BackupUtil
@@ -66,17 +67,24 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     }
 
     // Progress data
-    private val mutableProgressData: MutableStateFlow<ProgressData?> = MutableStateFlow(null)
-    private val progressData get() = mutableProgressData.asStateFlow()
+    private val mProgressData: MutableStateFlow<ProgressData?> = MutableStateFlow(null)
+    private val progressData get() = mProgressData.asStateFlow()
 
     // Foreground info lambdas
     private val updateForegroundInfo = setForegroundInfo(workNotificationManager.notificationId)
     private val foregroundCallBack: ForegroundCallback = { progressData ->
-        mutableProgressData.value = progressData
+        mProgressData.value = progressData
         val updatedNotification =
             workNotificationManager.getUpdatedNotification(progressData, shouldBackup)
         updateForegroundInfo(updatedNotification)
         setProgress(workDataOf(WORK_PROGRESS to progressData.progress))
+    }
+
+    // Drive service
+    private val driveService: Drive? by lazy {
+        if (shouldBackupToCloud)
+            applicationContext.getDriveService(applicationContext.getLastSignedInAccount())
+        else null
     }
 
     init {
@@ -140,7 +148,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         skipAction = {
             Log.w("MainWorker", "Clicked skip button: $workItemJob")
             val toastMessage =
-                applicationContext.getString(R.string.skipping, mutableProgressData.value?.name)
+                applicationContext.getString(R.string.skipping, mProgressData.value?.name)
             applicationContext.showToast(toastMessage)
             workItemJob?.cancel()
             forcefullyDeleteBackup()
@@ -152,6 +160,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             applicationContext.showToast(toastMessage, true)
             mainJob?.cancel()
             forcefullyDeleteBackup()
+            forcefullyDeleteCloudBackup()
         }
     }
 
@@ -184,6 +193,12 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         }
     }
 
+    private fun forcefullyDeleteCloudBackup() {
+        mainScope?.launch {
+            if (shouldBackupToCloud) driveService?.deleteFile(fileName = TEMP_DIR_NAME)
+        }
+    }
+
     private fun getPendingIntent(actionValue: String): PendingIntent {
         val intent = Intent(applicationContext, WorkActionBroadcastReceiver::class.java).apply {
             action = actionValue
@@ -207,6 +222,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         try {
             // Delete temp dir file
             deleteFile(tempDirPath)
+            driveService?.deleteFile(fileName = TEMP_DIR_NAME)
         } catch (e: IOException) {
             // Just log error
             Log.e("MainWorker", "Unable to delete temp dir: $e")
@@ -230,4 +246,3 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         }
     }
 }
-
