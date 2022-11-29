@@ -31,6 +31,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import org.apache.http.entity.ContentType
 import java.io.File
 import java.io.IOException
 
@@ -134,41 +135,49 @@ class BackupUtil(
                 val tarZipFile = ZipUtil.getTarZipFile(appTempDirPath).file
 
                 try {
-                    val parentFolderId =
+                    // Create main folder
+                    val mainFolderId =
                         service.fetchOrCreateMainFolder(folderName = appContext.getString(R.string.app_name))
 
                     // Create temp folder
                     val tempFolderId = service.createFolder(
                         folderName = TEMP_DIR_NAME,
-                        parentId = parentFolderId
+                        parentId = mainFolderId
                     )
 
+                    // Create package folder
                     val packageFolderId = service.createFolder(
-                        folderName = app.packageName,
+                        folderName = TEMP_DIR_NAME + app.packageName,
                         parentId = tempFolderId
                     )
 
                     service.uploadFileToFolder(
                         inputFile = jsonFile,
-                        mimeType = "application/json",
+                        mimeType = ContentType.APPLICATION_JSON.mimeType,
                         parentFolderId = packageFolderId
                     )
 
                     app.updateProgressData(R.string.uploading_apk_cloud)
                     service.uploadFileToFolder(
                         inputFile = apkZipFile,
-                        mimeType = "application/zip",
+                        mimeType = APPLICATION_ZIP.mimeType,
                         parentFolderId = packageFolderId
                     )
 
                     app.updateProgressData(R.string.uploading_data_cloud)
                     service.uploadFileToFolder(
                         inputFile = tarZipFile,
-                        mimeType = "application/zip",
+                        mimeType = APPLICATION_ZIP.mimeType,
                         parentFolderId = packageFolderId
                     )
+                    // Delete old backup
+                    service.deleteFile(app.packageName)
 
-                    service.moveFile(packageFolderId, parentFolderId)
+                    // Move new backup to main folder
+                    service.moveFile(packageFolderId, mainFolderId)
+
+                    // Rename backup folder
+                    service.renameFile(packageFolderId, newFileName = app.packageName)
                 } catch (e: GoogleJsonResponseException) {
                     Log.w("BackupUtil", "Unable to upload file: ${e.details}")
                     throw IOException(e.details.toString())

@@ -18,6 +18,9 @@ private val ioDispatcher = Dispatchers.IO
 private val DRIVE_FOLDER =
     ContentType.create("application/vnd.google-apps.folder", Consts.ISO_8859_1)
 
+val APPLICATION_ZIP: ContentType
+    get() = ContentType.create("application/zip", Consts.ISO_8859_1)
+
 suspend fun <T> DriveRequest<T>.executeOnBackground(): T =
     withContext(ioDispatcher) {
         execute()
@@ -29,18 +32,22 @@ suspend fun Drive.getFileWithParentIds(fileId: String): File =
         .setFields("parents")
         .executeOnBackground()
 
-suspend fun Drive.createFile(fileMetadata: File, fileContent: FileContent? = null): String {
-    val file = files()
+suspend fun Drive.getFileWithName(fileId: String): File =
+    files()
+        .get(fileId)
+        .setFields("name")
+        .executeOnBackground()
+
+suspend fun Drive.createFile(fileMetadata: File, fileContent: FileContent? = null): String =
+    files()
         .run {
             if (fileContent == null)
                 create(fileMetadata)
             else
                 create(fileMetadata, fileContent)
-        }
-        .setFields("id, parents")
+        }.setFields("id, parents")
         .executeOnBackground()
-    return file.id
-}
+        .id
 
 suspend fun Drive.fetchOrCreateMainFolder(folderName: String): String {
     val folderList = getFileList(mimeType = DRIVE_FOLDER.mimeType)
@@ -78,6 +85,15 @@ suspend fun Drive.deleteFile(fileName: String) {
     }
 }
 
+suspend fun Drive.renameFile(fileId: String, newFileName: String): String {
+    val file = getFileWithName(fileId)
+    file.name = newFileName
+    return files().update(fileId, file)
+        .setFields("id, name")
+        .executeOnBackground()
+        .id
+}
+
 suspend fun Drive.moveFile(fileId: String, folderId: String): String {
     val previousParentIds = buildString {
         getFileWithParentIds(fileId).parents.forEach { parentId ->
@@ -86,12 +102,12 @@ suspend fun Drive.moveFile(fileId: String, folderId: String): String {
         }
     }
     Log.d("DriveService", "Previous parent list $previousParentIds")
-    val file = files().update(fileId, null)
+    return files().update(fileId, null)
         .setAddParents(folderId)
         .setRemoveParents(previousParentIds)
         .setFields("id, parents")
         .executeOnBackground()
-    return file.id
+        .id
 }
 
 suspend fun Drive.uploadFileToFolder(
