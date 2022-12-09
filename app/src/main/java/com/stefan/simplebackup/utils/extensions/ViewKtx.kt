@@ -15,6 +15,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.viewpager2.widget.ViewPager2
 import coil.imageLoader
 import coil.request.CachePolicy
+import coil.request.Disposable
 import coil.request.ImageRequest
 
 fun View.show() {
@@ -34,7 +35,7 @@ var View.isVisible: Boolean
         }
     }
 
-fun ImageView.loadBitmap(byteArray: ByteArray) {
+fun ImageView.loadBitmap(byteArray: ByteArray): Disposable {
     val imageLoader = context.imageLoader
     val request = ImageRequest.Builder(context)
         .data(byteArray)
@@ -42,7 +43,7 @@ fun ImageView.loadBitmap(byteArray: ByteArray) {
         .target(this)
         .diskCachePolicy(CachePolicy.ENABLED)
         .build()
-    imageLoader.enqueue(request)
+    return imageLoader.enqueue(request)
 }
 
 fun ViewPager2.findCurrentFragment(fragmentManager: FragmentManager): Fragment? =

@@ -41,4 +41,6 @@
     <!-- Switch disabled -->
     <color name="switch_disabled">#3E5070</color>
 
+    <color name="shimmer_placeholder">#dddddd</color>
+
 </resources>

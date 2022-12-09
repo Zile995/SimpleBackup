@@ -16,6 +16,11 @@
         <item name="titleTextAppearance">@style/TextAppearance.SimpleBackup.BodyMedium</item>
     </style>
 
+    <style name="Widget.SimpleBackup.PlaceholderChip" parent="Widget.Material3.Chip.Assist">
+        <item name="chipStrokeColor">@color/shimmer_placeholder</item>
+        <item name="chipBackgroundColor">@color/shimmer_placeholder</item>
+    </style>
+
     <style name="TextAppearance.SimpleBackup.NavigationBar" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textSize">15sp</item>
         <item name="fontFamily">@font/inter_family</item>

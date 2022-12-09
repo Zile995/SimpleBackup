@@ -165,7 +165,7 @@ dependencies {
     implementation "io.coil-kt:coil:$coil"
 
     // Shimmer
-    //implementation 'com.facebook.shimmer:shimmer:0.5.0'
+    implementation 'com.facebook.shimmer:shimmer:0.5.0'
 
     // Leak Canary
     // debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"

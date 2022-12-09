@@ -8,9 +8,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
-import android.widget.ImageView
+import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.IdRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
@@ -29,6 +30,7 @@ import com.stefan.simplebackup.ui.viewmodels.DetailsViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
 import com.stefan.simplebackup.utils.work.FileUtil
 import com.stefan.simplebackup.utils.work.JSON_FILE_EXTENSION
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -342,8 +344,7 @@ class DetailActivity : BaseActivity() {
             collapsingToolbar.title = name
 
             // Set image onClick listener
-            val appImage = collapsingToolbar.findViewById<ImageView>(R.id.application_image)
-            appImage.setOnClickListener {
+            applicationImage.setOnClickListener {
                 if (isLocal)
                     openFilePath("${FileUtil.localDirPath}/$packageName")
                 else
@@ -356,7 +357,7 @@ class DetailActivity : BaseActivity() {
             setBitmapFromContextDir(context = applicationContext, onFailure = {
                 getResourceDrawable(R.drawable.ic_error)?.toByteArray() ?: byteArrayOf()
             })
-            appImage.loadBitmap(bitmap)
+            applicationImage.loadBitmap(bitmap)
         }
     }
 
@@ -366,25 +367,32 @@ class DetailActivity : BaseActivity() {
             setCollapsingToolbarData()
 
             // Set type chip data
-            appTypeChip.text = when {
-                isCloud && isLocal -> resources.getString(R.string.cloud_backup)
-                isLocal -> resources.getString(R.string.local_backup)
-                else -> resources.getString(R.string.user_app)
-            }
+            detailsLayout.apply {
+                appTypeChip.text = when {
+                    isCloud && isLocal -> resources.getString(R.string.cloud_backup)
+                    isLocal -> resources.getString(R.string.local_backup)
+                    else -> resources.getString(R.string.user_app)
+                }
 
-            // Set installed date
-            installedDateLabel.text = when {
-                isCloud || isLocal -> getString(R.string.backed_up_on, getDateText())
-                else -> getString(R.string.first_installed_on, getDateText())
-            }
+                // Set installed date
+                installedDateLabel.text = when {
+                    isCloud || isLocal -> getString(R.string.backed_up_on, getDateText())
+                    else -> getString(R.string.first_installed_on, getDateText())
+                }
 
-            // Set text for specific text views.
-            isSplitChip.isVisible = isSplit
-            packageNameLabel.text = packageName
-            versionNameLabel.text = getString(R.string.version, versionName)
-            apkSizeLabel.text = getString(R.string.apk_size, apkSize.bytesToMegaBytesString())
-            targetApiLabel.text = getString(R.string.target_sdk, targetSdk)
-            minApiLabel.text = getString(R.string.min_sdk, minSdk)
+                // Set text for specific text views.
+                isSplitChip.isVisible = isSplit
+                packageNameLabel.text = packageName
+                versionNameLabel.text = getString(R.string.version, versionName)
+                apkSizeLabel.text = getString(R.string.apk_size, apkSize.bytesToMegaBytesString())
+                targetApiLabel.text = getString(R.string.target_sdk, targetSdk)
+                minApiLabel.text = getString(R.string.min_sdk, minSdk)
+            }
+            delay(500L)
+            imageShimmer.hideShimmer()
+            detailsShimmer.hideShimmer()
+            detailsShimmer.isVisible = false
+            detailsLayout.root.isVisible = true
         }
     }
 
@@ -432,7 +440,7 @@ class DetailActivity : BaseActivity() {
                     launch {
                         apkSizeStats.collect { sizeStats ->
                             sizeStats?.apply {
-                                dataSizeLabel.text = getString(
+                                detailsLayout.dataSizeLabel.text = getString(
                                     R.string.data_size,
                                     (sizeStats.dataSize + sizeStats.cacheSize).bytesToMegaBytesString()
                                 )
@@ -441,7 +449,7 @@ class DetailActivity : BaseActivity() {
                     }
                     nativeLibs.collect { nativeLibs ->
                         nativeLibs?.let {
-                            architectureChipGroup.addChipsToGroup(nativeLibs)
+                            detailsLayout.architectureChipGroup.addChipsToGroup(nativeLibs)
                         }
                     }
                 }
