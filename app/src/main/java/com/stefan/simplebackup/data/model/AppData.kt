@@ -12,7 +12,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.stefan.simplebackup.utils.extensions.launchActivity
 import com.stefan.simplebackup.utils.extensions.saveByteArray
-import com.stefan.simplebackup.utils.file.JsonUtil
+import com.stefan.simplebackup.utils.work.JsonUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize

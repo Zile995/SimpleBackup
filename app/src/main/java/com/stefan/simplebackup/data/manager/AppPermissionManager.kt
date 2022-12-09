@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Process
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 
 class AppPermissionManager(private val context: Context) {
@@ -69,10 +70,12 @@ class AppPermissionManager(private val context: Context) {
         ) == PackageManager.PERMISSION_GRANTED
 }
 
+@SuppressLint("InlinedApi")
 enum class MainPermission(val permissionName: String) {
     CONTACTS(Manifest.permission.READ_CONTACTS),
     STORAGE(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+    MANAGE_ALL_FILES(Manifest.permission.MANAGE_EXTERNAL_STORAGE),
 
-    @SuppressLint("InlinedApi")
-    MANAGE_ALL_FILES(Manifest.permission.MANAGE_EXTERNAL_STORAGE)
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    NOTIFICATIONS(Manifest.permission.POST_NOTIFICATIONS)
 }

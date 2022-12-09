@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.utils.work.backup
+package com.stefan.simplebackup.utils.work
 
 import android.content.Context
 import android.util.Log
@@ -13,19 +13,7 @@ import com.stefan.simplebackup.data.manager.AppStorageManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.ForegroundCallback
 import com.stefan.simplebackup.utils.extensions.*
-import com.stefan.simplebackup.utils.file.FileUtil
-import com.stefan.simplebackup.utils.file.FileUtil.createDirectory
-import com.stefan.simplebackup.utils.file.FileUtil.deleteDirectoryFiles
-import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
-import com.stefan.simplebackup.utils.file.FileUtil.getBackupDirPath
-import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
-import com.stefan.simplebackup.utils.file.FileUtil.moveFiles
-import com.stefan.simplebackup.utils.file.TEMP_DIR_NAME
 import com.stefan.simplebackup.utils.root.RootApkManager
-import com.stefan.simplebackup.utils.work.WorkResult
-import com.stefan.simplebackup.utils.work.WorkUtil
-import com.stefan.simplebackup.utils.work.archive.TarUtil
-import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.channelFlow
@@ -81,8 +69,8 @@ class BackupUtil(
 
     private suspend fun createDirs(app: AppData) {
         app.updateProgressData(R.string.backup_progress_dir_info)
-        createDirectory(getTempDirPath(app))
-        createDirectory(getBackupDirPath(app))
+        FileUtil.createDirectory(tempItemDirPath)
+        FileUtil.createDirectory(backupItemDirPath)
     }
 
     private suspend fun backupData(app: AppData) {
@@ -92,7 +80,9 @@ class BackupUtil(
 
     private suspend fun zipData(app: AppData) {
         app.updateProgressData(R.string.backup_progress_zip_info)
-        ZipUtil.zipAllData(app)
+        isZippingData = true
+        ZipUtil.zipAllData(app, tempItemDirPath)
+        isZippingData = false
     }
 
     private suspend fun serializeAppData(app: AppData) {
@@ -100,7 +90,8 @@ class BackupUtil(
             updateProgressData(R.string.backup_progress_saving_application_data)
             setCurrentDate()
             setDataSize(app)
-            serialize(getTempDirPath(app = this))
+            val tempDirPath = tempItemDirPath
+            serialize(destinationPath = tempDirPath)
         }
     }
 
@@ -127,12 +118,11 @@ class BackupUtil(
     private suspend fun uploadToDrive(app: AppData) {
         if (shouldBackupToCloud) {
             app.updateProgressData(R.string.uploading_to_cloud)
-            val appTempDirPath = getTempDirPath(app)
             driveService?.let { service ->
-                val jsonFile = FileUtil.getJsonInDir(appTempDirPath)
+                val jsonFile = FileUtil.getJsonInDir(tempItemDirPath)
                     ?: throw IOException("Upload failed, unable to find json data")
-                val apkZipFile = ZipUtil.getApkZipFile(appBackupDirPath = appTempDirPath).file
-                val tarZipFile = ZipUtil.getTarZipFile(appTempDirPath).file
+                val apkZipFile = ZipUtil.getApkZipFile(appBackupDirPath = tempItemDirPath).file
+                val tarZipFile = ZipUtil.getTarZipFile(tempItemDirPath).file
 
                 try {
                     // Create main folder
@@ -151,12 +141,6 @@ class BackupUtil(
                         parentId = tempFolderId
                     )
 
-                    service.uploadFileToFolder(
-                        inputFile = jsonFile,
-                        mimeType = ContentType.APPLICATION_JSON.mimeType,
-                        parentFolderId = packageFolderId
-                    )
-
                     app.updateProgressData(R.string.uploading_apk_cloud)
                     service.uploadFileToFolder(
                         inputFile = apkZipFile,
@@ -170,6 +154,13 @@ class BackupUtil(
                         mimeType = APPLICATION_ZIP.mimeType,
                         parentFolderId = packageFolderId
                     )
+
+                    service.uploadFileToFolder(
+                        inputFile = jsonFile,
+                        mimeType = ContentType.APPLICATION_JSON.mimeType,
+                        parentFolderId = packageFolderId
+                    )
+
                     // Delete old backup
                     service.deleteFile(app.packageName)
 
@@ -177,7 +168,7 @@ class BackupUtil(
                     service.moveFile(packageFolderId, mainFolderId)
 
                     // Rename backup folder
-                    service.renameFile(packageFolderId, newFileName = app.packageName)
+                    service.renameFile(fileId = packageFolderId, newFileName = app.packageName)
                 } catch (e: GoogleJsonResponseException) {
                     Log.w("BackupUtil", "Unable to upload file: ${e.details}")
                     throw IOException(e.details.toString())
@@ -194,13 +185,13 @@ class BackupUtil(
 
     private suspend fun moveBackup(app: AppData) {
         if (shouldBackupToCloud) {
-            deleteFile(getTempDirPath(app))
+            FileUtil.deleteFile(FileUtil.getTempDirPath(app))
             return
         }
-        val tempDirFile = File(getTempDirPath(app))
-        val localDirFile = File(getBackupDirPath(app))
-        deleteDirectoryFiles(localDirFile)
-        moveFiles(sourceDir = tempDirFile, targetFile = localDirFile)
+        val tempDirFile = File(tempItemDirPath)
+        val localDirFile = File(backupItemDirPath)
+        FileUtil.deleteFile(localDirFile.absolutePath)
+        FileUtil.moveFiles(sourceDir = tempDirFile, targetFile = localDirFile)
     }
 
     override suspend fun onSuccess(app: AppData) {
@@ -212,12 +203,17 @@ class BackupUtil(
         try {
             Log.w("BackupUtil", "Deleting failed backup.")
             deleteBackupOnDrive()
-            deleteFile(path = getTempDirPath(app))
+            FileUtil.deleteFile(path = tempItemDirPath)
         } catch (e: IOException) {
             Log.w("BackupUtil", "Failed to delete backup $e")
         } finally {
             RootApkManager.unsuspendPackage(app.packageName)
             app.updateProgressData(R.string.backup_progress_failed, WorkResult.ERROR)
         }
+    }
+
+    companion object {
+        var isZippingData = false
+            private set
     }
 }

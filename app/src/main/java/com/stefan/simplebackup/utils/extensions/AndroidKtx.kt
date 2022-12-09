@@ -6,6 +6,8 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
@@ -38,7 +40,13 @@ import com.stefan.simplebackup.ui.activities.MainActivity
 import com.stefan.simplebackup.ui.fragments.BaseFragment
 import com.stefan.simplebackup.ui.fragments.FragmentViewBindingDelegate
 import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.isActive
 import java.lang.reflect.ParameterizedType
+import kotlin.coroutines.coroutineContext
 
 // ##
 // ## ViewBinding extensions
@@ -105,6 +113,27 @@ inline fun <T : AppCompatActivity, R> Fragment.onActivityCallback(
     crossinline block: T.() -> R
 ): R? = (activity as? T)?.run {
     block()
+}
+
+//
+//## Internet connection check
+fun Context.observeNetworkConnection(delay: Long = 250L) = flow {
+    while (coroutineContext.isActive) {
+        val isNetworkConnected = isNetworkConnected()
+        emit(isNetworkConnected)
+        delay(delay)
+    }
+}.flowOn(Dispatchers.IO)
+
+fun Context.isNetworkConnected(): Boolean {
+    val manager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    return manager.getNetworkCapabilities(manager.activeNetwork)?.let {
+        it.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                it.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                it.hasTransport(NetworkCapabilities.TRANSPORT_BLUETOOTH) ||
+                it.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ||
+                it.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+    } ?: false
 }
 
 //##

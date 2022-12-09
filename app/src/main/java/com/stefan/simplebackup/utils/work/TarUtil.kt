@@ -1,11 +1,8 @@
-package com.stefan.simplebackup.utils.work.archive
+package com.stefan.simplebackup.utils.work
 
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
-import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
-import com.stefan.simplebackup.utils.file.LIB_DIR_NAME
-import com.stefan.simplebackup.utils.file.TAR_FILE_EXTENSION
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +25,7 @@ object TarUtil {
 
             // Set archive name and path
             val tarArchiveName = getArchiveName(app)
-            val tarArchivePath = getTempDirPath(app) + "/$tarArchiveName"
+            val tarArchivePath = FileUtil.getTempDirPath(app) + "/$tarArchiveName"
 
             val tarArchiveFile = File(tarArchivePath)
             if (tarArchiveFile.exists()) tarArchiveFile.delete()
@@ -56,7 +53,7 @@ object TarUtil {
     suspend fun restoreData(app: AppData, uid: Int) {
         withContext(ioDispatcher) {
             val tarArchiveName = getArchiveName(app)
-            val tarArchivePath = getTempDirPath(app) + "/$tarArchiveName"
+            val tarArchivePath = FileUtil.getTempDirPath(app) + "/$tarArchiveName"
 
             Log.d("TarUtil", "Unarchiving the ${app.packageName} tar archive")
             val result = unarchiveData(

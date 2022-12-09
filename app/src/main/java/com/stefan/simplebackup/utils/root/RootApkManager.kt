@@ -2,8 +2,8 @@ package com.stefan.simplebackup.utils.root
 
 import android.content.Context
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.file.APK_FILE_EXTENSION
-import com.stefan.simplebackup.utils.file.FileUtil
+import com.stefan.simplebackup.utils.work.APK_FILE_EXTENSION
+import com.stefan.simplebackup.utils.work.FileUtil
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers

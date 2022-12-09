@@ -11,9 +11,7 @@ import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentConfigureSheetBinding
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
-import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.onMainActivity
-import com.stefan.simplebackup.utils.extensions.viewBinding
+import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.delay
 
 const val CONFIGURE_SHEET_TAG = "CONFIGURE_SHEET_TAG"
@@ -58,6 +56,17 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.apply {
             bindViews()
+            initObservers()
+        }
+    }
+
+    private fun FragmentConfigureSheetBinding.initObservers() {
+        launchOnViewLifecycle {
+            repeatOnResumed {
+                mainViewModel.hasInternetConnection.collect {
+                    cloudBackupButton.isEnabled = it
+                }
+            }
         }
     }
 

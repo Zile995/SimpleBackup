@@ -2,8 +2,9 @@ package com.stefan.simplebackup.utils.file
 
 import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.file.FileUtil.emitJsonFiles
-import com.stefan.simplebackup.utils.file.JsonUtil.deserializeApp
+import com.stefan.simplebackup.utils.work.FileUtil
+import com.stefan.simplebackup.utils.work.JSON_FILE_EXTENSION
+import com.stefan.simplebackup.utils.work.JsonUtil.deserializeApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -23,7 +24,7 @@ class BackupFilesObserver(
     fun refreshBackupFileList(predicate: (AppData) -> Boolean = { it.isLocal }) = scope.launch {
         Log.d("BackupFilesObserver", "Refreshing the backup list")
         val backupList = mutableListOf<AppData>()
-        emitJsonFiles(jsonDirPath = rootDirPath).collect { jsonFile ->
+        FileUtil.emitJsonFiles(jsonDirPath = rootDirPath).collect { jsonFile ->
             if (jsonFile.parentFile?.parentFile?.absolutePath != rootDirPath) return@collect
             val app = deserializeApp(jsonFile)
             app?.let {
@@ -44,9 +45,15 @@ class BackupFilesObserver(
                 Log.d("BackupFilesObserver", "$kind: ${file.absolutePath}")
                 observableList.updateCurrentList { currentList ->
                     when (kind) {
-                        EventKind.CREATED -> { onCreatedEvent(currentList, file) }
-                        EventKind.DELETED -> { onDeletedEvent(currentList, file) }
-                        EventKind.MODIFIED -> { onModifiedEvent(currentList, file) }
+                        EventKind.CREATED -> {
+                            onCreatedEvent(currentList, file)
+                        }
+                        EventKind.DELETED -> {
+                            onDeletedEvent(currentList, file)
+                        }
+                        EventKind.MODIFIED -> {
+                            onModifiedEvent(currentList, file)
+                        }
                     }
                 }
             }

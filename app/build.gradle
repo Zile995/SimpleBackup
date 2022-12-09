@@ -108,7 +108,10 @@ dependencies {
     implementation "androidx.constraintlayout:constraintlayout:$constraint"
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:$swipeRefresh"
 
-    // Fragment Kotlin support
+    // Activity
+    implementation "androidx.activity:activity-ktx:$activity"
+
+    // Fragment
     implementation "androidx.fragment:fragment-ktx:$fragment"
 
     // Navigation component

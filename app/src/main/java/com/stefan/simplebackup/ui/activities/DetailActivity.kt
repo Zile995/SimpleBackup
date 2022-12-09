@@ -27,8 +27,8 @@ import com.stefan.simplebackup.databinding.ActivityDetailBinding
 import com.stefan.simplebackup.ui.viewmodels.DetailsViewModel
 import com.stefan.simplebackup.ui.viewmodels.DetailsViewModelFactory
 import com.stefan.simplebackup.utils.extensions.*
-import com.stefan.simplebackup.utils.file.FileUtil
-import com.stefan.simplebackup.utils.file.JSON_FILE_EXTENSION
+import com.stefan.simplebackup.utils.work.FileUtil
+import com.stefan.simplebackup.utils.work.JSON_FILE_EXTENSION
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 

@@ -18,16 +18,17 @@ import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.WorkActionBroadcastReceiver
 import com.stefan.simplebackup.ui.notifications.WorkNotificationManager
 import com.stefan.simplebackup.utils.extensions.*
-import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
-import com.stefan.simplebackup.utils.file.FileUtil.tempDirPath
-import com.stefan.simplebackup.utils.file.TEMP_DIR_NAME
 import com.stefan.simplebackup.utils.root.RootApkManager
-import com.stefan.simplebackup.utils.work.archive.ZipUtil
-import com.stefan.simplebackup.utils.work.backup.BackupUtil
-import com.stefan.simplebackup.utils.work.restore.RestoreUtil
+import com.stefan.simplebackup.utils.work.BackupUtil
+import com.stefan.simplebackup.utils.work.FileUtil
+import com.stefan.simplebackup.utils.work.FileUtil.deleteFile
+import com.stefan.simplebackup.utils.work.FileUtil.tempDirPath
+import com.stefan.simplebackup.utils.work.RestoreUtil
+import com.stefan.simplebackup.utils.work.TEMP_DIR_NAME
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.io.File
 import java.io.IOException
 import kotlin.system.measureTimeMillis
 
@@ -144,23 +145,33 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         }
     }
 
+    private fun isRestoring(): Boolean {
+        val isRestoring = !shouldBackup && RestoreUtil.isRestoring
+        if (isRestoring)
+            applicationContext.showToast(applicationContext.getString(R.string.restoring_please_wait))
+        return isRestoring
+    }
+
     private fun initWorkActions() {
         skipAction = {
             Log.w("MainWorker", "Clicked skip button: $workItemJob")
-            val toastMessage =
-                applicationContext.getString(R.string.skipping, mProgressData.value?.name)
-            applicationContext.showToast(toastMessage)
-            workItemJob?.cancel()
-            forcefullyDeleteBackup()
+            if (!isRestoring()) {
+                val toastMessage =
+                    applicationContext.getString(R.string.skipping, mProgressData.value?.name)
+                applicationContext.showToast(toastMessage)
+                workItemJob?.cancel()
+                forcefullyDeleteBackup()
+            }
         }
 
         cancelAction = {
-            Log.w("MainWorker", "Clicked cancel button: $mainJob")
-            val toastMessage = applicationContext.getString(R.string.canceling_work)
-            applicationContext.showToast(toastMessage, true)
-            mainJob?.cancel()
-            forcefullyDeleteBackup()
-            forcefullyDeleteCloudBackup()
+            if (!isRestoring()) {
+                Log.w("MainWorker", "Clicked cancel button: $mainJob")
+                val toastMessage = applicationContext.getString(R.string.canceling_work)
+                applicationContext.showToast(toastMessage, true)
+                mainJob?.cancel()
+                forcefullyDeleteBackup()
+            }
         }
     }
 
@@ -189,7 +200,18 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
 
     private fun forcefullyDeleteBackup() {
         mainScope?.launch {
-            ZipUtil.forcefullyDeleteZipBackups()
+            runBlocking(coroutineContext) {
+                try {
+                    if (BackupUtil.isZippingData) {
+                        val tempDirFile = File(tempDirPath)
+                        FileUtil.deleteDirectoryFiles(tempDirFile)
+                    }
+                    forcefullyDeleteCloudBackup()
+                } catch (e: IOException) {
+                    // Just log and continue executing
+                    Log.w("ZipUtil", "Exception while deleting files in dir $e")
+                }
+            }
         }
     }
 

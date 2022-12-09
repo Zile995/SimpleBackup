@@ -11,13 +11,15 @@ import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
-import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
 import com.stefan.simplebackup.utils.PreferenceHelper
-import com.stefan.simplebackup.utils.file.FileUtil
+import com.stefan.simplebackup.utils.extensions.observeNetworkConnection
 import com.stefan.simplebackup.utils.root.RootChecker
+import com.stefan.simplebackup.utils.work.FileUtil
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import java.io.IOException
 
 class MainViewModel(application: MainApplication) : AndroidViewModel(application),
@@ -55,6 +57,15 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
 
     private var _searchResult = MutableStateFlow(listOf<AppData>())
     val searchResult = _searchResult.asStateFlow()
+
+    val hasInternetConnection by lazy {
+        application.observeNetworkConnection(delay = 500L)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(1_000L),
+                initialValue = false
+            )
+    }
 
     init {
         Log.d("ViewModel", "MainViewModel created")
@@ -105,7 +116,9 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
         }
     }
 
-    fun resetSearchResult() { _searchResult.value = emptyList() }
+    fun resetSearchResult() {
+        _searchResult.value = emptyList()
+    }
 
     inline fun addToFavorites(
         crossinline onSuccess: (number: Int) -> Unit,

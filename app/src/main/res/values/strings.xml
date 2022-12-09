@@ -103,6 +103,7 @@
     <string name="items">items</string>
     <string name="skip">Skip</string>
     <string name="skipping">Skipping %1$s…</string>
+    <string name="restoring_please_wait">Restoring data… Please wait.</string>
     <string name="cancel">Cancel</string>
     <string name="cancelled">Cancelled</string>
     <string name="canceling_work">Canceling work, please wait…</string>

@@ -8,7 +8,7 @@ import android.util.Log
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.toByteArray
-import com.stefan.simplebackup.utils.file.FileUtil.getApkFileSizeSplitInfo
+import com.stefan.simplebackup.utils.work.FileUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -93,7 +93,7 @@ class AppManager(private val context: Context) {
         appInfoManager.run {
             val apkDir = getApkDir(appInfo)
             val packageName = getPackageName(appInfo)
-            val apkInfo = getApkFileSizeSplitInfo(apkDir)
+            val apkInfo = FileUtil.getApkFileSizeSplitInfo(apkDir)
 
             AppData(
                 name = getAppName(appInfo),

@@ -22,10 +22,7 @@ class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDi
     private val registeredKeys = HashMap<WatchKey, Path>()
     private val watchService = FileSystems.getDefault().newWatchService()
 
-    private val _fileEvent = MutableSharedFlow<FileEvent>(
-        extraBufferCapacity = Int.MAX_VALUE,
-        onBufferOverflow = BufferOverflow.SUSPEND
-    )
+    private val _fileEvent = MutableSharedFlow<FileEvent>(extraBufferCapacity = Int.MAX_VALUE)
     val fileEvent get() = _fileEvent.asSharedFlow()
 
     init {

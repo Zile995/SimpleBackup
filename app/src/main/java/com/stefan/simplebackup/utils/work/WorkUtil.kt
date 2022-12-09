@@ -49,9 +49,7 @@ abstract class WorkUtil(
         generateIntervals()
     }
 
-    override suspend fun onFailure(app: AppData) {
-        setNearestItemInterval()
-    }
+    override suspend fun onFailure(app: AppData) = setNearestItemInterval()
 
     /**
      * Method which saves intervals for each work item
@@ -74,6 +72,16 @@ abstract class WorkUtil(
         }
     }
 
+    protected var tempItemDirPath: String = ""
+        private set(value) {
+            if (value != field) field = value
+        }
+
+    protected var backupItemDirPath: String = ""
+        private set(value) {
+            if (value != field) field = value
+        }
+
     /**
      * - Main work method which executes work actions and handles work exceptions
      */
@@ -87,6 +95,8 @@ abstract class WorkUtil(
             }
             else -> {
                 try {
+                    tempItemDirPath = FileUtil.getTempDirPath(this)
+                    backupItemDirPath = FileUtil.getBackupDirPath(this)
                     actions.forEach { action ->
                         action(this)
                         updateProgress(actions.size)
@@ -94,6 +104,8 @@ abstract class WorkUtil(
                     onSuccess(app = this)
                 } catch (e: IOException) {
                     Log.w("WorkUtil", "Oh, an error occurred: $e")
+                    tempItemDirPath = ""
+                    backupItemDirPath = ""
                     onFailure(app = this)
                 }
             }

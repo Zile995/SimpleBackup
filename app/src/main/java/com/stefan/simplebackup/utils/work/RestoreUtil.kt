@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.utils.work.restore
+package com.stefan.simplebackup.utils.work
 
 import android.content.Context
 import android.util.Log
@@ -7,16 +7,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.ForegroundCallback
-import com.stefan.simplebackup.utils.file.FileUtil
-import com.stefan.simplebackup.utils.file.FileUtil.deleteFile
-import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
-import com.stefan.simplebackup.utils.file.FileUtil.localDirPath
-import com.stefan.simplebackup.utils.file.JsonUtil
 import com.stefan.simplebackup.utils.root.RootApkManager
-import com.stefan.simplebackup.utils.work.WorkResult
-import com.stefan.simplebackup.utils.work.WorkUtil
-import com.stefan.simplebackup.utils.work.archive.TarUtil
-import com.stefan.simplebackup.utils.work.archive.ZipUtil
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
@@ -64,7 +55,7 @@ class RestoreUtil(
     }
 
     private suspend fun addRestoreApps() {
-        val jsonFiles = FileUtil.getJsonFiles(localDirPath) { dirName ->
+        val jsonFiles = FileUtil.getJsonFiles(FileUtil.localDirPath) { dirName ->
             restoreItems.contains(dirName)
         }
         jsonFiles.forEach { jsonFile ->
@@ -75,24 +66,26 @@ class RestoreUtil(
 
     private suspend fun createDirs(app: AppData) {
         app.updateProgressData(R.string.restore_progress_dir_info)
-        FileUtil.createDirectory(getTempDirPath(app))
+        FileUtil.createDirectory(tempItemDirPath)
         rootApkManager.createTempInstallDir(app)
     }
 
     private suspend fun unzipData(app: AppData) {
         app.updateProgressData(R.string.restore_progress_dir_info)
-        ZipUtil.unzipAllData(app)
+        ZipUtil.unzipAllData(app, backupItemDirPath)
         rootApkManager.moveApkFilesToTempDir(app)
     }
 
     private suspend fun installApk(app: AppData) {
         app.updateProgressData(R.string.restore_apk_install_info)
+        isRestoring = true
         val appManager = AppManager(context = appContext)
         val doesExists = appManager.doesPackageExists(packageName = app.packageName)
         rootApkManager.apply {
             if (doesExists) uninstallApk(packageName = app.packageName)
             installApk(getTempApkInstallDirPath(app = app))
             deleteTempInstallDir(app = app)
+            isRestoring = false
         }
     }
 
@@ -103,8 +96,10 @@ class RestoreUtil(
             app.updateProgressData(R.string.restore_progress_uid_info)
             throw IOException(appContext.getString(R.string.restore_progress_uid_info))
         }
+        isRestoring = true
         TarUtil.restoreData(app, appUid)
-        deleteFile(getTempDirPath(app))
+        FileUtil.deleteFile(tempItemDirPath)
+        isRestoring = false
     }
 
     override suspend fun onSuccess(app: AppData) {
@@ -114,12 +109,18 @@ class RestoreUtil(
     override suspend fun onFailure(app: AppData) {
         super.onFailure(app)
         try {
-            deleteFile(getTempDirPath(app))
+            FileUtil.deleteFile(tempItemDirPath)
             rootApkManager.deleteTempInstallDir(app)
         } catch (e: IOException) {
             Log.w("RestoreUtil", "Failed to delete broken restore files $e")
         } finally {
             app.updateProgressData(R.string.restore_progress_failed, WorkResult.ERROR)
+            isRestoring = false
         }
+    }
+
+    companion object {
+        var isRestoring = false
+         private set
     }
 }

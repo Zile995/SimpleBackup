@@ -13,9 +13,9 @@ import com.stefan.simplebackup.data.manager.ApkSizeStats
 import com.stefan.simplebackup.data.manager.AppInfoManager
 import com.stefan.simplebackup.data.manager.AppStorageManager
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.file.FileUtil
 import com.stefan.simplebackup.utils.file.asRecursiveFileWatcher
-import com.stefan.simplebackup.utils.work.archive.ZipUtil
+import com.stefan.simplebackup.utils.work.FileUtil
+import com.stefan.simplebackup.utils.work.ZipUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow

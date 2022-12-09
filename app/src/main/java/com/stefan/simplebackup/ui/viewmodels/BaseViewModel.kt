@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.file.BackupFilesObserver
-import com.stefan.simplebackup.utils.file.FileUtil
+import com.stefan.simplebackup.utils.work.FileUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,7 +39,7 @@ abstract class BaseViewModel : ViewModel(), RecyclerViewStateSaver by RecyclerVi
     ) {
         repositoryList().collect { list ->
             _observableList.value = list
-            delay(400)
+            if (_spinner.value) delay(400)
             if (shouldControlSpinner) _spinner.value = false
         }
     }

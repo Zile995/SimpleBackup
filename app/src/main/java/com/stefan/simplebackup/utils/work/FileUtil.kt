@@ -1,4 +1,4 @@
-package com.stefan.simplebackup.utils.file
+package com.stefan.simplebackup.utils.work
 
 import android.util.Log
 import com.stefan.simplebackup.MainApplication.Companion.mainBackupDirPath
@@ -26,8 +26,8 @@ object FileUtil {
     val ioDispatcher = Dispatchers.IO
 
     // Dir paths
-    val localDirPath get() = "${mainBackupDirPath}/$LOCAL_DIR_NAME"
-    val tempDirPath get() = "${mainBackupDirPath}/$TEMP_DIR_NAME"
+    val tempDirPath = "${mainBackupDirPath}/$TEMP_DIR_NAME"
+    val localDirPath = "${mainBackupDirPath}/$LOCAL_DIR_NAME"
 
     suspend fun createDirectory(path: String) {
         withContext(ioDispatcher) {
@@ -110,13 +110,11 @@ object FileUtil {
         }
     }.flowOn(ioDispatcher)
 
-    fun getApkFilesInsideDir(app: AppData): List<File> {
-        val dir = File(app.apkDir)
+    fun getApkFilesInsideDir(apkDirPath: String): List<File> {
+        val dir = File(apkDirPath)
         return dir.walkTopDown().filter { apkDirFile ->
             apkDirFile.isFile && apkDirFile.extension == APK_FILE_EXTENSION
-        }.toList().also { apkFiles ->
-            Log.d("FileUtil", "Got the apk list for ${app.name}: ${apkFiles.map { it.name }}")
-        }
+        }.toList()
     }
 
     suspend fun getApkFileSizeSplitInfo(apkDirPath: String): Pair<Float, Boolean> = coroutineScope {

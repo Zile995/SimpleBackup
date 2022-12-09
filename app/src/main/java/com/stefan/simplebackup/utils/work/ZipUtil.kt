@@ -1,14 +1,10 @@
-package com.stefan.simplebackup.utils.work.archive
+package com.stefan.simplebackup.utils.work
 
 import android.util.Log
 import androidx.annotation.WorkerThread
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.file.*
-import com.stefan.simplebackup.utils.file.FileUtil.findTarArchive
-import com.stefan.simplebackup.utils.file.FileUtil.getApkFilesInsideDir
-import com.stefan.simplebackup.utils.file.FileUtil.getBackupDirPath
-import com.stefan.simplebackup.utils.file.FileUtil.getTempDirPath
 import kotlinx.coroutines.*
 import net.lingala.zip4j.ZipFile
 import net.lingala.zip4j.exception.ZipException
@@ -20,40 +16,28 @@ import java.io.IOException
 
 object ZipUtil {
 
-    private var isWorkingWithApk = false
-    private var isWorkingWithData = false
-
     @WorkerThread
     @Throws(ZipException::class, IOException::class)
-    suspend fun zipAllData(app: AppData) = coroutineScope {
+    suspend fun zipAllData(app: AppData, dirPath: String) = coroutineScope {
         launch {
-            isWorkingWithApk = true
-            zipApks(app)
-            isWorkingWithApk = false
+            zipApks(app, dirPath)
         }
-        isWorkingWithData = true
-        zipTarArchive(app)
-        isWorkingWithData = false
+        zipTarArchive(app, dirPath)
     }
 
     @WorkerThread
     @Throws(ZipException::class, IOException::class)
-    suspend fun unzipAllData(app: AppData) = coroutineScope {
+    suspend fun unzipAllData(app: AppData, backupDirPath: String) = coroutineScope {
         launch {
-            isWorkingWithApk = true
-            unzipApks(app)
-            isWorkingWithApk = false
+            unzipApks(app, backupDirPath)
         }
-        isWorkingWithData = true
-        unzipTarArchive(app)
-        isWorkingWithData = false
+        unzipTarArchive(app, backupDirPath)
     }
 
     @Throws(ZipException::class, IOException::class)
-    private suspend fun zipApks(app: AppData) {
+    private suspend fun zipApks(app: AppData, tempDirPath: String) {
         coroutineScope {
-            val apkFiles = async { getApkFilesInsideDir(app) }
-            val tempDirPath = getTempDirPath(app)
+            val apkFiles = async { FileUtil.getApkFilesInsideDir(app.apkDir) }
             val zipParameters = getZipParameters()
             val zipFile = ZipFile("$tempDirPath/${app.name}.$ZIP_FILE_EXTENSION")
             if (zipFile.file.exists()) zipFile.file.delete()
@@ -64,14 +48,13 @@ object ZipUtil {
     }
 
     @Throws(ZipException::class, IOException::class)
-    private suspend fun unzipApks(app: AppData) {
+    private suspend fun unzipApks(app: AppData, backupDirPath: String) {
         coroutineScope {
-            val backupDirPath = getBackupDirPath(app)
             Log.d("ZipUtil", "Extracting the ${app.name} apks to temp dir")
             val apkZipFile = getApkZipFile(appBackupDirPath = backupDirPath)
             apkZipFile.apply {
                 if (!apkZipFile.isValidZipFile) throw IOException("Apk zip file is not valid")
-                val tempDirPath = getTempDirPath(app)
+                val tempDirPath = FileUtil.getTempDirPath(app)
                 extractAll(tempDirPath)
                 Log.d("ZipUtil", "Successfully extracted ${app.name} apks")
             }
@@ -79,50 +62,28 @@ object ZipUtil {
     }
 
     @Throws(ZipException::class, IOException::class)
-    private suspend fun zipTarArchive(app: AppData) = coroutineScope {
-        val tempDirPath = getTempDirPath(app)
+    private suspend fun zipTarArchive(app: AppData, tempDirPAth: String) = coroutineScope {
         val zipParameters = getZipParameters(isApk = false)
-        val tarArchive = findTarArchive(dirPath = tempDirPath, app = app)
+        val tarArchive = FileUtil.findTarArchive(dirPath = tempDirPAth, app = app)
         // Save data size to app
         app.dataSize += tarArchive.length()
         val zipFile =
-            ZipFile("${getTempDirPath(app)}/${app.packageName}.$ZIP_FILE_EXTENSION")
+            ZipFile("$tempDirPAth/${app.packageName}.$ZIP_FILE_EXTENSION")
         if (zipFile.file.exists()) zipFile.file.delete()
-        Log.d("ZipUtil", "Zipping the ${app.packageName} tar archive to $tempDirPath")
+        Log.d("ZipUtil", "Zipping the ${app.packageName} tar archive to $tempDirPAth")
         zipFile.addFile(tarArchive, zipParameters)
         tarArchive.delete()
         Log.d("ZipUtil", "Successfully zipped ${app.name} data")
     }
 
-    @WorkerThread
-    suspend fun forcefullyDeleteZipBackups() = coroutineScope {
-        runBlocking(coroutineContext) {
-            if (isWorkingWithData || isWorkingWithApk) {
-                try {
-                    val tempDirFile = File(FileUtil.tempDirPath)
-                    FileUtil.deleteDirectoryFiles(tempDirFile) {
-                        it.extension == ZIP_FILE_EXTENSION
-                    }
-                } catch (e: IOException) {
-                    // Just log and continue executing
-                    Log.w("ZipUtil", "Exception while deleting files in dir $e")
-                } finally {
-                    isWorkingWithApk = false
-                    isWorkingWithData = false
-                }
-            }
-        }
-    }
-
     @Throws(ZipException::class, IOException::class)
-    private suspend fun unzipTarArchive(app: AppData) {
+    private suspend fun unzipTarArchive(app: AppData, backupDirPath: String) {
         coroutineScope {
-            val backupDirPath = getBackupDirPath(app)
             Log.d("ZipUtil", "Extracting the ${app.name} tar to temp dir")
             val tarZipFile = getTarZipFile(appBackupDirPath = backupDirPath)
             tarZipFile.apply {
                 if (!tarZipFile.isValidZipFile) throw IOException("Tar zip file is not valid")
-                val tempDirPath = getTempDirPath(app)
+                val tempDirPath = FileUtil.getTempDirPath(app)
                 extractAll(tempDirPath)
                 Log.d("ZipUtil", "Successfully extracted ${app.packageName} tar")
             }
