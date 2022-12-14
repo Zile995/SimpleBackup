@@ -145,17 +145,17 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         }
     }
 
-    private fun isRestoring(): Boolean {
-        val isRestoring = !shouldBackup && RestoreUtil.isRestoring
-        if (isRestoring)
+    private fun canInterrupt(): Boolean {
+        val canInterrupt = !shouldBackup && RestoreUtil.canInterrupt
+        if (canInterrupt)
             applicationContext.showToast(applicationContext.getString(R.string.restoring_please_wait))
-        return isRestoring
+        return canInterrupt
     }
 
     private fun initWorkActions() {
         skipAction = {
             Log.w("MainWorker", "Clicked skip button: $workItemJob")
-            if (!isRestoring()) {
+            if (!canInterrupt()) {
                 val toastMessage =
                     applicationContext.getString(R.string.skipping, mProgressData.value?.name)
                 applicationContext.showToast(toastMessage)
@@ -165,7 +165,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         }
 
         cancelAction = {
-            if (!isRestoring()) {
+            if (!canInterrupt()) {
                 Log.w("MainWorker", "Clicked cancel button: $mainJob")
                 val toastMessage = applicationContext.getString(R.string.canceling_work)
                 applicationContext.showToast(toastMessage, true)
@@ -215,10 +215,9 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         }
     }
 
-    private fun forcefullyDeleteCloudBackup() {
-        mainScope?.launch {
-            if (shouldBackupToCloud) driveService?.deleteFile(fileName = TEMP_DIR_NAME)
-        }
+    private suspend fun forcefullyDeleteCloudBackup() {
+        if (shouldBackupToCloud)
+            driveService?.deleteFile(fileName = TEMP_DIR_NAME)
     }
 
     private fun getPendingIntent(actionValue: String): PendingIntent {

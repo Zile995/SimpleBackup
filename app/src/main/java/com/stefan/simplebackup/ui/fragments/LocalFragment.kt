@@ -20,11 +20,12 @@ import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.onMainActivity
 import com.stefan.simplebackup.utils.extensions.repeatOnStarted
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.properties.Delegates
 
 class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     private val localViewModel: LocalViewModel by viewModels {
-        LocalViewModelFactory()
+        LocalViewModelFactory(mainViewModel.repository)
     }
 
     private val appPermissionManager by lazy {
@@ -85,8 +86,9 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     private fun FragmentLocalBinding.bindSwipeContainer() {
         swipeRefresh.setOnRefreshListener {
             launchOnViewLifecycle {
-                localViewModel.refreshBackupList()
-                swipeRefresh.isRefreshing = false
+                localViewModel.refreshBackupList().invokeOnCompletion {
+                    swipeRefresh.isRefreshing = false
+                }
             }
         }
     }
@@ -94,6 +96,11 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
     private fun FragmentLocalBinding.initObservers() {
         launchOnViewLifecycle {
             repeatOnStarted {
+                launch {
+                    localViewModel.isRefreshing.collect {
+                        linearProgress.isVisible = it
+                    }
+                }
                 localViewModel.spinner.collect { isSpinning ->
                     progressBar.isVisible = isSpinning
                     if (!isSpinning) {

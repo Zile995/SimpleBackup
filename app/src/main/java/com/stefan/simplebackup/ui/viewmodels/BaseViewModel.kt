@@ -1,10 +1,7 @@
 package com.stefan.simplebackup.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.data.model.AppData
-import com.stefan.simplebackup.utils.file.BackupFilesObserver
-import com.stefan.simplebackup.utils.work.FileUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,17 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 const val SELECTION_EXTRA = "SELECTION_LIST"
 
 abstract class BaseViewModel : ViewModel(), RecyclerViewStateSaver by RecyclerViewStateSaverImpl() {
-    // Backup files observer
-    protected val backupFilesObserver by lazy {
-        BackupFilesObserver(
-            rootDirPath = FileUtil.localDirPath,
-            scope = viewModelScope,
-            observableList = _observableList
-        )
-    }
-
     // Observable spinner properties used for progressbar observing
-    protected val _spinner = MutableStateFlow(true)
+    private val _spinner = MutableStateFlow(true)
     val spinner get() = _spinner.asStateFlow()
 
     // Observable application properties used for list loading

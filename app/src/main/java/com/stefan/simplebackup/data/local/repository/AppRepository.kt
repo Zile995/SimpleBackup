@@ -1,11 +1,11 @@
 package com.stefan.simplebackup.data.local.repository
 
-import android.content.Context
 import android.util.Log
 import com.stefan.simplebackup.data.local.dao.AppDao
 import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.extensions.filterBy
+import com.stefan.simplebackup.utils.work.FileUtil
 import kotlinx.coroutines.*
 import kotlin.system.measureTimeMillis
 
@@ -16,12 +16,13 @@ class AppRepository(private val appDao: AppDao) {
     val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     val installedApps
-        get() = appDao.getAllApps().filterBy { app ->
-            app.isUserApp && !app.isLocal
-        }
+        get() = appDao.getAllApps().filterBy { app -> app.isUserApp && !app.isLocal }
+
+    val localApps
+        get() = appDao.getAllApps().filterBy { app -> app.isLocal }
 
     suspend fun insertAppData(app: AppData) {
-        if (isFavorite(app.packageName) == true) {
+        if (isFavorite(app.packageName, app.isLocal) == true) {
             app.isFavorite = true
             insert(app)
         } else {
@@ -41,21 +42,31 @@ class AppRepository(private val appDao: AppDao) {
             }
         }
 
-    suspend fun removeFromFavorites(packageName: String) = appDao.removeFromFavorites(packageName)
-
-    suspend fun addToFavorites(packageName: String) = appDao.addToFavorites(packageName)
     suspend fun insert(app: AppData) = appDao.insert(app)
     suspend fun delete(packageName: String) = appDao.delete(packageName)
+    suspend fun deleteLocal(packageName: String) = appDao.delete(packageName, true)
+    suspend fun addToFavorites(packageName: String) = appDao.addToFavorites(packageName)
+    suspend fun removeFromFavorites(packageName: String) = appDao.removeFromFavorites(packageName)
 
-    suspend fun getAppData(context: Context, packageName: String): AppData? {
-        val appManager = AppManager(context)
+    suspend fun getAppData(appManager: AppManager, packageName: String): AppData? {
         return if (appManager.doesPackageExists(packageName))
-            appDao.getData(packageName)
+            appDao.getAppData(packageName)
         else {
             delete(packageName)
             null
         }
     }
 
-    private suspend fun isFavorite(packageName: String) = appDao.isFavorite(packageName)
+    suspend fun getLocalData(packageName: String): AppData? {
+        val app = appDao.getLocalData(packageName)
+        val appJsonFile = FileUtil.getJsonFileForApp(app)
+        return if (appJsonFile?.exists() == true) {
+            app
+        } else {
+            deleteLocal(packageName)
+            null
+        }
+    }
+
+    private suspend fun isFavorite(packageName: String, isLocal: Boolean) = appDao.isFavorite(packageName, isLocal)
 }

@@ -15,11 +15,11 @@ interface AppDao {
     @Query("SELECT * FROM $APP_TABLE_NAME WHERE name LIKE :name || '%' ORDER BY name ASC")
     fun findAppsByName(name: String): Flow<MutableList<AppData>>
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(app: AppData)
 
-    @Query("DELETE FROM $APP_TABLE_NAME WHERE package_name = :packageName")
-    suspend fun delete(packageName: String): Int
+    @Query("DELETE FROM $APP_TABLE_NAME WHERE package_name = :packageName AND is_local = :isLocal")
+    suspend fun delete(packageName: String, isLocal: Boolean = false): Int
 
     @Transaction
     suspend fun addToFavorites(packageName: String) = setFavorite(packageName, true)
@@ -27,14 +27,17 @@ interface AppDao {
     @Transaction
     suspend fun removeFromFavorites(packageName: String) = setFavorite(packageName, false)
 
-    @Query("SELECT is_favorite FROM $APP_TABLE_NAME WHERE package_name = :packageName")
-    suspend fun isFavorite(packageName: String): Boolean?
+    @Query("SELECT is_favorite FROM $APP_TABLE_NAME WHERE package_name = :packageName AND is_local = :isLocal")
+    suspend fun isFavorite(packageName: String, isLocal: Boolean): Boolean?
 
     @Query("UPDATE $APP_TABLE_NAME SET is_favorite = :setFavorite WHERE package_name = :packageName ")
     suspend fun setFavorite(packageName: String, setFavorite: Boolean)
 
     @Query("SELECT * FROM $APP_TABLE_NAME WHERE package_name = :packageName")
-    suspend fun getData(packageName: String): AppData?
+    suspend fun getAppData(packageName: String): AppData
+
+    @Query("SELECT * FROM $APP_TABLE_NAME WHERE package_name = :packageName AND is_local = 1")
+    suspend fun getLocalData(packageName: String): AppData
 
     @Query("DELETE FROM $APP_TABLE_NAME")
     suspend fun clear()

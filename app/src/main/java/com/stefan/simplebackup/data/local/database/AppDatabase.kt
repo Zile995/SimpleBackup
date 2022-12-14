@@ -44,7 +44,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val time = measureTimeMillis {
                     appManager.apply {
                         updateSequenceNumber()
-                        dataBuilder().collect { app ->
+                        buildData().collect { app ->
                             Log.d("AppDatabase", "Inserting: ${app.name}")
                             appDao?.insert(app)
                         }

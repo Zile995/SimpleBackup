@@ -37,7 +37,7 @@ object ZipUtil {
     @Throws(ZipException::class, IOException::class)
     private suspend fun zipApks(app: AppData, tempDirPath: String) {
         coroutineScope {
-            val apkFiles = async { FileUtil.getApkFilesInsideDir(app.apkDir) }
+            val apkFiles = async { FileUtil.getApkInDir(app.apkDir) }
             val zipParameters = getZipParameters()
             val zipFile = ZipFile("$tempDirPath/${app.name}.$ZIP_FILE_EXTENSION")
             if (zipFile.file.exists()) zipFile.file.delete()

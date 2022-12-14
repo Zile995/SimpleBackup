@@ -7,6 +7,19 @@
     android:background="?attr/colorPrimaryVariant"
     tools:context=".ui.fragments.LocalFragment">
 
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/linear_progress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/primary_button_color"
+        android:indeterminateTintMode="src_atop"
+        android:progressBackgroundTint="?attr/colorSecondaryVariant"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
@@ -14,7 +27,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/linear_progress">
 
         <com.stefan.simplebackup.ui.views.MainRecyclerView
             android:id="@+id/local_recycler_view"
@@ -33,7 +46,6 @@
         android:id="@+id/progress_bar"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerInParent="true"
         android:layout_marginBottom="@dimen/bottom_navigation_height"
         android:indeterminateTint="@color/primary_button_color"
         android:scaleX="0.12"
@@ -56,7 +68,6 @@
         android:textColor="@color/selectedTab"
         android:textSize="19sp"
         android:visibility="gone"
-        android:nestedScrollingEnabled="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

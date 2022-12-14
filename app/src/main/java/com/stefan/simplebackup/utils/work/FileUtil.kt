@@ -68,7 +68,10 @@ object FileUtil {
     }
 
     @Throws(IOException::class)
-    suspend inline fun deleteDirectoryFiles(dir: File, crossinline filter: (File) -> Boolean = { true }) {
+    suspend inline fun deleteDirectoryFiles(
+        dir: File,
+        crossinline filter: (File) -> Boolean = { true }
+    ) {
         if (!dir.isDirectory) throw IOException("File must be verified to be directory beforehand")
         withContext(ioDispatcher) {
             dir.walkTopDown().forEach { dirFile ->
@@ -91,35 +94,38 @@ object FileUtil {
         return tarArchive
     }
 
-    suspend fun getJsonInDir(jsonDirPath: String) = withContext(ioDispatcher) {
-        File(jsonDirPath).walkTopDown().firstOrNull { dirFile ->
+    suspend fun getJsonInDir(dirPath: String) = withContext(ioDispatcher) {
+        File(dirPath).walkTopDown().firstOrNull { dirFile ->
             dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION
         }
     }
 
-    suspend fun getJsonFiles(jsonDirPath: String, filterDirNames: (String?) -> Boolean = { true }) =
-        coroutineScope {
-            File(jsonDirPath).walkTopDown().filter { dirFile ->
-                dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION && filterDirNames(dirFile.parentFile?.name)
-            }
-        }
+    suspend fun getJsonFileForApp(app: AppData): File? {
+        val backupDirPath = getBackupDirPath(app)
+        return getJsonInDir(dirPath = backupDirPath)
+    }
 
-    fun emitJsonFiles(jsonDirPath: String) = flow {
-        getJsonFiles(jsonDirPath).forEach { jsonFile ->
+    inline fun findJsonFiles(
+        dirPath: String,
+        crossinline filterDirNames: (String?) -> Boolean = { true }
+    ) = flow {
+        File(dirPath).walkTopDown().filter { dirFile ->
+            dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION && filterDirNames(dirFile.parentFile?.name)
+        }.forEach { jsonFile ->
             emit(jsonFile)
         }
     }.flowOn(ioDispatcher)
 
-    fun getApkFilesInsideDir(apkDirPath: String): List<File> {
-        val dir = File(apkDirPath)
-        return dir.walkTopDown().filter { apkDirFile ->
-            apkDirFile.isFile && apkDirFile.extension == APK_FILE_EXTENSION
+    fun getApkInDir(dirPath: String): List<File> {
+        val dir = File(dirPath)
+        return dir.walkTopDown().filter { dirFile ->
+            dirFile.isFile && dirFile.extension == APK_FILE_EXTENSION
         }.toList()
     }
 
-    suspend fun getApkFileSizeSplitInfo(apkDirPath: String): Pair<Float, Boolean> = coroutineScope {
+    suspend fun getApkSizeSplitInfo(dirPath: String): Pair<Float, Boolean> = coroutineScope {
         val isSplit: Boolean
-        File(apkDirPath).walkTopDown().filter { dirFile ->
+        File(dirPath).walkTopDown().filter { dirFile ->
             dirFile.isFile && dirFile.extension == APK_FILE_EXTENSION
         }.also { apkFiles ->
             isSplit = apkFiles.count() > 1

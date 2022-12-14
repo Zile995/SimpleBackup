@@ -26,7 +26,7 @@ class AppManager(private val context: Context) {
     private val packageManager: PackageManager = context.packageManager
 
     // Helper manager classes
-    private val appInfoManager: AppInfoManager by lazy {
+    val appInfoManager: AppInfoManager by lazy {
         AppInfoManager(packageManager, 0)
     }
 
@@ -78,7 +78,7 @@ class AppManager(private val context: Context) {
     }
 
     // Simple flow which sends data
-    fun dataBuilder(
+    fun buildData(
         includeSystemApps: Boolean = false, filter: (ApplicationInfo) -> Boolean = { true }
     ) = flow {
         appInfoManager.getFilteredInfo(filterSystemApps = includeSystemApps) { appInfo ->
@@ -93,7 +93,7 @@ class AppManager(private val context: Context) {
         appInfoManager.run {
             val apkDir = getApkDir(appInfo)
             val packageName = getPackageName(appInfo)
-            val apkInfo = FileUtil.getApkFileSizeSplitInfo(apkDir)
+            val apkInfo = FileUtil.getApkSizeSplitInfo(apkDir)
 
             AppData(
                 name = getAppName(appInfo),

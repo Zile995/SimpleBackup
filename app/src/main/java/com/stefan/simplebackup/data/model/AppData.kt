@@ -31,7 +31,10 @@ const val APP_DATA_TYPE_EXTRA = "APP_DATA_TYPE"
  */
 @Keep
 @Serializable
-@Entity(tableName = APP_TABLE_NAME, indices = [Index(value = ["package_name"], unique = true)])
+@Entity(
+    tableName = APP_TABLE_NAME,
+    indices = [Index(value = ["package_name", "is_local"], unique = true)]
+)
 data class AppData(
     @Transient
     @ColumnInfo(name = "uid")

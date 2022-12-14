@@ -8,7 +8,7 @@ import com.google.api.services.drive.Drive
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.local.database.AppDatabase
 import com.stefan.simplebackup.data.local.repository.AppRepository
-import com.stefan.simplebackup.data.manager.AppInfoManager
+import com.stefan.simplebackup.data.manager.AppManager
 import com.stefan.simplebackup.data.manager.AppStorageManager
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.workers.ForegroundCallback
@@ -30,6 +30,8 @@ class BackupUtil(
     private val shouldBackupToCloud: Boolean = false
 ) : WorkUtil(appContext, backupItems, updateForegroundInfo) {
 
+    private val appManager = AppManager(appContext)
+
     private val driveService: Drive? by lazy {
         appContext.getDriveService(googleAccount = appContext.getLastSignedInAccount())
     }
@@ -42,7 +44,7 @@ class BackupUtil(
         supervisorScope {
             backupItems.forEach { backupPackageName ->
                 isSkipped = false
-                val app = appRepository.getAppData(appContext, backupPackageName)
+                val app = appRepository.getAppData(appManager, backupPackageName)
                 launch {
                     try {
                         withSuspend(app) {
@@ -67,6 +69,7 @@ class BackupUtil(
         }
     }
 
+
     private suspend fun createDirs(app: AppData) {
         app.updateProgressData(R.string.backup_progress_dir_info)
         FileUtil.createDirectory(tempItemDirPath)
@@ -90,8 +93,7 @@ class BackupUtil(
             updateProgressData(R.string.backup_progress_saving_application_data)
             setCurrentDate()
             setDataSize(app)
-            val tempDirPath = tempItemDirPath
-            serialize(destinationPath = tempDirPath)
+            serialize(destinationPath = tempItemDirPath)
         }
     }
 
@@ -106,7 +108,7 @@ class BackupUtil(
 
     private fun setDataSize(app: AppData) {
         if (Shell.isAppGrantedRoot() == false) {
-            val appInfoManager = AppInfoManager(appContext.packageManager, 0)
+            val appInfoManager = appManager.appInfoManager
             val appStorageManager = AppStorageManager(appContext)
             val appInfo = appInfoManager.getAppInfo(app.packageName)
             val apkSizeStats = appStorageManager.getApkSizeStats(appInfo)
@@ -135,9 +137,9 @@ class BackupUtil(
                         parentId = mainFolderId
                     )
 
-                    // Create package folder
+                    // Create package folder in temp folder
                     val packageFolderId = service.createFolder(
-                        folderName = TEMP_DIR_NAME + app.packageName,
+                        folderName = TEMP_DIR_NAME + "_" + app.packageName,
                         parentId = tempFolderId
                     )
 

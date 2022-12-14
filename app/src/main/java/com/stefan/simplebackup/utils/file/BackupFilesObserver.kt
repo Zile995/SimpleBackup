@@ -1,74 +1,93 @@
 package com.stefan.simplebackup.utils.file
 
 import android.util.Log
+import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.utils.work.FileUtil
 import com.stefan.simplebackup.utils.work.JSON_FILE_EXTENSION
 import com.stefan.simplebackup.utils.work.JsonUtil.deserializeApp
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import java.io.File
 
 class BackupFilesObserver(
     private val rootDirPath: String,
     private val scope: CoroutineScope,
-    private val observableList: MutableStateFlow<MutableList<AppData>>
+    private val appRepository: AppRepository
 ) {
+
+    private val ioDispatcher = Dispatchers.IO
 
     private val recursiveFileWatcher by lazy {
         File(rootDirPath).asRecursiveFileWatcher(scope)
     }
 
-    fun refreshBackupFileList(predicate: (AppData) -> Boolean = { it.isLocal }) = scope.launch {
-        Log.d("BackupFilesObserver", "Refreshing the backup list")
-        val backupList = mutableListOf<AppData>()
-        FileUtil.emitJsonFiles(jsonDirPath = rootDirPath).collect { jsonFile ->
+    fun refreshBackupList() = scope.launch(ioDispatcher) {
+        val newBackupList = mutableListOf<AppData>()
+        FileUtil.findJsonFiles(dirPath = rootDirPath).collect { jsonFile ->
             if (jsonFile.parentFile?.parentFile?.absolutePath != rootDirPath) return@collect
             val app = deserializeApp(jsonFile)
             app?.let {
-                if (jsonFile.parentFile?.isDirectory == true && jsonFile.parentFile?.name == it.packageName) {
-                    if (predicate(it)) {
-                        backupList.add(it)
-                    }
+                if (jsonFile.parentFile?.isDirectory == true
+                    && jsonFile.parentFile?.name == it.packageName
+                    && it.isLocal
+                ) {
+                    newBackupList.add(it)
                 }
             }
         }
-        observableList.value = backupList.sortedBy { it.name }.toMutableList()
+        submitBackupList(newBackupList.sortedBy { it.name })
     }
 
-
-    fun observeBackupFiles() = scope.launch {
-        recursiveFileWatcher.fileEvent.collectLatest { fileEvent ->
-            fileEvent.apply {
-                Log.d("BackupFilesObserver", "$kind: ${file.absolutePath}")
-                observableList.updateCurrentList { currentList ->
-                    when (kind) {
-                        EventKind.CREATED -> {
-                            onCreatedEvent(currentList, file)
-                        }
-                        EventKind.DELETED -> {
-                            onDeletedEvent(currentList, file)
-                        }
-                        EventKind.MODIFIED -> {
-                            onModifiedEvent(currentList, file)
-                        }
-                    }
+    fun observeBackupFiles() = scope.launch(ioDispatcher) {
+        recursiveFileWatcher.fileEvent.collect { event ->
+            Log.d("BackupFilesObserver", "$event.kind: ${event.file.absolutePath}")
+            when (event.kind) {
+                EventKind.CREATED -> {
+                    onCreatedEvent(event.file)
+                }
+                EventKind.DELETED -> {
+                    onDeletedEvent(event.file)
+                }
+                EventKind.MODIFIED -> {
+                    onModifiedEvent(event.file)
                 }
             }
         }
     }
 
-    private inline fun MutableStateFlow<MutableList<AppData>>.updateCurrentList(
-        action: (MutableList<AppData>) -> Unit
-    ) {
-        val newValue = value.toMutableList()
-        action(newValue)
-        value = newValue.sortedBy { it.name }.toMutableList()
+    private fun takeCurrentList() = appRepository.localApps.take(1)
+
+    private suspend fun submitBackupList(newList: List<AppData>) = coroutineScope {
+        takeCurrentList().collect { currentList ->
+            if (currentList != newList) {
+                Log.d("BackupFilesObserver", "Submitting, the new backup list is different")
+                launch {
+                    insertNewBackups(newList)
+                }
+                removeDeletedBackups()
+            }
+        }
     }
 
-    private suspend fun onCreatedEvent(currentList: MutableList<AppData>, file: File) {
+    private suspend fun insertNewBackups(newList: List<AppData>) =
+        newList.forEach { appRepository.insert(it) }
+
+    private suspend fun removeDeletedBackups() {
+        takeCurrentList().collect { currentList ->
+            currentList.forEach { app ->
+                val backupDir = FileUtil.getBackupDirPath(app)
+                if (FileUtil.getJsonInDir(backupDir)?.exists() != true)
+                    appRepository.deleteLocal(app.packageName)
+            }
+        }
+    }
+
+
+    private suspend fun onCreatedEvent(file: File) {
         val jsonFile = when {
             file.isFile && file.extension == JSON_FILE_EXTENSION -> file
             file.isDirectory && file.parentFile?.absolutePath == rootDirPath -> {
@@ -80,36 +99,34 @@ class BackupFilesObserver(
             val createdApp = deserializeApp(it)
             if (jsonFile.parentFile?.name == createdApp?.packageName) {
                 createdApp?.apply {
-                    if (!currentList.contains(this)) {
-                        Log.d("BackupFilesObserver", "Adding created $name")
-                        currentList.add(this)
-                    }
+                    Log.d("BackupFilesObserver", "Creating app $name")
+                    appRepository.insertAppData(createdApp)
                 }
             }
         }
     }
 
-    private fun onDeletedEvent(currentList: MutableList<AppData>, file: File) {
-        val deletedApp = currentList.firstOrNull { app ->
-            (app.name == file.nameWithoutExtension
-                    && app.packageName == file.parentFile?.name
-                    && file.extension == JSON_FILE_EXTENSION)
-                    || (app.packageName == file.name && file.parentFile?.name != file.name)
+    private suspend fun onDeletedEvent(file: File) {
+        takeCurrentList().collect { currentList ->
+            currentList.firstOrNull { app ->
+                (app.name == file.nameWithoutExtension
+                        && app.packageName == file.parentFile?.name
+                        && file.extension == JSON_FILE_EXTENSION)
+                        || (app.packageName == file.name && file.parentFile?.name != file.name)
+            }?.apply {
+                Log.d("BackupFilesObserver", "Removing deleted $name")
+                appRepository.deleteLocal(packageName)
+            }
         }
-        Log.d("BackupFilesObserver", "Removing deleted ${deletedApp?.name}")
-        currentList.remove(deletedApp)
     }
 
-    private suspend fun onModifiedEvent(currentList: MutableList<AppData>, file: File) {
+    private suspend fun onModifiedEvent(file: File) {
         if (file.extension == JSON_FILE_EXTENSION && file.isFile) {
             val modifiedApp = deserializeApp(file)
             modifiedApp?.apply {
                 if (file.parentFile?.name == packageName) {
-                    val indexOfDeleted =
-                        currentList.indexOfFirst { it.packageName == packageName }
-                    if (indexOfDeleted < 0) return
                     Log.d("BackupFilesObserver", "Adding modified $name")
-                    currentList[indexOfDeleted] = this
+                    appRepository.insert(this)
                 }
             }
         }
