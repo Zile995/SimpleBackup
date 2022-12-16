@@ -11,7 +11,10 @@ import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentConfigureSheetBinding
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
-import com.stefan.simplebackup.utils.extensions.*
+import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.onMainActivity
+import com.stefan.simplebackup.utils.extensions.repeatOnResumed
+import com.stefan.simplebackup.utils.extensions.viewBinding
 import kotlinx.coroutines.delay
 
 const val CONFIGURE_SHEET_TAG = "CONFIGURE_SHEET_TAG"
@@ -26,13 +29,7 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
     private val contactsPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                onMainActivity {
-                    requestSignIn(
-                        resultLauncher = signInIntentLauncher,
-                        onAlreadySignedIn = {
-                            onSuccessfullySignedIn()
-                        })
-                }
+                onMainActivity { requestSignIn() }
             } else {
                 onMainActivity { showContactsPermissionDialog() }
             }
@@ -41,8 +38,7 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
     private val storagePermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                if (!cloudBackupClicked)
-                    startProgressActivity()
+                if (!cloudBackupClicked) startProgressActivity()
             } else {
                 onMainActivity { showStoragePermissionDialog() }
             }
@@ -105,7 +101,7 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
                     onPermissionGranted = {
                         requestContactsPermission(contactsPermissionLauncher,
                             onPermissionAlreadyGranted = {
-                                launchSignInIntent(signInIntentLauncher)
+                                requestSignIn()
                             })
                     }, onPermissionDenied = {
                         requestStoragePermission(storagePermissionLauncher)

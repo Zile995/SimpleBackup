@@ -101,7 +101,7 @@ dependencies {
     // Include all libs
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    // UI
+    // Android / Material / UI
     implementation "androidx.core:core-ktx:$ktx"
     implementation "androidx.appcompat:appcompat:$appCompat"
     implementation "com.google.android.material:material:$material"
@@ -149,6 +149,8 @@ dependencies {
     implementation("com.google.apis:google-api-services-drive:$googleDriveApi") {
         exclude group: 'org.apache.httpcomponents'
     }
+
+    implementation "com.google.android.play:integrity:$integrity"
 
     // libsu core
     implementation "com.github.topjohnwu.libsu:core:$libsu"

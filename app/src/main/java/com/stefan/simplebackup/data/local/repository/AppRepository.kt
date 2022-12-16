@@ -22,7 +22,7 @@ class AppRepository(private val appDao: AppDao) {
         get() = appDao.getAllApps().filterBy { app -> app.isLocal }
 
     suspend fun insertAppData(app: AppData) {
-        if (isFavorite(app.packageName, app.isLocal) == true) {
+        if (isFavorite(app) == true) {
             app.isFavorite = true
             insert(app)
         } else {
@@ -68,5 +68,5 @@ class AppRepository(private val appDao: AppDao) {
         }
     }
 
-    private suspend fun isFavorite(packageName: String, isLocal: Boolean) = appDao.isFavorite(packageName, isLocal)
+    private suspend fun isFavorite(app: AppData) = appDao.isFavorite(app.packageName)
 }

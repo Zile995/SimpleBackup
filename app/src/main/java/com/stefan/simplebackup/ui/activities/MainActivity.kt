@@ -2,6 +2,7 @@ package com.stefan.simplebackup.ui.activities
 
 import android.content.Intent.ACTION_PACKAGE_ADDED
 import android.content.Intent.ACTION_PACKAGE_REMOVED
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,6 +17,7 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.google.android.material.appbar.AppBarLayout
 import com.stefan.simplebackup.R
+import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.NotificationReceiver
@@ -72,6 +74,25 @@ class MainActivity : BaseActivity() {
         NotificationReceiver()
     }
 
+    // Notification permission launcher
+    private val notificationPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
+
+    private val signInIntentLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == RESULT_OK && result.data != null) {
+                handleSignInIntent(
+                    signInData = result.data!!,
+                    onSuccess = {
+                        onSuccessfullySignedIn()
+                    },
+                    onFailure = {
+                        showToast(R.string.unable_to_sign_in)
+                        Log.e("GoogleSignIn", "${getString(R.string.unable_to_sign_in)} $it")
+                    })
+            }
+        }
+
     // Exit flag
     private var shouldExit = false
 
@@ -88,21 +109,6 @@ class MainActivity : BaseActivity() {
             }
         }
 
-    val signInIntentLauncher =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK && result.data != null) {
-                handleSignInIntent(
-                    signInData = result.data!!,
-                    onSuccess = {
-                        onSuccessfullySignedIn()
-                    },
-                    onFailure = {
-                        showToast(R.string.unable_to_sign_in)
-                        Log.e("GoogleSignIn", "${getString(R.string.unable_to_sign_in)} $it")
-                    })
-            }
-        }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -113,6 +119,7 @@ class MainActivity : BaseActivity() {
         }
         setRootDialogs()
         registerReceivers()
+        requestNotificationPermission()
     }
 
     override fun onBackPress() {
@@ -423,7 +430,20 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    fun onSuccessfullySignedIn() {
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            notificationPermissionLauncher.launch(MainPermission.NOTIFICATIONS.permissionName)
+    }
+
+    fun requestSignIn() {
+        requestSignIn(
+            resultLauncher = signInIntentLauncher,
+            onAlreadySignedIn = {
+                onSuccessfullySignedIn()
+            })
+    }
+
+    private fun onSuccessfullySignedIn() {
         launchOnViewLifecycle {
             launchProgressActivity(
                 mainViewModel.selectionList.toTypedArray(),

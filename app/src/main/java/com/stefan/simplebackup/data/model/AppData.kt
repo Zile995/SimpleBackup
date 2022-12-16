@@ -65,17 +65,18 @@ data class AppData(
     @ColumnInfo(name = "data_dir")
     val dataDir: String,
 
+    @Transient
     @ColumnInfo(name = "apk_dir")
-    val apkDir: String,
+    val apkDir: String = "",
 
     @ColumnInfo(name = "apk_size")
     val apkSize: Float,
 
-    @ColumnInfo(name = "is_split")
-    val isSplit: Boolean,
-
     @ColumnInfo(name = "data_size")
     var dataSize: Long = 0L,
+
+    @ColumnInfo(name = "is_split")
+    val isSplit: Boolean,
 
     @ColumnInfo(name = "cache_size")
     var cacheSize: Long = 0L,
@@ -87,10 +88,7 @@ data class AppData(
     var isUserApp: Boolean = true,
 
     @ColumnInfo(name = "is_local")
-    var isLocal: Boolean = false,
-
-    @ColumnInfo(name = "is_cloud")
-    var isCloud: Boolean = false
+    var isLocal: Boolean = false
 ) : Parcelable {
 
     var isSelected = false
@@ -114,8 +112,7 @@ data class AppData(
         cacheSize = parcel.readLong(),
         isFavorite = parcel.readBooleanValue() ?: false,
         isUserApp = parcel.readBooleanValue() ?: false,
-        isLocal = parcel.readBooleanValue() ?: false,
-        isCloud = parcel.readBooleanValue() ?: false
+        isLocal = parcel.readBooleanValue() ?: false
     )
 
     fun getDateText() = convertDateToString()
@@ -189,7 +186,6 @@ data class AppData(
         dest.writeBooleanValue(isFavorite)
         dest.writeBooleanValue(isUserApp)
         dest.writeBooleanValue(isLocal)
-        dest.writeBooleanValue(isCloud)
     }
 
     /**
@@ -218,7 +214,6 @@ data class AppData(
         if (isUserApp != other.isUserApp) return false
         if (isFavorite != other.isFavorite) return false
         if (isLocal != other.isLocal) return false
-        if (isCloud != other.isCloud) return false
 
         return true
     }
@@ -242,7 +237,6 @@ data class AppData(
         result = 31 * result + isUserApp.hashCode()
         result = 31 * result + isFavorite.hashCode()
         result = 31 * result + isLocal.hashCode()
-        result = 31 * result + isCloud.hashCode()
         return result
     }
 

@@ -8,10 +8,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
-import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.annotation.IdRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.Toolbar
@@ -69,11 +67,7 @@ class DetailActivity : BaseActivity() {
     private val contactsPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
-                requestSignIn(
-                    resultLauncher = signInIntentLauncher,
-                    onAlreadySignedIn = {
-                        startWork(shouldBackupToCloud = true)
-                    })
+                requestSignIn()
             } else {
                 showStoragePermissionDialog()
             }
@@ -297,7 +291,7 @@ class DetailActivity : BaseActivity() {
                         requestContactsPermission(
                             contactsPermissionLauncher,
                             onPermissionAlreadyGranted = {
-                                launchSignInIntent(signInIntentLauncher)
+                                requestSignIn()
                             })
                     },
                     onPermissionDenied = {
@@ -305,6 +299,14 @@ class DetailActivity : BaseActivity() {
                     })
             }
         }
+    }
+
+    private fun requestSignIn() {
+        requestSignIn(
+            resultLauncher = signInIntentLauncher,
+            onAlreadySignedIn = {
+                startWork(shouldBackupToCloud = true)
+            })
     }
 
     private fun ActivityDetailBinding.bindDeleteButton() {
@@ -369,14 +371,13 @@ class DetailActivity : BaseActivity() {
             // Set type chip data
             detailsLayout.apply {
                 appTypeChip.text = when {
-                    isCloud && isLocal -> resources.getString(R.string.cloud_backup)
                     isLocal -> resources.getString(R.string.local_backup)
                     else -> resources.getString(R.string.user_app)
                 }
 
                 // Set installed date
                 installedDateLabel.text = when {
-                    isCloud || isLocal -> getString(R.string.backed_up_on, getDateText())
+                    isLocal -> getString(R.string.backed_up_on, getDateText())
                     else -> getString(R.string.first_installed_on, getDateText())
                 }
 

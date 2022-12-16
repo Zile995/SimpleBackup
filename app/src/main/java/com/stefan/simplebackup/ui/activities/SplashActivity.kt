@@ -1,17 +1,14 @@
 package com.stefan.simplebackup.ui.activities
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.asFlow
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.AppPermissionManager
-import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.APP_DATA_TYPE_EXTRA
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.data.workers.WORK_REQUEST_TAG
@@ -31,10 +28,6 @@ class SplashActivity : AppCompatActivity() {
 
     // ViewBinding
     private val binding by viewBinding(ActivitySplashBinding::inflate)
-
-    // Notification permission launcher
-    private val notificationPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
     // Permission manager
     private val appPermissionManager by lazy { AppPermissionManager(applicationContext) }
@@ -66,8 +59,7 @@ class SplashActivity : AppCompatActivity() {
                         ) {
                             launchActivity<ProgressActivity>(
                                 SELECTION_EXTRA to null,
-                                APP_DATA_TYPE_EXTRA to enumValues<AppDataType>()[PreferenceHelper.progressType],
-                                customFlags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+                                APP_DATA_TYPE_EXTRA to enumValues<AppDataType>()[PreferenceHelper.progressType]
                             )
                         } else {
                             launchMainActivity()
@@ -85,7 +77,6 @@ class SplashActivity : AppCompatActivity() {
         setContentView(binding.root)
         binding.apply {
             root.changeBackgroundColor(applicationContext, R.color.bottom_view)
-            requestNotificationPermission()
             bindStoragePermissionView()
             bindUsageStatsPermissionView()
         }
@@ -100,15 +91,10 @@ class SplashActivity : AppCompatActivity() {
     private fun launchMainActivity() = launchActivity<MainActivity>()
 
     private fun ActivitySplashBinding.bindStoragePermissionView() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) storagePermissionCard.isVisible = false
         storagePermissionCard.setOnClickListener {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R)
-                openManageFilesPermissionSettings()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) openManageFilesPermissionSettings()
         }
-    }
-
-    private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-            notificationPermissionLauncher.launch(MainPermission.NOTIFICATIONS.permissionName)
     }
 
     override fun onStart() {

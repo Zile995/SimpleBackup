@@ -102,6 +102,7 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
                 },
             )
         } else {
+            // This one is not a runtime permission.
             proceedWithPermission(
                 mainPermission = MainPermission.MANAGE_ALL_FILES,
                 onPermissionGranted = {
@@ -183,6 +184,8 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
 
     fun launchSignInIntent(resultLauncher: ActivityResultLauncher<Intent>) {
         val signInClient = buildGoogleSignInClient()
+        overridePendingTransition(0, 0)
+        signInClient.signInIntent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION)
         resultLauncher.launch(signInClient.signInIntent)
     }
 

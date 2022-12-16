@@ -24,7 +24,6 @@
     <string name="local_backups">Local backups</string>
     <string name="cloud">Cloud</string>
     <string name="cloud_backup">Cloud backup</string>
-    <string name="cloud_backups">Cloud backups</string>
     <string name="settings">Settings</string>
     <string name="backup">Backup</string>
     <string name="restore">Restore</string>
