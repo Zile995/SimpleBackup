@@ -99,7 +99,7 @@
 
         </LinearLayout>
 
-        <androidx.appcompat.widget.LinearLayoutCompat
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -114,10 +114,7 @@
                 android:layout_height="40dp"
                 android:textColor="@color/button_text"
                 android:textSize="11sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/install_date"
-                app:layout_constraintTop_toTopOf="@+id/install_date" />
+                android:textStyle="bold" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/install_date"
@@ -131,21 +128,20 @@
                 app:chipIcon="@drawable/ic_date"
                 app:chipIconTint="@color/button_text" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+            <com.google.android.material.chip.Chip
+                android:id="@+id/apk_size"
+                style="@style/Widget.SimpleBackup.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginStart="9dp"
+                android:textColor="@color/button_text"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:tooltipText="@string/apk_size_tooltip"
+                app:chipIcon="@drawable/ic_apk"
+                app:chipIconTint="@color/button_text" />
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/apk_size"
-            style="@style/Widget.SimpleBackup.Chip"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:textColor="@color/button_text"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:tooltipText="@string/apk_size_tooltip"
-            app:chipIcon="@drawable/ic_apk"
-            app:chipIconTint="@color/button_text"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/linearLayout" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

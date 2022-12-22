@@ -5,7 +5,7 @@
     <dimen name="search_bar_height" tools:override="true">48dp</dimen>
     <dimen name="tab_layout_height" tools:override="true">32dp</dimen>
     <dimen name="bottom_navigation_height" tools:override="true">80dp</dimen>
-    <dimen name="card_item_content_margin" tools:override="true">11dp</dimen>
+    <dimen name="card_item_content_margin" tools:override="true">16dp</dimen>
     <dimen name="recyclerview_bottom_padding" tools:override="true">8dp</dimen>
     <dimen name="scrim_visible_height_trigger" tools:override="true">65dp</dimen>
     <dimen name="search_view_margin" tools:override="true">-8dp</dimen>

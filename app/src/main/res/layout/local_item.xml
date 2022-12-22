@@ -115,10 +115,7 @@
                 android:layout_height="40dp"
                 android:textColor="@color/button_text"
                 android:textSize="11sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/install_date"
-                app:layout_constraintTop_toTopOf="@+id/install_date" />
+                android:textStyle="bold" />
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/backup_date"
@@ -132,21 +129,20 @@
                 app:chipIcon="@drawable/ic_date"
                 app:chipIconTint="@color/button_text" />
 
-        </androidx.appcompat.widget.LinearLayoutCompat>
+            <com.google.android.material.chip.Chip
+                android:id="@+id/backup_data_size"
+                style="@style/Widget.SimpleBackup.Chip"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:layout_marginStart="9dp"
+                android:textColor="@color/button_text"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:tooltipText="@string/data_size_tooltip"
+                app:chipIcon="@drawable/ic_data"
+                app:chipIconTint="@color/button_text" />
 
-        <com.google.android.material.chip.Chip
-            android:id="@+id/backup_data_size"
-            style="@style/Widget.SimpleBackup.Chip"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:textColor="@color/button_text"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            android:tooltipText="@string/data_size_tooltip"
-            app:chipIcon="@drawable/ic_data"
-            app:chipIconTint="@color/button_text"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="@+id/linearLayout" />
+        </androidx.appcompat.widget.LinearLayoutCompat>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
