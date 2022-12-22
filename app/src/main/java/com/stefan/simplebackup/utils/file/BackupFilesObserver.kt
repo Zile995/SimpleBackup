@@ -29,8 +29,8 @@ class BackupFilesObserver(
         Log.d("BackupFilesObserver", "Refreshing backup list")
         val newBackupList = mutableListOf<AppData>()
         FileUtil.findJsonFiles(dirPath = rootDirPath).collect { jsonFile ->
-            if (jsonFile.parentFile?.parentFile?.absolutePath != rootDirPath) return@collect
             val app = deserializeApp(jsonFile)
+            if (jsonFile.parentFile?.name != app?.packageName) return@collect
             app?.let {
                 if (jsonFile.parentFile?.isDirectory == true
                     && jsonFile.parentFile?.name == it.packageName
@@ -45,7 +45,7 @@ class BackupFilesObserver(
 
     fun observeBackupFiles() = scope.launch(ioDispatcher) {
         recursiveFileWatcher.fileEvent.collect { event ->
-            Log.d("BackupFilesObserver", "$event.kind: ${event.file.absolutePath}")
+            Log.d("BackupFilesObserver", "$event")
             when (event.kind) {
                 EventKind.CREATED -> {
                     onCreatedEvent(event.file)

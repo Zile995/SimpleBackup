@@ -13,12 +13,14 @@ import com.stefan.simplebackup.data.manager.ApkSizeStats
 import com.stefan.simplebackup.data.manager.AppInfoManager
 import com.stefan.simplebackup.data.manager.AppStorageManager
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.utils.file.RecursiveFileWatcher
 import com.stefan.simplebackup.utils.file.asRecursiveFileWatcher
 import com.stefan.simplebackup.utils.work.FileUtil
 import com.stefan.simplebackup.utils.work.ZipUtil
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.io.File
@@ -30,12 +32,15 @@ class DetailsViewModel(
 ) : AndroidViewModel(application) {
 
     private val backupFileEvents by lazy {
-        val backupDir = File(FileUtil.localDirPath)
+        val backupDir =
+            app?.run { File(FileUtil.getBackupDirPath(this)) } ?: File(FileUtil.localDirPath)
         backupDir.asRecursiveFileWatcher(viewModelScope).fileEvent
     }
 
-    val localBackupFileEvents
-        get() = run { if (app?.isLocal == true) backupFileEvents else null }
+    val localBackupFileEvents: SharedFlow<RecursiveFileWatcher.FileEvent>?
+        get() {
+            return if (app?.isLocal == true) backupFileEvents else null
+        }
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default

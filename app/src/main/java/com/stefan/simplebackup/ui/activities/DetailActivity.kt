@@ -30,6 +30,7 @@ import com.stefan.simplebackup.utils.work.FileUtil
 import com.stefan.simplebackup.utils.work.JSON_FILE_EXTENSION
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 import kotlin.math.abs
 
 class DetailActivity : BaseActivity() {
@@ -301,14 +302,6 @@ class DetailActivity : BaseActivity() {
         }
     }
 
-    private fun requestSignIn() {
-        requestSignIn(
-            resultLauncher = signInIntentLauncher,
-            onAlreadySignedIn = {
-                startWork(shouldBackupToCloud = true)
-            })
-    }
-
     private fun ActivityDetailBinding.bindDeleteButton() {
         detailsViewModel.app?.apply {
             if (isLocal) deleteButton.tooltipText = getString(R.string.delete_backup)
@@ -427,35 +420,48 @@ class DetailActivity : BaseActivity() {
     private fun ActivityDetailBinding.initObservers() {
         launchOnViewLifecycle {
             repeatOnCreated {
-                detailsViewModel.apply {
-                    launch {
-                        localBackupFileEvents?.collect { fileEvent ->
-                            Log.d("ViewModel", "DetailsViewModel fileEvent = $fileEvent")
-                            fileEvent.apply {
-                                if (file.extension == JSON_FILE_EXTENSION || file.name == packageName) {
-                                    finish()
-                                }
-                            }
+                launch {
+                    detailsViewModel.localBackupFileEvents?.collect { fileEvent ->
+                        Log.d("ViewModel", "DetailsViewModel fileEvent = $fileEvent")
+                        finishOnFileChanges(fileEvent.file)
+                    }
+                }
+                launch {
+                    detailsViewModel.apkSizeStats.collect { sizeStats ->
+                        sizeStats?.apply {
+                            detailsLayout.dataSizeLabel.text = getString(
+                                R.string.data_size,
+                                (sizeStats.dataSize + sizeStats.cacheSize).bytesToMegaBytesString()
+                            )
                         }
                     }
-                    launch {
-                        apkSizeStats.collect { sizeStats ->
-                            sizeStats?.apply {
-                                detailsLayout.dataSizeLabel.text = getString(
-                                    R.string.data_size,
-                                    (sizeStats.dataSize + sizeStats.cacheSize).bytesToMegaBytesString()
-                                )
-                            }
-                        }
-                    }
-                    nativeLibs.collect { nativeLibs ->
-                        nativeLibs?.let {
-                            detailsLayout.architectureChipGroup.addChipsToGroup(nativeLibs)
-                        }
+                }
+                detailsViewModel.nativeLibs.collect { nativeLibs ->
+                    nativeLibs?.let {
+                        detailsLayout.architectureChipGroup.addChipsToGroup(nativeLibs)
                     }
                 }
             }
         }
+    }
+
+    private fun finishOnFileChanges(file: File) {
+        detailsViewModel.app?.apply {
+            if (file.extension == JSON_FILE_EXTENSION
+                || file.name == packageName
+                || file.name == name
+            ) {
+                onBackPress()
+            }
+        }
+    }
+
+    private fun requestSignIn() {
+        requestSignIn(
+            resultLauncher = signInIntentLauncher,
+            onAlreadySignedIn = {
+                startWork(shouldBackupToCloud = true)
+            })
     }
 
     private fun registerPackageReceiver() {

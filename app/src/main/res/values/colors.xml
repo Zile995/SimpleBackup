@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <!--  Common colors -->
     <color name="color_accent">#213B61</color>
     <color name="error">#D35151</color>
