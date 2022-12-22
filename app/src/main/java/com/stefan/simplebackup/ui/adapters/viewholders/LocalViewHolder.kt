@@ -18,6 +18,7 @@ class LocalViewHolder(
     override fun bind(item: AppData) {
         binding.apply {
             backupApplicationImage.loadBitmap(item.bitmap)
+            local.isVisible = item.isLocal
             backupApplicationName.text = item.name
             backupVersionName.text = item.versionName
             backupPackageName.text = item.packageName

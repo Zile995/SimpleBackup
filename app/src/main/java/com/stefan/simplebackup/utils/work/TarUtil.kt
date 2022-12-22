@@ -10,8 +10,15 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 
-const val CACHE_PRIVATE_DIR_NAME = "cache"
-const val CODE_CACHE_PRIVATE_DIR_NAME = "code_cache"
+// Dirs to be excluded
+private const val CACHE_DIR_NAME = "cache"
+private const val NO_BACKUP_DIR_NAME = "no_backup"
+private const val CODE_CACHE_DIR_NAME = "code_cache"
+
+// GMS backup files to be excluded
+private const val GMS_APP_ID_FILE_NAME = "shared_prefs/com.google.android.gms.appid.xml"
+private const val GMS_MEASUREMENTS_FILE_NAME =
+    "shared_prefs/com.google.android.gms.measurement.prefs.xml"
 
 object TarUtil {
 
@@ -20,6 +27,8 @@ object TarUtil {
     @Throws(IOException::class)
     suspend fun backupData(app: AppData) {
         withContext(ioDispatcher) {
+            if (Shell.isAppGrantedRoot() == false) return@withContext
+
             // Get exclude commands
             val excludeCommand = getExcludeCommand()
 
@@ -52,6 +61,7 @@ object TarUtil {
     @Throws(IOException::class)
     suspend fun restoreData(app: AppData, uid: Int) {
         withContext(ioDispatcher) {
+            if (Shell.isAppGrantedRoot() == false) return@withContext
             val tarArchiveName = getArchiveName(app)
             val tarArchivePath = FileUtil.getTempDirPath(app) + "/$tarArchiveName"
 
@@ -87,17 +97,26 @@ object TarUtil {
 
     private fun getExcludeCommand(): String {
         val shouldExcludeCache = PreferenceHelper.shouldExcludeAppsCache
+
+        // Standard excluded dirs and files
+        val standardExcludeNames = "\"$LIB_DIR_NAME\"," +
+                "\"$NO_BACKUP_DIR_NAME\"," +
+                "\"$GMS_APP_ID_FILE_NAME\"," +
+                "\"$GMS_MEASUREMENTS_FILE_NAME\""
+
         return if (shouldExcludeCache)
-            "--exclude={\"$CACHE_PRIVATE_DIR_NAME\",\"$LIB_DIR_NAME\",\"$CODE_CACHE_PRIVATE_DIR_NAME\"}"
+            "--exclude={$standardExcludeNames,\"$CACHE_DIR_NAME\",\"$CODE_CACHE_DIR_NAME\"}"
         else
-            "--exclude={\"$LIB_DIR_NAME\"}"
+            "--exclude={$standardExcludeNames}"
     }
 
     private fun restoreAppUid(dataPath: String, uid: Int) {
         val stringUid = uid.toString()
+        Log.d("TarUtil", "uid is $stringUid")
         val formattedUid = stringUid.substring(2).run {
             trimStart('0')
         }
+        Log.d("TarUtil", "Formatted uid is $formattedUid")
         val ownerUid = "u0_a$formattedUid"
         Shell.cmd("chown $ownerUid:$ownerUid $dataPath -R").exec()
     }
@@ -105,5 +124,4 @@ object TarUtil {
     private fun restoreSELinuxContext(dataPath: String) {
         Shell.cmd("restorecon -R $dataPath").exec()
     }
-
 }

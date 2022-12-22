@@ -100,6 +100,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/linearLayout2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -142,6 +143,20 @@
                 app:chipIconTint="@color/button_text" />
 
         </LinearLayout>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/local"
+            style="@style/Widget.SimpleBackup.Chip"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:textColor="@color/button_text"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:chipIcon="@drawable/ic_local_filled"
+            app:chipIconTint="@color/button_text"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/linearLayout2" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

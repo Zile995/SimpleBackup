@@ -6,7 +6,7 @@
         <item name="android:clickable">false</item>
         <item name="chipEndPadding">1dp</item>
         <item name="chipStartPadding">1dp</item>
-        <item name="iconEndPadding">-2dp</item>
+        <item name="iconEndPadding">-4dp</item>
         <item name="iconStartPadding">4dp</item>
         <item name="textEndPadding">4dp</item>
         <item name="textStartPadding">4dp</item>

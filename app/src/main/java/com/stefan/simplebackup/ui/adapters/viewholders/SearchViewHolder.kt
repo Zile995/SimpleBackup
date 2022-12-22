@@ -19,6 +19,7 @@ class SearchViewHolder(
     override fun bind(item: AppData) {
         binding.apply {
             applicationImage.loadBitmap(item.bitmap)
+            local.isVisible = item.isLocal
             applicationName.text = item.name
             versionName.text = item.versionName
             packageName.text = item.packageName
