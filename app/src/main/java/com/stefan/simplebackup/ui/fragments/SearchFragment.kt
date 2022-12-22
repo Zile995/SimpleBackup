@@ -16,13 +16,18 @@ import com.stefan.simplebackup.ui.viewmodels.SearchViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.utils.extensions.isVisible
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.launchPostDelayed
 import com.stefan.simplebackup.utils.extensions.onMainActivity
-import com.stefan.simplebackup.utils.extensions.repeatOnStarted
-import kotlinx.coroutines.delay
+import kotlin.properties.Delegates
 
 class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     private val searchViewModel: SearchViewModel by viewModels {
-        SearchViewModelFactory()
+        SearchViewModelFactory(mainViewModel.repository)
+    }
+
+    private var shouldObserveLocal: Boolean? by Delegates.observable(null) { _, oldCheckedValue, isLocalChecked ->
+        if (isLocalChecked == null) return@observable
+        if (isLocalChecked != oldCheckedValue) binding.startObserving(isLocalChecked)
     }
 
     init {
@@ -32,10 +37,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setOnBackPressedCallback()
-        binding.apply {
-            bindChipGroup()
-            initObservers()
-        }
+        binding.bindChipGroup()
     }
 
     private fun setOnBackPressedCallback() {
@@ -47,28 +49,51 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     }
 
     private fun FragmentSearchBinding.bindChipGroup() {
+        setCheckedChip()
         searchChipGroup.children.forEach { chipView ->
             val chip = chipView as Chip
             chip.setOnCheckedChangeListener { buttonView, _ ->
                 val index = searchChipGroup.indexOfChild(buttonView)
+                searchViewModel.saveCheckedChipPosition(index)
+                if (chip.isChecked) return@setOnCheckedChangeListener
                 searchChipGroup.removeView(buttonView)
                 searchChipGroup.addView(buttonView, index)
             }
         }
+        localBackupsChip.setOnClickListener { shouldObserveLocal = true }
+        installedAppsChip.setOnClickListener { shouldObserveLocal = false }
+        shouldObserveLocal = !installedAppsChip.isChecked
     }
 
-    private fun FragmentSearchBinding.initObservers() {
+    private fun FragmentSearchBinding.startObserving(shouldObserveLocal: Boolean) {
+        mainViewModel.searchInput.removeObservers(viewLifecycleOwner)
+        mainViewModel.searchInput.observe(viewLifecycleOwner) { searchInput ->
+            Log.d("Search", "Search input = $searchInput")
+            if (searchInput == null) return@observe
+            updateViewsWithSearchInput(searchInput, shouldObserveLocal)
+        }
+    }
+
+    private fun FragmentSearchBinding.updateViewsWithSearchInput(
+        searchInput: String,
+        shouldObserveLocal: Boolean
+    ) {
         launchOnViewLifecycle {
-            repeatOnStarted {
-                mainViewModel.searchResult.collect { searchResults ->
-                    Log.d("Search", "Search result = ${searchResults.map { it.name }}")
-                    adapter.submitList(searchResults)
-                    if (searchResults.isEmpty()) delay(150L)
-                    pleaseSearchLabel.isVisible = searchResults.isEmpty()
-                    imageLayout.isVisible = searchResults.isEmpty()
+            mainViewModel.findAppsByName(searchInput, shouldObserveLocal).collect { searchResult ->
+                Log.d("Search", "Search result = $searchResult")
+                adapter.submitList(searchResult)
+                launchPostDelayed(150L) {
+                    pleaseSearchLabel.isVisible = searchResult.isEmpty()
+                    imageLayout.isVisible = searchResult.isEmpty()
                 }
             }
         }
+    }
+
+    private fun FragmentSearchBinding.setCheckedChip() {
+        val list = searchChipGroup.children.map { it as Chip }.toList()
+        val checkedChip = list[searchViewModel.checkedChipPosition]
+        checkedChip.isChecked = true
     }
 
     override fun FragmentSearchBinding.saveRecyclerViewState() {

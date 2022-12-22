@@ -15,8 +15,8 @@ interface AppDao {
 
     // Search methods
     @Transaction
-    @Query("SELECT * FROM $APP_TABLE_NAME WHERE name LIKE :name || '%' ORDER BY name ASC")
-    fun findAppsByName(name: String): Flow<MutableList<AppData>>
+    @Query("SELECT * FROM $APP_TABLE_NAME WHERE name LIKE :name || '%' AND is_local =:isLocal ORDER BY name ASC")
+    fun findAppsByName(name: String, isLocal: Boolean): Flow<MutableList<AppData>>
 
     // Simple insert and delete methods
     @Insert(onConflict = OnConflictStrategy.REPLACE)

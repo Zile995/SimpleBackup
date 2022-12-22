@@ -26,6 +26,7 @@ class BackupFilesObserver(
     }
 
     fun refreshBackupList() = scope.launch(ioDispatcher) {
+        Log.d("BackupFilesObserver", "Refreshing backup list")
         val newBackupList = mutableListOf<AppData>()
         FileUtil.findJsonFiles(dirPath = rootDirPath).collect { jsonFile ->
             if (jsonFile.parentFile?.parentFile?.absolutePath != rootDirPath) return@collect
@@ -73,8 +74,13 @@ class BackupFilesObserver(
         }
     }
 
-    private suspend fun insertNewBackups(newList: List<AppData>) =
-        newList.forEach { appRepository.insert(it) }
+    private suspend fun insertNewBackups(newList: List<AppData>) = coroutineScope {
+        newList.forEach {
+            launch {
+                appRepository.insert(it)
+            }
+        }
+    }
 
     private suspend fun removeDeletedBackups() {
         takeCurrentList().collect { currentList ->

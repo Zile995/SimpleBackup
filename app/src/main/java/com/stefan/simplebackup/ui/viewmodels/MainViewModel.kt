@@ -2,12 +2,13 @@ package com.stefan.simplebackup.ui.viewmodels
 
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.stefan.simplebackup.MainApplication
-import com.stefan.simplebackup.data.model.AppData
 import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
@@ -16,10 +17,7 @@ import com.stefan.simplebackup.utils.extensions.observeNetworkConnection
 import com.stefan.simplebackup.utils.root.RootChecker
 import com.stefan.simplebackup.utils.work.FileUtil
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import java.io.IOException
 
 class MainViewModel(application: MainApplication) : AndroidViewModel(application),
@@ -55,8 +53,8 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
     private val _isSettingsDestination = MutableStateFlow(false)
     val isSettingsDestination = _isSettingsDestination.asStateFlow()
 
-    private var _searchResult = MutableStateFlow(listOf<AppData>())
-    val searchResult = _searchResult.asStateFlow()
+    private var _searchInput = MutableLiveData<String?>()
+    val searchInput: LiveData<String?> get() = _searchInput
 
     val hasInternetConnection by lazy {
         application.observeNetworkConnection(delay = 500L)
@@ -104,21 +102,23 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
         _isSettingsDestination.value = isSettingsDestination
     }
 
-    fun findAppsByName(name: String?) {
+    fun setSearchInput(name: String?) {
         if (name.isNullOrBlank() || name.isEmpty() || name.contains("%") || name.contains("_")) {
-            _searchResult.value = listOf()
+            resetSearchInput()
             return
         }
-        viewModelScope.launch(ioDispatcher) {
-            repository.findAppsByName(name).collect { searchList ->
-                _searchResult.value = searchList
-            }
-        }
+        _searchInput.value = name
     }
 
-    fun resetSearchResult() {
-        _searchResult.value = emptyList()
-    }
+    suspend fun findAppsByName(name: String, isLocal: Boolean) =
+        withContext(viewModelScope.coroutineContext + ioDispatcher) {
+            if (name.isEmpty())
+                flowOf(mutableListOf())
+            else
+                repository.findAppsByName(name, isLocal)
+        }
+
+    fun resetSearchInput() { _searchInput.value = "" }
 
     inline fun addToFavorites(
         crossinline onSuccess: (number: Int) -> Unit,

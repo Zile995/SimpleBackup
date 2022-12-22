@@ -30,7 +30,7 @@ class AppRepository(private val appDao: AppDao) {
         }
     }
 
-    fun findAppsByName(name: String) = appDao.findAppsByName(name)
+    fun findAppsByName(name: String, isLocal: Boolean) = appDao.findAppsByName(name, isLocal)
 
     suspend inline fun startRepositoryJob(crossinline repositoryAction: RepositoryAction) =
         coroutineScope {

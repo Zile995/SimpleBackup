@@ -256,14 +256,14 @@ class MainActivity : BaseActivity() {
     private fun SimpleMaterialToolbar.setOnSearchAction() {
         searchActionView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                Log.d("MainActivity", "Search text = $query")
                 return false
             }
 
-            override fun onQueryTextChange(newText: String?): Boolean =
-                mainViewModel.findAppsByName(newText).run {
-                    true
-                }
+            override fun onQueryTextChange(newText: String?): Boolean {
+                Log.d("MainActivity", "Search text = $newText")
+                mainViewModel.setSearchInput(newText)
+                return true
+            }
         })
     }
 
@@ -369,7 +369,7 @@ class MainActivity : BaseActivity() {
                         isSearching.collect { isSearching ->
                             if (isSelected.value || isSettingsDestination.value) return@collect
                             mainActivityAnimator.animateOnSearch(isSearching)
-                            resetSearchResult()
+                            resetSearchInput()
                         }
                     }
                     launch {
@@ -435,13 +435,11 @@ class MainActivity : BaseActivity() {
             notificationPermissionLauncher.launch(MainPermission.NOTIFICATIONS.permissionName)
     }
 
-    fun requestSignIn() {
-        requestSignIn(
-            resultLauncher = signInIntentLauncher,
-            onAlreadySignedIn = {
-                onSuccessfullySignedIn()
-            })
-    }
+    fun requestSignIn() = requestSignIn(
+        resultLauncher = signInIntentLauncher,
+        onAlreadySignedIn = {
+            onSuccessfullySignedIn()
+        })
 
     private fun onSuccessfullySignedIn() {
         launchOnViewLifecycle {
@@ -451,11 +449,13 @@ class MainActivity : BaseActivity() {
             )
             delay(250L)
             mainViewModel.setSelectionMode(false)
-            val configureSheetFragment =
-                (supportFragmentManager.findFragmentByTag(CONFIGURE_SHEET_TAG) as? ConfigureSheetFragment)
+            val configureSheetFragment = getConfigureSheetFragment()
             configureSheetFragment?.dismiss()
         }
     }
+
+    private fun getConfigureSheetFragment() =
+        supportFragmentManager.findFragmentByTag(CONFIGURE_SHEET_TAG) as? ConfigureSheetFragment
 
     override fun onDestroy() {
         super.onDestroy()

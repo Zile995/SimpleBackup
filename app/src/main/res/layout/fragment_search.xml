@@ -12,10 +12,9 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         app:dividerColor="@color/main_background"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <HorizontalScrollView
         android:id="@+id/horizontal_view"
@@ -39,15 +38,16 @@
             android:scaleY="1.1"
             android:translationY="-60dp"
             app:chipSpacingHorizontal="10dp"
+            app:selectionRequired="true"
             app:singleLine="true"
             app:singleSelection="true">
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/installed_apps_chip"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checkable="true"
-                android:checked="true"
                 android:text="@string/installed_apps"
                 android:textAlignment="center"
                 android:textColor="@color/primary_text"
@@ -56,6 +56,7 @@
                 app:checkedIconVisible="true" />
 
             <com.google.android.material.chip.Chip
+                android:id="@+id/local_backups_chip"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -79,10 +80,10 @@
         android:background="?attr/colorPrimaryVariant"
         android:clipToPadding="false"
         android:paddingBottom="@dimen/recyclerview_bottom_padding"
+        android:scrollbarThumbVertical="@drawable/scrollbar_style"
         android:scrollbars="vertical"
         android:visibility="visible"
         app:layoutManager="LinearLayoutManager"
-        android:scrollbarThumbVertical="@drawable/scrollbar_style"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
