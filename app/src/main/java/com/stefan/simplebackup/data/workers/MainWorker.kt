@@ -146,8 +146,9 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     }
 
     private fun canInterrupt(): Boolean {
+        if (shouldBackup) return true
         val canInterrupt = !shouldBackup && RestoreUtil.canInterrupt
-        if (canInterrupt)
+        if (!canInterrupt)
             applicationContext.showToast(applicationContext.getString(R.string.restoring_please_wait))
         return canInterrupt
     }
@@ -155,7 +156,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     private fun initWorkActions() {
         skipAction = {
             Log.w("MainWorker", "Clicked skip button: $workItemJob")
-            if (!canInterrupt()) {
+            if (canInterrupt()) {
                 val toastMessage =
                     applicationContext.getString(R.string.skipping, mProgressData.value?.name)
                 applicationContext.showToast(toastMessage)
@@ -165,7 +166,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
         }
 
         cancelAction = {
-            if (!canInterrupt()) {
+            if (canInterrupt()) {
                 Log.w("MainWorker", "Clicked cancel button: $mainJob")
                 val toastMessage = applicationContext.getString(R.string.canceling_work)
                 applicationContext.showToast(toastMessage, true)
