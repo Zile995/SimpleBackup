@@ -36,59 +36,23 @@ const val APP_DATA_TYPE_EXTRA = "APP_DATA_TYPE"
     indices = [Index(value = ["package_name", "is_local"], unique = true)]
 )
 data class AppData(
-    @Transient
-    @ColumnInfo(name = "uid")
-    @PrimaryKey(autoGenerate = true)
-    val uid: Int = 0,
-
-    @ColumnInfo(name = "name")
-    val name: String,
-
-    @ColumnInfo(name = "bitmap")
-    var bitmap: ByteArray,
-
-    @ColumnInfo(name = "package_name")
-    val packageName: String,
-
-    @ColumnInfo(name = "version_name")
-    val versionName: String,
-
-    @ColumnInfo(name = "date")
-    var date: Long,
-
-    @ColumnInfo(name = "min_sdk")
-    val minSdk: Int,
-
-    @ColumnInfo(name = "target_sdk")
-    val targetSdk: Int,
-
-    @ColumnInfo(name = "data_dir")
-    val dataDir: String,
-
-    @Transient
-    @ColumnInfo(name = "apk_dir")
-    val apkDir: String = "",
-
-    @ColumnInfo(name = "apk_size")
-    val apkSize: Float,
-
-    @ColumnInfo(name = "data_size")
-    var dataSize: Long = 0L,
-
-    @ColumnInfo(name = "is_split")
-    val isSplit: Boolean,
-
-    @ColumnInfo(name = "cache_size")
-    var cacheSize: Long = 0L,
-
-    @ColumnInfo(name = "is_favorite")
-    var isFavorite: Boolean = false,
-
-    @ColumnInfo(name = "is_user_app")
-    var isUserApp: Boolean = true,
-
-    @ColumnInfo(name = "is_local")
-    var isLocal: Boolean = false
+    @Transient @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "uid") val uid: Int = 0,
+    @ColumnInfo(name = "name") val name: String,
+    @ColumnInfo(name = "bitmap") var bitmap: ByteArray,
+    @ColumnInfo(name = "package_name") val packageName: String,
+    @ColumnInfo(name = "version_name") val versionName: String,
+    @ColumnInfo(name = "date") var date: Long,
+    @ColumnInfo(name = "min_sdk") val minSdk: Int,
+    @ColumnInfo(name = "target_sdk") val targetSdk: Int,
+    @ColumnInfo(name = "data_dir") val dataDir: String,
+    @Transient @ColumnInfo(name = "apk_dir") val apkDir: String = "",
+    @ColumnInfo(name = "apk_size") val apkSize: Float,
+    @ColumnInfo(name = "data_size") var dataSize: Long = 0L,
+    @ColumnInfo(name = "is_split") val isSplit: Boolean,
+    @ColumnInfo(name = "cache_size") var cacheSize: Long = 0L,
+    @ColumnInfo(name = "is_favorite") var isFavorite: Boolean = false,
+    @ColumnInfo(name = "is_user_app") var isUserApp: Boolean = true,
+    @ColumnInfo(name = "is_local") var isLocal: Boolean = false
 ) : Parcelable {
 
     var isSelected = false

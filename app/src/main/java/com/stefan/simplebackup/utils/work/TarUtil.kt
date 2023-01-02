@@ -90,7 +90,7 @@ object TarUtil {
     private fun getArchiveName(app: AppData) = "${app.packageName}.$TAR_FILE_EXTENSION"
 
     private fun archiveData(archivePath: String, excludeCommand: String, dataPath: String) =
-        Shell.cmd("tar -cf $archivePath $excludeCommand -C $dataPath . ").exec()
+        Shell.cmd("tar -cf $archivePath -C $dataPath $excludeCommand .").exec()
 
     private fun unarchiveData(archivePath: String, dataPath: String) =
         Shell.cmd("tar -xf $archivePath -C $dataPath").exec()
@@ -110,14 +110,20 @@ object TarUtil {
             "--exclude={$standardExcludeNames}"
     }
 
-    private fun restoreAppUid(dataPath: String, uid: Int) {
+    fun getOwnerUid(uid: Int): String {
         val stringUid = uid.toString()
         Log.d("TarUtil", "uid is $stringUid")
-        val formattedUid = stringUid.substring(2).run {
-            trimStart('0')
+        val trimmedUid = stringUid.substring(2).run { trimStart('0') }
+        val formattedOwnerUid = buildString {
+            append("u0_a")
+            append(trimmedUid)
         }
-        Log.d("TarUtil", "Formatted uid is $formattedUid")
-        val ownerUid = "u0_a$formattedUid"
+        Log.d("TarUtil", "Formatted owner uid is $stringUid")
+        return formattedOwnerUid
+    }
+
+    private fun restoreAppUid(dataPath: String, uid: Int) {
+        val ownerUid = getOwnerUid(uid)
         Shell.cmd("chown $ownerUid:$ownerUid $dataPath -R").exec()
     }
 

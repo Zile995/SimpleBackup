@@ -39,7 +39,7 @@ ext {
     androidxJunit = '1.1.4'
     googleApiClient = '2.1.1'
     kotlinSerialization = '1.4.1'
-    googleDriveApi = 'v3-rev20221023-2.0.0'
+    googleDriveApi = 'v3-rev20221219-2.0.0'
 }
 
 task clean(type: Delete) {

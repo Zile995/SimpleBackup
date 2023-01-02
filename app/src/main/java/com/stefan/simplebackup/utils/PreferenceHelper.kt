@@ -53,8 +53,7 @@ object PreferenceHelper {
 
     // Init main preference
     fun Application.initPreferences() {
-        sharedPreferences =
-            applicationContext.getSharedPreferences(MAIN_PREFERENCE, Context.MODE_PRIVATE)
+        sharedPreferences = getSharedPreferences(MAIN_PREFERENCE, Context.MODE_PRIVATE)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -95,48 +94,38 @@ object PreferenceHelper {
     fun hasSavedProgressData() =
         sharedPreferences.run { contains(PROGRESS_TYPE) || contains(NUM_OF_WORK_ITEMS) }
 
-    suspend fun removeProgressData() {
-        sharedPreferences.removePreference(PROGRESS_TYPE)
-        sharedPreferences.removePreference(NUM_OF_WORK_ITEMS)
+    suspend fun removeProgressData() = sharedPreferences.run {
+        removePreference(PROGRESS_TYPE)
+        removePreference(NUM_OF_WORK_ITEMS)
     }
 
-    suspend fun saveNumOfWorkItems(numOfWorkItems: Int) {
+    suspend fun saveNumOfWorkItems(numOfWorkItems: Int) =
         sharedPreferences.editPreference(NUM_OF_WORK_ITEMS, numOfWorkItems)
-    }
 
-    suspend fun setDoublePressToExit(shouldDoublePress: Boolean) {
+    suspend fun setDoublePressToExit(shouldDoublePress: Boolean) =
         sharedPreferences.editPreference(DOUBLE_PRESS_TO_EXIT, shouldDoublePress)
-    }
 
-    suspend fun setExcludeAppsCache(shouldExclude: Boolean) {
+    suspend fun setExcludeAppsCache(shouldExclude: Boolean) =
         sharedPreferences.editPreference(EXCLUDE_APPS_CACHE, shouldExclude)
-    }
 
-    suspend fun saveZipCompressionLevel(@FloatRange(from = 0.0, to = 9.0) compressionLevel: Float) {
+
+    suspend fun saveZipCompressionLevel(@FloatRange(from = 0.0, to = 9.0) compressionLevel: Float) =
         sharedPreferences.editPreference(ZIP_COMPRESSION_LEVEL, compressionLevel)
-    }
 
-    suspend fun resetSequenceNumber() {
-        sharedPreferences.editPreference(SEQUENCE_NUMBER, 0)
-    }
+    suspend fun resetSequenceNumber() = sharedPreferences.editPreference(SEQUENCE_NUMBER, 0)
 
-    suspend fun updateSequenceNumber(newSequenceNumber: Int) {
+    suspend fun updateSequenceNumber(newSequenceNumber: Int) =
         sharedPreferences.editPreference(SEQUENCE_NUMBER, newSequenceNumber)
-    }
 
-    suspend fun setDatabaseCreated(isCreated: Boolean) {
+    suspend fun setDatabaseCreated(isCreated: Boolean) =
         sharedPreferences.editPreference(DATABASE_CREATED, isCreated)
-    }
 
-    suspend fun setCheckedRootGranted(isChecked: Boolean) {
+    suspend fun setCheckedRootGranted(isChecked: Boolean) =
         sharedPreferences.editPreference(CHECKED_ROOT_GRANTED, isChecked)
-    }
 
-    suspend fun setCheckedDeviceRooted(isChecked: Boolean) {
+    suspend fun setCheckedDeviceRooted(isChecked: Boolean) =
         sharedPreferences.editPreference(CHECKED_DEVICE_ROOTED, isChecked)
-    }
 
-    suspend fun saveProgressType(progressType: AppDataType) {
+    suspend fun saveProgressType(progressType: AppDataType) =
         sharedPreferences.editPreference(PROGRESS_TYPE, progressType.ordinal)
-    }
 }

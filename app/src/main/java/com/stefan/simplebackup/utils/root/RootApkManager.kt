@@ -113,10 +113,13 @@ class RootApkManager(context: Context) {
         }
 
         fun suspendPackage(packageName: String) {
+            Shell.cmd("am force-stop $packageName").exec()
+            Shell.cmd("am kill $packageName").exec()
             Shell.cmd("cmd package suspend $packageName").exec()
         }
 
         fun unsuspendPackage(packageName: String) {
+            Shell.cmd("am kill $packageName").exec()
             Shell.cmd("cmd package unsuspend $packageName").exec()
         }
     }
