@@ -13,7 +13,7 @@ import java.io.IOException
 
 private const val APK_TMP_INSTALL_DIR_PATH = "/data/local/tmp"
 
-class RootApkManager(context: Context) {
+class RootApkManager(private val context: Context) {
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val packageInstaller = context.packageManager.packageInstaller
@@ -81,7 +81,8 @@ class RootApkManager(context: Context) {
 
     private fun createAndGetSessionId(totalApkSize: Long): Int {
         // Create installer session
-        Shell.cmd("pm install-create -S $totalApkSize").exec()
+        Shell.cmd("pm install-create -i ${context.packageName} --user current -r -t -S $totalApkSize")
+            .exec()
         // Return first session id
         return packageInstaller.allSessions[0].sessionId
     }

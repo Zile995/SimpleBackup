@@ -70,10 +70,13 @@ object TarUtil {
                 archivePath = tarArchivePath,
                 dataPath = app.dataDir
             )
+
             Log.d("TarUtil", "Restoring the ${app.packageName} uid")
-            restoreAppUid(dataPath = app.dataDir, uid = uid)
+            restoreOwnerUid(dataPath = app.dataDir, uid = uid)
+
             Log.d("TarUtil", "Restoring the ${app.packageName} SELinux context")
             restoreSELinuxContext(dataPath = app.dataDir)
+
             if (result.isSuccess)
                 Log.d("TarUtil", "Successfully restored $tarArchiveName data archive")
             else {
@@ -110,7 +113,7 @@ object TarUtil {
             "--exclude={$standardExcludeNames}"
     }
 
-    fun getOwnerUid(uid: Int): String {
+    private fun getOwnerUid(uid: Int): String {
         val stringUid = uid.toString()
         Log.d("TarUtil", "uid is $stringUid")
         val trimmedUid = stringUid.substring(2).run { trimStart('0') }
@@ -122,12 +125,23 @@ object TarUtil {
         return formattedOwnerUid
     }
 
-    private fun restoreAppUid(dataPath: String, uid: Int) {
+    private fun restoreOwnerUid(dataPath: String, uid: Int) {
         val ownerUid = getOwnerUid(uid)
+        val ownerCacheUid = ownerUid + "_$CACHE_DIR_NAME"
         Shell.cmd("chown $ownerUid:$ownerUid $dataPath -R").exec()
+        Shell.cmd("chown $ownerUid:$ownerCacheUid $dataPath/$CACHE_DIR_NAME -R").exec()
+        Shell.cmd("chown $ownerUid:$ownerCacheUid $dataPath/$CODE_CACHE_DIR_NAME -R").exec()
     }
 
     private fun restoreSELinuxContext(dataPath: String) {
-        Shell.cmd("restorecon -R $dataPath").exec()
+        Shell.cmd("restorecon -Rv $dataPath").exec()
+
+        val selinuxContext = Shell
+                .cmd("ls -bdAlZ \"$dataPath\" | awk '{ print \$5 }'")
+                .exec()
+                .out[0]
+
+        Log.d("TarUtil", "Changing selinux context to $selinuxContext")
+        Shell.cmd("chcon -R -h -v '$selinuxContext' \"$dataPath\"").exec()
     }
 }
