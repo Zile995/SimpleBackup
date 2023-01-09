@@ -64,7 +64,7 @@ class NavigationBar(
         navController: NavController,
         args: Bundle? = null,
         crossinline onNavigate: (Boolean) -> Boolean = { true },
-        noinline customNavigationOptions: (NavOptions.Builder.(MenuItem) -> Unit)? = null
+        crossinline customNavigationOptions: (NavOptions.Builder.(MenuItem) -> Unit) = {}
     ) {
         var reselectedItemId = selectedItemId
         val weakNavBarReference = WeakReference(this)
@@ -84,11 +84,7 @@ class NavigationBar(
                     inclusive = false,
                     saveState = true
                 )
-                setEnterAnim(R.animator.fragment_nav_enter)
-                setExitAnim(R.animator.fragment_nav_exit)
-                setPopEnterAnim(R.animator.fragment_nav_enter_pop)
-                setPopExitAnim(R.animator.fragment_nav_exit_pop)
-                customNavigationOptions?.invoke(this, item)
+                customNavigationOptions.invoke(this, item)
             }
             navController.navigate(item.itemId, args, navOptions.build())
             true

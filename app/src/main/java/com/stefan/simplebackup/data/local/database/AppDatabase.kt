@@ -35,8 +35,7 @@ abstract class AppDatabase : RoomDatabase() {
 
         private var mainJob: Job? = null
         private val ioDispatcher = Dispatchers.IO
-
-        private val appDao by lazy { INSTANCE?.appDao() }
+        private val appDao get() = INSTANCE?.appDao()
 
         private suspend fun insertAll() {
             try {
@@ -44,7 +43,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val time = measureTimeMillis {
                     appManager.apply {
                         updateSequenceNumber()
-                        buildData().collect { app ->
+                        buildAllData().collect { app ->
                             Log.d("AppDatabase", "Inserting: ${app.name}")
                             appDao?.insert(app)
                         }

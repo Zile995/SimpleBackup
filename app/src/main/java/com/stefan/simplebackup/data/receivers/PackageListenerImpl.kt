@@ -41,7 +41,7 @@ class PackageListenerImpl(application: MainApplication) : PackageListener {
     override suspend fun insertOrUpdatePackage(packageName: String) {
         Log.d("PackageListener", "Adding or updating the $packageName")
         appManager.apply {
-            val newApp = build(packageName)
+            val newApp = buildData(packageName)
             repository.insertAppData(newApp)
         }
     }

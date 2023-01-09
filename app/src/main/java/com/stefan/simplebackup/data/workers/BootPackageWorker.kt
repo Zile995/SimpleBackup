@@ -46,7 +46,7 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) :
 
     private suspend fun updateAllPackages(repository: AppRepository, appManager: AppManager) {
         appManager.apply {
-            buildData().collect { app ->
+            buildAllData().collect { app ->
                 repository.insertAppData(app)
             }
         }

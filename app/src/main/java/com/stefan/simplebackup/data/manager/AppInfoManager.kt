@@ -36,7 +36,7 @@ class AppInfoManager(private val packageManager: PackageManager, private val fla
         else
             packageManager.getPackageInfo(packageName, flag.toInt())
 
-    fun getFilteredInfo(
+    inline fun getFilteredInfo(
         filterSystemApps: Boolean = false,
         predicate: (ApplicationInfo) -> Boolean
     ) = getCompleteAppsInfo().filter { appInfo ->

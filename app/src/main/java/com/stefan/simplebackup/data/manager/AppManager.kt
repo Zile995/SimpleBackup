@@ -30,7 +30,7 @@ class AppManager(private val context: Context) {
         AppInfoManager(packageManager, 0)
     }
 
-    suspend fun build(packageName: String) = withContext(ioDispatcher) {
+    suspend fun buildData(packageName: String) = withContext(ioDispatcher) {
         getAppData(appInfo = appInfoManager.getAppInfo(packageName))
     }
 
@@ -78,7 +78,7 @@ class AppManager(private val context: Context) {
     }
 
     // Simple flow which sends data
-    fun buildData(
+    fun buildAllData(
         includeSystemApps: Boolean = false, filter: (ApplicationInfo) -> Boolean = { true }
     ) = flow {
         appInfoManager.getFilteredInfo(filterSystemApps = includeSystemApps) { appInfo ->

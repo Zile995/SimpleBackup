@@ -347,6 +347,11 @@ class MainActivity : BaseActivity() {
                     setExitAnim(R.anim.nav_default_exit_anim)
                     setPopEnterAnim(R.animator.fragment_nav_enter_pop)
                     setPopExitAnim(R.animator.fragment_nav_exit_pop)
+                } else {
+                    setEnterAnim(R.animator.fragment_nav_enter)
+                    setExitAnim(R.animator.fragment_nav_exit)
+                    setPopEnterAnim(R.animator.fragment_nav_enter_pop)
+                    setPopExitAnim(R.animator.fragment_nav_exit_pop)
                 }
             })
 
