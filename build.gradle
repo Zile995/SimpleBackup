@@ -1,45 +1,47 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
-    ext.gradleVersion = '7.3.1'
-    ext.kotlinVersion = '1.7.20'
-    ext.kspVersion = '1.7.20-1.0.7'
+    ext {
+        ktx = '1.9.0'
+        coil = '2.2.2'
+        room = '2.4.3'
+        work = '2.7.1'
+        libsu = '5.0.4'
+        junit = '4.13.2'
+        zip4j = '2.11.2'
+        shimmer = '0.5.0'
+        activity = '1.6.1'
+        espresso = '3.5.1'
+        fragment = '1.5.5'
+        material = '1.7.0'
+        appCompat = '1.5.1'
+        integrity = '1.0.2'
+        lifecycle = '2.5.1'
+        constraint = '2.1.4'
+        coroutines = '1.6.4'
+        leakCanary = '2.9.1'
+        navigation = '2.5.3'
+        googleAuth = '20.4.0'
+        googleGson = '1.42.3'
+        swipeRefresh = '1.1.0'
+        androidxJunit = '1.1.5'
+        gradleVersion = '7.3.1'
+        kotlinVersion = '1.7.20'
+        googleApiClient = '2.1.2'
+        kspVersion = '1.7.20-1.0.7'
+        kotlinSerialization = '1.4.1'
+        googleDriveApi = 'v3-rev20221219-2.0.0'
+    }
+
     repositories {
         google()
         mavenCentral()
         maven { url 'https://jitpack.io' }
     }
+
     dependencies {
         classpath "com.android.tools.build:gradle:$gradleVersion"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
     }
-}
-
-ext {
-    ktx = '1.9.0'
-    coil = '2.2.2'
-    room = '2.4.3'
-    work = '2.7.1'
-    libsu = '5.0.4'
-    junit = '4.13.2'
-    zip4j = '2.11.2'
-    activity = '1.6.1'
-    espresso = '3.5.1'
-    fragment = '1.5.5'
-    material = '1.7.0'
-    appCompat = '1.5.1'
-    integrity = '1.0.2'
-    lifecycle = '2.5.1'
-    constraint = '2.1.4'
-    coroutines = '1.6.4'
-    leakCanary = '2.9.1'
-    navigation = '2.5.3'
-    googleAuth = '20.4.0'
-    googleGson = '1.42.3'
-    swipeRefresh = '1.1.0'
-    androidxJunit = '1.1.5'
-    googleApiClient = '2.1.2'
-    kotlinSerialization = '1.4.1'
-    googleDriveApi = 'v3-rev20221219-2.0.0'
 }
 
 task clean(type: Delete) {

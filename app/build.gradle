@@ -38,8 +38,8 @@ android {
         applicationId "com.stefan.simplebackup"
         minSdk 26
         targetSdk 33
-        versionCode 21
-        versionName "0.1"
+        versionCode 100
+        versionName "0.5"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
@@ -71,7 +71,8 @@ android {
                          'META-INF/NOTICE',
                          'META-INF/NOTICE.txt',
                          'META-INF/notice.txt',
-                         'META-INF/ASL2.0']
+                         'META-INF/ASL2.0',
+                         'DebugProbesKt.bin']
         }
     }
 
@@ -167,7 +168,7 @@ dependencies {
     implementation "io.coil-kt:coil:$coil"
 
     // Shimmer
-    implementation 'com.facebook.shimmer:shimmer:0.5.0'
+    implementation "com.facebook.shimmer:shimmer:$shimmer"
 
     // Leak Canary
     // debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"

@@ -39,13 +39,12 @@ suspend fun Drive.getFileWithName(fileId: String): File =
         .executeOnBackground()
 
 suspend fun Drive.createFile(fileMetadata: File, fileContent: FileContent? = null): String =
-    files()
-        .run {
-            if (fileContent == null)
-                create(fileMetadata)
-            else
-                create(fileMetadata, fileContent)
-        }.setFields("id, parents")
+    files().run {
+        if (fileContent == null)
+            create(fileMetadata)
+        else
+            create(fileMetadata, fileContent)
+    }.setFields("id, parents")
         .executeOnBackground()
         .id
 
@@ -64,8 +63,7 @@ suspend fun Drive.createFolder(folderName: String, parentId: String? = null): St
     val folderList = getFileList()
     val folder = folderList.findFirstFileByName(folderName)
 
-    if (folder != null)
-        return folder.id
+    if (folder != null) return folder.id
 
     val fileMetadata = File().apply {
         name = folderName
