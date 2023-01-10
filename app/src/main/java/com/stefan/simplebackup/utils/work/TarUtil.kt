@@ -102,13 +102,13 @@ object TarUtil {
         val shouldExcludeCache = PreferenceHelper.shouldExcludeAppsCache
 
         // Standard excluded dirs and files
-        val standardExcludeNames = "\"$LIB_DIR_NAME\"," +
-                "\"$NO_BACKUP_DIR_NAME\"," +
+        val standardExcludeNames = "\"./$LIB_DIR_NAME\"," +
+                "\"./$NO_BACKUP_DIR_NAME\"," +
                 "\"$GMS_APP_ID_FILE_NAME\"," +
                 "\"$GMS_MEASUREMENTS_FILE_NAME\""
 
         return if (shouldExcludeCache)
-            "--exclude={$standardExcludeNames,\"$CACHE_DIR_NAME\",\"$CODE_CACHE_DIR_NAME\"}"
+            "--exclude={$standardExcludeNames,\"./$CACHE_DIR_NAME\",\"./$CODE_CACHE_DIR_NAME\"}"
         else
             "--exclude={$standardExcludeNames}"
     }
