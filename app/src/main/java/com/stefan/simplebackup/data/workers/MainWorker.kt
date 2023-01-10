@@ -62,7 +62,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
     private val workNotificationManager by lazy {
         WorkNotificationManager(context = appContext,
             notificationId = WORK_NOTIFICATION_ID,
-            onClickAction = { appContext.getLastActivityIntent() },
+            onClickAction = { appContext.getLaunchPendingIntent() },
             onSkipAction = { getPendingIntent(NOTIFICATION_SKIP_ACTION) },
             onCancelAction = { getPendingIntent(NOTIFICATION_CANCEL_ACTION) })
     }

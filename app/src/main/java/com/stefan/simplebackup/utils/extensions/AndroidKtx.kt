@@ -148,7 +148,9 @@ fun Context.unregisterReceivers(vararg receivers: BroadcastReceiver) =
 @RequiresApi(Build.VERSION_CODES.R)
 fun Context.openManageFilesPermissionSettings() =
     Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).run {
-        addCategory(Intent.CATEGORY_DEFAULT)
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_NO_HISTORY or
+                Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
         data = Uri.parse("package:$packageName")
         startActivity(this)
     }
@@ -156,26 +158,34 @@ fun Context.openManageFilesPermissionSettings() =
 fun Context.openAppNotificationSettings() =
     Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).run {
         putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-        addCategory(Intent.CATEGORY_DEFAULT)
         startActivity(this)
     }
 
 fun Context.openStorageSettings() =
-    Intent(Settings.ACTION_INTERNAL_STORAGE_SETTINGS).run {
-        addCategory(Intent.CATEGORY_DEFAULT)
-        startActivity(this)
-    }
+    Intent(Settings.ACTION_INTERNAL_STORAGE_SETTINGS).run { startActivity(this) }
 
-fun Context.openUsageAccessSettings() =
-    Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).run {
-        addCategory(Intent.CATEGORY_DEFAULT)
+fun Context.openUsageAccessSettings() {
+    val usageAccessIntent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                Intent.FLAG_ACTIVITY_NO_HISTORY or
+                Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
         data = Uri.fromParts("package", packageName, null)
-        startActivity(this)
     }
+    if (usageAccessIntent.resolveActivity(packageManager) != null) {
+        startActivity(usageAccessIntent)
+    } else {
+        val settingsUsageIntent = Intent().apply {
+            setClassName(
+                "com.android.settings",
+                "com.android.settings.Settings\$UsageAccessSettingsActivity"
+            )
+        }
+        startActivity(settingsUsageIntent)
+    }
+}
 
 fun Context.openPackageSettingsInfo(packageName: String) =
     Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).run {
-        addCategory(Intent.CATEGORY_DEFAULT)
         data = Uri.parse("package:$packageName")
         startActivity(this)
     }
@@ -189,7 +199,7 @@ fun Context.forceStopPackage(packageName: String) {
 
 fun Context.launchPackage(packageName: String) =
     getLaunchIntent(packageName)?.run {
-        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK
         startActivity(this)
     }
 
@@ -255,7 +265,7 @@ inline fun <reified T : AppCompatActivity> Context.launchActivity(
 fun Context.getLaunchIntent(packageName: String = getPackageName()) =
     packageManager.getLaunchIntentForPackage(packageName)
 
-fun Context.getLastActivityIntent(): PendingIntent {
+fun Context.getLaunchPendingIntent(): PendingIntent {
     val intent = getLaunchIntent()
     return PendingIntent.getActivity(
         this,
