@@ -73,14 +73,7 @@ abstract class WorkUtil(
     }
 
     protected var tempItemDirPath: String = ""
-        private set(value) {
-            if (value != field) field = value
-        }
-
     protected var backupItemDirPath: String = ""
-        private set(value) {
-            if (value != field) field = value
-        }
 
     /**
      * - Main work method which executes work actions and handles work exceptions
@@ -95,8 +88,7 @@ abstract class WorkUtil(
             }
             else -> {
                 try {
-                    tempItemDirPath = FileUtil.getTempDirPath(this)
-                    backupItemDirPath = FileUtil.getBackupDirPath(this)
+                    setDirPaths(this)
                     actions.forEach { action ->
                         action(this)
                         updateProgress(actions.size)
@@ -104,12 +96,21 @@ abstract class WorkUtil(
                     onSuccess(app = this)
                 } catch (e: IOException) {
                     Log.w("WorkUtil", "Oh, an error occurred: $e")
-                    tempItemDirPath = ""
-                    backupItemDirPath = ""
+                    clearDirPaths()
                     onFailure(app = this)
                 }
             }
         }
+    }
+
+    private fun setDirPaths(app: AppData) {
+        tempItemDirPath = FileUtil.getTempDirPath(app)
+        backupItemDirPath = FileUtil.getBackupDirPath(app)
+    }
+
+    private fun clearDirPaths() {
+        tempItemDirPath = ""
+        backupItemDirPath = ""
     }
 
     protected suspend fun AppData.updateProgressData(

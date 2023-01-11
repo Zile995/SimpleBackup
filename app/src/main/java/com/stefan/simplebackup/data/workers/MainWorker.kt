@@ -121,15 +121,14 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                     )
                     // Delay and send new notification sound only for fast works
                     if (time <= 1_000L) delay(1_100L)
-                    workItems?.apply {
-                        workNotificationManager.sendNotificationBroadcast(
-                            context = applicationContext,
-                            notification = workNotificationManager.getFinishedNotification(
-                                isBackupNotification = shouldBackup
-                            ),
-                            actionName = ACTION_WORK_FINISHED
-                        )
-                    }
+                    workNotificationManager.sendNotificationBroadcast(
+                        context = applicationContext,
+                        notification = workNotificationManager.getFinishedNotification(
+                            isBackupNotification = shouldBackup,
+                            numOfWorkItems = workItems!!.size
+                        ),
+                        actionName = ACTION_WORK_FINISHED
+                    )
                 }
             }
         } catch (e: Exception) {
