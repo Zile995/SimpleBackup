@@ -20,7 +20,7 @@ class LocalViewModel(appRepository: AppRepository) : BaseViewModel() {
     )
 
     private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing get() = _isRefreshing.asStateFlow()
+    val isRefreshing = _isRefreshing.asStateFlow()
 
     init {
         Log.d("ViewModel", "LocalViewModel created")

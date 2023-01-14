@@ -4,7 +4,7 @@
         android:duration="250"
         android:interpolator="@android:interpolator/linear"
         android:propertyName="alpha"
-        android:startOffset="50"
+        android:startOffset="250"
         android:valueFrom="1"
         android:valueTo="0" />
 </set>

@@ -26,8 +26,6 @@ import com.stefan.simplebackup.utils.work.FileUtil.tempDirPath
 import com.stefan.simplebackup.utils.work.RestoreUtil
 import com.stefan.simplebackup.utils.work.TEMP_DIR_NAME
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 import java.io.IOException
 import kotlin.system.measureTimeMillis
@@ -67,14 +65,12 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             onCancelAction = { getPendingIntent(NOTIFICATION_CANCEL_ACTION) })
     }
 
-    // Progress data
-    private val mProgressData: MutableStateFlow<ProgressData?> = MutableStateFlow(null)
-    private val progressData get() = mProgressData.asStateFlow()
+    private lateinit var progressRepository: ProgressRepository
 
     // Foreground info lambdas
     private val updateForegroundInfo = setForegroundInfo(workNotificationManager.notificationId)
     private val foregroundCallBack: ForegroundCallback = { progressData ->
-        mProgressData.value = progressData
+        progressRepository.insert(progressData)
         val updatedNotification =
             workNotificationManager.getUpdatedNotification(progressData, shouldBackup)
         updateForegroundInfo(updatedNotification)
@@ -98,20 +94,12 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
                 var time = 0L
                 mainScope = this
                 val database = AppDatabase.getInstance(applicationContext, this)
-                val progressRepository = ProgressRepository(database.progressDao())
+                progressRepository = ProgressRepository(database.progressDao())
                 mainJob = launch {
-                    val progressJob = launch {
-                        progressData.collect { progressData ->
-                            if (progressData != null) {
-                                progressRepository.insert(progressData)
-                            }
-                        }
-                    }
                     time = measureTimeMillis {
                         startMainWork()?.collect { itemJob ->
                             workItemJob = itemJob
                         }
-                        progressJob.cancelAndJoin()
                     }
                 }
                 mainJob?.join()
@@ -157,7 +145,7 @@ class MainWorker(appContext: Context, params: WorkerParameters) : CoroutineWorke
             Log.w("MainWorker", "Clicked skip button: $workItemJob")
             if (canInterrupt()) {
                 val toastMessage =
-                    applicationContext.getString(R.string.skipping, mProgressData.value?.name)
+                    applicationContext.getString(R.string.skipping)
                 applicationContext.showToast(toastMessage)
                 workItemJob?.cancel()
                 forcefullyDeleteBackup()

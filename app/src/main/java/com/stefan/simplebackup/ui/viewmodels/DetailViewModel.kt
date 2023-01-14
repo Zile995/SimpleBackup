@@ -34,22 +34,21 @@ class DetailsViewModel(
     private val backupFileEvents by lazy {
         val backupDir =
             app?.run { File(FileUtil.getBackupDirPath(this)) } ?: File(FileUtil.localDirPath)
-        backupDir.asRecursiveFileWatcher(viewModelScope).fileEvent
+        backupDir.asRecursiveFileWatcher(viewModelScope, recreateRootDir = false).fileEvent
     }
 
-    val localBackupFileEvents: SharedFlow<RecursiveFileWatcher.FileEvent>?
-        get() {
-            return if (app?.isLocal == true) backupFileEvents else null
-        }
+    val localBackupFileEvents: SharedFlow<RecursiveFileWatcher.FileEvent>? by lazy {
+        if (app?.isLocal == true) backupFileEvents else null
+    }
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 
     private val _nativeLibs = MutableStateFlow<List<String>?>(null)
-    val nativeLibs get() = _nativeLibs.asStateFlow()
+    val nativeLibs = _nativeLibs.asStateFlow()
 
     private val _apkSizeStats = MutableStateFlow<ApkSizeStats?>(null)
-    val apkSizeStats get() = _apkSizeStats.asStateFlow()
+    val apkSizeStats = _apkSizeStats.asStateFlow()
 
     init {
         Log.d("ViewModel", "DetailsViewModel created")

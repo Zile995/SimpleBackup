@@ -12,11 +12,11 @@ const val SELECTION_EXTRA = "SELECTION_LIST"
 abstract class BaseViewModel : ViewModel(), RecyclerViewStateSaver by RecyclerViewStateSaverImpl() {
     // Observable spinner properties used for progressbar observing
     private val _spinner = MutableStateFlow(true)
-    val spinner get() = _spinner.asStateFlow()
+    val spinner = _spinner.asStateFlow()
 
     // Observable application properties used for list loading
     private val _observableList = MutableStateFlow(mutableListOf<AppData>())
-    val observableList get() = _observableList.asStateFlow()
+    val observableList = _observableList.asStateFlow()
 
     fun setSpinning(shouldSpin: Boolean) {
         _spinner.value = shouldSpin

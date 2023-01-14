@@ -181,7 +181,7 @@ class MainActivity : BaseActivity() {
         bindSearchBar()
         bindAppBarLayout()
         bindFloatingButton()
-        bindBottomNavigationView()
+        bindNavigationBar()
     }
 
     private suspend fun ActivityMainBinding.observeNumberOfSelected() {
@@ -331,7 +331,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
-    private fun ActivityMainBinding.bindBottomNavigationView() =
+    private fun ActivityMainBinding.bindNavigationBar() =
         navigationBar.setupNavigation(navController,
             onNavigate = { isReselected ->
                 if (!isReselected) {

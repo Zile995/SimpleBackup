@@ -2,7 +2,6 @@ package com.stefan.simplebackup.utils.file
 
 import android.util.Log
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import java.io.*
@@ -12,10 +11,14 @@ import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.WatchKey
 
 // File extension function. Get the RecursiveFileWatcher instance from File.
-fun File.asRecursiveFileWatcher(scope: CoroutineScope) =
-    RecursiveFileWatcher(scope = scope, rootDir = this)
+fun File.asRecursiveFileWatcher(scope: CoroutineScope, recreateRootDir: Boolean = true) =
+    RecursiveFileWatcher(scope = scope, rootDir = this, recreateRootDir)
 
-class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDir: File) {
+class RecursiveFileWatcher(
+    private val scope: CoroutineScope,
+    private val rootDir: File,
+    private val recreateRootDir: Boolean = true
+) {
 
     private var currentFileSize = 0L
     private val ioDispatcher = Dispatchers.IO
@@ -23,7 +26,7 @@ class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDi
     private val watchService = FileSystems.getDefault().newWatchService()
 
     private val _fileEvent = MutableSharedFlow<FileEvent>(extraBufferCapacity = Int.MAX_VALUE)
-    val fileEvent get() = _fileEvent.asSharedFlow()
+    val fileEvent = _fileEvent.asSharedFlow()
 
     init {
         processFileEvents()
@@ -90,7 +93,7 @@ class RecursiveFileWatcher(private val scope: CoroutineScope, private val rootDi
                     if (registeredKeys[newMonitorKey] == rootDir.toPath()) {
                         // Re-create main rootDir and re-register dir tree
                         // Do not break watch service polling
-                        rootDir.mkdirs()
+                        if (recreateRootDir) rootDir.mkdirs()
                         shouldRegisterNewPaths = true
                     }
                     // Remove invalid key with an inaccessible path from HashMap

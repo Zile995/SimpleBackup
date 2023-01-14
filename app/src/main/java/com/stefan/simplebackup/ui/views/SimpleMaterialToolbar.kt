@@ -10,7 +10,7 @@ import androidx.annotation.IdRes
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
 import androidx.core.content.ContextCompat
-import androidx.core.view.postDelayed
+import androidx.core.view.doOnPreDraw
 import com.google.android.material.appbar.MaterialToolbar
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
@@ -46,23 +46,25 @@ class SimpleMaterialToolbar(
 
     inline fun changeOnSearch(
         isSearching: Boolean,
-        crossinline setNavigationOnClickListener: () -> Unit = {}
+        crossinline onNavigationClickAction: () -> Unit = {}
     ) {
         if (isSearching) {
-            removeTitle()
-            removeRipple()
-            setMenuItemsOnSearch()
-            removeOnClickListener()
-            setNavigationIcon(R.drawable.ic_arrow_back)
-            setNavigationContentDescription(R.string.back)
-            setNavigationOnClickListener {
-                if (animationFinished) {
-                    setNavigationOnClickListener()
+            post {
+                removeTitle()
+                removeRipple()
+                setMenuItemsOnSearch()
+                removeOnClickListener()
+                setNavigationIcon(R.drawable.ic_arrow_back)
+                setNavigationContentDescription(R.string.back)
+                setNavigationOnClickListener {
+                    if (animationFinished) {
+                        doOnPreDraw {
+                            onNavigationClickAction()
+                        }
+                    }
                 }
             }
-        } else {
-            setDefaultState()
-        }
+        } else setDefaultState()
     }
 
     inline fun changeOnSelection(
@@ -79,17 +81,15 @@ class SimpleMaterialToolbar(
                 if (animationFinished)
                     selectionModeCallBack(false)
             }
-        } else {
-            setDefaultState()
-        }
+        } else setDefaultState()
     }
 
     inline fun changeOnSettings(
         isInSettings: Boolean,
-        crossinline setNavigationOnClickListener: () -> Unit = {}
+        crossinline onNavigationClickAction: () -> Unit = {}
     ) {
         if (isInSettings) {
-            postDelayed(50L) {
+            post {
                 removeRipple()
                 setDefaultMenuItems()
                 removeOnClickListener()
@@ -98,23 +98,23 @@ class SimpleMaterialToolbar(
                 setNavigationContentDescription(R.string.back)
                 setNavigationOnClickListener {
                     if (animationFinished) {
-                        setNavigationOnClickListener()
+                        doOnPreDraw {
+                            onNavigationClickAction()
+                        }
                     }
                 }
             }
-        } else {
-            setDefaultState()
-        }
+        } else setDefaultState()
     }
 
     fun setDefaultState() {
         if (!hasOnClickListeners()) {
             Log.d("SimpleMaterialToolbar", "Setting to default state")
-            addRipple()
-            setDefaultTitle()
-            setDefaultMenuItems()
-            propagateClickEventsToParent()
             post {
+                addRipple()
+                setDefaultTitle()
+                setDefaultMenuItems()
+                propagateClickEventsToParent()
                 setNavigationIcon(R.drawable.ic_search)
                 setNavigationContentDescription(R.string.search_for_apps)
             }

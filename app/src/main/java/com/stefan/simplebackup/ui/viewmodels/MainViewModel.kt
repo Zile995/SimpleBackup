@@ -39,7 +39,7 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
 
     // Search
     private val _isSearching = MutableStateFlow(false)
-    val isSearching get() = _isSearching.asStateFlow()
+    val isSearching = _isSearching.asStateFlow()
 
     // Selection properties
     private var _isSelected = MutableStateFlow(false)

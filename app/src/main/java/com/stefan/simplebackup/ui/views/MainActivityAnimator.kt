@@ -6,7 +6,6 @@ import android.view.animation.AccelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import androidx.annotation.ColorRes
 import androidx.annotation.MainThread
-import androidx.annotation.UiThread
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
@@ -124,7 +123,7 @@ class MainActivityAnimator(
             }
             floatingButton.hidePermanently = isSearching
             materialToolbar.changeOnSearch(isSearching,
-                setNavigationOnClickListener = {
+                onNavigationClickAction = {
                     activity?.onSupportNavigateUp()
                 })
         }
