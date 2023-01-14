@@ -3,8 +3,8 @@ plugins {
     id 'kotlin-android'
     id 'com.android.application'
     id 'org.jetbrains.kotlin.plugin.parcelize'
-    id 'com.google.devtools.ksp' version "$kspVersion"
-    id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlinVersion"
+    id 'com.google.devtools.ksp' version "$ksp"
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlin"
 }
 
 def keystoreProperties = new Properties()
@@ -119,11 +119,6 @@ dependencies {
     implementation "androidx.navigation:navigation-fragment-ktx:$navigation"
     implementation "androidx.navigation:navigation-ui-ktx:$navigation"
 
-    // Test
-    testImplementation "junit:junit:$junit"
-    androidTestImplementation "androidx.test.ext:junit:$androidxJunit"
-    androidTestImplementation "androidx.test.espresso:espresso-core:$espresso"
-
     // Kotlin Coroutines
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines"
@@ -170,6 +165,12 @@ dependencies {
     // Shimmer
     implementation "com.facebook.shimmer:shimmer:$shimmer"
 
-    // Leak Canary
-    // debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"
+    /* Leak Canary
+    debugImplementation "com.squareup.leakcanary:leakcanary-android:$leakCanary"
+
+    /* Test
+    testImplementation "junit:junit:$junit"
+    androidTestImplementation "androidx.test.ext:junit:$androidxJunit"
+    androidTestImplementation "androidx.test.espresso:espresso-core:$espresso"
+    */
 }

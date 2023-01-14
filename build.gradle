@@ -3,31 +3,31 @@ buildscript {
     ext {
         ktx = '1.9.0'
         coil = '2.2.2'
-        room = '2.4.3'
+        room = '2.5.0'
         work = '2.7.1'
         libsu = '5.0.4'
         junit = '4.13.2'
         zip4j = '2.11.2'
+        kotlin = '1.7.21'
         shimmer = '0.5.0'
         activity = '1.6.1'
         espresso = '3.5.1'
         fragment = '1.5.5'
         material = '1.7.0'
-        appCompat = '1.5.1'
+        appCompat = '1.6.0'
         integrity = '1.0.2'
         lifecycle = '2.5.1'
         constraint = '2.1.4'
         coroutines = '1.6.4'
+        ksp = '1.7.21-1.0.8'
         leakCanary = '2.9.1'
         navigation = '2.5.3'
         googleAuth = '20.4.0'
         googleGson = '1.42.3'
         swipeRefresh = '1.1.0'
         androidxJunit = '1.1.5'
-        gradleVersion = '7.3.1'
-        kotlinVersion = '1.7.20'
+        gradleVersion = '7.4.0'
         googleApiClient = '2.1.2'
-        kspVersion = '1.7.20-1.0.7'
         kotlinSerialization = '1.4.1'
         googleDriveApi = 'v3-rev20221219-2.0.0'
     }
@@ -40,7 +40,7 @@ buildscript {
 
     dependencies {
         classpath "com.android.tools.build:gradle:$gradleVersion"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin"
     }
 }
 
