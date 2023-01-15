@@ -9,11 +9,11 @@ import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.launchWithLogging
 import kotlinx.coroutines.CoroutineName
 
-open class HomeViewModel(
+class HomeViewModel(
     private val packageListener: PackageListener
 ) : BaseViewModel() {
 
-    protected val repository = packageListener.repository
+    private val repository = packageListener.repository
     suspend fun refreshPackages() = packageListener.refreshPackageList()
 
     init {
