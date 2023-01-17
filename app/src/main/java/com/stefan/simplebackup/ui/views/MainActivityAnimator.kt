@@ -36,7 +36,7 @@ class MainActivityAnimator(
     @MainThread
     fun animateOnSettings(isInSettings: Boolean) {
         binding?.apply {
-            root.doOnPreDraw {
+            searchBarLayout.doOnPreDraw {
                 if (isInSettings) {
                     animatorSet = AnimatorSet().apply {
                         duration = 100L
@@ -76,20 +76,17 @@ class MainActivityAnimator(
     ) {
         binding?.apply {
             expandAppBarLayout(isSelected)
-            if (isSelected)
-                root.post {
-                    floatingButton.changeOnHomeFragment(
-                        activity?.supportFragmentManager?.getVisibleFragment() is HomeViewPagerFragment
-                    )
-                }
-            root.doOnPreDraw {
+            searchBarLayout.doOnPreDraw {
                 if (isSelected) {
                     startAnimations(doOnStart = {
                         setFragmentBottomMargin(appBarLayout.height)
                     })
+                    floatingButton.changeOnHomeFragment(
+                        activity?.supportFragmentManager?.getVisibleFragment() is HomeViewPagerFragment
+                    )
                 } else {
                     reverseAnimations {
-                        activity?.getCurrentlyVisibleBaseFragment?.fixRecyclerViewScrollPosition()
+                        activity?.currentlyVisibleBaseFragment?.fixRecyclerViewScrollPosition()
                     }
                 }
             }
@@ -101,7 +98,7 @@ class MainActivityAnimator(
     @MainThread
     fun animateOnSearch(isSearching: Boolean) {
         binding?.apply {
-            root.doOnPreDraw {
+            searchBarLayout.doOnPreDraw {
                 if (isSearching) {
                     startAnimations(
                         doOnStart = {
@@ -177,11 +174,11 @@ class MainActivityAnimator(
     }
 
     private fun ActivityMainBinding.expandAppBarLayout(shouldExpand: Boolean) {
-        root.doOnPreDraw {
+        appBarLayout.doOnPreDraw {
             if (shouldExpand)
                 appBarLayout.setExpanded(true)
             else {
-                val visibleFragment = activity?.getCurrentlyVisibleBaseFragment
+                val visibleFragment = activity?.currentlyVisibleBaseFragment
                 val shouldMoveUp = visibleFragment?.shouldMoveFragmentUp()
                 if (shouldMoveUp == true) {
                     Log.d("MainAnimator", "Collapsing the AppBarLayout")
@@ -202,12 +199,8 @@ class MainActivityAnimator(
         }
     }
 
-    private fun changeStatusBarColor(@ColorRes resId: Int) {
-        binding?.materialSearchBar?.post {
-            activity?.apply {
-                window.statusBarColor = getColorFromResource(resId)
-            }
-        }
+    private fun changeStatusBarColor(@ColorRes resId: Int) = binding?.materialSearchBar?.post {
+        activity?.apply { window.statusBarColor = getColorFromResource(resId) }
     }
 
     companion object {

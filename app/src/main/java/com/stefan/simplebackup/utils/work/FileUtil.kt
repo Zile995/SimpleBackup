@@ -110,7 +110,9 @@ object FileUtil {
         crossinline filterDirNames: (String?) -> Boolean = { true }
     ) = flow {
         File(dirPath).walkTopDown().filter { dirFile ->
-            dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION && filterDirNames(dirFile.parentFile?.name)
+            dirFile.isFile
+                    && filterDirNames(dirFile.parentFile?.name)
+                    && dirFile.extension == JSON_FILE_EXTENSION
         }.forEach { jsonFile ->
             emit(jsonFile)
         }

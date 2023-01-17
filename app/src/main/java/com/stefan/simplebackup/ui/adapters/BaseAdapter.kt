@@ -22,7 +22,7 @@ abstract class BaseAdapter(
 
     override fun submitList(list: List<AppData>?) {
         list?.let { newList ->
-            if (newList.size < currentList.size && !BaseSelectionListenerImpl.selectionFinished) {
+            if (newList.size < currentList.size && BaseSelectionListenerImpl.inSelection) {
                 val deletedPackageNames =
                     currentList.asSequence().minus(newList.toSet()).map { it.packageName }
                 deletedPackageNames.forEach { packageName ->

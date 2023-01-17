@@ -12,7 +12,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.activities.DetailActivity
 import com.stefan.simplebackup.ui.adapters.BaseAdapter
-import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
+import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.inSelection
 import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.adapters.viewholders.BaseViewHolder
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
@@ -116,10 +116,10 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
         onMainActivity {
             _mainRecyclerView?.controlFloatingButton(
                 onButtonClick = {
-                    if (selectionFinished)
-                        smoothSnapToPosition(0)
-                    else
+                    if (inSelection)
                         onClickSelectionAction()
+                    else
+                        smoothSnapToPosition(0)
                 })
         }
     }

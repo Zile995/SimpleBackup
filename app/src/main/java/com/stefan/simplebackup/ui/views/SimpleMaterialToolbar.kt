@@ -211,7 +211,6 @@ class SimpleMaterialToolbar(
             setTitleTextColor(context.getColor(resourceId))
         }
 
-
     private fun setDefaultTitle() {
         setCustomTitle(R.string.search_for_apps, R.style.TextAppearance_SimpleBackup_TitleSmall)
         setDefaultTitleTextColor()

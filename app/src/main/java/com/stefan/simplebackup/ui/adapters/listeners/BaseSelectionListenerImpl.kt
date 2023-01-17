@@ -33,19 +33,19 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
         mNumberOfSelected.value = selectedItems.size
         if (selectedItems.isEmpty()) {
             onSelectionModeCallback(false)
-            selectionFinished = true
+            inSelection = false
         }
     }
 
     override fun removeAllSelectedItems() {
         selectedItems.clear()
         mNumberOfSelected.value = 0
-        selectionFinished = true
+        inSelection = false
     }
 
     override fun doSelection(holder: VH, item: AppData) {
         holder.apply {
-            selectionFinished = false
+            inSelection = true
             if (item.isSelected && selectedItems.size == 1 && !MainActivityAnimator.animationFinished) return
             if (selectedItems.contains(item.packageName)) {
                 item.isSelected = false
@@ -61,7 +61,7 @@ class BaseSelectionListenerImpl<VH : BaseViewHolder>(
     }
 
     companion object {
-        var selectionFinished: Boolean = true
+        var inSelection: Boolean = false
             private set
 
         private val mNumberOfSelected = MutableStateFlow(0)

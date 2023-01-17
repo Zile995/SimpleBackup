@@ -2,7 +2,7 @@ package com.stefan.simplebackup.ui.views
 
 import android.content.Context
 import android.util.AttributeSet
-import androidx.core.view.doOnAttach
+import androidx.core.view.doOnPreDraw
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.stefan.simplebackup.R
 
@@ -24,22 +24,14 @@ class MainFloatingButton(
         context, attrs, R.attr.extendedFloatingActionButtonStyle
     )
 
-    init {
-        doOnAttach {
-            shrink()
-        }
-    }
-
     override fun show() {
         if (hidePermanently) return
         super.show()
     }
 
-    fun changeOnSelection(isSelected: Boolean) {
-        if (isSelected) show() else setDefaultState()
-    }
+    fun changeOnSelection(isSelected: Boolean) = if (isSelected) show() else setDefaultState()
 
-    fun changeOnHomeFragment(isHomeFragment: Boolean) {
+    fun changeOnHomeFragment(isHomeFragment: Boolean) = post {
         if (isHomeFragment) {
             setIconResource(R.drawable.ic_configure)
             setText(R.string.configure)

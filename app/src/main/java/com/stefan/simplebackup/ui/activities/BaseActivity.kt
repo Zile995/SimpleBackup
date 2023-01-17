@@ -189,10 +189,10 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
         resultLauncher.launch(signInClient.signInIntent)
     }
 
-    fun handleSignInIntent(
+    inline fun handleSignInIntent(
         signInData: Intent,
-        onSuccess: () -> Unit,
-        onFailure: (String) -> Unit
+        crossinline onSuccess: () -> Unit,
+        crossinline onFailure: (String) -> Unit
     ) {
         GoogleSignIn.getSignedInAccountFromIntent(signInData)
             .addOnSuccessListener { googleAccount ->

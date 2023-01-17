@@ -60,6 +60,4 @@ class WorkerHelper(
     private fun getCloudWorkDataBuilder(): Data.Builder =
         getLocalWorkDataBuilder(true)
             .putBoolean(SHOULD_BACKUP_TO_CLOUD, true)
-
-
 }

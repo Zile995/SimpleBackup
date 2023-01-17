@@ -26,17 +26,18 @@ class AnimatedChipGroup(
         animateOnStart()
     }
 
-    private fun animateOnStart() {
+    private fun animateOnStart() = doOnPreDraw {
         val horizontalAnimator = ObjectAnimator.ofFloat(
             this,
             "translationY",
             0f
         )
-        val scaleX = ObjectAnimator.ofFloat(this, "scaleX", 1.1f, 1f)
-        val scaleY = ObjectAnimator.ofFloat(this, "scaleY", 1.1f, 1f)
+        val scaleX = ObjectAnimator.ofFloat(this, "scaleX", 1.25f, 1f)
+        val scaleY = ObjectAnimator.ofFloat(this, "scaleY", 1.25f, 1f)
 
         val animatorSet = AnimatorSet().apply {
-            duration = 300L
+            duration = 350L
+            startDelay = 125L
             playTogether(horizontalAnimator, scaleX, scaleY)
         }
         animatorSet.start()

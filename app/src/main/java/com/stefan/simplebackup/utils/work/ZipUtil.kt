@@ -125,7 +125,7 @@ object ZipUtil {
                 file.extension == APK_FILE_EXTENSION
             }.flatMap { apkFile ->
                 getApkNativeLibs(apkFile)
-            }.toList()
+            }.distinct().toList()
         }
     }
 

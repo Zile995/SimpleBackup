@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MenuItem
-import androidx.core.view.doOnLayout
 import androidx.core.view.forEach
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
@@ -23,8 +22,6 @@ class NavigationBar(
     defStyleRes: Int
 ) : BottomNavigationView(context, attrs, defStyleAttr, defStyleRes) {
 
-    private var initialHeight: Int = 0
-
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(
         context,
@@ -39,17 +36,10 @@ class NavigationBar(
         R.style.Widget_Design_BottomNavigationView
     )
 
-    init {
-        doOnLayout {
-            initialHeight = height
-        }
-    }
-
     fun moveDown(): ObjectAnimator =
-        ObjectAnimator.ofFloat(this, "translationY", initialHeight.toFloat()).apply {
+        ObjectAnimator.ofFloat(this, "translationY", height.toFloat()).apply {
             Log.d("NavigationBar", "Moving down")
         }
-
 
     /**
      * Setup [NavigationBar] navigation with [NavController].

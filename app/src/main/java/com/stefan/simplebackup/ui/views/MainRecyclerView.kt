@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
 import com.stefan.simplebackup.R
-import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
+import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.inSelection
 
 class MainRecyclerView(
     context: Context,
@@ -49,12 +49,12 @@ class MainRecyclerView(
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                if (selectionFinished) {
-                    showAction = { floatingButton.show() }
-                    hideAction = { floatingButton.hide() }
-                } else {
+                if (inSelection) {
                     showAction = { floatingButton.extend() }
                     hideAction = { floatingButton.shrink() }
+                } else {
+                    showAction = { floatingButton.show() }
+                    hideAction = { floatingButton.hide() }
                 }
 
                 // Hide on attach only if first or last position is completely visible
@@ -81,7 +81,7 @@ class MainRecyclerView(
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
-                if (!selectionFinished) return
+                if (inSelection) return
                 if (!canScrollUp() || !canScrollDown()) floatingButton.hide()
             }
         })

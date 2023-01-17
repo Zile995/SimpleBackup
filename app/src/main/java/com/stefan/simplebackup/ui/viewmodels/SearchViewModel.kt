@@ -22,8 +22,10 @@ class SearchViewModel(appRepository: AppRepository) : ViewModel(),
 
     init {
         Log.d("ViewModel", "SearchViewModel created")
-        backupFilesObserver.refreshBackupList()
-        backupFilesObserver.observeBackupFiles()
+        backupFilesObserver.apply {
+            refreshBackupList()
+            observeBackupFiles()
+        }
     }
 
     fun saveCheckedChipPosition(position: Int) {

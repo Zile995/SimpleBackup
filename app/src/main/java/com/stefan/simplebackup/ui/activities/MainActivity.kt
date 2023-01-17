@@ -24,7 +24,7 @@ import com.stefan.simplebackup.data.receivers.NotificationReceiver
 import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.numberOfSelected
-import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.selectionFinished
+import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.inSelection
 import com.stefan.simplebackup.ui.fragments.*
 import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
 import com.stefan.simplebackup.ui.fragments.viewpager.HomeViewPagerFragment
@@ -100,7 +100,7 @@ class MainActivity : BaseActivity() {
     private var delayedExitJob: Job? = null
 
     // BaseFragment getter
-    val getCurrentlyVisibleBaseFragment: BaseFragment<*>?
+    val currentlyVisibleBaseFragment: BaseFragment<*>?
         get() {
             return when (val visibleFragment = supportFragmentManager.getVisibleFragment()) {
                 is BaseFragment<*> -> visibleFragment
@@ -124,7 +124,7 @@ class MainActivity : BaseActivity() {
 
     override fun onBackPress() {
         if (animationFinished) {
-            if (!selectionFinished) {
+            if (inSelection) {
                 shouldExit = true
                 mainViewModel.setSelectionMode(false)
                 return
@@ -205,15 +205,15 @@ class MainActivity : BaseActivity() {
 
     private fun SimpleMaterialToolbar.changeMenuItems(numberOfSelectedItems: Int) {
         when {
-            numberOfSelectedItems > 1 && getCurrentlyVisibleBaseFragment is HomeFragment -> {
+            numberOfSelectedItems > 1 && currentlyVisibleBaseFragment is HomeFragment -> {
                 deleteItem?.isVisible = false
             }
-            numberOfSelectedItems > 0 && getCurrentlyVisibleBaseFragment is LocalFragment -> {
+            numberOfSelectedItems > 0 && currentlyVisibleBaseFragment is LocalFragment -> {
                 deleteItem?.isVisible = true
                 addToFavoritesItem?.isVisible = false
             }
             numberOfSelectedItems > 0 && supportFragmentManager.getVisibleFragment() is HomeViewPagerFragment -> {
-                changeOnFavorite(isFavorite = getCurrentlyVisibleBaseFragment is FavoritesFragment)
+                changeOnFavorite(isFavorite = currentlyVisibleBaseFragment is FavoritesFragment)
             }
         }
     }
@@ -242,6 +242,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun ActivityMainBinding.bindSearchBar() = materialSearchBar.setOnClickListener {
+        currentlyVisibleBaseFragment?.stopScrolling()
         navigateToSearchFragment()
     }
 
@@ -271,7 +272,7 @@ class MainActivity : BaseActivity() {
         setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.add_to_favorites -> {
-                    if (getCurrentlyVisibleBaseFragment !is FavoritesFragment)
+                    if (currentlyVisibleBaseFragment !is FavoritesFragment)
                         mainViewModel.addToFavorites(
                             onSuccess = { numberOfItems ->
                                 showToast(
@@ -311,7 +312,7 @@ class MainActivity : BaseActivity() {
                         )
                 }
                 R.id.delete -> {
-                    when (val visibleFragment = getCurrentlyVisibleBaseFragment) {
+                    when (val visibleFragment = currentlyVisibleBaseFragment) {
                         is HomeFragment -> {
                             visibleFragment.uninstallSelectedApp()
                         }
@@ -321,7 +322,7 @@ class MainActivity : BaseActivity() {
                     }
                 }
                 R.id.select_all -> {
-                    getCurrentlyVisibleBaseFragment?.selectAllItems()
+                    currentlyVisibleBaseFragment?.selectAllItems()
                 }
                 else -> {
                     return@setOnMenuItemClickListener false
@@ -336,7 +337,7 @@ class MainActivity : BaseActivity() {
             onNavigate = { isReselected ->
                 if (!isReselected) {
                     floatingButton.setOnClickListener(null)
-                    getCurrentlyVisibleBaseFragment?.stopScrolling()
+                    currentlyVisibleBaseFragment?.stopScrolling()
                 }
                 !(mainViewModel.isSearching.value
                         || mainViewModel.isSelected.value) && animationFinished
@@ -373,8 +374,8 @@ class MainActivity : BaseActivity() {
                     launch {
                         isSearching.collect { isSearching ->
                             if (isSelected.value || isSettingsDestination.value) return@collect
-                            mainActivityAnimator.animateOnSearch(isSearching)
                             resetSearchInput()
+                            mainActivityAnimator.animateOnSearch(isSearching)
                         }
                     }
                     launch {

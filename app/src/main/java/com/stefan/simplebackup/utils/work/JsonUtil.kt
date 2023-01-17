@@ -12,18 +12,17 @@ import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.IOException
 
-@Suppress("BlockingMethodInNonBlockingContext")
 object JsonUtil {
 
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 
     @Throws(IOException::class)
     suspend fun serializeApp(app: AppData, destinationPath: String) {
-        Log.d("Serialization", "Saving json to $destinationPath/${app.name}.json")
+        Log.d("Serialization", "Saving json to $destinationPath/${app.name}.$JSON_FILE_EXTENSION")
         withContext(ioDispatcher) {
             try {
                 Json.encodeToString(app).let { jsonString ->
-                    val file = File(destinationPath, app.name + ".json")
+                    val file = File(destinationPath, app.name + ".$JSON_FILE_EXTENSION")
                     file.bufferedWriter().use { bufferedWriter ->
                         bufferedWriter.append(jsonString)
                     }
@@ -31,8 +30,7 @@ object JsonUtil {
             } catch (e: Exception) {
                 when (e) {
                     is SerializationException -> Log.w(
-                        "Serialization",
-                        "Error occurred $e ${e.message}"
+                        "Serialization", "Error occurred $e ${e.message}"
                     )
                     else -> throw e
                 }

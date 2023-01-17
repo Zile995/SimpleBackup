@@ -13,9 +13,7 @@ import com.stefan.simplebackup.R
 import com.stefan.simplebackup.utils.extensions.showSoftKeyboard
 
 class MaterialSearchView(
-    context: Context,
-    attrs: AttributeSet?,
-    defStyleAttr: Int
+    context: Context, attrs: AttributeSet?, defStyleAttr: Int
 ) : SearchView(context, attrs, defStyleAttr) {
 
     private val searchText: TextView = findViewById(R.id.search_src_text)
@@ -24,9 +22,7 @@ class MaterialSearchView(
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(
-        context,
-        attrs,
-        R.attr.searchViewStyle
+        context, attrs, R.attr.searchViewStyle
     )
 
     init {
@@ -40,7 +36,7 @@ class MaterialSearchView(
         }
     }
 
-    private fun addCloseButton() = closeButton?.apply {
+    private fun addCloseButton() = closeButton?.run {
         val layoutParams: LinearLayout.LayoutParams =
             this.layoutParams as LinearLayout.LayoutParams
         layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
