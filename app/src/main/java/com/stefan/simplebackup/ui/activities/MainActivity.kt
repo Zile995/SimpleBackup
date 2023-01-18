@@ -203,7 +203,7 @@ class MainActivity : BaseActivity() {
         floatingButton.isVisible = mainViewModel.isButtonVisible
     }
 
-    private fun SimpleMaterialToolbar.changeMenuItems(numberOfSelectedItems: Int) {
+    private fun SimpleMaterialToolbar.changeMenuItems(numberOfSelectedItems: Int) = post {
         when {
             numberOfSelectedItems > 1 && currentlyVisibleBaseFragment is HomeFragment -> {
                 deleteItem?.isVisible = false

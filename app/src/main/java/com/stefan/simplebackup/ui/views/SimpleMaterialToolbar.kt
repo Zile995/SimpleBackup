@@ -72,14 +72,18 @@ class SimpleMaterialToolbar(
         crossinline selectionModeCallBack: SelectionModeCallBack = {}
     ) {
         if (isSelected) {
-            removeRipple()
-            removeOnClickListener()
-            setMenuItemsOnSelection()
-            setNavigationIcon(R.drawable.ic_close)
-            setNavigationContentDescription(R.string.clear_selection)
-            setNavigationOnClickListener {
-                if (animationFinished)
-                    selectionModeCallBack(false)
+            post {
+                removeRipple()
+                removeOnClickListener()
+                setMenuItemsOnSelection()
+                setNavigationIcon(R.drawable.ic_close)
+                setNavigationContentDescription(R.string.clear_selection)
+                setNavigationOnClickListener {
+                    if (animationFinished)
+                        doOnPreDraw {
+                            selectionModeCallBack(false)
+                        }
+                }
             }
         } else setDefaultState()
     }
@@ -109,8 +113,8 @@ class SimpleMaterialToolbar(
 
     fun setDefaultState() {
         if (!hasOnClickListeners()) {
-            Log.d("SimpleMaterialToolbar", "Setting to default state")
             post {
+                Log.d("SimpleMaterialToolbar", "Setting to default state")
                 addRipple()
                 setDefaultTitle()
                 setDefaultMenuItems()
