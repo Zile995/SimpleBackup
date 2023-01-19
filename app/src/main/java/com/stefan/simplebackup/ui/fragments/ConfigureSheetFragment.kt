@@ -6,10 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppDataType
 import com.stefan.simplebackup.databinding.FragmentConfigureSheetBinding
+import com.stefan.simplebackup.ui.viewmodels.ConfigureViewModel
+import com.stefan.simplebackup.ui.viewmodels.ConfigureViewModelFactory
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
 import com.stefan.simplebackup.utils.extensions.onMainActivity
@@ -23,6 +26,7 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
 
     private val binding by viewBinding(FragmentConfigureSheetBinding::inflate)
     private val mainViewModel: MainViewModel by activityViewModels()
+    private val configureViewModel: ConfigureViewModel by viewModels { ConfigureViewModelFactory() }
 
     private var cloudBackupClicked = false
 
@@ -59,7 +63,7 @@ class ConfigureSheetFragment : BottomSheetDialogFragment() {
     private fun FragmentConfigureSheetBinding.initObservers() {
         launchOnViewLifecycle {
             repeatOnResumed {
-                mainViewModel.hasInternetConnection.collect {
+                configureViewModel.hasInternetConnection.collect {
                     cloudBackupButton.isEnabled = it
                 }
             }

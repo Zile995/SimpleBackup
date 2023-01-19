@@ -37,6 +37,8 @@ class SimpleMaterialToolbar(
     private val searchViewItem
         get() = findMenuItem(R.id.action_search)
 
+    private val parentView get() = parent as? View
+
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, R.attr.toolbarStyle)
 
@@ -48,8 +50,8 @@ class SimpleMaterialToolbar(
         isSearching: Boolean,
         crossinline onNavigationClickAction: () -> Unit = {}
     ) {
-        if (isSearching) {
-            post {
+        post {
+            if (isSearching) {
                 removeTitle()
                 removeRipple()
                 setMenuItemsOnSearch()
@@ -63,8 +65,8 @@ class SimpleMaterialToolbar(
                         }
                     }
                 }
-            }
-        } else setDefaultState()
+            } else setDefaultState()
+        }
     }
 
     inline fun changeOnSelection(
@@ -72,18 +74,16 @@ class SimpleMaterialToolbar(
         crossinline selectionModeCallBack: SelectionModeCallBack = {}
     ) {
         if (isSelected) {
-            post {
-                removeRipple()
-                removeOnClickListener()
-                setMenuItemsOnSelection()
-                setNavigationIcon(R.drawable.ic_close)
-                setNavigationContentDescription(R.string.clear_selection)
-                setNavigationOnClickListener {
-                    if (animationFinished)
-                        doOnPreDraw {
-                            selectionModeCallBack(false)
-                        }
-                }
+            removeRipple()
+            removeOnClickListener()
+            setMenuItemsOnSelection()
+            setNavigationIcon(R.drawable.ic_close)
+            setNavigationContentDescription(R.string.clear_selection)
+            setNavigationOnClickListener {
+                if (animationFinished)
+                    doOnPreDraw {
+                        selectionModeCallBack(false)
+                    }
             }
         } else setDefaultState()
     }
@@ -92,8 +92,8 @@ class SimpleMaterialToolbar(
         isInSettings: Boolean,
         crossinline onNavigationClickAction: () -> Unit = {}
     ) {
-        if (isInSettings) {
-            post {
+        post {
+            if (isInSettings) {
                 removeRipple()
                 setDefaultMenuItems()
                 removeOnClickListener()
@@ -107,13 +107,13 @@ class SimpleMaterialToolbar(
                         }
                     }
                 }
-            }
-        } else setDefaultState()
+            } else setDefaultState()
+        }
     }
 
     fun setDefaultState() {
-        if (!hasOnClickListeners()) {
-            post {
+        post {
+            if (!hasOnClickListeners()) {
                 Log.d("SimpleMaterialToolbar", "Setting to default state")
                 addRipple()
                 setDefaultTitle()
@@ -164,10 +164,10 @@ class SimpleMaterialToolbar(
     }
 
     fun setMenuItemsOnSelection() {
-        searchViewItem?.isVisible = false
-        addToFavoritesItem?.isVisible = true
         deleteItem?.isVisible = true
         selectAllItem?.isVisible = true
+        searchViewItem?.isVisible = false
+        addToFavoritesItem?.isVisible = true
     }
 
     fun setDefaultMenuItems() {
@@ -221,17 +221,16 @@ class SimpleMaterialToolbar(
     }
 
     private fun propagateClickEventsToParent() {
-        val parentView by lazy { parent as View }
         setOnClickListener {
             if (animationFinished) {
                 searchActionView?.clearSearchViewText()
-                parentView.callOnClick()
+                parentView?.callOnClick()
             }
         }
         setNavigationOnClickListener {
             if (animationFinished) {
                 searchActionView?.clearSearchViewText()
-                parentView.callOnClick()
+                parentView?.callOnClick()
             }
         }
     }

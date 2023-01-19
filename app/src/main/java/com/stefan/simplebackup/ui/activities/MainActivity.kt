@@ -23,8 +23,8 @@ import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
 import com.stefan.simplebackup.data.receivers.NotificationReceiver
 import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
-import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.numberOfSelected
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.inSelection
+import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.numberOfSelected
 import com.stefan.simplebackup.ui.fragments.*
 import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
 import com.stefan.simplebackup.ui.fragments.viewpager.HomeViewPagerFragment
@@ -39,6 +39,7 @@ import com.stefan.simplebackup.utils.PreferenceHelper
 import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
 
@@ -180,20 +181,18 @@ class MainActivity : BaseActivity() {
         bindToolBar()
         bindSearchBar()
         bindAppBarLayout()
-        bindFloatingButton()
         bindNavigationBar()
+        bindFloatingButton()
     }
 
     private suspend fun ActivityMainBinding.observeNumberOfSelected() {
-        numberOfSelected.collect { numberOfItems ->
-            materialToolbar.changeMenuItems(numberOfItems)
-            when (numberOfItems) {
-                0 -> {}
-                1 -> {
-                    materialToolbar.setCustomTitle("$numberOfItems ${getString(R.string.item)}")
-                }
-                else -> {
-                    materialToolbar.setCustomTitle("$numberOfItems ${getString(R.string.items)}")
+        numberOfSelected.collectLatest { numberOfItems ->
+            this.root.doOnLayout {
+                materialToolbar.changeMenuItems(numberOfItems)
+                when (numberOfItems) {
+                    0 -> {}
+                    1 -> materialToolbar.setCustomTitle("$numberOfItems ${getString(R.string.item)}")
+                    else -> materialToolbar.setCustomTitle("$numberOfItems ${getString(R.string.items)}")
                 }
             }
         }
@@ -203,14 +202,14 @@ class MainActivity : BaseActivity() {
         floatingButton.isVisible = mainViewModel.isButtonVisible
     }
 
-    private fun SimpleMaterialToolbar.changeMenuItems(numberOfSelectedItems: Int) = post {
+    private fun SimpleMaterialToolbar.changeMenuItems(numberOfSelectedItems: Int) {
         when {
+            numberOfSelectedItems > 0 && currentlyVisibleBaseFragment is LocalFragment -> {
+                addToFavoritesItem?.isVisible = false
+                deleteItem?.isVisible = true
+            }
             numberOfSelectedItems > 1 && currentlyVisibleBaseFragment is HomeFragment -> {
                 deleteItem?.isVisible = false
-            }
-            numberOfSelectedItems > 0 && currentlyVisibleBaseFragment is LocalFragment -> {
-                deleteItem?.isVisible = true
-                addToFavoritesItem?.isVisible = false
             }
             numberOfSelectedItems > 0 && supportFragmentManager.getVisibleFragment() is HomeViewPagerFragment -> {
                 changeOnFavorite(isFavorite = currentlyVisibleBaseFragment is FavoritesFragment)
@@ -255,6 +254,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun SimpleMaterialToolbar.setOnSearchAction() {
+        searchActionView?.setQuery(mainViewModel.searchInput.value, true)
         searchActionView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
@@ -374,15 +374,13 @@ class MainActivity : BaseActivity() {
                     launch {
                         isSearching.collect { isSearching ->
                             if (isSelected.value || isSettingsDestination.value) return@collect
-                            resetSearchInput()
+                            if (!isSearching) resetSearchInput()
                             mainActivityAnimator.animateOnSearch(isSearching)
                         }
                     }
-                    launch {
-                        isSettingsDestination.collect { isSettingsDestination ->
-                            if (isSearching.value || isSelected.value) return@collect
-                            mainActivityAnimator.animateOnSettings(isSettingsDestination)
-                        }
+                    isSettingsDestination.collect { isSettingsDestination ->
+                        if (isSearching.value || isSelected.value) return@collect
+                        mainActivityAnimator.animateOnSettings(isSettingsDestination)
                     }
                 }
             }

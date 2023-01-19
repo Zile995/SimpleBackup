@@ -134,7 +134,8 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
     }
 
     fun uninstallSelectedApp() {
-        context?.uninstallPackage(mainViewModel.selectionList.first())
+        if (mainViewModel.selectionList.isEmpty()) return
+        context?.uninstallPackage(mainViewModel.selectionList.last())
         mainViewModel.setSelectionMode(false)
     }
 

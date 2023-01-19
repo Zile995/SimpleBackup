@@ -7,11 +7,14 @@ import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.utils.file.BackupFilesObserver
 import com.stefan.simplebackup.utils.work.FileUtil
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class LocalViewModel(appRepository: AppRepository) : BaseViewModel() {
+
+    private var observerJob: Job? = null
 
     private val backupFilesObserver = BackupFilesObserver(
         rootDirPath = FileUtil.localDirPath,
@@ -25,24 +28,36 @@ class LocalViewModel(appRepository: AppRepository) : BaseViewModel() {
     init {
         Log.d("ViewModel", "LocalViewModel created")
         viewModelScope.launch {
-            launch {
-                loadList {
-                    appRepository.localApps
-                }
-            }
-            spinner.collect { isSpinning ->
-                if (!isSpinning) {
-                    _isRefreshing.value = true
-                    backupFilesObserver.refreshBackupList().invokeOnCompletion {
-                        _isRefreshing.value = false
-                    }
-                    backupFilesObserver.observeBackupFiles()
-                }
+            loadList {
+                appRepository.localApps
             }
         }
     }
 
-    fun refreshBackupList() = backupFilesObserver.refreshBackupList()
+    suspend fun startObservingBackups() {
+        if (observerJob != null) return
+        Log.d("ViewModel", "LocalViewModel starting observer")
+        spinner.collect { isSpinning ->
+            if (!isSpinning) {
+                _isRefreshing.value = true
+                refreshBackupList().invokeOnCompletion {
+                    _isRefreshing.value = false
+                }
+                observerJob = backupFilesObserver.observeBackupFiles()
+            }
+        }
+    }
+
+    fun stopObservingBackups() {
+        Log.d("ViewModel", "LocalViewModel cancelling observer")
+        observerJob?.cancel()
+        observerJob = null
+    }
+
+    fun refreshBackupList() =
+        Log.d("ViewModel", "LocalViewModel refreshing backup list").run {
+            backupFilesObserver.refreshBackupList()
+        }
 
     override fun onCleared() {
         super.onCleared()

@@ -56,15 +56,6 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
     private var _searchInput = MutableLiveData<String?>()
     val searchInput: LiveData<String?> get() = _searchInput
 
-    val hasInternetConnection by lazy {
-        application.observeNetworkConnection(delay = 500L)
-            .stateIn(
-                scope = viewModelScope,
-                started = SharingStarted.WhileSubscribed(1_000L),
-                initialValue = false
-            )
-    }
-
     init {
         Log.d("ViewModel", "MainViewModel created")
         viewModelScope.launch(ioDispatcher) {
@@ -102,12 +93,12 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
         _isSettingsDestination.value = isSettingsDestination
     }
 
-    fun setSearchInput(name: String?) {
-        if (name.isNullOrBlank() || name.isEmpty() || name.contains("%") || name.contains("_")) {
+    fun setSearchInput(text: String?) {
+        if (text.isNullOrBlank() || text.isEmpty() || text.contains("%") || text.contains("_")) {
             resetSearchInput()
             return
         }
-        _searchInput.value = name
+        _searchInput.value = text
     }
 
     suspend fun findAppsByName(name: String, isLocal: Boolean) =

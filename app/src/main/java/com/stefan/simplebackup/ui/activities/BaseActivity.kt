@@ -89,7 +89,7 @@ abstract class BaseActivity : AppCompatActivity(), BackPressHandler {
     inline fun requestStoragePermission(
         permissionLauncher: ActivityResultLauncher<String>,
         crossinline onPermissionAlreadyGranted: () -> Unit = {},
-        onPermissionRationale: () -> Unit = {}
+        crossinline onPermissionRationale: () -> Unit = {}
     ) {
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
             onMainPermissionRequest(

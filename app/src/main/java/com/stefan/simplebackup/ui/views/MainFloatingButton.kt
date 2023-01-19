@@ -2,7 +2,6 @@ package com.stefan.simplebackup.ui.views
 
 import android.content.Context
 import android.util.AttributeSet
-import androidx.core.view.doOnPreDraw
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.stefan.simplebackup.R
 
@@ -16,6 +15,8 @@ class MainFloatingButton(
             if (value) {
                 hide()
                 setOnClickListener(null)
+            } else {
+                shrink()
             }
         }
 
@@ -29,15 +30,19 @@ class MainFloatingButton(
         super.show()
     }
 
-    fun changeOnSelection(isSelected: Boolean) = if (isSelected) show() else setDefaultState()
-
-    fun changeOnHomeFragment(isHomeFragment: Boolean) = post {
-        if (isHomeFragment) {
-            setIconResource(R.drawable.ic_configure)
-            setText(R.string.configure)
-        } else {
-            setIconResource(R.drawable.ic_restore)
-            setText(R.string.restore)
+    fun changeOnSelection(isSelected: Boolean, isHomeFragment: Boolean) = post {
+        when {
+            isSelected -> {
+                if (isHomeFragment) {
+                    setText(R.string.configure)
+                    setIconResource(R.drawable.ic_configure)
+                } else {
+                    setText(R.string.restore)
+                    setIconResource(R.drawable.ic_restore)
+                }
+                show()
+            }
+            else -> setDefaultState()
         }
     }
 

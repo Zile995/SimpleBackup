@@ -25,9 +25,9 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
         SearchViewModelFactory(mainViewModel.repository)
     }
 
-    private var shouldObserveLocal: Boolean? by Delegates.observable(null) { _, oldCheckedValue, isLocalChecked ->
+    private var shouldObserveLocal: Boolean? by Delegates.observable(null) { _, _, isLocalChecked ->
         if (isLocalChecked == null) return@observable
-        if (isLocalChecked != oldCheckedValue) binding.startObserving(isLocalChecked)
+        binding.startObserving(isLocalChecked)
     }
 
     init {
@@ -66,6 +66,7 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
     }
 
     private fun FragmentSearchBinding.startObserving(shouldObserveLocal: Boolean) {
+        Log.d("Search", "Started observing with shouldObserveLocal = $shouldObserveLocal")
         mainViewModel.searchInput.removeObservers(viewLifecycleOwner)
         mainViewModel.searchInput.observe(viewLifecycleOwner) { searchInput ->
             Log.d("Search", "Search input = $searchInput")

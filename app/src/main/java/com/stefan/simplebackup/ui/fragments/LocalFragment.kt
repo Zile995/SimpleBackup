@@ -34,7 +34,11 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
 
     private var isStoragePermissionGranted by Delegates.observable<Boolean?>(null) { _, _, isGranted ->
         controlViewsOnPermissionChange(isGranted)
-        if (isGranted == false) adapter.submitList(mutableListOf())
+        if (isGranted == false) {
+            adapter.submitList(mutableListOf())
+            localViewModel.stopObservingBackups()
+        }
+        if (isGranted == true) launchOnViewLifecycle { localViewModel.startObservingBackups() }
     }
 
     private val storagePermissionLauncher by lazy {
@@ -45,7 +49,7 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        requestPermissions()
+        requestStoragePermissions()
         binding.apply {
             bindViews()
             initObservers()
@@ -55,14 +59,17 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
 
     override fun onStart() {
         super.onStart()
-        isStoragePermissionGranted =
+        val currentPermissionStatus =
             appPermissionManager.checkMainPermission(MainPermission.MANAGE_ALL_FILES)
+        if (currentPermissionStatus != isStoragePermissionGranted) {
+            isStoragePermissionGranted = currentPermissionStatus
+        }
     }
 
     override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =
         LocalAdapter(mainViewModel.selectionList, mainViewModel.setSelectionMode, onClickListener)
 
-    private fun requestPermissions() {
+    private fun requestStoragePermissions() {
         onMainActivity {
             requestStoragePermission(
                 permissionLauncher = storagePermissionLauncher,
@@ -85,10 +92,12 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
 
     private fun FragmentLocalBinding.bindSwipeContainer() {
         swipeRefresh.setOnRefreshListener {
-            launchOnViewLifecycle {
-                localViewModel.refreshBackupList().invokeOnCompletion {
-                    swipeRefresh.isRefreshing = false
-                }
+            if (isStoragePermissionGranted != true) {
+                swipeRefresh.isRefreshing = false
+                return@setOnRefreshListener
+            }
+            localViewModel.refreshBackupList().invokeOnCompletion {
+                swipeRefresh.isRefreshing = false
             }
         }
     }

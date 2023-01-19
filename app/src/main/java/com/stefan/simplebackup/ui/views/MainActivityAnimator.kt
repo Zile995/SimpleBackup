@@ -81,16 +81,16 @@ class MainActivityAnimator(
                     startAnimations(doOnStart = {
                         setFragmentBottomMargin(appBarLayout.height)
                     })
-                    floatingButton.changeOnHomeFragment(
-                        activity?.supportFragmentManager?.getVisibleFragment() is HomeViewPagerFragment
-                    )
                 } else {
                     reverseAnimations {
                         activity?.currentlyVisibleBaseFragment?.fixRecyclerViewScrollPosition()
                     }
                 }
+                floatingButton.changeOnSelection(
+                    isSelected,
+                    activity?.supportFragmentManager?.getVisibleFragment() is HomeViewPagerFragment
+                )
             }
-            floatingButton.changeOnSelection(isSelected)
             materialToolbar.changeOnSelection(isSelected, selectionModeCallBack)
         }
     }
@@ -100,6 +100,7 @@ class MainActivityAnimator(
         binding?.apply {
             searchBarLayout.doOnPreDraw {
                 if (isSearching) {
+                    Log.d("MainAnimator", "Animating on search")
                     startAnimations(
                         doOnStart = {
                             setFragmentBottomMargin(
@@ -117,8 +118,8 @@ class MainActivityAnimator(
                         materialToolbar.resetSearchActionView()
                     }
                 }
+                floatingButton.hidePermanently = isSearching
             }
-            floatingButton.hidePermanently = isSearching
             materialToolbar.changeOnSearch(isSearching,
                 onNavigationClickAction = {
                     activity?.onSupportNavigateUp()
