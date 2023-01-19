@@ -27,8 +27,6 @@ object TarUtil {
     @Throws(IOException::class)
     suspend fun backupData(app: AppData) {
         withContext(ioDispatcher) {
-            if (Shell.isAppGrantedRoot() == false) return@withContext
-
             // Get exclude commands
             val excludeCommand = getExcludeCommand()
 
