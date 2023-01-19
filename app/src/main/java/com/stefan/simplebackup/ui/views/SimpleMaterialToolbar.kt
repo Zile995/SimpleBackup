@@ -50,8 +50,8 @@ class SimpleMaterialToolbar(
         isSearching: Boolean,
         crossinline onNavigationClickAction: () -> Unit = {}
     ) {
-        post {
-            if (isSearching) {
+        if (isSearching) {
+            post {
                 removeTitle()
                 removeRipple()
                 setMenuItemsOnSearch()
@@ -65,8 +65,8 @@ class SimpleMaterialToolbar(
                         }
                     }
                 }
-            } else setDefaultState()
-        }
+            }
+        } else setDefaultState()
     }
 
     inline fun changeOnSelection(
@@ -81,9 +81,7 @@ class SimpleMaterialToolbar(
             setNavigationContentDescription(R.string.clear_selection)
             setNavigationOnClickListener {
                 if (animationFinished)
-                    doOnPreDraw {
-                        selectionModeCallBack(false)
-                    }
+                    selectionModeCallBack(false)
             }
         } else setDefaultState()
     }
@@ -92,8 +90,8 @@ class SimpleMaterialToolbar(
         isInSettings: Boolean,
         crossinline onNavigationClickAction: () -> Unit = {}
     ) {
-        post {
-            if (isInSettings) {
+        if (isInSettings) {
+            post {
                 removeRipple()
                 setDefaultMenuItems()
                 removeOnClickListener()
@@ -107,8 +105,8 @@ class SimpleMaterialToolbar(
                         }
                     }
                 }
-            } else setDefaultState()
-        }
+            }
+        } else setDefaultState()
     }
 
     fun setDefaultState() {
