@@ -29,9 +29,12 @@ object JsonUtil {
                 }
             } catch (e: Exception) {
                 when (e) {
-                    is SerializationException -> Log.w(
-                        "Serialization", "Error occurred $e ${e.message}"
-                    )
+                    is IllegalArgumentException -> {
+                        Log.w(
+                            "Serialization",
+                            "Error occurred $e ${e.message}"
+                        ); throw IOException()
+                    }
                     else -> throw e
                 }
             }
