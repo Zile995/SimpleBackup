@@ -23,10 +23,7 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.apply {
-            initObservers()
-            restoreRecyclerViewState()
-        }
+        binding.initObservers()
     }
 
     override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =
@@ -55,16 +52,6 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
     fun stopProgressBarSpinning() =
         favoritesViewModel.setSpinning(shouldSpin = false)
 
-    override fun FragmentFavoritesBinding.saveRecyclerViewState() {
-        favoritesRecyclerView.onSaveRecyclerViewState { stateParcelable ->
-            favoritesViewModel.saveRecyclerViewState(stateParcelable)
-        }
-    }
-
-    override fun FragmentFavoritesBinding.restoreRecyclerViewState() {
-        favoritesRecyclerView.restoreRecyclerViewState(favoritesViewModel.savedRecyclerViewState)
-    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         Log.d("Fragments", "Destroyed FavoritesFragment Views")
@@ -75,4 +62,3 @@ class FavoritesFragment : BaseFragment<FragmentFavoritesBinding>() {
         Log.d("Fragments", "Destroyed FavoritesFragment completely")
     }
 }
-

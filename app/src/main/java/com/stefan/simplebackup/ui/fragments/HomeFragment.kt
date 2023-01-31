@@ -25,7 +25,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
         binding.apply {
             bindViews()
             initObservers()
-            restoreRecyclerViewState()
         }
     }
 
@@ -58,16 +57,6 @@ class HomeFragment : BaseFragment<FragmentHomeBinding>() {
                 }
             }
         }
-    }
-
-    override fun FragmentHomeBinding.saveRecyclerViewState() {
-        homeRecyclerView.onSaveRecyclerViewState { stateParcelable ->
-            homeViewModel.saveRecyclerViewState(stateParcelable)
-        }
-    }
-
-    override fun FragmentHomeBinding.restoreRecyclerViewState() {
-        homeRecyclerView.restoreRecyclerViewState(homeViewModel.savedRecyclerViewState)
     }
 
     override fun onDestroyView() {

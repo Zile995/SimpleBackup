@@ -4,7 +4,6 @@ import android.util.Log
 import com.stefan.simplebackup.MainApplication.Companion.mainBackupDirPath
 import com.stefan.simplebackup.data.model.AppData
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
@@ -69,14 +68,12 @@ object FileUtil {
 
     @Throws(IOException::class)
     suspend inline fun deleteDirectoryFiles(
-        dir: File,
-        crossinline filter: (File) -> Boolean = { true }
+        dir: File, crossinline filter: (File) -> Boolean = { true }
     ) {
         if (!dir.isDirectory) throw IOException("File must be verified to be directory beforehand")
         withContext(ioDispatcher) {
             dir.walkTopDown().forEach { dirFile ->
-                if (dirFile != dir && filter(dirFile))
-                    deleteFile(dirFile.absolutePath)
+                if (dirFile != dir && filter(dirFile)) deleteFile(dirFile.absolutePath)
             }
         }
     }
@@ -88,51 +85,49 @@ object FileUtil {
 
     fun getBackupDirPath(app: AppData): String = "$localDirPath/${app.packageName}"
 
-    fun findTarArchive(dirPath: String, app: AppData): File {
+    fun getTarArchive(dirPath: String, app: AppData): File {
         val tarArchive = File("$dirPath/${app.packageName}.$TAR_FILE_EXTENSION")
         if (!tarArchive.exists()) throw IOException("Unable to find tar archive")
         return tarArchive
     }
 
-    suspend fun getJsonInDir(dirPath: String) = withContext(ioDispatcher) {
+    suspend fun getJson(dirPath: String) = withContext(ioDispatcher) {
         File(dirPath).walkTopDown().firstOrNull { dirFile ->
             dirFile.isFile && dirFile.extension == JSON_FILE_EXTENSION
         }
     }
 
-    suspend fun getJsonFileForApp(app: AppData): File? {
+    suspend fun getJson(app: AppData): File? {
         val backupDirPath = getBackupDirPath(app)
-        return getJsonInDir(dirPath = backupDirPath)
+        return getJson(dirPath = backupDirPath)
     }
 
     inline fun findJsonFiles(
-        dirPath: String,
-        crossinline filterDirNames: (String?) -> Boolean = { true }
+        dirPath: String, crossinline filterDirNames: (String?) -> Boolean = { true }
     ) = flow {
         File(dirPath).walkTopDown().filter { dirFile ->
-            dirFile.isFile
-                    && filterDirNames(dirFile.parentFile?.name)
-                    && dirFile.extension == JSON_FILE_EXTENSION
+            dirFile.isFile && filterDirNames(dirFile.parentFile?.name) && dirFile.extension == JSON_FILE_EXTENSION
         }.forEach { jsonFile ->
             emit(jsonFile)
         }
     }.flowOn(ioDispatcher)
 
-    fun getApkInDir(dirPath: String): List<File> {
+    suspend fun getApks(dirPath: String): List<File> = withContext(ioDispatcher) {
         val dir = File(dirPath)
-        return dir.walkTopDown().filter { dirFile ->
+        dir.walkTopDown().filter { dirFile ->
             dirFile.isFile && dirFile.extension == APK_FILE_EXTENSION
         }.toList()
     }
 
-    suspend fun getApkSizeSplitInfo(dirPath: String): Pair<Float, Boolean> = coroutineScope {
-        val isSplit: Boolean
-        File(dirPath).walkTopDown().filter { dirFile ->
-            dirFile.isFile && dirFile.extension == APK_FILE_EXTENSION
-        }.also { apkFiles ->
-            isSplit = apkFiles.count() > 1
-        }.sumOf { apkFile ->
-            apkFile.length()
-        }.toFloat() to isSplit
-    }
+    suspend fun getApkSizeSplitInfo(dirPath: String): Pair<Float, Boolean> =
+        withContext(ioDispatcher) {
+            val isSplit: Boolean
+            File(dirPath).walkTopDown().filter { dirFile ->
+                dirFile.isFile && dirFile.extension == APK_FILE_EXTENSION
+            }.also { apkFiles ->
+                isSplit = apkFiles.count() > 1
+            }.sumOf { apkFile ->
+                apkFile.length()
+            }.toFloat() to isSplit
+        }
 }

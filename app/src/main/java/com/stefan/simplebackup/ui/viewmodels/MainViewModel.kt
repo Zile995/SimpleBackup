@@ -13,7 +13,7 @@ import com.stefan.simplebackup.data.receivers.PackageListener
 import com.stefan.simplebackup.data.receivers.PackageListenerImpl
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import com.stefan.simplebackup.utils.PreferenceHelper
-import com.stefan.simplebackup.utils.extensions.observeNetworkConnection
+import com.stefan.simplebackup.utils.extensions.filterBy
 import com.stefan.simplebackup.utils.root.RootChecker
 import com.stefan.simplebackup.utils.work.FileUtil
 import kotlinx.coroutines.*
@@ -63,12 +63,14 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
         }
     }
 
-    fun changeAppBarState(isExpanded: Boolean) {
-        isAppBarExpanded = isExpanded
-    }
+    fun saveAppBarState(isExpanded: Boolean) { isAppBarExpanded = isExpanded }
 
-    fun changeButtonVisibility(isVisible: Boolean) {
-        isButtonVisible = isVisible
+    fun changeButtonVisibility(isVisible: Boolean) { isButtonVisible = isVisible }
+
+    fun setSearching(isSearching: Boolean) { _isSearching.value = isSearching }
+
+    fun setSettingsDestination(isSettingsDestination: Boolean) {
+        _isSettingsDestination.value = isSettingsDestination
     }
 
     suspend fun onRootCheck(onRootNotGranted: () -> Unit, onDeviceNotRooted: () -> Unit) {
@@ -85,14 +87,6 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
         }
     }
 
-    fun setSearching(isSearching: Boolean) {
-        _isSearching.value = isSearching
-    }
-
-    fun setSettingsDestination(isSettingsDestination: Boolean) {
-        _isSettingsDestination.value = isSettingsDestination
-    }
-
     fun setSearchInput(text: String?) {
         if (text.isNullOrBlank() || text.isEmpty() || text.contains("%") || text.contains("_")) {
             resetSearchInput()
@@ -106,7 +100,7 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
             if (name.isEmpty())
                 flowOf(mutableListOf())
             else
-                repository.findAppsByName(name, isLocal)
+                repository.findAppsByName(name, isLocal).filterBy { it.isUserApp }
         }
 
     fun resetSearchInput() { _searchInput.value = "" }

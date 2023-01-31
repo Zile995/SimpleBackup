@@ -14,17 +14,17 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
 private val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
-        when (throwable) {
-            is CancellationException -> throw throwable
-            else -> {
-                Log.e(
-                    "CoroutineHandler",
-                    "Exception from coroutine (${coroutineContext[CoroutineName]?.name})"
-                            + throwable.stackTraceToString()
-                )
-            }
+    when (throwable) {
+        is CancellationException -> throw throwable
+        else -> {
+            Log.e(
+                "CoroutineHandler",
+                "Exception from coroutine (${coroutineContext[CoroutineName]?.name})"
+                        + throwable.stackTraceToString()
+            )
         }
     }
+}
 
 // Coroutine extensions
 fun CoroutineScope.launchWithLogging(
@@ -38,9 +38,10 @@ fun CoroutineScope.launchWithLogging(
 /**
  * - Filter the given flow list
  */
-inline fun <T> Flow<MutableList<T>>.filterBy(crossinline predicate: (T) -> Boolean) = map { list ->
-    list.filter(predicate).toMutableList()
-}
+inline fun <T> Flow<MutableList<T>>.filterBy(crossinline predicate: suspend (T) -> Boolean) =
+    map { list ->
+        list.filter { predicate(it) }.toMutableList()
+    }
 
 // LifecycleOwner coroutine extensions
 inline fun LifecycleOwner.launchPostDelayed(

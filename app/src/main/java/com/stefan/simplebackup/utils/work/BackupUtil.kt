@@ -121,7 +121,7 @@ class BackupUtil(
         if (shouldBackupToCloud) {
             app.updateProgressData(R.string.uploading_to_cloud)
             driveService?.let { service ->
-                val jsonFile = FileUtil.getJsonInDir(tempItemDirPath)
+                val jsonFile = FileUtil.getJson(tempItemDirPath)
                     ?: throw IOException("Upload failed, unable to find json data")
                 val apkZipFile = ZipUtil.getApkZipFile(appBackupDirPath = tempItemDirPath).file
                 val tarZipFile = ZipUtil.getTarZipFile(tempItemDirPath).file

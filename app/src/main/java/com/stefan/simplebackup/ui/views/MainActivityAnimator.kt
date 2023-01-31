@@ -36,7 +36,7 @@ class MainActivityAnimator(
     @MainThread
     fun animateOnSettings(isInSettings: Boolean) {
         binding?.apply {
-            searchBarLayout.doOnPreDraw {
+            materialSearchBar.doOnPreDraw {
                 if (isInSettings) {
                     animatorSet = AnimatorSet().apply {
                         duration = 100L
@@ -76,7 +76,7 @@ class MainActivityAnimator(
     ) {
         binding?.apply {
             expandAppBarLayout(isSelected)
-            searchBarLayout.doOnPreDraw {
+            materialSearchBar.doOnPreDraw {
                 if (isSelected) {
                     startAnimations(doOnStart = {
                         setFragmentBottomMargin(appBarLayout.height)
@@ -98,7 +98,7 @@ class MainActivityAnimator(
     @MainThread
     fun animateOnSearch(isSearching: Boolean) {
         binding?.apply {
-            searchBarLayout.doOnPreDraw {
+            materialSearchBar.doOnPreDraw {
                 if (isSearching) {
                     Log.d("MainAnimator", "Animating on search")
                     startAnimations(

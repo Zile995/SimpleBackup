@@ -8,8 +8,7 @@ import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.utils.file.BackupFilesObserver
 import com.stefan.simplebackup.utils.work.FileUtil
 
-class SearchViewModel(appRepository: AppRepository) : ViewModel(),
-    RecyclerViewStateSaver by RecyclerViewStateSaverImpl() {
+class SearchViewModel(appRepository: AppRepository) : ViewModel() {
 
     var checkedChipPosition: Int = 0
         private set

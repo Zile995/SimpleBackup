@@ -1,5 +1,6 @@
 package com.stefan.simplebackup.ui.views
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.util.AttributeSet
 import android.util.Log
@@ -53,7 +54,6 @@ class SimpleMaterialToolbar(
         if (isSearching) {
             post {
                 removeTitle()
-                removeRipple()
                 setMenuItemsOnSearch()
                 removeOnClickListener()
                 setNavigationIcon(R.drawable.ic_arrow_back)
@@ -74,7 +74,6 @@ class SimpleMaterialToolbar(
         crossinline selectionModeCallBack: SelectionModeCallBack = {}
     ) {
         if (isSelected) {
-            removeRipple()
             removeOnClickListener()
             setMenuItemsOnSelection()
             setNavigationIcon(R.drawable.ic_close)
@@ -92,7 +91,6 @@ class SimpleMaterialToolbar(
     ) {
         if (isInSettings) {
             post {
-                removeRipple()
                 setDefaultMenuItems()
                 removeOnClickListener()
                 setCustomTitle(R.string.settings, R.style.TextAppearance_SimpleBackup_TitleMedium)
@@ -113,7 +111,6 @@ class SimpleMaterialToolbar(
         post {
             if (!hasOnClickListeners()) {
                 Log.d("SimpleMaterialToolbar", "Setting to default state")
-                addRipple()
                 setDefaultTitle()
                 setDefaultMenuItems()
                 propagateClickEventsToParent()
@@ -172,11 +169,12 @@ class SimpleMaterialToolbar(
         deleteItem?.isVisible = false
         selectAllItem?.isVisible = false
         addToFavoritesItem?.isVisible = false
+        searchActionView?.clearSearchViewText()
     }
 
     fun removeTitle() = run { title = null }
-    fun removeRipple() = setBackgroundResource(0)
     fun removeOnClickListener() {
+        setOnTouchListener(null)
         setOnClickListener(null)
         setNavigationOnClickListener(null)
     }
@@ -193,16 +191,6 @@ class SimpleMaterialToolbar(
 
     private fun findMenuItem(@IdRes resourceId: Int) = menu?.findItem(resourceId)
 
-    private fun addRipple() =
-        with(TypedValue()) {
-            context.theme.resolveAttribute(
-                android.R.attr.selectableItemBackgroundBorderless,
-                this,
-                true
-            )
-            setBackgroundResource(resourceId)
-        }
-
     private fun setDefaultTitleTextColor() =
         with(TypedValue()) {
             context.theme.resolveAttribute(
@@ -218,17 +206,23 @@ class SimpleMaterialToolbar(
         setDefaultTitleTextColor()
     }
 
+    private inline fun performParentClick(onTouch: () -> Boolean) =
+        if (animationFinished) {
+            onTouch()
+        } else
+            false
+
+    @SuppressLint("ClickableViewAccessibility")
     private fun propagateClickEventsToParent() {
-        setOnClickListener {
-            if (animationFinished) {
-                searchActionView?.clearSearchViewText()
-                parentView?.callOnClick()
+        setOnClickListener {}
+        setOnTouchListener { _, event ->
+            performParentClick {
+                parentView?.onTouchEvent(event) ?: false
             }
         }
         setNavigationOnClickListener {
-            if (animationFinished) {
-                searchActionView?.clearSearchViewText()
-                parentView?.callOnClick()
+            performParentClick {
+                parentView?.callOnClick() ?: false
             }
         }
     }

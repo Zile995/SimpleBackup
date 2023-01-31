@@ -3,6 +3,7 @@ package com.stefan.simplebackup.utils.file
 import android.util.Log
 import com.stefan.simplebackup.data.local.repository.AppRepository
 import com.stefan.simplebackup.data.model.AppData
+import com.stefan.simplebackup.utils.extensions.filterBy
 import com.stefan.simplebackup.utils.work.FileUtil
 import com.stefan.simplebackup.utils.work.JSON_FILE_EXTENSION
 import com.stefan.simplebackup.utils.work.JsonUtil.deserializeApp
@@ -83,21 +84,22 @@ class BackupFilesObserver(
     }
 
     private suspend fun removeDeletedBackups() {
-        takeCurrentList().collect { currentList ->
-            currentList.forEach { app ->
-                val backupDir = FileUtil.getBackupDirPath(app)
-                if (FileUtil.getJsonInDir(backupDir)?.exists() != true)
-                    appRepository.deleteLocal(app.packageName)
+        takeCurrentList().filterBy { backupApp ->
+            FileUtil.getJson(backupApp)?.exists() != true
+        }.collect { removedBackups ->
+            removedBackups.forEach {
+                appRepository.deleteLocal(it.packageName)
             }
         }
     }
 
-
     private suspend fun onCreatedEvent(file: File) {
         val jsonFile = when {
-            file.isFile && file.extension == JSON_FILE_EXTENSION -> file
+            file.isFile
+                    && file.extension == JSON_FILE_EXTENSION
+                    && file.parentFile?.parentFile?.absolutePath == rootDirPath -> file
             file.isDirectory && file.parentFile?.absolutePath == rootDirPath -> {
-                FileUtil.getJsonInDir(file.absolutePath)
+                FileUtil.getJson(file.absolutePath)
             }
             else -> null
         }

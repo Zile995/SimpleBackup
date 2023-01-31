@@ -168,6 +168,7 @@ class MainActivity : BaseActivity() {
 
     private fun navigateToSearchFragment() =
         navController.navigate(R.id.search_action, null, navOptions {
+            restoreState = true
             launchSingleTop = true
             anim {
                 enter = R.animator.fragment_fade_enter
@@ -187,7 +188,7 @@ class MainActivity : BaseActivity() {
 
     private suspend fun ActivityMainBinding.observeNumberOfSelected() {
         numberOfSelected.collectLatest { numberOfItems ->
-            this.root.doOnLayout {
+            root.doOnLayout {
                 materialToolbar.changeMenuItems(numberOfItems)
                 when (numberOfItems) {
                     0 -> {}
@@ -222,9 +223,9 @@ class MainActivity : BaseActivity() {
         appBarLayout.addOnOffsetChangedListener(object : AppBarLayoutStateChangedListener() {
             override fun onStateChanged(appBarLayout: AppBarLayout, state: AppBarLayoutState) {
                 when (state) {
-                    AppBarLayoutState.EXPANDED -> mainViewModel.changeAppBarState(true)
-                    AppBarLayoutState.COLLAPSED -> mainViewModel.changeAppBarState(false)
-                    else -> mainViewModel.changeAppBarState(false)
+                    AppBarLayoutState.EXPANDED -> mainViewModel.saveAppBarState(true)
+                    AppBarLayoutState.COLLAPSED -> mainViewModel.saveAppBarState(false)
+                    else -> mainViewModel.saveAppBarState(false)
                 }
             }
         })

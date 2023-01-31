@@ -53,7 +53,6 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
         binding.apply {
             bindViews()
             initObservers()
-            restoreRecyclerViewState()
         }
     }
 
@@ -133,16 +132,6 @@ class LocalFragment : BaseFragment<FragmentLocalBinding>() {
                 mainViewModel.setSelectionMode(false)
             }
         }
-    }
-
-    override fun FragmentLocalBinding.saveRecyclerViewState() {
-        localRecyclerView.onSaveRecyclerViewState { stateParcelable ->
-            localViewModel.saveRecyclerViewState(stateParcelable)
-        }
-    }
-
-    override fun FragmentLocalBinding.restoreRecyclerViewState() {
-        localRecyclerView.restoreRecyclerViewState(localViewModel.savedRecyclerViewState)
     }
 
     override fun onDestroyView() {

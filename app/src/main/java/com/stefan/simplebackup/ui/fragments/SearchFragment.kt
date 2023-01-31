@@ -14,10 +14,7 @@ import com.stefan.simplebackup.ui.adapters.listeners.OnClickListener
 import com.stefan.simplebackup.ui.viewmodels.SearchViewModel
 import com.stefan.simplebackup.ui.viewmodels.SearchViewModelFactory
 import com.stefan.simplebackup.ui.views.MainRecyclerView
-import com.stefan.simplebackup.utils.extensions.isVisible
-import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
-import com.stefan.simplebackup.utils.extensions.launchPostDelayed
-import com.stefan.simplebackup.utils.extensions.onMainActivity
+import com.stefan.simplebackup.utils.extensions.*
 import kotlin.properties.Delegates
 
 class SearchFragment : BaseFragment<FragmentSearchBinding>() {
@@ -97,14 +94,14 @@ class SearchFragment : BaseFragment<FragmentSearchBinding>() {
         checkedChip.isChecked = true
     }
 
-    override fun FragmentSearchBinding.saveRecyclerViewState() {
-        searchRecyclerView.onSaveRecyclerViewState { stateParcelable ->
-            searchViewModel.saveRecyclerViewState(stateParcelable)
+    private fun FragmentSearchBinding.initObservers() {
+        launchOnViewLifecycle {
+            repeatOnCreated {
+                mainViewModel.isSearching.collect { isSearching ->
+                    horizontalView.isNestedScrollingEnabled = !isSearching
+                }
+            }
         }
-    }
-
-    override fun FragmentSearchBinding.restoreRecyclerViewState() {
-        searchRecyclerView.restoreRecyclerViewState(searchViewModel.savedRecyclerViewState)
     }
 
     override fun MainRecyclerView.onCreateAdapter(onClickListener: OnClickListener): BaseAdapter =

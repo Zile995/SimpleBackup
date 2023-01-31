@@ -37,12 +37,12 @@ object ZipUtil {
     @Throws(ZipException::class, IOException::class)
     private suspend fun zipApks(app: AppData, tempDirPath: String) {
         coroutineScope {
-            val apkFiles = async { FileUtil.getApkInDir(app.apkDir) }
+            val apkFiles = FileUtil.getApks(app.apkDir)
             val zipParameters = getZipParameters()
             val zipFile = ZipFile("$tempDirPath/${app.name}.$ZIP_FILE_EXTENSION")
             if (zipFile.file.exists()) zipFile.file.delete()
             Log.d("ZipUtil", "Zipping the ${app.name} apks to $tempDirPath")
-            zipFile.addFiles(apkFiles.await(), zipParameters)
+            zipFile.addFiles(apkFiles, zipParameters)
             Log.d("ZipUtil", "Successfully zipped ${app.name} apks")
         }
     }
@@ -64,7 +64,7 @@ object ZipUtil {
     @Throws(ZipException::class, IOException::class)
     private suspend fun zipTarArchive(app: AppData, tempDirPAth: String) = coroutineScope {
         val zipParameters = getZipParameters(isApk = false)
-        val tarArchive = FileUtil.findTarArchive(dirPath = tempDirPAth, app = app)
+        val tarArchive = FileUtil.getTarArchive(dirPath = tempDirPAth, app = app)
         // Save data size to app
         app.dataSize += tarArchive.length()
         val zipFile =
@@ -119,14 +119,14 @@ object ZipUtil {
     }
 
     @WorkerThread
-    suspend fun getAppNativeLibs(app: AppData) = coroutineScope {
-        File(app.apkDir).run {
-            walkTopDown().filter { file ->
+    suspend fun getNativeLibs(app: AppData) = coroutineScope {
+        File(app.apkDir)
+            .walkTopDown()
+            .filter { file ->
                 file.extension == APK_FILE_EXTENSION
             }.flatMap { apkFile ->
                 getApkNativeLibs(apkFile)
             }.distinct().toList()
-        }
     }
 
     private fun getApkNativeLibs(apkFile: File) = try {
@@ -139,9 +139,6 @@ object ZipUtil {
         }.map {
             it.substringAfter(File.separator).substringBeforeLast(File.separator)
         }.distinct()
-        //.onEach { filteredName ->
-        //  Log.d("ZipUtil", "Filtered native lib path: $filteredName")
-        //}
     } catch (e: IOException) {
         Log.e("ZipUtil", "${apkFile.name}: $e")
         sequenceOf()

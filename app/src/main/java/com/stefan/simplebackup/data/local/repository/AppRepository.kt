@@ -59,7 +59,7 @@ class AppRepository(private val appDao: AppDao) {
 
     suspend fun getLocalData(packageName: String): AppData? {
         val app = appDao.getLocalData(packageName)
-        val appJsonFile = FileUtil.getJsonFileForApp(app)
+        val appJsonFile = FileUtil.getJson(app)
         return if (appJsonFile?.exists() == true) {
             app
         } else {

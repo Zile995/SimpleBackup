@@ -89,6 +89,7 @@
         app:layout_constraintTop_toBottomOf="@id/horizontal_view" />
 
     <RelativeLayout
+        android:id="@+id/search_info_layout"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -105,6 +106,7 @@
             android:layout_marginTop="15dp">
 
             <ImageView
+                android:id="@+id/search_image"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
                 android:layout_gravity="center"

@@ -59,7 +59,7 @@ class DetailsViewModel(
     private fun getNativeLibs() {
         viewModelScope.launch(ioDispatcher) {
             app?.apply {
-                _nativeLibs.value = ZipUtil.getAppNativeLibs(this)
+                _nativeLibs.value = ZipUtil.getNativeLibs(this)
             }
         }
     }

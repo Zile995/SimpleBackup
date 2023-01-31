@@ -21,8 +21,8 @@ import com.stefan.simplebackup.utils.extensions.*
 import kotlinx.coroutines.launch
 import java.lang.reflect.ParameterizedType
 
-abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB>,
-    ViewReferenceCleaner, ButtonSelectionAction {
+abstract class BaseFragment<VB : ViewBinding> : Fragment(), ViewReferenceCleaner,
+    ButtonSelectionAction {
 
     protected val binding by viewBinding()
     protected val mainViewModel: MainViewModel by activityViewModels()
@@ -165,7 +165,6 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), RecyclerViewSaver<VB
     }
 
     override fun onCleanUp() {
-        binding.saveRecyclerViewState()
         _adapter = null
         _mainRecyclerView?.adapter = null
         _mainRecyclerView = null

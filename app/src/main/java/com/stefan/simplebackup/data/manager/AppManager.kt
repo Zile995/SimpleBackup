@@ -31,8 +31,8 @@ class AppManager(private val context: Context) {
     }
 
     suspend fun buildData(packageName: String) = withContext(ioDispatcher) {
-        getAppData(appInfo = appInfoManager.getAppInfo(packageName))
-    }
+            getAppData(appInfo = appInfoManager.getAppInfo(packageName))
+        }
 
     private fun getChangedPackages() =
         packageManager.getChangedPackages(PreferenceHelper.savedSequenceNumber)
@@ -93,18 +93,19 @@ class AppManager(private val context: Context) {
         appInfoManager.run {
             val apkDir = getApkDir(appInfo)
             val packageName = getPackageName(appInfo)
+            val bitmap = getDrawable(appInfo).toByteArray()
             val apkInfo = FileUtil.getApkSizeSplitInfo(apkDir)
 
             AppData(
                 name = getAppName(appInfo),
-                bitmap = getDrawable(appInfo).toByteArray(),
+                bitmap = bitmap,
                 packageName = packageName,
                 versionName = getVersionName(appInfo),
                 date = getFirstInstallTime(packageName),
                 targetSdk = getTargetSdk(appInfo),
                 minSdk = getMinSdk(appInfo),
                 dataDir = getDataDir(appInfo),
-                apkDir = getApkDir(appInfo),
+                apkDir = apkDir,
                 apkSize = apkInfo.first,
                 isSplit = apkInfo.second,
                 isUserApp = isUserApp(appInfo)
