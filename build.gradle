@@ -7,7 +7,7 @@ buildscript {
         work = '2.7.1'
         libsu = '5.0.4'
         junit = '4.13.2'
-        zip4j = '2.11.2'
+        zip4j = '2.11.3'
         kotlin = '1.7.21'
         shimmer = '0.5.0'
         activity = '1.6.1'
@@ -27,7 +27,7 @@ buildscript {
         swipeRefresh = '1.1.0'
         androidxJunit = '1.1.5'
         gradleVersion = '7.4.0'
-        googleApiClient = '2.1.2'
+        googleApiClient = '2.2.0'
         kotlinSerialization = '1.4.1'
         googleDriveApi = 'v3-rev20221219-2.0.0'
     }

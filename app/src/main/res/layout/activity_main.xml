@@ -17,7 +17,7 @@
             android:id="@+id/search_bar_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_scrollFlags="snap|scroll|enterAlways">
+            app:layout_scrollFlags="snap|scroll|enterAlways" >
 
             <com.stefan.simplebackup.ui.views.MaterialSearchBar
                 android:id="@+id/material_search_bar"
@@ -26,6 +26,7 @@
                 android:layout_height="@dimen/search_bar_height"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
+                android:clipChildren="true"
                 app:cardBackgroundColor="@color/search_bar"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -43,9 +44,7 @@
                     app:titleMarginStart="0dp"
                     android:background="@null"
                     app:titleTextAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
-                    app:titleTextColor="?android:textColorHint">
-
-                </com.stefan.simplebackup.ui.views.SimpleMaterialToolbar>
+                    app:titleTextColor="?android:textColorHint"/>
 
             </com.stefan.simplebackup.ui.views.MaterialSearchBar>
 
@@ -59,7 +58,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="@dimen/bottom_navigation_height"
-        android:elevation="2dp"
+        android:elevation="4dp"
         app:defaultNavHost="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:navGraph="@navigation/nav_graph" />
@@ -83,6 +82,7 @@
         style="@style/Widget.SimpleBackup.NavigationBar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/bottom_navigation_height"
+        android:elevation="4dp"
         android:layout_gravity="bottom"
         android:background="@color/bottom_view"
         app:labelVisibilityMode="labeled"

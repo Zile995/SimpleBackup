@@ -42,7 +42,7 @@ class MainActivityAnimator(
                         duration = 100L
                         interpolator = DecelerateInterpolator()
                         play(materialSearchBar.animateToParentSize())
-                        doOnEnd {
+                        doOnStart {
                             changeStatusBarColor(R.color.search_bar)
                             appBarLayout.setExpanded(true)
                         }

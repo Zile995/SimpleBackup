@@ -26,6 +26,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import androidx.navigation.fragment.NavHostFragment
 import androidx.viewbinding.ViewBinding
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -47,6 +48,14 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.isActive
 import java.lang.reflect.ParameterizedType
 import kotlin.coroutines.coroutineContext
+
+// ##
+// ## AppCompatActivity extensions
+fun AppCompatActivity.getNavController(@IdRes viewId: Int) =
+    (supportFragmentManager.findFragmentById(viewId) as? NavHostFragment)?.run { navController }
+        ?: throw IllegalStateException(
+            "Activity $this does not have a NavController set on $viewId"
+        )
 
 // ##
 // ## ViewBinding extensions

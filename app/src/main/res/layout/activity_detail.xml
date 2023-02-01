@@ -49,10 +49,7 @@
                     android:layout_marginBottom="10dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
-                    android:fitsSystemWindows="true"
-                    app:layout_collapseMode="parallax"
-                    app:layout_collapseParallaxMultiplier="0.6"
-                    app:layout_scrollFlags="scroll|enterAlways|enterAlwaysCollapsed" />
+                    android:fitsSystemWindows="true" />
 
             </com.facebook.shimmer.ShimmerFrameLayout>
 

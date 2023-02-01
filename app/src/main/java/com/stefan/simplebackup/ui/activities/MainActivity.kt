@@ -13,7 +13,6 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnLayout
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
-import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.navOptions
 import com.google.android.material.appbar.AppBarLayout
 import com.stefan.simplebackup.R
@@ -151,9 +150,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun setNavController() {
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host_container) as NavHostFragment
-        navController = navHostFragment.navController
+        navController = getNavController(R.id.nav_host_container)
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val isSearchDestination = destination.doesMatchDestination(R.id.search_action)
             val isSettingsDestination = destination.doesMatchDestination(R.id.settings)
@@ -168,7 +165,6 @@ class MainActivity : BaseActivity() {
 
     private fun navigateToSearchFragment() =
         navController.navigate(R.id.search_action, null, navOptions {
-            restoreState = true
             launchSingleTop = true
             anim {
                 enter = R.animator.fragment_fade_enter
