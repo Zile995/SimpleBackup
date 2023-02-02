@@ -275,7 +275,9 @@ fun Context.getLaunchIntent(packageName: String = getPackageName()) =
     packageManager.getLaunchIntentForPackage(packageName)
 
 fun Context.getLaunchPendingIntent(): PendingIntent {
-    val intent = getLaunchIntent()
+    val intent = getLaunchIntent()?.apply {
+        flags = Intent.FLAG_ACTIVITY_SINGLE_TOP
+    }
     return PendingIntent.getActivity(
         this,
         0,
