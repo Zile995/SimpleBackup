@@ -2,32 +2,31 @@ package com.stefan.simplebackup.ui.views
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
 import android.view.View
-import androidx.annotation.DrawableRes
 import androidx.annotation.IdRes
 import androidx.annotation.StringRes
 import androidx.annotation.StyleRes
-import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import com.google.android.material.appbar.MaterialToolbar
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.adapters.SelectionModeCallBack
 import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
+import com.stefan.simplebackup.utils.extensions.getAttributeResourceId
+import com.stefan.simplebackup.utils.extensions.getResourceDrawable
 
 class SimpleMaterialToolbar(
-    context: Context, attrs: AttributeSet?,
-    defStyleAttr: Int
+    context: Context, attrs: AttributeSet?, defStyleAttr: Int
 ) : MaterialToolbar(context, attrs, defStyleAttr) {
 
     val deleteItem
         get() = findMenuItem(R.id.delete)
 
     val searchActionView
-        get() =
-            searchViewItem?.actionView as? MaterialSearchView
+        get() = searchViewItem?.actionView as? MaterialSearchView
 
     val addToFavoritesItem
         get() = findMenuItem(R.id.add_to_favorites)
@@ -43,19 +42,19 @@ class SimpleMaterialToolbar(
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, R.attr.toolbarStyle)
 
-    init {
-        contentInsetStartWithNavigation = 0
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        addRipple()
     }
 
     inline fun changeOnSearch(
-        isSearching: Boolean,
-        crossinline onNavigationClickAction: () -> Unit = {}
+        isSearching: Boolean, crossinline onNavigationClickAction: () -> Unit = {}
     ) {
         if (isSearching) {
             post {
                 removeTitle()
                 setMenuItemsOnSearch()
-                removeOnClickListener()
+                removeOnTouchListener()
                 setNavigationIcon(R.drawable.ic_arrow_back)
                 setNavigationContentDescription(R.string.back)
                 setNavigationOnClickListener {
@@ -70,29 +69,26 @@ class SimpleMaterialToolbar(
     }
 
     inline fun changeOnSelection(
-        isSelected: Boolean,
-        crossinline selectionModeCallBack: SelectionModeCallBack = {}
+        isSelected: Boolean, crossinline selectionModeCallBack: SelectionModeCallBack = {}
     ) {
         if (isSelected) {
-            removeOnClickListener()
+            removeOnTouchListener()
             setMenuItemsOnSelection()
             setNavigationIcon(R.drawable.ic_close)
             setNavigationContentDescription(R.string.clear_selection)
             setNavigationOnClickListener {
-                if (animationFinished)
-                    selectionModeCallBack(false)
+                if (animationFinished) selectionModeCallBack(false)
             }
         } else setDefaultState()
     }
 
     inline fun changeOnSettings(
-        isInSettings: Boolean,
-        crossinline onNavigationClickAction: () -> Unit = {}
+        isInSettings: Boolean, crossinline onNavigationClickAction: () -> Unit = {}
     ) {
         if (isInSettings) {
             post {
                 setDefaultMenuItems()
-                removeOnClickListener()
+                removeOnTouchListener()
                 setCustomTitle(R.string.settings, R.style.TextAppearance_SimpleBackup_TitleMedium)
                 setNavigationIcon(R.drawable.ic_arrow_back)
                 setNavigationContentDescription(R.string.back)
@@ -113,7 +109,7 @@ class SimpleMaterialToolbar(
                 Log.d("SimpleMaterialToolbar", "Setting to default state")
                 setDefaultTitle()
                 setDefaultMenuItems()
-                propagateClickEventsToParent()
+                setDefaultListeners()
                 setNavigationIcon(R.drawable.ic_search)
                 setNavigationContentDescription(R.string.search_for_apps)
             }
@@ -124,28 +120,27 @@ class SimpleMaterialToolbar(
         when {
             isFavorite -> {
                 deleteItem?.isVisible = false
-                addToFavoritesItem?.icon = getDrawable(R.drawable.ic_remove_favorite)
+                addToFavoritesItem?.icon =
+                    context.getResourceDrawable(R.drawable.ic_remove_favorite)
                 addToFavoritesItem?.tooltipText = context.getString(R.string.remove_from_favorites)
             }
             else -> {
                 deleteItem?.isVisible = true
-                addToFavoritesItem?.icon = getDrawable(R.drawable.ic_favorite)
+                addToFavoritesItem?.icon = context.getResourceDrawable(R.drawable.ic_favorite)
                 addToFavoritesItem?.tooltipText = context.getString(R.string.add_to_favorites)
             }
         }
     }
 
     fun setCustomTitle(
-        titleText: String?,
-        @StyleRes resId: Int = R.style.TextAppearance_SimpleBackup_TitleSmall
+        titleText: String?, @StyleRes resId: Int = R.style.TextAppearance_SimpleBackup_TitleSmall
     ) {
         setTitleTextAppearance(context, resId)
         title = titleText
     }
 
     fun setCustomTitle(
-        @StringRes customTitle: Int,
-        @StyleRes styleResId: Int
+        @StringRes customTitle: Int, @StyleRes styleResId: Int
     ) {
         setTitleTextAppearance(context, styleResId)
         title = context.getString(customTitle)
@@ -173,11 +168,8 @@ class SimpleMaterialToolbar(
     }
 
     fun removeTitle() = run { title = null }
-    fun removeOnClickListener() {
-        setOnTouchListener(null)
-        setOnClickListener(null)
-        setNavigationOnClickListener(null)
-    }
+
+    fun removeOnTouchListener() = setOnTouchListener(null)
 
     fun resetSearchActionView() {
         searchActionView?.clearFocus()
@@ -186,44 +178,35 @@ class SimpleMaterialToolbar(
 
     fun requestSearchActionViewFocus() = searchActionView?.requestFocus()
 
-    private fun getDrawable(@DrawableRes resourceId: Int) =
-        ContextCompat.getDrawable(context, resourceId)
-
     private fun findMenuItem(@IdRes resourceId: Int) = menu?.findItem(resourceId)
 
-    private fun setDefaultTitleTextColor() =
-        with(TypedValue()) {
-            context.theme.resolveAttribute(
-                android.R.attr.textColorHint,
-                this,
-                true
-            )
-            setTitleTextColor(context.getColor(resourceId))
+    private fun setDefaultTitleTextColor() = with(TypedValue()) {
+        context.theme.resolveAttribute(
+            android.R.attr.textColorHint, this, true
+        )
+        setTitleTextColor(context.getColor(resourceId))
+    }
+
+    private fun addRipple() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P) {
+            val resourceId =
+                getAttributeResourceId(android.R.attr.selectableItemBackgroundBorderless)
+            setBackgroundResource(resourceId)
         }
+    }
 
     private fun setDefaultTitle() {
         setCustomTitle(R.string.search_for_apps, R.style.TextAppearance_SimpleBackup_TitleSmall)
         setDefaultTitleTextColor()
     }
 
-    private inline fun performParentClick(onTouch: () -> Boolean) =
-        if (animationFinished) {
-            onTouch()
-        } else
-            false
+    private inline fun performParentClick(onTouch: () -> Boolean?) = if (animationFinished) {
+        onTouch() ?: false
+    } else false
 
     @SuppressLint("ClickableViewAccessibility")
-    private fun propagateClickEventsToParent() {
-        setOnClickListener {}
-        setOnTouchListener { _, event ->
-            performParentClick {
-                parentView?.onTouchEvent(event) ?: false
-            }
-        }
-        setNavigationOnClickListener {
-            performParentClick {
-                parentView?.callOnClick() ?: false
-            }
-        }
+    private fun setDefaultListeners() {
+        setOnTouchListener { _, event -> performParentClick { parentView?.onTouchEvent(event) } }
+        setNavigationOnClickListener { performParentClick { parentView?.callOnClick() } }
     }
 }

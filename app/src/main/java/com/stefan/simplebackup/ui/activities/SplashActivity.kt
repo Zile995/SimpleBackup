@@ -76,7 +76,6 @@ class SplashActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         binding.apply {
-            root.changeBackgroundColor(applicationContext, R.color.bottom_view)
             bindStoragePermissionView()
             bindUsageStatsPermissionView()
         }
@@ -104,22 +103,27 @@ class SplashActivity : AppCompatActivity() {
 
     private fun checkForMainPermissions() {
         appPermissionManager.apply {
-            permissionHolder =
-                PermissionHolder(
-                    isUsageStatsGranted = checkUsageStatsPermission(),
-                    isManageAllFilesGranted = checkManageAllFilesPermission()
-                )
+            permissionHolder = PermissionHolder(
+                isUsageStatsGranted = checkUsageStatsPermission(),
+                isManageAllFilesGranted = checkManageAllFilesPermission()
+            )
         }
     }
 
-    private fun ActivitySplashBinding.updateViews(newGrantedStatus: PermissionHolder) {
-        usageStatsCard.isVisible = !newGrantedStatus.isUsageStatsGranted
-        storagePermissionCard.isVisible = !newGrantedStatus.isManageAllFilesGranted
-        applicationImage.isVisible =
-            !(newGrantedStatus.isUsageStatsGranted && newGrantedStatus.isManageAllFilesGranted)
-        welcomeLabel.isVisible =
-            !(newGrantedStatus.isUsageStatsGranted && newGrantedStatus.isManageAllFilesGranted)
-    }
+    private fun ActivitySplashBinding.updateViews(newGrantedStatus: PermissionHolder) =
+        newGrantedStatus.run {
+            // Change main background
+            if (!isUsageStatsGranted || !isManageAllFilesGranted)
+                root.changeBackgroundColor(this@SplashActivity, R.color.bottom_view)
+
+            // Set views visibility
+            usageStatsCard.isVisible = !isUsageStatsGranted
+            storagePermissionCard.isVisible = !isManageAllFilesGranted
+            applicationImage.isVisible =
+                !(isUsageStatsGranted && isManageAllFilesGranted)
+            welcomeLabel.isVisible =
+                !(isUsageStatsGranted && isManageAllFilesGranted)
+        }
 
     private data class PermissionHolder(
         var isUsageStatsGranted: Boolean = false,

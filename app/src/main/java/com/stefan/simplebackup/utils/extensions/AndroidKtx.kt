@@ -249,10 +249,10 @@ fun Context.getResourceDrawable(@DrawableRes drawable: Int) =
     ContextCompat.getDrawable(this, drawable)
 
 fun AppCompatActivity.setStatusBarColor(@ColorRes color: Int) {
-    window.statusBarColor = getColorFromResource(color)
+    window.statusBarColor = getResourceColor(color)
 }
 
-fun Context.getColorFromResource(@ColorRes color: Int) =
+fun Context.getResourceColor(@ColorRes color: Int) =
     ContextCompat.getColor(applicationContext, color)
 
 fun Context.getInterFontTypeFace() =

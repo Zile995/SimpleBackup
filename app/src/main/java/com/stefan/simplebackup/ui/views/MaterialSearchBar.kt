@@ -3,6 +3,9 @@ package com.stefan.simplebackup.ui.views
 import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
@@ -21,14 +24,19 @@ class MaterialSearchBar(
     val parentWidth get() = (parent as? View)?.width
     val parentHeight get() = (parent as? View)?.height
 
+    constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(
         context,
         attrs,
         R.attr.materialCardViewStyle
     )
 
-    constructor(context: Context) : this(context, null)
+    init {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P)
+            rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
 
+    }
+    
     inline fun animateToParentSize(
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}
@@ -73,14 +81,12 @@ class MaterialSearchBar(
         return AnimatorSet().apply {
             playTogether(widthAnimator, heightAnimator, radiusAnimator)
             doOnStart {
-                isEnabled = false
                 animationFinished = false
                 doOnStart()
             }
             doOnEnd {
-                doOnEnd()
-                isEnabled = true
                 animationFinished = true
+                doOnEnd()
             }
         }
     }

@@ -3,9 +3,11 @@ package com.stefan.simplebackup.utils.extensions
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.content.Context
+import android.util.TypedValue
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
+import androidx.annotation.AttrRes
 import androidx.annotation.ColorRes
 import androidx.annotation.IdRes
 import androidx.fragment.app.Fragment
@@ -35,6 +37,15 @@ var View.isVisible: Boolean
         }
     }
 
+fun View.getAttributeResourceId(@AttrRes attrId: Int) = TypedValue().run {
+    context.theme.resolveAttribute(
+        attrId,
+        this,
+        true
+    )
+    resourceId
+}
+
 fun ImageView.loadBitmap(byteArray: ByteArray): Disposable {
     val imageLoader = context.imageLoader
     val request = ImageRequest.Builder(context)
@@ -55,7 +66,7 @@ fun NavDestination.doesMatchDestination(@IdRes destId: Int): Boolean =
     }
 
 fun View.changeBackgroundColor(context: Context, @ColorRes color: Int) =
-    setBackgroundColor(context.getColorFromResource(color))
+    setBackgroundColor(context.getResourceColor(color))
 
 inline fun View.fadeIn(
     animationDuration: Long = 250L,

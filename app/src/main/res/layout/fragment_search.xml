@@ -11,7 +11,7 @@
         android:id="@+id/toolbar_divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:elevation="2dp"
+        android:elevation="1dp"
         app:dividerColor="@color/main_background"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

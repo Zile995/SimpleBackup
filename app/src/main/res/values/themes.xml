@@ -1,5 +1,4 @@
 <resources>
-    <!-- Base application theme. -->
     <style name="Theme.SimpleBackup" parent="Theme.Material3.Dark.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/bottom_view</item>
@@ -14,18 +13,26 @@
         <item name="android:textColorPrimary">@color/primary_text</item>
         <item name="colorError">@color/error</item>
         <item name="colorOutline">@color/outline</item>
-        <!-- Used for material3 navigation bar color -->
-        <item name="colorSecondaryContainer">@color/search_bar</item>
-        <item name="colorOnSecondaryContainer">@color/selectedTab</item>
+
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/scroll_bar</item>
-        <item name="colorSecondaryVariant">@color/main_background</item>
         <item name="colorOnSecondary">@color/selectedTab</item>
+        <item name="colorSecondaryContainer">@color/search_bar</item>
+        <item name="colorSecondaryVariant">@color/main_background</item>
+        <item name="colorOnSecondaryContainer">@color/selectedTab</item>
+
+        <!-- Other colors. -->
         <item name="android:textColorSecondary">@color/primary_text</item>
         <item name="android:statusBarColor">@color/bottom_view</item>
         <item name="android:navigationBarColor">@color/bottom_view</item>
         <item name="android:windowBackground">@drawable/starting_screen</item>
         <item name="searchViewStyle">@style/Widget.SimpleBackup.MaterialSearchView</item>
+
+        <!-- Popup -->
+        <item name="popupMenuStyle">@style/Widget.App.PopupMenu</item>
+        <item name="textAppearanceLargePopupMenu">@style/TextAppearance.App.BodyLarge</item>
+        <item name="textAppearanceSmallPopupMenu">@style/TextAppearance.App.BodyLarge</item>
+
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
     </style>
 </resources>

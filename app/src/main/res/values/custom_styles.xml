@@ -1,30 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Widget.SimpleBackup.Chip" parent="Widget.Material3.Chip.Assist">
-        <item name="android:textSize">9sp</item>
-        <item name="strokeWidth">10dp</item>
-        <item name="android:clickable">false</item>
-        <item name="chipEndPadding">1dp</item>
-        <item name="chipStartPadding">1dp</item>
-        <item name="iconEndPadding">-4dp</item>
-        <item name="iconStartPadding">4dp</item>
-        <item name="textEndPadding">4dp</item>
-        <item name="textStartPadding">4dp</item>
-        <item name="android:textAlignment">center</item>
-        <item name="chipStrokeColor">@color/primary_button_color</item>
-        <item name="chipBackgroundColor">@color/primary_button_color</item>
-        <item name="titleTextAppearance">@style/TextAppearance.SimpleBackup.BodyMedium</item>
+    <!-- Shape Overlays -->
+    <style name="ShapeAppearanceOverlay.SimpleBackup.ImageView" parent="">
+        <item name="cornerSize">50%</item>
+        <item name="cornerFamily">rounded</item>
+        <item name="backgroundTint">@color/primary_button_color</item>
     </style>
 
-    <style name="Widget.SimpleBackup.PlaceholderChip" parent="Widget.Material3.Chip.Assist">
-        <item name="chipStrokeColor">@color/shimmer_placeholder</item>
-        <item name="chipBackgroundColor">@color/shimmer_placeholder</item>
+    <style name="ShapeAppearanceOverlay.SimpleBackup.RoundedFloatingButton" parent="">
+        <item name="cornerSize">50%</item>
+        <item name="cornerFamily">rounded</item>
+    </style>
+
+    <!-- Text Appearance -->
+    <style name="TextAppearance.App.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="fontFamily">@font/inter</item>
+        <item name="android:fontFamily">@font/inter_family</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
     <style name="TextAppearance.SimpleBackup.NavigationBar" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textSize">15sp</item>
         <item name="fontFamily">@font/inter_family</item>
         <item name="android:fontFamily">@font/inter_family</item>
+    </style>
+
+    <style name="TextAppearance.SimpleBackup.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">14sp</item>
+        <item name="fontFamily">@font/inter_family</item>
+        <item name="android:fontFamily">@font/inter_family</item>
+    </style>
+
+    <style name="TextAppearance.SimpleBackup.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">17sp</item>
+        <item name="fontFamily">@font/inter_family</item>
+        <item name="android:fontFamily">@font/inter_family</item>
+    </style>
+
+    <style name="TextAppearance.SimpleBackup.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:textSize">17sp</item>
+        <item name="fontFamily">@font/inter_family</item>
+        <item name="android:fontFamily">@font/inter_family</item>
+    </style>
+
+    <style name="TextAppearance.SimpleBackup.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">18sp</item>
+        <item name="fontFamily">@font/inter_family</item>
+        <item name="android:fontFamily">@font/inter_family</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <style name="TextAppearance.SimpleBackup.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:textSize">20sp</item>
+        <item name="fontFamily">@font/inter_family</item>
+        <item name="android:fontFamily">@font/inter_family</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+
+    <!-- Widgets -->
+    <style name="Widget.SimpleBackup.Chip" parent="Widget.Material3.Chip.Assist">
+        <item name="strokeWidth">10dp</item>
+        <item name="android:textSize">9sp</item>
+        <item name="chipEndPadding">1dp</item>
+        <item name="chipStartPadding">1dp</item>
+        <item name="iconEndPadding">-4dp</item>
+        <item name="iconStartPadding">4dp</item>
+        <item name="textEndPadding">4dp</item>
+        <item name="textStartPadding">4dp</item>
+        <item name="android:clickable">false</item>
+        <item name="android:textAlignment">center</item>
+        <item name="chipStrokeColor">@color/primary_button_color</item>
+        <item name="chipBackgroundColor">@color/primary_button_color</item>
+        <item name="titleTextAppearance">@style/TextAppearance.SimpleBackup.BodyMedium</item>
     </style>
 
     <style name="Widget.SimpleBackup.NavigationBar" parent="Widget.Material3.BottomNavigationView">
@@ -36,91 +83,57 @@
         </item>
     </style>
 
-    <style name="ShapeAppearanceOverlay.SimpleBackup.ImageView" parent="">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">50%</item>
-        <item name="backgroundTint">@color/primary_button_color</item>
-    </style>
-
-    <style name="ShapeAppearanceOverlay.SimpleBackup.RoundedFloatingButton" parent="">
-        <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">50%</item>
-    </style>
-
-    <style name="TextAppearance.SimpleBackup.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
-        <item name="fontFamily">@font/inter_family</item>
-        <item name="android:fontFamily">@font/inter_family</item>
-        <item name="android:textSize">14sp</item>
-    </style>
-
-    <style name="TextAppearance.SimpleBackup.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
-        <item name="fontFamily">@font/inter_family</item>
-        <item name="android:fontFamily">@font/inter_family</item>
-        <item name="android:textSize">17sp</item>
-    </style>
-
-    <style name="TextAppearance.SimpleBackup.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
-        <item name="fontFamily">@font/inter_family</item>
-        <item name="android:fontFamily">@font/inter_family</item>
-        <item name="android:textSize">17sp</item>
-    </style>
-
-    <style name="TextAppearance.SimpleBackup.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
-        <item name="android:textColor">?android:attr/textColorPrimary</item>
-        <item name="fontFamily">@font/inter_family</item>
-        <item name="android:fontFamily">@font/inter_family</item>
-        <item name="android:textSize">18sp</item>
-    </style>
-
-    <style name="TextAppearance.SimpleBackup.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
-        <item name="android:textColor">?android:attr/textColorPrimary</item>
-        <item name="fontFamily">@font/inter_family</item>
-        <item name="android:fontFamily">@font/inter_family</item>
-        <item name="android:textSize">20sp</item>
+    <style name="Widget.SimpleBackup.PlaceholderChip" parent="Widget.Material3.Chip.Assist">
+        <item name="chipStrokeColor">@color/shimmer_placeholder</item>
+        <item name="chipBackgroundColor">@color/shimmer_placeholder</item>
     </style>
 
     <style name="Widget.SimpleBackup.CardView" parent="Widget.Material3.CardView.Elevated">
-        <item name="cardCornerRadius">8dp</item>
-        <item name="cardElevation">1dp</item>
+        <item name="strokeWidth">0dp</item>
+        <item name="cardElevation">2dp</item>
+        <item name="cardCornerRadius">10dp</item>
         <item name="backgroundColor">@color/card_view</item>
         <item name="rippleColor">@color/card_view_ripple</item>
-        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <style name="Widget.SimpleBackup.MaterialToolbar" parent="Widget.Material3.Toolbar">
+        <item name="titleMarginStart">0dp</item>
+        <item name="contentInsetStart">0dp</item>
+        <item name="titleTextColor">?android:textColorHint</item>
+        <item name="titleTextAppearance">@style/TextAppearance.SimpleBackup.TitleLarge</item>
+        <item name="subtitleTextAppearance">@style/TextAppearance.SimpleBackup.TitleMedium</item>
     </style>
 
     <style name="Widget.SimpleBackup.SearchBar" parent="Widget.Material3.CardView.Elevated">
-        <item name="cardCornerRadius">30dp</item>
         <item name="cardElevation">4dp</item>
-        <item name="strokeWidth">0dp</item>
+        <item name="cardCornerRadius">24dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="cardBackgroundColor">@color/search_bar</item>
     </style>
 
     <style name="Widget.SimpleBackup.RoundedFloatingButton" parent="ThemeOverlay.Material3.FloatingActionButton.Primary">
         <item name="elevation">2dp</item>
         <item name="strokeWidth">0dp</item>
         <item name="backgroundTint">@color/primary_button_color</item>
-        <item name="shapeAppearanceOverlay">@style/ShapeAppearanceOverlay.SimpleBackup.RoundedFloatingButton</item>
+        <item name="shapeAppearanceOverlay">
+            @style/ShapeAppearanceOverlay.SimpleBackup.RoundedFloatingButton
+        </item>
     </style>
 
-    <style name="Widget.SimpleBackup.MaterialSearchView" parent="Widget.AppCompat.SearchView">
-        <item name="android:textColor">?android:textColorHint</item>
-        <item name="searchHintIcon">@null</item>
+    <style name="Widget.SimpleBackup.MaterialSearchView" parent="Widget.AppCompat.SearchView.ActionBar">
         <item name="searchIcon">@null</item>
-        <item name="queryHint">@string/search_for_apps</item>
+        <item name="searchHintIcon">@null</item>
         <item name="iconifiedByDefault">false</item>
-        <item name="queryBackground">@null</item>
-    </style>
-
-    <style name="Widget.SimpleBackup.Button" parent="Widget.Material3.Button.TextButton">
-        <item name="cornerRadius">4dp</item>
-        <item name="backgroundTint">@color/primary_button_color</item>
-        <item name="android:textColor">@color/button_text</item>
-        <item name="android:textAllCaps">true</item>
-        <item name="android:textAlignment">center</item>
-        <item name="iconGravity">textStart</item>
-        <item name="fontFamily">@font/inter_family</item>
-        <item name="android:fontFamily">@font/inter_family</item>
+        <item name="queryHint">@string/search_for_apps</item>
+        <item name="android:textColor">?android:textColorHint</item>
     </style>
 
     <style name="Widget.SimpleBackup.MaterialAlertDialog" parent="MaterialAlertDialog.Material3">
         <item name="android:fontFamily">@font/inter_family</item>
+    </style>
+
+    <style name="Widget.App.PopupMenu" parent="Widget.Material3.PopupMenu">
+        <item name="android:popupBackground">@drawable/popup_menu_background</item>
     </style>
 </resources>

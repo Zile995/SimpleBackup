@@ -103,7 +103,7 @@ class DetailActivity : BaseActivity() {
             "statusBarColor",
             ArgbEvaluator(),
             window.statusBarColor,
-            getColorFromResource(R.color.bottom_view)
+            getResourceColor(R.color.bottom_view)
         ).apply {
             addUpdateListener {
                 binding.detailsToolbar.setBackgroundColor(it.animatedValue as Int)
@@ -172,7 +172,7 @@ class DetailActivity : BaseActivity() {
     }
 
     private fun startAnimation() {
-        if (window.statusBarColor != getColorFromResource(R.color.bottom_view)) {
+        if (window.statusBarColor != getResourceColor(R.color.bottom_view)) {
             barAnimator.apply {
                 duration = 300L
                 cancel()
@@ -182,7 +182,7 @@ class DetailActivity : BaseActivity() {
     }
 
     private fun reverseAnimation() {
-        if (!isReversing && window.statusBarColor != getColorFromResource(android.R.color.transparent)) {
+        if (!isReversing && window.statusBarColor != getResourceColor(android.R.color.transparent)) {
             barAnimator.apply {
                 isReversing = true
                 duration = 150L

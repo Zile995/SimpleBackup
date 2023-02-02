@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.marginLeft
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.utils.extensions.showSoftKeyboard
 
@@ -48,11 +49,11 @@ class MaterialSearchView(
     }
 
     private fun setSearchViewMargin() {
+        maxWidth = Integer.MAX_VALUE
         val params = searchEditFrame.layoutParams as LinearLayout.LayoutParams
-        val leftMargin = resources.getDimension(R.dimen.search_view_margin).toInt()
+        val leftMargin = -searchEditFrame.marginLeft
         params.setMargins(leftMargin, 0, 30, 0)
         searchEditFrame.layoutParams = params
-        maxWidth = Integer.MAX_VALUE
     }
 
     private fun setSearchTextAppearance() =

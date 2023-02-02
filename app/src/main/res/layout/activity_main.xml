@@ -11,13 +11,14 @@
         android:id="@+id/app_bar_layout"
         android:layout_width="match_parent"
         android:layout_height="@dimen/toolbar_height"
-        android:background="@color/bottom_view">
+        android:background="@color/bottom_view"
+        android:outlineProvider="none">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/search_bar_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:layout_scrollFlags="snap|scroll|enterAlways" >
+            app:layout_scrollFlags="snap|scroll|enterAlways">
 
             <com.stefan.simplebackup.ui.views.MaterialSearchBar
                 android:id="@+id/material_search_bar"
@@ -26,8 +27,6 @@
                 android:layout_height="@dimen/search_bar_height"
                 android:layout_marginStart="20dp"
                 android:layout_marginEnd="20dp"
-                android:clipChildren="true"
-                app:cardBackgroundColor="@color/search_bar"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -35,16 +34,11 @@
 
                 <com.stefan.simplebackup.ui.views.SimpleMaterialToolbar
                     android:id="@+id/material_toolbar"
+                    style="@style/Widget.SimpleBackup.MaterialToolbar"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:contentInsetStart="0dp"
-                    app:contentInsetStartWithNavigation="0dp"
+                    android:layout_height="match_parent"
                     app:navigationIcon="@drawable/ic_search"
-                    app:title="@string/search_for_apps"
-                    app:titleMarginStart="0dp"
-                    android:background="@null"
-                    app:titleTextAppearance="@style/TextAppearance.SimpleBackup.TitleSmall"
-                    app:titleTextColor="?android:textColorHint"/>
+                    app:title="@string/search_for_apps" />
 
             </com.stefan.simplebackup.ui.views.MaterialSearchBar>
 
@@ -58,7 +52,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="@dimen/bottom_navigation_height"
-        android:elevation="4dp"
         app:defaultNavHost="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:navGraph="@navigation/nav_graph" />
@@ -82,7 +75,6 @@
         style="@style/Widget.SimpleBackup.NavigationBar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/bottom_navigation_height"
-        android:elevation="4dp"
         android:layout_gravity="bottom"
         android:background="@color/bottom_view"
         app:labelVisibilityMode="labeled"
