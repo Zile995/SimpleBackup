@@ -59,6 +59,7 @@ android {
         }
         debug {
             signingConfig signingConfigs.debug
+            versionNameSuffix 'debug'
         }
     }
 
