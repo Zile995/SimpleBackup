@@ -7,11 +7,8 @@ import com.stefan.simplebackup.utils.extensions.filterBy
 import com.stefan.simplebackup.utils.work.FileUtil
 import com.stefan.simplebackup.utils.work.JSON_FILE_EXTENSION
 import com.stefan.simplebackup.utils.work.JsonUtil.deserializeApp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.launch
 import java.io.File
 
 class BackupFilesObserver(
@@ -20,6 +17,7 @@ class BackupFilesObserver(
     private val appRepository: AppRepository
 ) {
 
+    private var observerJob: Job? = null
     private val ioDispatcher = Dispatchers.IO
 
     private val recursiveFileWatcher by lazy {
@@ -44,21 +42,29 @@ class BackupFilesObserver(
         submitBackupList(newBackupList.sortedBy { it.name })
     }
 
-    fun observeBackupFiles() = scope.launch(ioDispatcher) {
-        recursiveFileWatcher.fileEvent.collect { event ->
-            Log.d("BackupFilesObserver", "$event")
-            when (event.kind) {
-                EventKind.CREATED -> {
-                    onCreatedEvent(event.file)
-                }
-                EventKind.DELETED -> {
-                    onDeletedEvent(event.file)
-                }
-                EventKind.MODIFIED -> {
-                    onModifiedEvent(event.file)
+    fun startObservingBackups() {
+        if (observerJob != null) return
+        observerJob = scope.launch(ioDispatcher) {
+            recursiveFileWatcher.fileEvent.collect { event ->
+                Log.d("BackupFilesObserver", "$event")
+                when (event.kind) {
+                    EventKind.CREATED -> {
+                        onCreatedEvent(event.file)
+                    }
+                    EventKind.DELETED -> {
+                        onDeletedEvent(event.file)
+                    }
+                    EventKind.MODIFIED -> {
+                        onModifiedEvent(event.file)
+                    }
                 }
             }
         }
+    }
+
+    fun stopObservingBackups() {
+        observerJob?.cancel()
+        observerJob = null
     }
 
     private fun takeCurrentList() = appRepository.localApps.take(1)

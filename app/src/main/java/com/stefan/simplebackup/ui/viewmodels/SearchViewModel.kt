@@ -23,7 +23,7 @@ class SearchViewModel(appRepository: AppRepository) : ViewModel() {
         Log.d("ViewModel", "SearchViewModel created")
         backupFilesObserver.apply {
             refreshBackupList()
-            observeBackupFiles()
+            startObservingBackups()
         }
     }
 

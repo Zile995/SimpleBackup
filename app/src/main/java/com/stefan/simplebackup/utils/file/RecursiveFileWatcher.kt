@@ -21,6 +21,7 @@ class RecursiveFileWatcher(
 ) {
 
     private var currentFileSize = 0L
+
     private val ioDispatcher = Dispatchers.IO
     private val registeredKeys = HashMap<WatchKey, Path>()
     private val watchService = FileSystems.getDefault().newWatchService()
