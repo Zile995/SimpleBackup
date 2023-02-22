@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.stefan.simplebackup.data.local.repository.AppRepository
-import com.stefan.simplebackup.utils.file.BackupFilesObserver
+import com.stefan.simplebackup.data.file.BackupFilesObserver
 import com.stefan.simplebackup.utils.work.FileUtil
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
