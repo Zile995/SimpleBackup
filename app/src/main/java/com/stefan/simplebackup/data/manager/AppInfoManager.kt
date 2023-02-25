@@ -9,16 +9,11 @@ import android.os.Build
 
 class AppInfoManager(private val packageManager: PackageManager, private val flag: Long) {
     @Suppress("DEPRECATION")
-    fun getCompleteAppsInfo(): List<ApplicationInfo> {
-        val installedApps =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-                packageManager.getInstalledApplications(ApplicationInfoFlags.of(flag))
-            else
-                packageManager.getInstalledApplications(flag.toInt())
-        return installedApps.sortedBy { appInfo ->
-            getAppName(appInfo)
-        }
-    }
+    fun getCompleteAppsInfo(): List<ApplicationInfo> =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            packageManager.getInstalledApplications(ApplicationInfoFlags.of(flag))
+        else
+            packageManager.getInstalledApplications(flag.toInt())
 
     @Suppress("DEPRECATION")
     @Throws(NameNotFoundException::class)
@@ -36,11 +31,11 @@ class AppInfoManager(private val packageManager: PackageManager, private val fla
         else
             packageManager.getPackageInfo(packageName, flag.toInt())
 
-    inline fun getFilteredInfo(
+    inline fun filterAppsInfo(
         filterSystemApps: Boolean = false,
         predicate: (ApplicationInfo) -> Boolean
     ) = getCompleteAppsInfo().filter { appInfo ->
-        predicate(appInfo) && (if (filterSystemApps) !isUserApp(appInfo) else isUserApp(appInfo))
+        predicate(appInfo) && if (filterSystemApps) !isUserApp(appInfo) else isUserApp(appInfo)
     }
 
     fun getDataDir(applicationInfo: ApplicationInfo): String = applicationInfo.dataDir

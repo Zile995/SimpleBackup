@@ -45,10 +45,12 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) :
     }
 
     private suspend fun updateAllPackages(repository: AppRepository, appManager: AppManager) {
-        appManager.apply {
-            buildAllData().collect { app ->
-                repository.insertAppData(app)
-            }
+        appManager.buildAllData { appInfo ->
+            getVersionName(appInfo) != repository.getVersionName(appInfo.packageName)
+                    || getApkDir(appInfo) != repository.getApkDir(appInfo.packageName)
+        }.collect { app ->
+            Log.d("BootPackageWorker", "Adding or updating ${app.packageName}")
+            repository.insertAppData(app)
         }
     }
 
@@ -56,11 +58,12 @@ class BootPackageWorker(appContext: Context, params: WorkerParameters) :
         repository: AppRepository, appManager: AppManager
     ) {
         repository.installedApps.filterBy { app ->
-            !appManager.doesPackageExists(app.packageName)
-        }.take(1).collect { removedApps ->
-            removedApps.forEach { app ->
-                repository.delete(app.packageName)
+                !appManager.doesPackageExists(app.packageName)
+            }.take(1).collect { removedApps ->
+                removedApps.forEach { app ->
+                    Log.d("BootPackageWorker", "Removing ${app.packageName}")
+                    repository.delete(app.packageName)
+                }
             }
-        }
     }
 }

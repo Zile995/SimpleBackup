@@ -42,9 +42,18 @@ class AppRepository(private val appDao: AppDao) {
             }
         }
 
+    // Insert action
     suspend fun insert(app: AppData) = appDao.insert(app)
+
+    // Delete actions
     suspend fun delete(packageName: String) = appDao.delete(packageName)
     suspend fun deleteLocal(packageName: String) = appDao.delete(packageName, true)
+
+    // Field getters
+    suspend fun getApkDir(packageName: String) = appDao.getApkDir(packageName)
+    suspend fun getVersionName(packageName: String) = appDao.getVersionName(packageName)
+
+    // Favorites actions
     suspend fun addToFavorites(packageName: String) = appDao.addToFavorites(packageName)
     suspend fun removeFromFavorites(packageName: String) = appDao.removeFromFavorites(packageName)
 

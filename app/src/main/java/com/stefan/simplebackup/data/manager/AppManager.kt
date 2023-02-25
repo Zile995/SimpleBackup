@@ -31,8 +31,8 @@ class AppManager(private val context: Context) {
     }
 
     suspend fun buildData(packageName: String) = withContext(ioDispatcher) {
-            getAppData(appInfo = appInfoManager.getAppInfo(packageName))
-        }
+        getAppData(appInfo = appInfoManager.getAppInfo(packageName))
+    }
 
     private fun getChangedPackages() =
         packageManager.getChangedPackages(PreferenceHelper.savedSequenceNumber)
@@ -79,10 +79,11 @@ class AppManager(private val context: Context) {
 
     // Simple flow which sends data
     fun buildAllData(
-        includeSystemApps: Boolean = false, filter: (ApplicationInfo) -> Boolean = { true }
+        includeSystemApps: Boolean = false,
+        filter: suspend AppInfoManager.(ApplicationInfo) -> Boolean = { true }
     ) = flow {
-        appInfoManager.getFilteredInfo(filterSystemApps = includeSystemApps) { appInfo ->
-            appInfo.packageName != context.packageName && filter(appInfo)
+        appInfoManager.filterAppsInfo(filterSystemApps = includeSystemApps) { appInfo ->
+            appInfo.packageName != context.packageName && filter.invoke(appInfoManager, appInfo)
         }.forEach { filteredAppsInfo ->
             val app = getAppData(filteredAppsInfo)
             emit(app)

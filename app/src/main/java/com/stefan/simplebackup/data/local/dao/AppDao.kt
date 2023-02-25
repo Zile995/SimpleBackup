@@ -35,6 +35,12 @@ interface AppDao {
     @Query("SELECT is_favorite FROM $APP_TABLE_NAME WHERE package_name = :packageName")
     suspend fun isFavorite(packageName: String): Boolean?
 
+    @Query("SELECT version_name FROM $APP_TABLE_NAME WHERE package_name = :packageName AND is_local = 0")
+    suspend fun getVersionName(packageName: String): String
+
+    @Query("SELECT apk_dir FROM $APP_TABLE_NAME WHERE package_name = :packageName AND is_local = 0")
+    suspend fun getApkDir(packageName: String): String
+
     @Query("UPDATE $APP_TABLE_NAME SET is_favorite = :setFavorite WHERE package_name = :packageName AND is_local = 0")
     suspend fun setFavorite(packageName: String, setFavorite: Boolean)
 
