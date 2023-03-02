@@ -11,6 +11,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.SearchView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.view.doOnLayout
+import androidx.core.view.doOnPreDraw
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.navOptions
@@ -29,6 +30,7 @@ import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
 import com.stefan.simplebackup.ui.fragments.viewpager.HomeViewPagerFragment
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
 import com.stefan.simplebackup.ui.viewmodels.MainViewModelFactory
+import com.stefan.simplebackup.ui.viewmodels.UiAction
 import com.stefan.simplebackup.ui.views.AppBarLayoutStateChangedListener
 import com.stefan.simplebackup.ui.views.MainActivityAnimator
 import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
@@ -65,8 +67,7 @@ class MainActivity : BaseActivity() {
     // Broadcast receivers
     private val packageReceiver: PackageReceiver by lazy {
         PackageReceiver(
-            mainViewModel.viewModelScope,
-            mainViewModel
+            mainViewModel.viewModelScope, mainViewModel
         )
     }
 
@@ -81,19 +82,16 @@ class MainActivity : BaseActivity() {
     private val signInIntentLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK && result.data != null) {
-                handleSignInIntent(
-                    signInData = result.data!!,
-                    onSuccess = {
-                        onSuccessfullySignedIn()
-                    },
-                    onFailure = {
-                        showToast(R.string.unable_to_sign_in)
-                        Log.e("GoogleSignIn", "${getString(R.string.unable_to_sign_in)} $it")
-                    })
+                handleSignInIntent(signInData = result.data!!, onSuccess = {
+                    onSuccessfullySignedIn()
+                }, onFailure = {
+                    showToast(R.string.unable_to_sign_in)
+                    Log.e("GoogleSignIn", "${getString(R.string.unable_to_sign_in)} $it")
+                })
             }
         }
 
-    // Exit flag
+    // Flags
     private var shouldExit = false
 
     // Jobs
@@ -101,12 +99,10 @@ class MainActivity : BaseActivity() {
 
     // BaseFragment getter
     val currentlyVisibleBaseFragment: BaseFragment<*>?
-        get() {
-            return when (val visibleFragment = supportFragmentManager.getVisibleFragment()) {
-                is BaseFragment<*> -> visibleFragment
-                is BaseViewPagerFragment<*> -> visibleFragment.getCurrentFragment()
-                else -> null
-            }
+        get() = when (val visibleFragment = supportFragmentManager.getVisibleFragment()) {
+            is BaseFragment<*> -> visibleFragment
+            is BaseViewPagerFragment<*> -> visibleFragment.getCurrentFragment()
+            else -> null
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -140,8 +136,7 @@ class MainActivity : BaseActivity() {
                     delayedExitJob = launchPostDelayed(1500L) { shouldExit = true }
                     delayedExitJob?.invokeOnCompletion { delayedExitJob = null }
                 }
-            } else
-                super.onBackPress()
+            } else super.onBackPress()
         }
     }
 
@@ -154,8 +149,11 @@ class MainActivity : BaseActivity() {
         navController.addOnDestinationChangedListener { _, destination, _ ->
             val isSearchDestination = destination.doesMatchDestination(R.id.search_action)
             val isSettingsDestination = destination.doesMatchDestination(R.id.settings)
-            mainViewModel.setSearching(isSearchDestination)
-            mainViewModel.setSettingsDestination(isSettingsDestination)
+            mainViewModel.action(
+                UiAction.ChangeSearchBarState(
+                    isSearchDestination, isSettingsDestination
+                )
+            )
             destination.doesMatchDestination(R.id.home).let { isHomeDestination ->
                 shouldExit = isHomeDestination
                 if (!isHomeDestination) delayedExitJob?.cancel()
@@ -196,7 +194,7 @@ class MainActivity : BaseActivity() {
     }
 
     private fun ActivityMainBinding.bindFloatingButton() {
-        floatingButton.isVisible = mainViewModel.isButtonVisible
+        floatingButton.isVisible = mainViewModel.isAppBarExpanded
     }
 
     private fun SimpleMaterialToolbar.changeMenuItems(numberOfSelectedItems: Int) {
@@ -218,21 +216,21 @@ class MainActivity : BaseActivity() {
         appBarLayout.setExpanded(mainViewModel.isAppBarExpanded, false)
         appBarLayout.addOnOffsetChangedListener(object : AppBarLayoutStateChangedListener() {
             override fun onStateChanged(appBarLayout: AppBarLayout, state: AppBarLayoutState) {
-                when (state) {
-                    AppBarLayoutState.EXPANDED -> mainViewModel.saveAppBarState(true)
-                    AppBarLayoutState.COLLAPSED -> mainViewModel.saveAppBarState(false)
-                    else -> mainViewModel.saveAppBarState(false)
+                val isExpanded = when (state) {
+                    AppBarLayoutState.EXPANDED -> true
+                    AppBarLayoutState.COLLAPSED -> false
+                    else -> false
                 }
+                mainViewModel.action(UiAction.ChangeAppBarState(isExpanded = isExpanded))
             }
         })
         root.doOnLayout {
             val layoutParams = appBarLayout.layoutParams as CoordinatorLayout.LayoutParams
             val layoutBehavior = layoutParams.behavior as AppBarLayout.Behavior
             layoutBehavior.setDragCallback(object : AppBarLayout.Behavior.DragCallback() {
-                override fun canDrag(appBarLayout: AppBarLayout): Boolean =
-                    !(mainViewModel.isSelected.value
-                            || mainViewModel.isSearching.value
-                            || navController.currentDestination?.doesMatchDestination(R.id.settings) == true)
+                override fun canDrag(appBarLayout: AppBarLayout): Boolean = mainViewModel.run {
+                    !(isSearching.value || isSettingsDestination.value || isSelected.value)
+                }
             })
         }
     }
@@ -269,44 +267,35 @@ class MainActivity : BaseActivity() {
         setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.add_to_favorites -> {
-                    if (currentlyVisibleBaseFragment !is FavoritesFragment)
-                        mainViewModel.addToFavorites(
-                            onSuccess = { numberOfItems ->
-                                showToast(
-                                    getString(
-                                        R.string.successfully_added_items_to_favorites,
-                                        numberOfItems
-                                    )
+                    if (currentlyVisibleBaseFragment !is FavoritesFragment) mainViewModel.addToFavorites(
+                        onSuccess = { numberOfItems ->
+                            showToast(
+                                getString(
+                                    R.string.successfully_added_items_to_favorites, numberOfItems
                                 )
-                            },
-                            onFailure = { message ->
-                                showToast(
-                                    getString(
-                                        R.string.unable_to_add_items_to_favorites,
-                                        message
-                                    )
+                            )
+                        },
+                        onFailure = { message ->
+                            showToast(
+                                getString(
+                                    R.string.unable_to_add_items_to_favorites, message
                                 )
-                            }
+                            )
+                        })
+                    else mainViewModel.removeFromFavorites(onSuccess = { numberOfItems ->
+                        showToast(
+                            getString(
+                                R.string.successfully_removed_items_from_favorites,
+                                numberOfItems
+                            )
                         )
-                    else
-                        mainViewModel.removeFromFavorites(
-                            onSuccess = { numberOfItems ->
-                                showToast(
-                                    getString(
-                                        R.string.successfully_removed_items_from_favorites,
-                                        numberOfItems
-                                    )
-                                )
-                            },
-                            onFailure = { message ->
-                                showToast(
-                                    getString(
-                                        R.string.unable_to_remove_items_from_favorites,
-                                        message
-                                    )
-                                )
-                            }
+                    }, onFailure = { message ->
+                        showToast(
+                            getString(
+                                R.string.unable_to_remove_items_from_favorites, message
+                            )
                         )
+                    })
                 }
                 R.id.delete -> {
                     when (val visibleFragment = currentlyVisibleBaseFragment) {
@@ -330,28 +319,25 @@ class MainActivity : BaseActivity() {
     }
 
     private fun ActivityMainBinding.bindNavigationBar() =
-        navigationBar.setupNavigation(navController,
-            onNavigate = { isReselected ->
-                if (!isReselected) {
-                    floatingButton.setOnClickListener(null)
-                    currentlyVisibleBaseFragment?.stopScrolling()
-                }
-                !(mainViewModel.isSearching.value
-                        || mainViewModel.isSelected.value) && animationFinished
-            },
-            customNavigationOptions = { menuItem ->
-                if (menuItem.itemId == R.id.settings) {
-                    setEnterAnim(R.anim.nav_default_enter_anim)
-                    setExitAnim(R.anim.nav_default_exit_anim)
-                    setPopEnterAnim(R.animator.fragment_nav_enter_pop)
-                    setPopExitAnim(R.animator.fragment_nav_exit_pop)
-                } else {
-                    setEnterAnim(R.animator.fragment_nav_enter)
-                    setExitAnim(R.animator.fragment_nav_exit)
-                    setPopEnterAnim(R.animator.fragment_nav_enter_pop)
-                    setPopExitAnim(R.animator.fragment_nav_exit_pop)
-                }
-            })
+        navigationBar.setupNavigation(navController, onNavigate = { isReselected ->
+            if (!isReselected) {
+                floatingButton.setOnClickListener(null)
+                currentlyVisibleBaseFragment?.stopScrolling()
+            }
+            animationFinished
+        }, customNavigationOptions = { menuItem ->
+            if (menuItem.itemId == R.id.settings) {
+                setEnterAnim(R.anim.nav_default_enter_anim)
+                setExitAnim(R.anim.nav_default_exit_anim)
+                setPopEnterAnim(R.animator.fragment_nav_enter_pop)
+                setPopExitAnim(R.animator.fragment_nav_exit_pop)
+            } else {
+                setEnterAnim(R.animator.fragment_nav_enter)
+                setExitAnim(R.animator.fragment_nav_exit)
+                setPopEnterAnim(R.animator.fragment_nav_enter_pop)
+                setPopExitAnim(R.animator.fragment_nav_exit_pop)
+            }
+        })
 
     private fun ActivityMainBinding.initObservers() {
         launchOnViewLifecycle {
@@ -364,19 +350,16 @@ class MainActivity : BaseActivity() {
                 mainViewModel.apply {
                     launch {
                         isSelected.collect { isSelected ->
-                            if (isSearching.value || isSettingsDestination.value) return@collect
                             mainActivityAnimator.animateOnSelection(isSelected, setSelectionMode)
                         }
                     }
                     launch {
                         isSearching.collect { isSearching ->
-                            if (isSelected.value || isSettingsDestination.value) return@collect
                             if (!isSearching) resetSearchInput()
                             mainActivityAnimator.animateOnSearch(isSearching)
                         }
                     }
                     isSettingsDestination.collect { isSettingsDestination ->
-                        if (isSearching.value || isSelected.value) return@collect
                         mainActivityAnimator.animateOnSettings(isSettingsDestination)
                     }
                 }
@@ -384,32 +367,42 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    private fun ActivityMainBinding.expandAppBarLayout(shouldExpand: Boolean) {
+        appBarLayout.doOnPreDraw {
+            if (shouldExpand)
+                appBarLayout.setExpanded(true)
+            else {
+                val shouldMoveUp = currentlyVisibleBaseFragment?.shouldMoveFragmentUp()
+                if (shouldMoveUp == true) {
+                    Log.d("MainAnimator", "Collapsing the AppBarLayout")
+                    appBarLayout.setExpanded(false)
+                }
+            }
+        }
+    }
+
     private fun registerReceivers() {
-        registerReceiver(
-            packageReceiver, intentFilter(
-                ACTION_PACKAGE_ADDED,
-                ACTION_PACKAGE_REMOVED
-            ) {
-                addDataScheme("package")
-            })
+        registerReceiver(packageReceiver, intentFilter(
+            ACTION_PACKAGE_ADDED, ACTION_PACKAGE_REMOVED
+        ) {
+            addDataScheme("package")
+        })
         registerReceiver(notificationReceiver, intentFilter(ACTION_WORK_FINISHED))
     }
 
     private fun setRootDialogs() {
         launchOnViewLifecycle {
-            mainViewModel.onRootCheck(
-                onRootNotGranted = {
-                    _rootAlertDialog = rootDialog(
-                        title = getString(R.string.root_detected_title),
-                        message = getString(R.string.not_granted_info)
-                    ).apply { show() }
-                },
-                onDeviceNotRooted = {
-                    _rootAlertDialog = rootDialog(
-                        title = getString(R.string.not_rooted_title),
-                        message = getString(R.string.not_rooted_info)
-                    ).apply { show() }
-                })
+            mainViewModel.onRootCheck(onRootNotGranted = {
+                _rootAlertDialog = rootDialog(
+                    title = getString(R.string.root_detected_title),
+                    message = getString(R.string.not_granted_info)
+                ).apply { show() }
+            }, onDeviceNotRooted = {
+                _rootAlertDialog = rootDialog(
+                    title = getString(R.string.not_rooted_title),
+                    message = getString(R.string.not_rooted_info)
+                ).apply { show() }
+            })
         }
     }
 
@@ -432,21 +425,20 @@ class MainActivity : BaseActivity() {
     }
 
     private fun requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
-            notificationPermissionLauncher.launch(MainPermission.NOTIFICATIONS.permissionName)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) notificationPermissionLauncher.launch(
+            MainPermission.NOTIFICATIONS.permissionName
+        )
     }
 
-    fun requestSignIn() = requestSignIn(
-        resultLauncher = signInIntentLauncher,
-        onAlreadySignedIn = {
+    fun requestSignIn() =
+        requestSignIn(resultLauncher = signInIntentLauncher, onAlreadySignedIn = {
             onSuccessfullySignedIn()
         })
 
     private fun onSuccessfullySignedIn() {
         launchOnViewLifecycle {
             launchProgressActivity(
-                mainViewModel.selectionList.toTypedArray(),
-                AppDataType.CLOUD
+                mainViewModel.selectionList.toTypedArray(), AppDataType.CLOUD
             )
             delay(250L)
             mainViewModel.setSelectionMode(false)
@@ -463,6 +455,5 @@ class MainActivity : BaseActivity() {
         _rootAlertDialog?.dismiss()
         _rootAlertDialog = null
         unregisterReceivers(packageReceiver, notificationReceiver)
-        mainViewModel.changeButtonVisibility(binding.floatingButton.isVisible)
     }
 }

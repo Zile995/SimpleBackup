@@ -26,7 +26,7 @@ buildscript {
         googleGson = '1.42.3'
         swipeRefresh = '1.1.0'
         androidxJunit = '1.1.5'
-        gradleVersion = '7.4.1'
+        gradleVersion = '7.4.2'
         googleApiClient = '2.2.0'
         kotlinSerialization = '1.4.1'
         googleDriveApi = 'v3-rev20221219-2.0.0'

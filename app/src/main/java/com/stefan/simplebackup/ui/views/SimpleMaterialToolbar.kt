@@ -22,6 +22,8 @@ class SimpleMaterialToolbar(
     context: Context, attrs: AttributeSet?, defStyleAttr: Int
 ) : MaterialToolbar(context, attrs, defStyleAttr) {
 
+    private var hasOnTouchListener = false
+
     val deleteItem
         get() = findMenuItem(R.id.delete)
 
@@ -105,7 +107,7 @@ class SimpleMaterialToolbar(
 
     fun setDefaultState() {
         post {
-            if (!hasOnClickListeners()) {
+            if (!hasOnTouchListener) {
                 Log.d("SimpleMaterialToolbar", "Setting to default state")
                 setDefaultTitle()
                 setDefaultMenuItems()
@@ -169,7 +171,10 @@ class SimpleMaterialToolbar(
 
     fun removeTitle() = run { title = null }
 
-    fun removeOnTouchListener() = setOnTouchListener(null)
+    fun removeOnTouchListener() {
+        setOnTouchListener(null)
+        hasOnTouchListener = false
+    }
 
     fun resetSearchActionView() {
         searchActionView?.clearFocus()
@@ -200,13 +205,15 @@ class SimpleMaterialToolbar(
         setDefaultTitleTextColor()
     }
 
-    private inline fun performParentClick(onTouch: () -> Boolean?) = if (animationFinished) {
-        onTouch() ?: false
-    } else false
+    private inline fun performParentClick(onTouch: () -> Boolean?) =
+        if (animationFinished) {
+            onTouch() ?: false
+        } else false
 
     @SuppressLint("ClickableViewAccessibility")
     private fun setDefaultListeners() {
         setOnTouchListener { _, event -> performParentClick { parentView?.onTouchEvent(event) } }
         setNavigationOnClickListener { performParentClick { parentView?.callOnClick() } }
+        hasOnTouchListener = true
     }
 }

@@ -17,25 +17,31 @@ import com.stefan.simplebackup.utils.extensions.filterBy
 import com.stefan.simplebackup.utils.root.RootChecker
 import com.stefan.simplebackup.utils.work.FileUtil
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOf
 import java.io.IOException
 
 class MainViewModel(application: MainApplication) : AndroidViewModel(application),
     PackageListener by PackageListenerImpl(application) {
-    // View saved states
-    var isAppBarExpanded = true
-        private set
 
-    var isButtonVisible = false
+    var isAppBarExpanded: Boolean = true
         private set
-
-    // Root checking
-    private val rootChecker = RootChecker(application.applicationContext)
-    private val hasCheckedRootGranted get() = PreferenceHelper.hasCheckedRootGranted
-    private val hasCheckedDeviceRooted get() = PreferenceHelper.hasCheckedDeviceRooted
 
     // Dispatchers
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
+    // Root checking
+    private val rootChecker = RootChecker(application)
+    private val hasCheckedRootGranted get() = PreferenceHelper.hasCheckedRootGranted
+    private val hasCheckedDeviceRooted get() = PreferenceHelper.hasCheckedDeviceRooted
+
+    // Ui actions
+    val action: (UiAction) -> Unit
+
+    // Search input
+    private var _searchInput = MutableLiveData<String?>()
+    val searchInput: LiveData<String?> get() = _searchInput
 
     // Search
     private val _isSearching = MutableStateFlow(false)
@@ -44,33 +50,40 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
     // Selection properties
     private var _isSelected = MutableStateFlow(false)
     val isSelected = _isSelected.asStateFlow()
-    val selectionList = mutableListOf<String>()
-    val setSelectionMode: SelectionModeCallBack = { isSelected: Boolean ->
-        _isSelected.value = isSelected
-    }
 
     // Settings destination
     private val _isSettingsDestination = MutableStateFlow(false)
     val isSettingsDestination = _isSettingsDestination.asStateFlow()
 
-    private var _searchInput = MutableLiveData<String?>()
-    val searchInput: LiveData<String?> get() = _searchInput
+    // Selection properties
+    val selectionList = mutableListOf<String>()
+    val setSelectionMode: SelectionModeCallBack = { isSelected: Boolean ->
+        _isSelected.value = isSelected
+    }
+
+
+    init {
+        action = { uiAction ->
+            when (uiAction) {
+                is UiAction.Search -> {
+                    setSearchInput(uiAction.query)
+                }
+                is UiAction.ChangeAppBarState -> {
+                    isAppBarExpanded = uiAction.isExpanded
+                }
+                is UiAction.ChangeSearchBarState -> {
+                    _isSearching.value = uiAction.search
+                    _isSettingsDestination.value = uiAction.settings
+                }
+            }
+        }
+    }
 
     init {
         Log.d("ViewModel", "MainViewModel created")
         viewModelScope.launch(ioDispatcher) {
             refreshPackageList()
         }
-    }
-
-    fun saveAppBarState(isExpanded: Boolean) { isAppBarExpanded = isExpanded }
-
-    fun changeButtonVisibility(isVisible: Boolean) { isButtonVisible = isVisible }
-
-    fun setSearching(isSearching: Boolean) { _isSearching.value = isSearching }
-
-    fun setSettingsDestination(isSettingsDestination: Boolean) {
-        _isSettingsDestination.value = isSettingsDestination
     }
 
     suspend fun onRootCheck(onRootNotGranted: () -> Unit, onDeviceNotRooted: () -> Unit) {
@@ -97,13 +110,13 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
 
     suspend fun findAppsByName(name: String, isLocal: Boolean) =
         withContext(viewModelScope.coroutineContext + ioDispatcher) {
-            if (name.isEmpty())
-                flowOf(mutableListOf())
-            else
-                repository.findAppsByName(name, isLocal).filterBy { it.isUserApp }
+            if (name.isEmpty()) flowOf(mutableListOf())
+            else repository.findAppsByName(name, isLocal).filterBy { it.isUserApp }
         }
 
-    fun resetSearchInput() { _searchInput.value = "" }
+    fun resetSearchInput() {
+        _searchInput.value = ""
+    }
 
     inline fun addToFavorites(
         crossinline onSuccess: (number: Int) -> Unit,
@@ -172,6 +185,15 @@ class MainViewModel(application: MainApplication) : AndroidViewModel(application
         super.onCleared()
         Log.d("ViewModel", "MainViewModel cleared")
     }
+}
+
+sealed class UiAction {
+    data class Search(val query: String?) : UiAction()
+    data class ChangeAppBarState(val isExpanded: Boolean) : UiAction()
+    data class ChangeSearchBarState(
+        val search: Boolean,
+        val settings: Boolean
+    ) : UiAction()
 }
 
 class MainViewModelFactory {

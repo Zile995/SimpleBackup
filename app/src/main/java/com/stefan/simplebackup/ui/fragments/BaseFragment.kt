@@ -29,6 +29,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), ViewReferenceCleaner
 
     private var _adapter: BaseAdapter? = null
     protected val adapter: BaseAdapter get() = _adapter!!
+
     private var _mainRecyclerView: MainRecyclerView? = null
 
     protected var shouldEnableOnLongClick = true
@@ -154,6 +155,7 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), ViewReferenceCleaner
     }
 
     fun getSelectedAppData() = adapter.getCurrentlySelectedItems()
+
     fun shouldMoveFragmentUp() = _mainRecyclerView?.shouldMoveAtLastCompletelyVisibleItem() ?: false
 
     fun fixRecyclerViewScrollPosition() {
