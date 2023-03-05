@@ -7,8 +7,10 @@ import android.util.DisplayMetrics
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.inSelection
+import kotlin.math.absoluteValue
 
 class MainRecyclerView(
     context: Context,
@@ -41,21 +43,23 @@ class MainRecyclerView(
         return !areAllItemsVisible && isLastItemVisible
     }
 
-    fun controlAttachedButton(floatingButton: MainFloatingButton) {
-        var showAction: () -> Unit
-        var hideAction: () -> Unit
-        var checkOnAttach = true
+    fun controlAttachedButton(floatingButton: ExtendedFloatingActionButton) =
         addOnScrollListener(object : OnScrollListener() {
+            private var sensitivity = 18
+            private var checkOnAttach = true
+
+            private val buttonAction = object {
+                fun onShow() = floatingButton.run {
+                    if (inSelection) extend() else show()
+                }
+
+                fun onHide() = floatingButton.run {
+                    if (inSelection) shrink() else hide()
+                }
+            }
+
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-
-                if (inSelection) {
-                    showAction = { floatingButton.extend() }
-                    hideAction = { floatingButton.shrink() }
-                } else {
-                    showAction = { floatingButton.show() }
-                    hideAction = { floatingButton.hide() }
-                }
 
                 // Hide on attach only if first or last position is completely visible
                 if (checkOnAttach) {
@@ -67,16 +71,14 @@ class MainRecyclerView(
                     if ((firstItemPosition == 0 || lastItemPosition == linearLayoutManager.itemCount - 1)
                         && floatingButton.isShown
                     ) {
-                        hideAction()
+                        buttonAction.onHide()
                     }
                     checkOnAttach = false
                 }
 
-                if (dy > 0 && floatingButton.isShown) {
-                    hideAction()
-                } else if (dy < 0) {
-                    showAction()
-                }
+                if (dy.absoluteValue < sensitivity) return
+                if (dy > 0 && floatingButton.isShown) buttonAction.onHide()
+                if (dy < 0) buttonAction.onShow()
             }
 
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -85,7 +87,6 @@ class MainRecyclerView(
                 if (!canScrollUp() || !canScrollDown()) floatingButton.hide()
             }
         })
-    }
 
     fun slowlyScrollToLastItem() {
         if (linearLayoutManager.itemCount == 0) return
