@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.DisplayMetrics
+import android.view.MotionEvent
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +19,7 @@ class MainRecyclerView(
     defStyleAttr: Int
 ) : RecyclerView(context, attrs, defStyleAttr) {
 
+    private var shouldInterceptScrolling = false
     private var areAllItemsVisible = false
     private val linearLayoutManager get() = layoutManager as LinearLayoutManager
 
@@ -28,11 +30,27 @@ class MainRecyclerView(
         R.attr.recyclerViewStyle
     )
 
+    private val recyclerViewSaver = object : OnItemTouchListener {
+        override fun onInterceptTouchEvent(rv: RecyclerView, e: MotionEvent): Boolean {
+            return if (shouldInterceptScrolling)
+                e.actionMasked == MotionEvent.ACTION_MOVE
+            else false
+        }
+
+        override fun onTouchEvent(rv: RecyclerView, e: MotionEvent) {}
+        override fun onRequestDisallowInterceptTouchEvent(disallowIntercept: Boolean) {}
+    }
+
     init {
         isMotionEventSplittingEnabled = false
         addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
             areAllItemsVisible = !canScrollUp() && !canScrollDown()
         }
+        addOnItemTouchListener(recyclerViewSaver)
+    }
+
+    fun setInterceptScrolling(shouldIntercept: Boolean) {
+        this.shouldInterceptScrolling = shouldIntercept
     }
 
     fun canScrollUp() = canScrollVertically(-1)

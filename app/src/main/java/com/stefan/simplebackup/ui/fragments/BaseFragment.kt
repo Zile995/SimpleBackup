@@ -54,6 +54,10 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment(), ViewReferenceCleaner
                 adapter.doSelection(holder as BaseViewHolder, item)
                 return true
             }
+
+            override fun onInterceptScrolling(shouldIntercept: Boolean) {
+                _mainRecyclerView?.setInterceptScrolling(shouldIntercept)
+            }
         }
     }
 

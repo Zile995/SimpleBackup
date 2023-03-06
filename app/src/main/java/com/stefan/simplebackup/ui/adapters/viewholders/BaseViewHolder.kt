@@ -1,6 +1,8 @@
 package com.stefan.simplebackup.ui.adapters.viewholders
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.view.MotionEvent
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewbinding.ViewBinding
 import com.google.android.material.card.MaterialCardView
@@ -13,18 +15,34 @@ sealed class BaseViewHolder(
     private val clickListener: OnClickListener
 ) : RecyclerView.ViewHolder(binding.root) {
 
+    private var shouldIntercept = false
+    private val context: Context = binding.root.context
+
     abstract val cardView: MaterialCardView
     abstract fun bind(item: AppData)
 
-    private val context: Context = binding.root.context
-
     init {
-        binding.root.setOnClickListener {
-            clickListener.onItemViewClick(this, adapterPosition)
+        binding.apply {
+            setOnTouchListener()
+            root.setOnClickListener {
+                clickListener.onItemViewClick(this@BaseViewHolder, adapterPosition)
+            }
+            root.setOnLongClickListener {
+                clickListener.onLongItemViewClick(this@BaseViewHolder, adapterPosition).also {
+                    shouldIntercept = it
+                }
+            }
         }
+    }
 
-        binding.root.setOnLongClickListener {
-            clickListener.onLongItemViewClick(this, adapterPosition)
+    @SuppressLint("ClickableViewAccessibility")
+    private fun ViewBinding.setOnTouchListener() {
+        root.setOnTouchListener { _, event ->
+            if (event.actionMasked == MotionEvent.ACTION_UP
+                || event.actionMasked == MotionEvent.ACTION_DOWN
+            ) shouldIntercept = false
+            clickListener.onInterceptScrolling(shouldIntercept)
+            false
         }
     }
 
