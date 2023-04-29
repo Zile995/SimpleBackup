@@ -75,6 +75,7 @@ android {
                          'META-INF/ASL2.0',
                          'DebugProbesKt.bin']
         }
+        jniLibs.useLegacyPackaging = false
     }
 
     compileOptions {
