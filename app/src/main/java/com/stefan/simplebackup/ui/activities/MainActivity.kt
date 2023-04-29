@@ -19,8 +19,6 @@ import com.google.android.material.appbar.AppBarLayout
 import com.stefan.simplebackup.R
 import com.stefan.simplebackup.data.manager.MainPermission
 import com.stefan.simplebackup.data.model.AppDataType
-import com.stefan.simplebackup.data.receivers.ACTION_WORK_FINISHED
-import com.stefan.simplebackup.data.receivers.NotificationReceiver
 import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.inSelection
@@ -85,10 +83,6 @@ class MainActivity : BaseActivity() {
         PackageReceiver(
             mainViewModel.viewModelScope, mainViewModel
         )
-    }
-
-    private val notificationReceiver: NotificationReceiver by lazy {
-        NotificationReceiver()
     }
 
     // Notification permission launcher
@@ -409,7 +403,6 @@ class MainActivity : BaseActivity() {
         ) {
             addDataScheme("package")
         })
-        registerReceiver(notificationReceiver, intentFilter(ACTION_WORK_FINISHED))
     }
 
     private fun setRootDialogs() {
@@ -476,6 +469,6 @@ class MainActivity : BaseActivity() {
         super.onDestroy()
         _rootAlertDialog?.dismiss()
         _rootAlertDialog = null
-        unregisterReceivers(packageReceiver, notificationReceiver)
+        unregisterReceivers(packageReceiver)
     }
 }
