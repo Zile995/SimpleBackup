@@ -27,7 +27,7 @@ class MainRecyclerView(
     constructor(context: Context, attrs: AttributeSet?) : this(
         context,
         attrs,
-        R.attr.recyclerViewStyle
+        androidx.recyclerview.R.attr.recyclerViewStyle
     )
 
     private val recyclerViewSaver = object : OnItemTouchListener {

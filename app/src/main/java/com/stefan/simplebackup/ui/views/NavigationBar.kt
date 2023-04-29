@@ -26,14 +26,14 @@ class NavigationBar(
     constructor(context: Context, attrs: AttributeSet?) : this(
         context,
         attrs,
-        R.attr.bottomNavigationStyle
+        com.google.android.material.R.attr.bottomNavigationStyle
     )
 
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : this(
         context,
         attrs,
         defStyleAttr,
-        R.style.Widget_Design_BottomNavigationView
+        com.google.android.material.R.style.Widget_Design_BottomNavigationView
     )
 
     fun moveDown(): ObjectAnimator =

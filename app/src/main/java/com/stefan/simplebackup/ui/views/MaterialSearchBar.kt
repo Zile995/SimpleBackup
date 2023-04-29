@@ -12,7 +12,6 @@ import android.view.View
 import androidx.core.animation.doOnEnd
 import androidx.core.animation.doOnStart
 import com.google.android.material.card.MaterialCardView
-import com.stefan.simplebackup.R
 import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animationFinished
 
 class MaterialSearchBar(
@@ -28,7 +27,7 @@ class MaterialSearchBar(
     constructor(context: Context, attrs: AttributeSet?) : this(
         context,
         attrs,
-        R.attr.materialCardViewStyle
+        com.google.android.material.R.attr.materialCardViewStyle
     )
 
     init {
@@ -36,7 +35,7 @@ class MaterialSearchBar(
             rippleColor = ColorStateList.valueOf(Color.TRANSPARENT)
 
     }
-    
+
     inline fun animateToParentSize(
         crossinline doOnStart: () -> Unit = {},
         crossinline doOnEnd: () -> Unit = {}

@@ -22,7 +22,7 @@ class MainFloatingButton(
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(
-        context, attrs, R.attr.extendedFloatingActionButtonStyle
+        context, attrs, com.google.android.material.R.attr.extendedFloatingActionButtonStyle
     )
 
     override fun show() {
@@ -42,6 +42,7 @@ class MainFloatingButton(
                 }
                 show()
             }
+
             else -> setDefaultState()
         }
     }

@@ -6,8 +6,6 @@ import android.content.Context
 import android.util.AttributeSet
 import androidx.core.view.doOnPreDraw
 import com.google.android.material.chip.ChipGroup
-import com.stefan.simplebackup.R
-
 
 class AnimatedChipGroup(
     context: Context,
@@ -19,7 +17,7 @@ class AnimatedChipGroup(
     constructor(context: Context, attrs: AttributeSet?) : this(
         context,
         attrs,
-        R.attr.chipGroupStyle
+        com.google.android.material.R.attr.chipGroupStyle
     )
 
     init {

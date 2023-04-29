@@ -25,7 +25,12 @@ import com.stefan.simplebackup.data.receivers.PackageReceiver
 import com.stefan.simplebackup.databinding.ActivityMainBinding
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.inSelection
 import com.stefan.simplebackup.ui.adapters.listeners.BaseSelectionListenerImpl.Companion.numberOfSelected
-import com.stefan.simplebackup.ui.fragments.*
+import com.stefan.simplebackup.ui.fragments.BaseFragment
+import com.stefan.simplebackup.ui.fragments.CONFIGURE_SHEET_TAG
+import com.stefan.simplebackup.ui.fragments.ConfigureSheetFragment
+import com.stefan.simplebackup.ui.fragments.FavoritesFragment
+import com.stefan.simplebackup.ui.fragments.HomeFragment
+import com.stefan.simplebackup.ui.fragments.LocalFragment
 import com.stefan.simplebackup.ui.fragments.viewpager.BaseViewPagerFragment
 import com.stefan.simplebackup.ui.fragments.viewpager.HomeViewPagerFragment
 import com.stefan.simplebackup.ui.viewmodels.MainViewModel
@@ -37,7 +42,18 @@ import com.stefan.simplebackup.ui.views.MainActivityAnimator.Companion.animation
 import com.stefan.simplebackup.ui.views.MainRecyclerView
 import com.stefan.simplebackup.ui.views.SimpleMaterialToolbar
 import com.stefan.simplebackup.utils.PreferenceHelper
-import com.stefan.simplebackup.utils.extensions.*
+import com.stefan.simplebackup.utils.extensions.doesMatchDestination
+import com.stefan.simplebackup.utils.extensions.getNavController
+import com.stefan.simplebackup.utils.extensions.getVisibleFragment
+import com.stefan.simplebackup.utils.extensions.intentFilter
+import com.stefan.simplebackup.utils.extensions.isVisible
+import com.stefan.simplebackup.utils.extensions.launchOnViewLifecycle
+import com.stefan.simplebackup.utils.extensions.launchPostDelayed
+import com.stefan.simplebackup.utils.extensions.repeatOnCreated
+import com.stefan.simplebackup.utils.extensions.repeatOnResumed
+import com.stefan.simplebackup.utils.extensions.showToast
+import com.stefan.simplebackup.utils.extensions.unregisterReceivers
+import com.stefan.simplebackup.utils.extensions.viewBinding
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -203,9 +219,11 @@ class MainActivity : BaseActivity() {
                 addToFavoritesItem?.isVisible = false
                 deleteItem?.isVisible = true
             }
+
             numberOfSelectedItems > 1 && currentlyVisibleBaseFragment is HomeFragment -> {
                 deleteItem?.isVisible = false
             }
+
             numberOfSelectedItems > 0 && supportFragmentManager.getVisibleFragment() is HomeViewPagerFragment -> {
                 changeOnFavorite(isFavorite = currentlyVisibleBaseFragment is FavoritesFragment)
             }
@@ -297,19 +315,23 @@ class MainActivity : BaseActivity() {
                         )
                     })
                 }
+
                 R.id.delete -> {
                     when (val visibleFragment = currentlyVisibleBaseFragment) {
                         is HomeFragment -> {
                             visibleFragment.uninstallSelectedApp()
                         }
+
                         is LocalFragment -> {
                             visibleFragment.deleteSelectedBackups()
                         }
                     }
                 }
+
                 R.id.select_all -> {
                     currentlyVisibleBaseFragment?.selectAllItems()
                 }
+
                 else -> {
                     return@setOnMenuItemClickListener false
                 }
@@ -327,8 +349,8 @@ class MainActivity : BaseActivity() {
             animationFinished
         }, customNavigationOptions = { menuItem ->
             if (menuItem.itemId == R.id.settings) {
-                setEnterAnim(R.anim.nav_default_enter_anim)
-                setExitAnim(R.anim.nav_default_exit_anim)
+                setEnterAnim(androidx.navigation.ui.R.anim.nav_default_enter_anim)
+                setExitAnim(androidx.navigation.ui.R.anim.nav_default_exit_anim)
                 setPopEnterAnim(R.animator.fragment_nav_enter_pop)
                 setPopExitAnim(R.animator.fragment_nav_exit_pop)
             } else {

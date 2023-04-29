@@ -17,13 +17,16 @@ class MaterialSearchView(
     context: Context, attrs: AttributeSet?, defStyleAttr: Int
 ) : SearchView(context, attrs, defStyleAttr) {
 
-    private val searchText: TextView = findViewById(R.id.search_src_text)
-    private val searchEditFrame: View = findViewById(R.id.search_edit_frame)
-    private val closeButton: ImageView? = findViewById(R.id.search_close_btn)
+    private val searchText: TextView =
+        findViewById(com.google.android.material.R.id.search_src_text)
+    private val searchEditFrame: View =
+        findViewById(com.google.android.material.R.id.search_edit_frame)
+    private val closeButton: ImageView? =
+        findViewById(com.google.android.material.R.id.search_close_btn)
 
     constructor(context: Context) : this(context, null)
     constructor(context: Context, attrs: AttributeSet?) : this(
-        context, attrs, R.attr.searchViewStyle
+        context, attrs, androidx.appcompat.R.attr.searchViewStyle
     )
 
     init {
